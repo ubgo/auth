@@ -46,8 +46,6 @@ jobs:
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: fill the module cache for every module (task check resolves through a file:// proxy of this cache, offline)
         run: find . -name go.mod -not -path '*/node_modules/*' -execdir go mod download \;
-        env:
-          GOFLAGS: -mod=mod
       - name: task check (every module, SQLite integration suite, gqlgen example, type and dependency gates)
         run: task check
 
@@ -78,7 +76,6 @@ jobs:
       - name: integration suite on SQLite, Postgres and MySQL, race detector on
         working-directory: integration
         env:
-          GOFLAGS: -mod=mod
           AUTH_TEST_PG_DSN: postgres://postgres:root@localhost:5432/auth_test?sslmode=disable
           AUTH_TEST_MYSQL_DSN: root:auth@tcp(127.0.0.1:3306)/auth_test
         run: go test -race -count=1 -p 1 -timeout 45m ./...
