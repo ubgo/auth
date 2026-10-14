@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -78,13 +79,13 @@ func call(t *testing.T, c *http.Client, srv, method, path, body string, want int
 func TestNickname_TheClientsCallsWork(t *testing.T) {
 	ts := httptest.NewServer(newTestApp(t))
 	defer ts.Close()
-	jar, err := cookiejar.New(nil)
+	inner, err := cookiejar.New(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The cookie is __Host- and Secure; the jar keeps it for http://127.0.0.1
-	// because Go's jar treats loopback as secure.
-	c := &http.Client{Jar: jar}
+	// The cookie is __Host- and Secure; loopbackJar keeps it for
+	// http://127.0.0.1 the way a browser does.
+	c := &http.Client{Jar: loopbackJar{inner}}
 
 	call(t, c, ts.URL, http.MethodGet, "/auth/nickname/get", "", http.StatusUnauthorized)
 	call(t, c, ts.URL, http.MethodPost, "/auth/password/sign-up", `{"identifier":"ada@example.com","password":"correct horse battery staple","name":"Ada"}`, http.StatusOK)
@@ -161,3 +162,14 @@ func TestClient_GeneratedCopyIsCurrent(t *testing.T) {
 		t.Fatal("a command line that is not `auth …` was taken by authcli")
 	}
 }
+
+// loopbackJar is a cookie jar that treats http://127.0.0.1 as the secure
+// origin a browser does, so a Secure __Host- cookie is kept and sent back on
+// every Go version; only Go's newer jars do this themselves, and the
+// examples declare an older minimum.
+type loopbackJar struct{ *cookiejar.Jar }
+
+func secure(u *url.URL) *url.URL { s := *u; s.Scheme = "https"; return &s }
+
+func (j loopbackJar) SetCookies(u *url.URL, c []*http.Cookie) { j.Jar.SetCookies(secure(u), c) }
+func (j loopbackJar) Cookies(u *url.URL) []*http.Cookie       { return j.Jar.Cookies(secure(u)) }

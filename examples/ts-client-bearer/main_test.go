@@ -196,12 +196,13 @@ func TestServer_ForwardsTheBrowsersCookie(t *testing.T) {
 	trackSources(t)
 	api := startAPI(t)
 
-	// The browser: a cookie jar (Go's keeps the Secure __Host- cookie for
+	// The browser: a cookie jar (loopbackJar keeps the Secure __Host- cookie for
 	// http://127.0.0.1) and the app's Origin on every POST.
-	jar, err := cookiejar.New(nil)
+	inner, err := cookiejar.New(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+	jar := loopbackJar{inner}
 	browser := &http.Client{Jar: jar}
 	post := func(path, body string) {
 		t.Helper()
@@ -293,3 +294,14 @@ func TestServer_ForwardsTheBrowsersCookie(t *testing.T) {
 		t.Fatalf("server.ts logged: %s", stderr.String())
 	}
 }
+
+// loopbackJar is a cookie jar that treats http://127.0.0.1 as the secure
+// origin a browser does, so a Secure __Host- cookie is kept and sent back on
+// every Go version; only Go's newer jars do this themselves, and the
+// examples declare an older minimum.
+type loopbackJar struct{ *cookiejar.Jar }
+
+func secure(u *url.URL) *url.URL { s := *u; s.Scheme = "https"; return &s }
+
+func (j loopbackJar) SetCookies(u *url.URL, c []*http.Cookie) { j.Jar.SetCookies(secure(u), c) }
+func (j loopbackJar) Cookies(u *url.URL) []*http.Cookie       { return j.Jar.Cookies(secure(u)) }
