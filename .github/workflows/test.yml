@@ -33,7 +33,8 @@ jobs:
       - name: tools the gate needs (tsc, the docsync CLI, a pass-through testlock; CI has one job at a time)
         run: |
           npm i -g typescript
-          go install github.com/ubgo/docsync/cli/cmd/ds@latest
+          # ds needs a newer Go than the pinned toolchain; only this install may fetch one.
+          GOTOOLCHAIN=auto go install github.com/ubgo/docsync/cli/cmd/ds@latest
           mkdir -p "$HOME/.local/bin"
           printf '#!/bin/sh\nexec "$@"\n' > "$HOME/.local/bin/testlock"
           chmod +x "$HOME/.local/bin/testlock"

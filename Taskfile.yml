@@ -29,6 +29,18 @@ tasks:
   # straight through. Each public task takes the lock and runs its internal
   # :run twin. -count=1 stays only on runs against a live service (MySQL,
   # Postgres, Redis); plain runs may use Go's test cache.
+  ci:
+    desc: Start the full GitHub Actions run (task check plus Postgres and MySQL) on the pushed main and show its status once; the heavy runs belong there, not on this Mac
+    cmds:
+      - gh workflow run test --ref main
+      - 'sleep 5; gh run list --workflow test -L 3'
+
+  ci:status:
+    desc: Show the latest GitHub Actions runs and the failing job's last log lines (no watching)
+    cmds:
+      - gh run list --workflow test -L 5
+      - 'gh run view "$(gh run list --workflow test -L 1 --json databaseId -q ".[0].databaseId")" --log-failed 2>&1 | tail -40 || true'
+
   check:
     desc: The gate - gofmt, vet and tests of every module, the gqlgen example, the negative type-safety build, and the PoC's wiring guards
     cmds: ['testlock task check:run']
