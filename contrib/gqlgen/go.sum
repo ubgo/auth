@@ -12,6 +12,8 @@ github.com/sosodev/duration v1.4.0 h1:35ed0KiVFriGHHzZZJaZLgmTEEICIyt8Sx0RQfj9Ij
 github.com/sosodev/duration v1.4.0/go.mod h1:RQIBBX0+fMLc/D9+Jb/fwvVmo0eZvDDEERAikUR6SDg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
+github.com/ubgo/auth v0.1.0 h1:eFuoVMSz8EBeHahUBIoOOOZ+mJsKshFiUuzOVXqum/o=
+github.com/ubgo/auth v0.1.0/go.mod h1:orlEofooy4uqEEJT8iCpHiCyErZYQeCxj0K876bmUWE=
 github.com/ubgo/sqlb v0.1.1 h1:/D1jcjUIjv5HaZuHRVwfyo5OYIbGkmvLe3vISIX2ta8=
 github.com/ubgo/sqlb v0.1.1/go.mod h1:OD0l9pgY+j8GjpFMHcN364SKaFnNXIuZk3FAzJHG71U=
 github.com/vektah/gqlparser/v2 v2.5.36 h1:CN9mKVHgMkc+XftdOWIhb4HEL8wKSYkFAqhf8booa7s=
