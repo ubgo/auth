@@ -58,3 +58,16 @@ find . -name go.mod -not -path ./go.mod -not -path './.cover/*' -not -path '*/no
 		(cd "$d" && GOWORK=off GOFLAGS=-mod=mod go mod tidy)
 		echo "pin: $d"
 	done
+
+# Read every requirement back: a pin that did not land would ship v0.0.0 or a
+# stale commit to consumers, and nothing else would notice.
+stale=$(git ls-files '*go.mod' | grep -v '^go.mod$' | while read -r f; do
+	(cd "$(dirname "$f")" && go mod edit -json |
+		jq -r --arg v "$version" --arg f "$f" \
+			'.Require[]? | select(.Path | test("^github\\.com/ubgo/auth(/|$)")) | select(.Version != $v) | "\($f): \(.Path) \(.Version)"')
+done)
+if [ -n "$stale" ]; then
+	echo "pin: these requirements are not at $version:" >&2
+	echo "$stale" >&2
+	exit 1
+fi

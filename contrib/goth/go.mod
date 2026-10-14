@@ -9,7 +9,7 @@ go 1.25.0
 
 require (
 	github.com/markbates/goth v1.82.0
-	github.com/ubgo/auth v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth v0.0.0-20261014084637-dc7c057a66dd
 	golang.org/x/oauth2 v0.27.0
 )
 
