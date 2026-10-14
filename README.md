@@ -275,8 +275,11 @@ task check          # every module, the gqlgen example, the type checks, Markdow
 task test:engines   # the integration suite on SQLite, Postgres and MySQL
 task cover          # statement coverage per package, unit and integration merged
 task fuzz           # every fuzz target
+task ci             # the full gate on GitHub Actions (task ci:status reads the result)
 task --list         # the rest
 ```
+
+GitHub Actions runs `task check` and the Postgres and MySQL suites on every push to `main` and every pull request.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules a change is reviewed against and [COVERAGE.md](COVERAGE.md) for the measured coverage of every package and the few statements no test reaches.
 

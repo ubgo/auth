@@ -306,7 +306,7 @@ The [freshness check](custom-plugins.md#step-7--fail-the-build-when-the-copy-is-
 
 **Can I use it from Node, a server, or a test?** Yes: Node 18 or later has `fetch`, Node 22.18 or later runs the `.ts` files as they are, without a flag. Use bearer mode, forward a cookie per request, or pass your own `fetch`. See [Bearer mode › Step 5 and 6](bearer-and-mobile.md#step-5--server-side-code-calling-for-a-browser).
 
-**Is it on npm?** No. `@ubgo/auth-client` is private like the library; copy the files, or generate them from your app.
+**Is it on npm?** No. `@ubgo/auth-client` is not published to npm; copy the files, or generate them from your app.
 
 **Does the client refresh the session by itself?** No. How long a session lives and whether use extends it is the server's configuration ([Sessions](../concepts/sessions.md)); when a session ends, calls answer `auth.signed_out` and your app signs the user in again. `client.sessionRefresh()` is there for a server that defers refreshing to the client.
 

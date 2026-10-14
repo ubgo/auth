@@ -16,7 +16,7 @@ task test:engines   # when SQL changed: SQLite, Postgres and MySQL
 task cover          # statement coverage per package, unit and integration merged
 ```
 
-If it is not green, the change is not done.
+If it is not green, the change is not done. GitHub Actions runs `task check` and the Postgres and MySQL suites on every push to `main` and every pull request; `task ci` starts a run and `task ci:status` reads the latest results.
 
 ## Rules that override your defaults
 

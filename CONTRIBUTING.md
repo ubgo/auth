@@ -15,7 +15,7 @@ task test:engines   # SQLite, Postgres and MySQL, race detector on
 task cover          # statement coverage, unit and integration merged, per package
 ```
 
-`task --list` shows every other command. CI exists but does not run on push: the repository is private, where GitHub Actions minutes are metered, so the workflows are `workflow_dispatch` only and `task check` is the real gate. The lines that restore automatic runs are in a comment at the top of each workflow.
+`task --list` shows every other command. CI runs the same gate on GitHub Actions (`.github/workflows/test.yml`): `task check` plus the Postgres and MySQL integration suites, on every push to `main`, on every pull request and on demand. `task ci` starts a run on the pushed `main` and `task ci:status` shows the latest runs and the failing job's last log lines, so the heavy suites need not run on your machine; run the touched package's tests locally while you work.
 
 ## The rules a change is reviewed against
 

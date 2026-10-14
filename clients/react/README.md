@@ -5,7 +5,7 @@ React bindings and copy-in UI components for [github.com/ubgo/auth](../../README
 - **The package** (`src/`, `@ubgo/auth-react`): headless. `AuthProvider`, `useAuth`, `useSession`, `useSessionActions`, `<SignedIn>` / `<SignedOut>`, `usePlugin` / `usePluginClient`, `useOAuthProviders`, the localization helpers, the passkey ceremony and passkey autofill, and the organization hooks. Built on TanStack Query.
 - **The registry** (`registry/`): shadcn components you copy into your app with `shadcn add`, styled with your shadcn tokens, compact by default, and edited freely once copied. Base UI primitives, not Radix.
 
-Not published to npm, like the rest of the library. How every component is customised is in [CONTRACT.md](CONTRACT.md); how to add one is in [BUILDING.md](BUILDING.md); a working app is [examples/react-demo](../../examples/react-demo/README.md).
+Not published to npm. How every component is customised is in [CONTRACT.md](CONTRACT.md); how to add one is in [BUILDING.md](BUILDING.md); a working app is [examples/react-demo](../../examples/react-demo/README.md).
 
 ## Use it in an app
 

@@ -1,6 +1,6 @@
 # React UI kit
 
-You will have sign-in, sign-up, password reset, email verification, two-factor, passkeys (with autofill), a user menu, an account page and organization switching in a React app, as components you copy in and own, styled by your shadcn theme, talking to the library through the [TypeScript client](README.md). Nothing here is on npm: the kit is private like the library.
+You will have sign-in, sign-up, password reset, email verification, two-factor, passkeys (with autofill), a user menu, an account page and organization switching in a React app, as components you copy in and own, styled by your shadcn theme, talking to the library through the [TypeScript client](README.md). Nothing here is on npm: copy the kit in from the repository.
 
 ## What it is, and when you want it
 
