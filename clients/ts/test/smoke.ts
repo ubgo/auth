@@ -140,7 +140,7 @@ async function nextTimeStep(): Promise<void> {
 }
 
 /** Decodes RFC 4648 base32, padding optional. */
-function base32(text: string): Uint8Array {
+function base32(text: string) {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
   let bits = 0;
   let value = 0;

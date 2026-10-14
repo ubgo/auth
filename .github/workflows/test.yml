@@ -36,7 +36,7 @@ jobs:
           node-version: "22"
       - name: tools the gate needs (tsc, the docsync CLI, a pass-through testlock; CI has one job at a time)
         run: |
-          npm i -g typescript
+          npm i -g typescript@7.0.2
           # ds needs a newer Go than the pinned toolchain; only this install may fetch one.
           GOTOOLCHAIN=auto go install github.com/ubgo/docsync/cli/cmd/ds@latest
           mkdir -p "$HOME/.local/bin"

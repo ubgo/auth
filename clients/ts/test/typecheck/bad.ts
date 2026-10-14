@@ -17,8 +17,10 @@ const typed = createAuthClient({
 export async function mistakes(): Promise<void> {
   // A plugin that was not enabled has no namespace.
   await client.twofactor.verify({ code: "123456" }); // expect TS2339
-  // A required input field left out.
-  await client.password.signIn({ identifier: "a@example.com" }); // expect TS2345
+  // The required input left out. (An incomplete object literal is not used:
+  // tsc 5 reports it as TS2345 and tsc 7 as TS2741, so the marked code would
+  // depend on the compiler version; a missing argument is TS2554 in both.)
+  await client.password.signIn(); // expect TS2554
   // A field of the wrong type.
   await client.password.signIn({ identifier: 42, password: "x" }); // expect TS2322
   // A field the server would refuse as unknown.
