@@ -2,7 +2,19 @@
 
 Every entry that changes a security property is tagged **[security]**, so an app pinned to an older version can see what a bump fixes.
 
-## Unreleased (2026-10-13, auth batch 5)
+## [0.1.0] - 2026-10-14
+
+The first tagged release. Every entry in the "pre-0.1.0" sections below shipped in it.
+
+### Added
+
+- Tags `v0.1.0` for the core module (`github.com/ubgo/auth`) and `<dir>/v0.1.0` for each module an app imports: `authui`; `contrib/echo`, `contrib/fiber`, `contrib/gin`, `contrib/goth`, `contrib/gqlgen`, `contrib/otel`, `contrib/phonenumbers`, `contrib/redis`; `plugin/access`, `plugin/agentauth`, `plugin/deviceauth`, `plugin/deviceauth/oauthdevice`, `plugin/ldap`, `plugin/oauthprovider`, `plugin/oauthproxy`, `plugin/organization`, `plugin/passkey`, `plugin/password`, `plugin/referral`, `plugin/samlidp`, `plugin/scim`, `plugin/siwe`, `plugin/sso`, `plugin/webhook`. Install with `go get github.com/ubgo/auth@v0.1.0 github.com/ubgo/auth/plugin/password@v0.1.0`. The repository's test-only modules (`examples`, `integration`, `contrib/gqlgen/example`) are not tagged.
+
+### Changed
+
+- Every module requires the core and its sibling modules at `v0.1.0`; no `go.mod` carries a `replace` to a local path any more, so each module builds on its own from the module proxy. Development joins the modules through the committed root `go.work`, and the Taskfile no longer sets `-mod=mod`, which workspace mode rejects.
+
+## [pre-0.1.0] (2026-10-13, auth batch 5)
 
 ### Added
 
@@ -37,7 +49,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - [security] Two-factor: adding a second method while two-factor is on now needs a current factor as `proof` (a code, a recovery code or a security-key assertion), on `enroll` and on `security-key-register-finish`; without it the answer is `twofactor.proof_required` (400). Before, enroll over a factor that was on was refused outright, and a stolen fresh session could otherwise plant a factor of its own. `enroll` of the method the user already has still answers `twofactor.already_enabled`.
 - jwt: `JWKSPath("/template")` is refused, and `Operations()` lists three operations (two under `RemoteJWKS`).
 
-## Unreleased (2026-10-12, TypeScript client)
+## [pre-0.1.0] (2026-10-12, TypeScript client)
 
 ### Added
 
@@ -121,7 +133,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - examples: [ts-client-flows](examples/ts-client-flows/) runs email verification, password reset, a magic link, sign out everywhere, a second factor by mailed code and an organization from Node in bearer mode; [ts-client-bearer](examples/ts-client-bearer/) is a Node CLI whose token lives in a `0600` file across restarts and a Node server forwarding a browser's cookie; [react-headless](examples/react-headless/) uses only `@ubgo/auth-react`'s provider and hooks with markup of its own and no router (`task ui:headless`). The two Node examples are run by their Go tests, which fail rather than skip without Node 22.18 or later.
 - docs: [SPA frontends](docs/integrations/spa-frontends.md) and [Mobile apps](docs/integrations/mobile-apps.md) have a step for the typed client; the feature index has 98 client rows, 90 of them with an example; the root README has a Frontend client section; `.auth-token` is ignored.
 
-## Unreleased (2026-10-10)
+## [pre-0.1.0] (2026-10-10)
 
 ### Changed
 
@@ -132,7 +144,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 - A recipe for using ent alongside auth (`docs/integrations/ent.md`, example `ent-alongside`): ent on the library's `*sql.DB`, one shared transaction with `a.Tx`, and reading `auth_user` with sqlb handles. `docs/concepts/databases.md` now says to query plugin tables through the exported sqlb column handles rather than raw SQL.
 
-## Unreleased (2026-10-10, auth batch 4)
+## [pre-0.1.0] (2026-10-10, auth batch 4)
 
 ### Added
 
@@ -143,7 +155,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - examples: `risk-signals`, a tested walkthrough of the three checks.
 - tests: `TestRisk_*` in the core (actions, fail open and closed, the signals a bot check sees, which calls are judged, refused configurations) and on every engine `TestRisk_*` in the integration module (a flagged password sign-in blocked with one event, the log action, fail open and closed, a trial-abuse sign-up refused with no user left behind). The block decision and the fail-closed switch were each broken to see the tests fail.
 
-## Unreleased (2026-10-10, auth batch 3)
+## [pre-0.1.0] (2026-10-10, auth batch 3)
 
 ### Added
 
@@ -168,7 +180,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - auth: the pipeline puts the running call in the context of the operation's body, so the session it creates can ask the `RateChallenger` about the same call (impossible travel's challenge action). A session created from Go outside an operation has no call, and a challenge there refuses like a block.
 - auth: every rate event (`auth.RateEvent`) also feeds the security event stream, as `rate.limit`, once per rule window, beside the logger, the observer and `plugin/audit`.
 
-## Unreleased (2026-10-09, auth batch 2)
+## [pre-0.1.0] (2026-10-09, auth batch 2)
 
 ### Added
 
@@ -187,7 +199,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 - Every option refusal now names its option. The 72 refusals the config edge test had pinned as unnamed (`edgeUnnamedRefusals`) read `auth.WithSecret: secret 0 has 3 bytes`, `auth.WithIPv6Prefix: ...`, `discovery ...` and so on, and the list is empty: a new unnamed refusal fails `TestConfigEdge`. Error codes and sentinel errors are unchanged, so `errors.Is` keeps matching.
 
-## Unreleased (2026-10-09, safety nets)
+## [pre-0.1.0] (2026-10-09, safety nets)
 
 ### Added
 
@@ -201,7 +213,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - auth: `WithDBAuto(nil)` panicked in dialect detection; it is now `auth.ErrNilOption` naming `auth.WithDBAuto`.
 - authui: the panics for a bad `Methods` entry now start `authui.Methods:`, naming the option.
 
-## Unreleased (2026-10-09, auth batch 1)
+## [pre-0.1.0] (2026-10-09, auth batch 1)
 
 ### Added
 
@@ -226,7 +238,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - examples/org-workspace: the hooks use `organization.WithHooksFrom`; the projects store and its bind after `auth.New` are gone.
 - **Behaviour change** admin: `DefaultStatements` and `DefaultRoles()` gain the `two-factor` resource, so the built-in admin role and an `accessadmin` role built from `DefaultStatements` now grant the four new permissions.
 
-## Unreleased (2026-10-09, sweep)
+## [pre-0.1.0] (2026-10-09, sweep)
 
 ### Added
 
@@ -245,7 +257,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 - 12 new tested examples for features that had none: `signup-fields`, `email-verify-code`, `phone-options`, `two-factor-manage`, `oauth-rules`, `jwt-session`, `session-revocation`, `kms-sealer`, `org-workspace` (with `orgtest` fixtures), `scim-connections`, `agent-ciba` and `agent-openapi`; `oauth-provider` gained end-session, a resource API that verifies tokens offline and client metadata documents, `cli` gained `AUTH_*` configuration and `auth info`, and `spa-cross-origin` gained preview origins through `WithTrustedOriginFunc`. Their guide sections now copy the tested code. 256 of the 261 rows in `docs/reference/features.md` have an example; the five without one are properties or reference lists (no foreign keys, every error code, uniform answers and timing, the production checklist, shipping a plugin as its own module), and the guides cite the tests that prove the first three.
 
-## Unreleased (2026-10-09, fixes)
+## [pre-0.1.0] (2026-10-09, fixes)
 
 ### Fixed
 
@@ -260,7 +272,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - authhttp: the built-in error page's title, heading and link translate through `auth.WithMessages` under the new codes `authhttp.ErrorPageTitleCode`, `ErrorPageHeadingCode` and `ErrorPageBackCode`, and its `lang` attribute follows the request's locale when the heading is translated (`en` otherwise). It was `lang="en"` with English text whatever the request asked for. `ErrorPageData` gains `Lang`, `Title`, `Heading` and `Back`. New `auth.Auth.Translate(ctx, code)` looks up any catalogue text in the request's locale.
 - apikey: a configuration may declare permissions only (`WithPermissions`) without `Scopes`; its keys carry no scope, and a request for one is refused with `apikey.unknown_scope`. A configuration with neither still fails `auth.New` with `ErrNoScopes`, whose message now names both options.
 
-## Unreleased (2026-10-08, round 3)
+## [pre-0.1.0] (2026-10-08, round 3)
 
 ### Changed
 
@@ -287,7 +299,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - `examples/oauth-preview` reads its port from `PORT` like every other example.
 - The generated HTTP API reference links the five `/auth/device/*` routes to `plugins/deviceauth.md` instead of a `device.md` that does not exist; `apiref` tests that every guide link resolves.
 
-## Unreleased (2026-10-08, round 2)
+## [pre-0.1.0] (2026-10-08, round 2)
 
 No hard-wired models: every policy the library used to fix in code (who may act, how errors look, how secrets are sealed, how ids are typed, how rates are counted, which sign-ins need a second factor) is now an interface or an option with the old behaviour as the default. Behaviour changes and API breaks are marked **Breaking** or **Behaviour change**.
 
@@ -329,7 +341,7 @@ No hard-wired models: every policy the library used to fix in code (who may act,
 
 - The failure paths the seams opened are tested: a key service failing midway through sealing OAuth tokens, a TOTP import and recovery codes, an unreadable replacement asset in `authui.Templates`, an encoder reaching an unreadable fiber request, an ambiguous invite or remove-member address, a skipped OAuth provider offering no button, and both permission checkers denying an empty want. Merged coverage 99.5%; the one new uncovered statement (`authui.DefaultTemplates`' `fs.Sub` error on a constant path) is explained in COVERAGE.md.
 
-## Unreleased (2026-10-08)
+## [pre-0.1.0] (2026-10-08)
 
 The partial rows of the better-auth comparison in the core, OAuth-concepts and transport areas, finished.
 
@@ -433,7 +445,7 @@ The partial rows of the better-auth comparison in the core, OAuth-concepts and t
 - Three tamper tests (the sealed OAuth flow cookie, a signed cookie, a JWT) replaced characters with fixed ones and so left the value unchanged when it already held them, failing about one run in 64; they now always change it.
 - The failure paths the full coverage run found open are tested (`integration/f1_cover_test.go`): rate stores failing under `GuardCredentialStuffing` and in `RateHit`/`RatePeek`, database faults in the user-locale read, the profile-field write and `RequireOwnerRow`, and message data that cannot be queued or restored; `orgtest` has a test per helper. Merged coverage 99.5%.
 
-## Unreleased (2026-10-07)
+## [pre-0.1.0] (2026-10-07)
 
 Rounds 6 and 11 to 25 of closing the gaps against better-auth, the owner's parity decisions, and the follow-up tasks. Not yet committed; listed here so the next release notes start complete.
 
@@ -551,7 +563,7 @@ Rounds 6 and 11 to 25 of closing the gaps against better-auth, the owner's parit
 - `task gomin` (part of `task check`) vets every module, test files included, under the Go toolchain its go.mod declares, so a stated minimum is proven. `plugin/oauthprovider`, `plugin/agentauth` and `plugin/deviceauth/oauthdevice` need Go 1.24; `plugin/sso` needs 1.25 because gosaml2 does.
 - `task cover` now measures `plugin/sso`, `plugin/oauthprovider` and `plugin/agentauth`, which it had left out.
 
-## Unreleased
+## [pre-0.1.0]
 
 The first version of the library.
 
