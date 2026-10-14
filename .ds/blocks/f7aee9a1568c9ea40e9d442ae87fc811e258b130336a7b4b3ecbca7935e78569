@@ -1,0 +1,3 @@
+func (e *Env) Anonymous(ctx context.Context) context.Context {
+	return e.request(ctx, auth.CredentialNone, "")
+}

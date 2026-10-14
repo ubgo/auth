@@ -1,0 +1,3 @@
+export async function resendVerification(address: string): Promise<void> {
+  await auth.email.resend({ email: address });
+}

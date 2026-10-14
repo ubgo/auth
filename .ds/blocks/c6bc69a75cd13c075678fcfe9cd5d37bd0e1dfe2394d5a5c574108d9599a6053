@@ -1,0 +1,12 @@
+func requireMigrated(ctx context.Context, a *auth.Auth) error {
+	states, err := a.MigrationStatus(ctx)
+	if err != nil {
+		return err
+	}
+	for _, s := range states {
+		if !s.Applied || s.Changed {
+			return errPending
+		}
+	}
+	return nil
+}

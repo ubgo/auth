@@ -1,0 +1,3 @@
+func DisplayValidator(fn func(display string) error) Option {
+	return func(p *Plugin) { p.displayValid = fn }
+}

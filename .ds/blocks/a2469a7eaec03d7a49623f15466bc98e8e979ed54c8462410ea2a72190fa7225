@@ -1,0 +1,24 @@
+func login(ctx context.Context, out io.Writer, c *deviceauth.Client) error {
+	code, err := c.RequestCode(ctx, "")
+	if err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(out, "open %s and enter the code %s\n(or open %s)\nwaiting for approval...\n", code.VerificationURI, code.UserCode, code.VerificationURIComplete); err != nil {
+		return err
+	}
+	tok, err := c.Poll(ctx, code)
+	if err != nil {
+		return err
+	}
+	server, err := url.Parse(c.TokenURL)
+	if err != nil {
+		return err
+	}
+	server.Path = "/me"
+	var who meResponse
+	if err := call(ctx, c.HTTP, server.String(), tok.AccessToken, &who); err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(out, "signed in as %s (%s), /me answered with credential %q\n", who.ID, who.Name, who.Credential)
+	return err
+}

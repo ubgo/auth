@@ -1,0 +1,4 @@
+func (p *Plugin) Remove(ctx context.Context, number string) error {
+	_, err := p.remove.Call(ctx, NumberRequest{Phone: number})
+	return err
+}

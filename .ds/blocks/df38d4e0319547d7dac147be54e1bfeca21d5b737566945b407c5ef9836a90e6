@@ -1,0 +1,24 @@
+func (a *Auth) TrustsReturnURL(target string) bool {
+	if a.noOriginCheck {
+		// WithoutOriginCheck: anything but an empty target, as
+		// better-auth's disableOriginCheck. See its comment for the risk.
+		return target != ""
+	}
+	if target == "" || strings.ContainsAny(target, "\\\n\r") {
+		return false
+	}
+	if strings.HasPrefix(target, "/") {
+		return !strings.HasPrefix(target, "//")
+	}
+	u, err := url.Parse(target)
+	if err != nil || u.Scheme == "" {
+		return false
+	}
+	if _, ok := a.trustedSchemes[strings.ToLower(u.Scheme)]; ok {
+		return true
+	}
+	if a.loopbackReturn && isLoopbackReturn(u) {
+		return true
+	}
+	return u.Host != "" && a.TrustsOrigin(u.Scheme+"://"+u.Host)
+}

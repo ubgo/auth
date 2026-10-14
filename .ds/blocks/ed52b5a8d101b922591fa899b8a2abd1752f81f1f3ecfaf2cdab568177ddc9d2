@@ -1,0 +1,1 @@
+var ErrNoQueryBackend = auth.NewError("audit.no_query_backend", http.StatusNotImplemented, "The audit log cannot be read here.")

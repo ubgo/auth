@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-03T09:07:21.499116000Z",
+  "created_at": "2026-10-03T07:23:38.976869000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a100a5a8607d52bcdf7eaae2832e78",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-03T07:23:39.071353000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Close better-auth gaps, round 4: every in-scope 🟡 row built, kept with a precise one-line gap, or won't-do",
+  "updated_at": "2026-10-03T09:07:21.499269000Z"
+}

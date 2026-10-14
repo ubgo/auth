@@ -1,0 +1,16 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *countingCache, error) {
+	g := guard.New(blockedDomains...)
+	cache := newCountingCache(auth.NewMemorySessionCache(cacheEntries))
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			g,
+		),
+		auth.WithSessionPolicy(g.SessionPolicy()),
+		auth.WithSessionCache(cache, cacheTTL),
+	)
+	return a, cache, err
+}

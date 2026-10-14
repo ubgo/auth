@@ -1,0 +1,14 @@
+type Signer interface {
+	// KeyID names the key that signs now; it goes into the token's kid
+	// header, which is part of what is signed, so it is asked for first.
+	KeyID() string
+	// Sign returns the signature of the JWS signing input (header dot
+	// payload) with the key named kid, the value KeyID just returned. The
+	// kid is passed back so a signer whose key changes between the two
+	// calls, at the instant of a rotation, still signs with the key the
+	// header names.
+	Sign(ctx context.Context, kid string, signingInput []byte) ([]byte, error)
+	// PublicKeys returns every key a token in flight may carry, the signing
+	// key first, so the JWKS can publish them in that order.
+	PublicKeys() []ed25519.PublicKey
+}

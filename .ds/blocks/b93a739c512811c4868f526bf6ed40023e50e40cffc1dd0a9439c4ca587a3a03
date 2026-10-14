@@ -1,0 +1,1 @@
+func WithSigner(s Signer) Option { return func(p *Plugin) { p.signer = s } }

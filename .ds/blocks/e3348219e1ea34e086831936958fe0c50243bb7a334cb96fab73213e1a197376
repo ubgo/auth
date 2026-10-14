@@ -1,0 +1,9 @@
+func KeysFromJWKS(set JWKS) map[string]crypto.PublicKey {
+	out := map[string]crypto.PublicKey{}
+	for _, k := range set.Keys {
+		if pub, ok := keyOfJWK(k); ok {
+			out[k.KeyID] = pub
+		}
+	}
+	return out
+}

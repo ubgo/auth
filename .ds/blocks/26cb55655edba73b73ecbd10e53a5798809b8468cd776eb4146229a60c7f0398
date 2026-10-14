@@ -1,0 +1,12 @@
+type SessionCache interface {
+	// Get returns the cached session and user for k, valid at now, or
+	// ok=false. An error is a failure of the cache itself, not a miss.
+	Get(ctx context.Context, k CacheKey, now time.Time) (s Session, u User, ok bool, err error)
+	// Put remembers a looked-up session until until. The returned string,
+	// when not empty, is handed to the client to send back on later requests
+	// as Request.CachedSession; the snapshot cache uses it, a server-side
+	// cache returns "".
+	Put(ctx context.Context, k CacheKey, s Session, u User, until time.Time) (clientValue string, err error)
+	// Drop forgets the entry for this token: sign-out on this device.
+	Drop(ctx context.Context, k CacheKey) error
+}

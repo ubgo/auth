@@ -1,0 +1,21 @@
+func newAuth(db *sql.DB, m email.Mailer, ac *access.AccessControl) (*auth.Auth, *apikey.Plugin, error) {
+	ak := apikey.New(
+		apikey.Scopes(scopeOrdersRead, scopeOrdersWrite),
+		apikey.AllowMetadata(),
+		apikey.WithCache(apikey.NewMemoryCache(), 0),
+		apikey.WithPermissions(accessapikey.New(ac)),
+		apikey.Configuration(configLive, apikey.Prefix(prefixLive)),
+		apikey.Configuration(configTest, apikey.Prefix(prefixTest),
+			apikey.DefaultLimits(apikey.Limits{RateMax: testRateMax, RateWindow: testRateWindow})),
+	)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			ak,
+		),
+	)
+	return a, ak, err
+}

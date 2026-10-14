@@ -1,0 +1,16 @@
+type VerificationStore interface {
+	// Insert saves v under tokenHash.
+	Insert(ctx context.Context, v Verification, tokenHash []byte) error
+	// Consume spends the token of purpose whose hash is tokenHash, live at
+	// now, and returns its row with ConsumedAt set, or ErrTokenInvalid.
+	Consume(ctx context.Context, purpose Purpose, tokenHash []byte, now time.Time) (Verification, error)
+	// ConsumeAll spends every open token of purpose filed under identifier.
+	ConsumeAll(ctx context.Context, purpose Purpose, identifier string, now time.Time) error
+	// DeleteIdentifiers ends every token filed under any of identifiers,
+	// whatever its purpose, issued up to now: what DeleteUser calls for the
+	// user's id and its identities' ids and values.
+	DeleteIdentifiers(ctx context.Context, identifiers []string, now time.Time) error
+	// Sweep deletes tokens that expired, or were spent, before cutoff, and
+	// returns how many. A store that expires records itself returns 0.
+	Sweep(ctx context.Context, cutoff time.Time) (int64, error)
+}

@@ -1,0 +1,1 @@
+	TableDevice = sqlb.Table{Name: TableNameDevice, Alias: TableAliasDevice}

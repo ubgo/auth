@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Kept, not cancelled: dec_01a0f86736bd7e119cc4fe7987fb0b52 keeps it on the plan and dec_01a0fcedbd807cb5ae459329f5d99c9e makes it a separate module built after core auth. plugin/organization is already its own module. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:02.518595000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f8673677714ca95b198eacc2995a",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc691f6793b8ccd79b20dc8693c",
+  "updated_at": "2026-10-05T15:55:02.518595000Z"
+}

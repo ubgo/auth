@@ -1,0 +1,3 @@
+type RateLimiter interface {
+	RateLimits() []RateRule
+}

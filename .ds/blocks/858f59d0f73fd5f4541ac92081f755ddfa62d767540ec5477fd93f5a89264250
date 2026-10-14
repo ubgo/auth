@@ -1,0 +1,15 @@
+func ByHandleQuery(a *auth.Auth, rawHandle string, dst *auth.User) (sqlb.Query, error) {
+	return a.Select().
+		Columns(auth.UserBindings(dst)...).
+		From(auth.TableUser).
+		Join(sqlb.Join{
+			Type:  sqlb.JoinInner,
+			Table: TableIdentity,
+			On: []sqlb.Predicate{
+				sqlb.EqExpr(IdentityUserID, auth.UserID),
+				sqlb.Eq(IdentityKind, KindUsername),
+			},
+		}).
+		Where(sqlb.Eq(IdentityValue, fold(rawHandle))).
+		Build()
+}

@@ -1,0 +1,11 @@
+const (
+	// maxDeviceAccounts is how many accounts one browser may hold at once,
+	// the active one included. Three is below the library's default of five
+	// (auth.DefaultMaxDeviceSessions) so the walkthrough reaches the cap.
+	maxDeviceAccounts = 3
+	// freshWindow is how recent a sign-in must be to delete the account.
+	// Shorter than the library's default ten minutes (auth.DefaultFreshWindow):
+	// deleting cannot be undone, so a laptop left open for a coffee break
+	// must not be enough.
+	freshWindow = 5 * time.Minute
+)

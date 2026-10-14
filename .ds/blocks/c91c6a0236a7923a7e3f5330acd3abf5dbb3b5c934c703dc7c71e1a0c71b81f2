@@ -1,0 +1,25 @@
+type CodeOptions struct {
+	// Reuse returns the open code of purpose for subject again, with its
+	// expiry moved to ttl from now, instead of replacing it: better-auth's
+	// resendStrategy "reuse". A code with no attempts left (MaxAttempts) or
+	// past its expiry is replaced as usual, and a resend never refills the
+	// attempt budget. It needs WithSecret (ErrNoSecret otherwise).
+	//
+	// The core's digits are derived, never stored readable: HMAC-SHA256 of
+	// the row id under the key derived from WithSecret under KeyLabelCodes,
+	// reduced to CodeLength digits. A Generate code cannot be recomputed, so
+	// it is also stored sealed (AES-256-GCM, bound to its row id) in
+	// auth_code.code_sealed under the keys derived from every WithSecret
+	// secret, current first. Either way, anyone holding the database AND the
+	// secret can read every open code. A row whose code does not recompute
+	// or open (issued without Reuse, or before every listed secret) gets a
+	// fresh code.
+	Reuse bool
+	// MaxAttempts is the attempt budget Reuse checks the open code against;
+	// 0 means DefaultCodeMaxAttempts. Use the value CheckCode is given.
+	MaxAttempts int
+	// Generate makes the code instead of the core's random digits. The
+	// caller checks its strength; an empty code, or one longer than
+	// MaxGeneratedCodeLength, is ErrBadOperation.
+	Generate func(ctx context.Context) (string, error)
+}

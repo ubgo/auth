@@ -1,0 +1,4 @@
+func (p *Plugin) Delete(ctx context.Context) error {
+	_, err := p.remove.Call(ctx, struct{}{})
+	return err
+}

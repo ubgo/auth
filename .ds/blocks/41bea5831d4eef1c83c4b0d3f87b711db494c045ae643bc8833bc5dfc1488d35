@@ -1,0 +1,4 @@
+type mailbox struct {
+	mu   sync.Mutex
+	sent []email.Mail
+}

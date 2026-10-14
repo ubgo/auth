@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: plugin/username ships no RateLimits for username.available. An app can now add one from outside with auth.WithRateRules (round 1), so the remaining work is a default rule in the plugin. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:01.473600000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f60c2caa7d2b9fa0ce5882a640a8",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68de1794e9f25498560693fbd",
+  "updated_at": "2026-10-05T15:55:01.473600000Z"
+}

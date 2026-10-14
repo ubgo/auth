@@ -1,0 +1,5 @@
+type Error struct {
+	Status int
+	Type   ErrorType
+	Detail string
+}

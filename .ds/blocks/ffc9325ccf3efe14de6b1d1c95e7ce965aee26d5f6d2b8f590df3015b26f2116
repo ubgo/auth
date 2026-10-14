@@ -1,0 +1,3 @@
+func WithTrustedOriginFunc(fn OriginFunc) Option {
+	return func(s *settings) { s.originFunc = fn }
+}

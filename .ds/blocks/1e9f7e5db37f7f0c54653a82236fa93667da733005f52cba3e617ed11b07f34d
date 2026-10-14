@@ -1,0 +1,8 @@
+func Configuration(id string, opts ...Option) Option {
+	return func(p *Plugin) {
+		if auth.RefuseNilEach(&p.optErrs, "apikey.Configuration", opts) {
+			return
+		}
+		p.specs = append(p.specs, configSpec{id: id, opts: opts})
+	}
+}

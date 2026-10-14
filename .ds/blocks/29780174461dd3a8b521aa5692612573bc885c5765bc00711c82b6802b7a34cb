@@ -1,0 +1,8 @@
+export function clientFor(authOrigin: string) {
+  return createAuthClient({
+    baseURL: `${authOrigin}/auth`,
+    tokenMode: "bearer",
+    tokenStore: keyValueTokenStore(localStorage),
+    plugins: [password(), oauthPopup()],
+  });
+}

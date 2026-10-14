@@ -1,0 +1,4 @@
+func (p *Plugin) List(ctx context.Context) ([]Key, error) {
+	r, err := p.list.Call(ctx, struct{}{})
+	return r.Keys, err
+}

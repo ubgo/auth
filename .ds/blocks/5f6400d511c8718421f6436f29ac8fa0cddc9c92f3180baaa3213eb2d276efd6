@@ -1,0 +1,10 @@
+func UserJoin(orgID string) sqlb.Join {
+	return sqlb.Join{
+		Type:  sqlb.JoinLeft,
+		Table: TableMember,
+		On: []sqlb.Predicate{
+			sqlb.EqExpr(MemberUserID, auth.UserID),
+			sqlb.Eq(MemberOrgID, orgID),
+		},
+	}
+}

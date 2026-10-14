@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Done: both are supported. Browsers use the __Host-auth_session cookie; mobile and native clients ask for a bearer token with the Auth-Token-Mode: bearer header and read Set-Auth-Token (authhttp), with the handoff plugin (round 2) moving a signed-in user to a native app and desktop sign-in through the system browser (round 3). Guides: docs/integrations/mobile-apps.md, spa-frontends.md, desktop-apps.md. Verified by r10-lore audit 2026-10-05.",
+  "created_at": "2026-10-05T15:54:31.261037000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec29c3e3756aa658e5ffaf182875",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc617dd70b39fd7bfb40a899ff7",
+  "updated_at": "2026-10-05T15:54:31.261037000Z"
+}

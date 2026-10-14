@@ -1,0 +1,14 @@
+func KeysFromJWKS(set JWKS) map[string]ed25519.PublicKey {
+	out := map[string]ed25519.PublicKey{}
+	for _, k := range set.Keys {
+		if k.KeyType != KeyTypeOKP || k.Curve != CurveEd25519 || (k.Alg != "" && k.Alg != Algorithm) {
+			continue
+		}
+		raw, err := base64.RawURLEncoding.DecodeString(k.X)
+		if err != nil || len(raw) != ed25519.PublicKeySize {
+			continue
+		}
+		out[k.KeyID] = ed25519.PublicKey(raw)
+	}
+	return out
+}

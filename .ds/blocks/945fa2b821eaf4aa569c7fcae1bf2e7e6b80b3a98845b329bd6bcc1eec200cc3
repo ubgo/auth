@@ -1,0 +1,3 @@
+func (p *Plugin) Update(ctx context.Context, in UpdateRequest) (Key, error) {
+	return p.update.Call(ctx, in)
+}

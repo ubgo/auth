@@ -1,0 +1,23 @@
+func (p *Plugin) DataHooks() auth.DataHooks {
+	return auth.DataHooks{User: auth.TableHooks[auth.User]{AfterCreate: func(ctx context.Context, _ sqlb.DBTX, u *auth.User) error {
+		code := requestCode(ctx)
+		var referrer string
+		if code != "" {
+			id, ok, err := p.owner(ctx, code)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return ErrInvalidCode
+			}
+			referrer = id
+		}
+		if _, err := p.codeOf(ctx, u.ID); err != nil {
+			return err
+		}
+		if referrer == "" {
+			return nil
+		}
+		return p.refer(ctx, referrer, *u, code)
+	}}}
+}

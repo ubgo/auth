@@ -1,0 +1,26 @@
+type SecurityEvent struct {
+	// ID is unique per event ("sev_" and 24 hex digits), for a sink that
+	// de-duplicates retries.
+	ID   string
+	At   time.Time
+	Kind SecurityKind
+	// Severity is set by the emitter; EmitSecurity fills SeverityInfo when
+	// it is empty.
+	Severity SecuritySeverity
+	// Outcome is what the library did: blocked, logged (recorded only),
+	// challenged or challenge_passed. The same four values as RateOutcome.
+	Outcome RateOutcome
+	// Op, Plugin and Transport name the operation the event happened in;
+	// "" for an event outside one.
+	Op        EndpointID
+	Plugin    string
+	Transport Transport
+	// UserID is the account concerned, "" when the event is about a call that
+	// named none (a rate rule by address).
+	UserID string
+	// IP is the client address, "" under WithoutIPTracking or outside a
+	// request.
+	IP string
+	// Attrs holds the kind's details under the Attr* keys.
+	Attrs map[string]string
+}

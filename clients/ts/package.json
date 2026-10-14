@@ -1,0 +1,14 @@
+{
+  "name": "@ubgo/auth-client",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Typed fetch client for the github.com/ubgo/auth HTTP API, generated from its operation list.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "sideEffects": false
+}

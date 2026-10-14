@@ -1,0 +1,6 @@
+type Hasher interface {
+	Verifier
+	// Hash returns the string to store for pw. An error fails the sign-up,
+	// reset or change; it never stores anything.
+	Hash(pw Secret) (string, error)
+}

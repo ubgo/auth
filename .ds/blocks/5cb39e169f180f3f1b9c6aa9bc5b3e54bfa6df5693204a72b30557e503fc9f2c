@@ -1,0 +1,3 @@
+func HasCredential(r *http.Request, opts ...Option) bool {
+	return requestOf(r, newConfig(opts)).Credential != auth.CredentialNone
+}

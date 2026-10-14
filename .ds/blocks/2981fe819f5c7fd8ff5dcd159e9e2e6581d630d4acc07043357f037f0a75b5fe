@@ -1,0 +1,6 @@
+type GetAndDeleter interface {
+	SecondaryStorage
+	// GetAndDelete returns the value under key and removes it, atomically;
+	// false when there is none or it expired.
+	GetAndDelete(ctx context.Context, key string) (string, bool, error)
+}

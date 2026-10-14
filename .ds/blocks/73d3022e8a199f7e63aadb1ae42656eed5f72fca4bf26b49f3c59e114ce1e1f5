@@ -1,0 +1,12 @@
+const (
+	// historySize is how many passwords a user cannot go back to, counting
+	// the one in use.
+	historySize = 3
+	// maxPasswordAge is how long a password signs in before it must be
+	// changed. NIST SP 800-63B advises against expiry; set it only when a
+	// policy requires it.
+	maxPasswordAge = 90 * 24 * time.Hour
+	// sprayFailures is how many failed sign-ins with one password, across
+	// every account and IP, refuse that password for the guard's window.
+	sprayFailures = 5
+)

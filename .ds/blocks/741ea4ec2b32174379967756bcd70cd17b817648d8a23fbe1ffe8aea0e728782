@@ -1,0 +1,1 @@
+var EnvVars = []string{EnvBaseURL, EnvTrustedOrigins, EnvFreshWindow, EnvSessionIdle, EnvSessionMax, EnvSessionRefresh}

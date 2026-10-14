@@ -1,0 +1,24 @@
+{{define "body"}}
+<p class="who">{{.T "authui.signed_in_as"}} <strong>{{.User.Name}}</strong>{{if not .User.Name}}<strong>{{.User.ID}}</strong>{{end}}</p>
+<h2>{{.T "authui.profile"}}</h2>
+<form method="post" action="{{.Prefix}}/settings/profile">
+<label>{{.T "authui.name"}}<input name="name" autocomplete="name" value="{{.User.Name}}"></label>
+<button type="submit">{{.T "authui.save"}}</button>
+</form>
+{{if .HasPassword}}
+<h2>{{.T "authui.password"}}</h2>
+<form method="post" action="{{.Prefix}}/settings/password">
+<label>{{.T "authui.current_password"}}<input type="password" name="current" autocomplete="current-password" data-reveal></label>
+<label>{{.T "authui.new_password"}}<input type="password" name="new" autocomplete="new-password" required minlength="8" data-reveal></label>
+<button type="submit">{{.T "authui.change_password"}}</button>
+</form>
+{{end}}
+<h2>{{.T "authui.sessions"}}</h2>
+<ul class="sessions">
+{{range .Sessions}}<li><span>{{.UserAgent}}{{if not .UserAgent}}{{$.T "authui.unknown_device"}}{{end}}{{if .Current}} <em>{{$.T "authui.this_session"}}</em>{{end}}{{if .Impersonated}} <em>{{$.T "authui.impersonated"}}</em>{{end}}<br><small>{{.IP}} · {{$.T "authui.since"}} {{.CreatedAt.Format "2 Jan 2006 15:04"}} UTC</small></span>
+{{if not .Current}}<form method="post" action="{{$.Prefix}}/settings/revoke"><input type="hidden" name="id" value="{{.ID}}"><button type="submit" class="secondary small">{{$.T "authui.end_session"}}</button></form>{{end}}</li>
+{{end}}
+</ul>
+<form method="post" action="{{.Prefix}}/logout"><button type="submit" class="secondary">{{.T "authui.sign_out"}}</button></form>
+<form method="post" action="{{.Prefix}}/logout-everywhere"><button type="submit" class="danger">{{.T "authui.sign_out_all"}}</button></form>
+{{end}}

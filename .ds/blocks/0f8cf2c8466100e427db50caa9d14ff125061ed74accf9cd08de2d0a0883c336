@@ -1,0 +1,1 @@
+func GenerateToken(fn TokenGenerator) Option { return func(p *Plugin) { p.genToken = fn } }

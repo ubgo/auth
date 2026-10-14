@@ -1,0 +1,8 @@
+func WithSessionPolicy(p SessionPolicy) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithSessionPolicy", p) {
+			return
+		}
+		s.policy = p
+	}
+}

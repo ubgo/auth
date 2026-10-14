@@ -1,0 +1,1 @@
+func WithIPv6Prefix(bits int) Option { return func(s *settings) { s.ipv6Prefix = bits } }

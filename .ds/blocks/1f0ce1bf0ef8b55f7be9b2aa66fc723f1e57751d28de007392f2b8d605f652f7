@@ -1,0 +1,1 @@
+var MaskPIIRedactor Redactor = RedactorFunc(func(_ context.Context, e Event) Event { return MaskPII(e) })

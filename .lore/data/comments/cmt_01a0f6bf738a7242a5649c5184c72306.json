@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "better-auth v1.7.7 done 2026-10-01: docsi/plans/compare/better-auth/ (README + 7 area files, 2,614 rows: 552 have, 331 partial, 1,359 missing, 372 n/a). Series index docsi/plans/compare/README.md. Next products from LANDSCAPE.md.",
+  "created_at": "2026-10-01T09:15:37.225956000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f6a972767ccda33f3ad1c7f8644d",
+  "entity_table": "tasks",
+  "id": "cmt_01a0f6bf738a7242a5649c5184c72306",
+  "updated_at": "2026-10-01T09:15:37.225957000Z"
+}

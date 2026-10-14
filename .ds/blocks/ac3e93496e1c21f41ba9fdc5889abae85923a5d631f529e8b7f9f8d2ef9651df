@@ -1,0 +1,14 @@
+func newAuth(db *sql.DB, secret []byte, m email.Mailer, run auth.BackgroundFunc, store auth.VerificationStore, extra ...auth.Option) (*auth.Auth, error) {
+	return auth.New(append([]auth.Option{
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSecret(secret),
+		auth.WithDeliveryOutbox(),
+		auth.WithBackground(run),
+		auth.WithVerificationStore(store),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+		),
+	}, extra...)...)
+}

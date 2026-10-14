@@ -1,0 +1,14 @@
+func TestConformance_OAuth2GetToken(t *testing.T) {
+	oauthtest.Run(t, func(u string) oauth.Provider {
+		o := pointAt(&oauth.OAuth2{ID: "custom", ClientID: oauthtest.ClientID, ClientSecret: oauthtest.ClientSecret, Scopes: []string{"openid", "email"},
+			FetchProfile: oauth.UserInfoProfile(u+oauthtest.UserInfoPath, "")}, u)
+		o.TokenURL = "" // the hook is the only way to the token endpoint
+		o.GetToken = func(ctx context.Context, code, verifier, redirectURI string) (oauth.TokenSet, error) {
+			return postGrant(ctx, u+oauthtest.TokenPath, url.Values{
+				"grant_type": {"authorization_code"}, "code": {code}, "code_verifier": {verifier}, "redirect_uri": {redirectURI},
+				"client_id": {oauthtest.ClientID}, "client_secret": {oauthtest.ClientSecret},
+			})
+		}
+		return o
+	}, oauthtest.WantScopes("openid", "email"))
+}

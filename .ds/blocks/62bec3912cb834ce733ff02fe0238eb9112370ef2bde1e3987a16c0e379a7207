@@ -1,0 +1,9 @@
+func Handler(a *auth.Auth, pw *password.Plugin, opts ...authhttp.Option) http.Handler {
+	srv := handler.New(graph.NewExecutableSchema(graph.Config{
+		Resolvers:  &graph.Resolver{Auth: a, Password: pw},
+		Directives: graph.DirectiveRoot{SignedIn: authgql.SignedIn},
+	}))
+	srv.AddTransport(transport.POST{})
+	srv.SetErrorPresenter(authgql.ErrorPresenter)
+	return authhttp.Middleware(a, opts...)(srv)
+}

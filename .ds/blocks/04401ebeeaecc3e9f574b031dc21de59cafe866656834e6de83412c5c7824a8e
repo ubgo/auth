@@ -1,0 +1,19 @@
+func Solve(ctx context.Context, ch Challenge) (string, error) {
+	if ch.Algorithm != AlgorithmSHA256 {
+		return "", fmt.Errorf("pow: unsupported algorithm %q", ch.Algorithm)
+	}
+	if ch.Difficulty < 1 || ch.Difficulty > MaxDifficulty {
+		return "", fmt.Errorf("pow: difficulty %d is not 1 to %d", ch.Difficulty, MaxDifficulty)
+	}
+	for n := uint64(0); ; n++ {
+		if n%solveCheckEvery == 0 {
+			if err := ctx.Err(); err != nil {
+				return "", err
+			}
+		}
+		nonce := strconv.FormatUint(n, 10)
+		if meetsDifficulty(ch.Challenge, nonce, ch.Difficulty) {
+			return ch.Challenge + proofSeparator + nonce, nil
+		}
+	}
+}

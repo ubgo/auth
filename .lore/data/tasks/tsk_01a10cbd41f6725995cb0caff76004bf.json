@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-09T16:53:40.739792000Z",
+  "created_at": "2026-10-05T15:44:52.214151000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a10cbd41f6725995cb0caff76004bf",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "low",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Later, not urgent: plugin/siwe (Sign-In With Ethereum, EIP-4361) as its own module: wallet-address identifier kind, nonce through single-use tokens, secp256k1 signature check; no core change (owner, 2026-10-05)",
+  "updated_at": "2026-10-09T16:53:40.739794000Z"
+}

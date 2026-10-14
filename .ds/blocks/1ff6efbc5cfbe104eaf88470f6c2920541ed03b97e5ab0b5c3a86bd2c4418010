@@ -1,0 +1,4 @@
+func NewSessionRevocations(client redis.Cmdable, opts ...Option) *SessionRevocations {
+	c := newConfig(DefaultRevocationKeyPrefix, opts)
+	return &SessionRevocations{optionErr: optionErr{c.optErrs.OptionErr()}, client: client, prefix: c.prefix, now: c.now}
+}

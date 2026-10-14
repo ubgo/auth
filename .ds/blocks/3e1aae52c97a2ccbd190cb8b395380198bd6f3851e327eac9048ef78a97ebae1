@@ -1,0 +1,7 @@
+type Session struct {
+	env *Env
+	// Session is the row as the core created it.
+	Session auth.Session
+	// Token is the raw session token.
+	Token auth.Token
+}

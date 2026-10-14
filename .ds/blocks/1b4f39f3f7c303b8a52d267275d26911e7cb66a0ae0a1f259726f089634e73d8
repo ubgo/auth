@@ -1,0 +1,4 @@
+type previewOrigins struct {
+	mu  sync.RWMutex
+	set map[string]bool
+}

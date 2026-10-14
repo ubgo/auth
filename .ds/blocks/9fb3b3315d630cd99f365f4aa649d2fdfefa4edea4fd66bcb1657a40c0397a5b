@@ -1,0 +1,1 @@
+func (c Config) CanDeliver(name IdentifierKindName) bool { return c.deliverable[name] }

@@ -1,0 +1,8 @@
+func WithMetadata(m MetadataProvider) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("passkey.WithMetadata", m) {
+			return
+		}
+		p.mds = m
+	}
+}

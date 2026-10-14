@@ -1,0 +1,32 @@
+func TestChi(t *testing.T) {
+	a, box := newTestAuth(t)
+	b := newBrowser(t, newHandler(a))
+
+	up := post[password.SignInResult](t, b, "/auth/password/sign-up", fields{"identifier": testEmail, "password": testPassword, "name": testName}, http.StatusOK)
+	if up.User.ID == "" || up.User.Name != testName {
+		t.Fatalf("sign-up user = %+v", up.User)
+	}
+	if !b.hasCookie(authhttp.CookieName) {
+		t.Fatal("sign-up set no session cookie")
+	}
+
+	if got := get[meResponse](t, b, "/me", http.StatusOK); got.ID != up.User.ID || got.Hello != testName {
+		t.Fatalf("/me = %+v", got)
+	}
+
+	tok := box.lastToken(t, a, testEmail)
+	if v := post[email.VerifyResult](t, b, "/auth/email/verify", fields{"token": tok}, http.StatusOK); v.Email != testEmail {
+		t.Fatalf("verify = %+v", v)
+	}
+
+	post[none](t, b, "/auth/sign-out", none{}, http.StatusOK)
+	get[none](t, b, "/me", http.StatusUnauthorized)
+
+	bad := post[errorAnswer](t, b, "/auth/password/sign-in", fields{"identifier": testEmail, "password": "wrong password!"}, http.StatusUnauthorized)
+	if bad.Error.Code != password.ErrInvalidCredentials.Code {
+		t.Fatalf("wrong password error = %+v", bad.Error)
+	}
+
+	post[none](t, b, "/auth/password/sign-in", fields{"identifier": testEmail, "password": testPassword}, http.StatusOK)
+	get[none](t, b, "/me", http.StatusOK)
+}

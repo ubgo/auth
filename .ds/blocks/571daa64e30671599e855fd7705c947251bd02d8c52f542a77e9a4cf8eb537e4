@@ -1,0 +1,6 @@
+export const native = createAuthClient({
+  baseURL: "https://app.example.com/auth",
+  tokenMode: "bearer",
+  tokenStore: memoryTokenStore(),
+  plugins: [password()],
+});

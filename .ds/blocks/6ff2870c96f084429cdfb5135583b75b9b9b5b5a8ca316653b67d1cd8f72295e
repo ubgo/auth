@@ -1,0 +1,1 @@
+func WithTracer(t Tracer) Option { return func(s *settings) { s.tracer = t } }

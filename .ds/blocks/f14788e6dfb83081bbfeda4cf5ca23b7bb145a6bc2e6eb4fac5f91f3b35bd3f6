@@ -1,0 +1,15 @@
+func (p *Plugin) WellKnown() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			w.Header().Set("Allow", "GET, HEAD")
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
+		body, _ := json.Marshal(wellKnown{Origins: p.origins}) // a list of strings always marshals
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodHead {
+			return
+		}
+		_, _ = w.Write(body)
+	})
+}

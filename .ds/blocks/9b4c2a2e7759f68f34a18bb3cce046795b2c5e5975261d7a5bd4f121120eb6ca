@@ -1,0 +1,1 @@
+func NewSessionCache(p *Plugin) auth.SessionCache { return &sessionCache{p: p} }

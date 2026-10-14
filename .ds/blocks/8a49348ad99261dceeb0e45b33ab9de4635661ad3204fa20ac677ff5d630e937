@@ -1,0 +1,1 @@
+func WithGeoRules(r GeoRules) Option { return func(s *settings) { s.geoRules = &r } }

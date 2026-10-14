@@ -1,0 +1,37 @@
+type StartRequest struct {
+	// ReturnTo is a path on this site to land on after sign-in.
+	ReturnTo string `json:"returnTo,omitempty"`
+	// Link, when LinkFlag, links the provider to the signed-in user instead
+	// of signing in. A string because it arrives in a URL query.
+	Link string `json:"link,omitempty"`
+	// Prompt is forwarded to a ParamsProvider as the prompt parameter
+	// (select_account, consent, login, none).
+	Prompt string `json:"prompt,omitempty"`
+	// LoginHint is forwarded as login_hint, to pre-fill the account.
+	LoginHint string `json:"loginHint,omitempty"`
+	// Scopes are extra scopes, space-separated, each listed in the
+	// provider's OptionalScopes; for incremental authorization.
+	Scopes string `json:"scopes,omitempty"`
+	// Params are extra authorization parameters as a query string
+	// ("display=popup&ui_locales=de"), each named in the provider's
+	// OptionalParams (ErrBadParam otherwise): better-auth's per-request
+	// additionalParams. A string because it arrives in a URL query; at most
+	// maxFlowDataLength characters.
+	Params string `json:"params,omitempty"`
+	// Data is carried through the flow untouched and handed back in
+	// CallbackResult.Data: a referral code, an analytics source. At most
+	// maxFlowDataLength characters. It comes from the client, so the app
+	// treats it as untrusted input.
+	Data string `json:"data,omitempty"`
+	// ErrorTo is a path on this site a failed callback redirects to, with
+	// the error code in the query; empty takes the plugin's ErrorURL. Without
+	// either, a failed callback answers JSON.
+	ErrorTo string `json:"errorTo,omitempty"`
+	// NewUserTo is where a callback that created the user lands (an
+	// onboarding page) instead of ReturnTo; same rules as ReturnTo.
+	NewUserTo string `json:"newUserTo,omitempty"`
+	// SignUp, when SignUpFlag, says the person meant to sign up, which
+	// ExplicitSignUp requires before a user is created. A string because it
+	// arrives in a URL query.
+	SignUp string `json:"signUp,omitempty"`
+}

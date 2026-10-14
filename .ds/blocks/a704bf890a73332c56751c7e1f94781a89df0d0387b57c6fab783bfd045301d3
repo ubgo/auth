@@ -1,0 +1,13 @@
+type NewIdentity struct {
+	UserID string
+	Kind   IdentifierKindName
+	Raw    string
+	// Verified creates the identity already verified, for a value a trusted
+	// source vouched for, such as a provider that reports email_verified.
+	Verified bool
+	// Primary makes it the primary identity of its kind. Requires Verified,
+	// or it is ignored until the identity is verified.
+	Primary bool
+	// ScopeID confines uniqueness to a tenant, for kinds ScopedByTenant.
+	ScopeID *string
+}

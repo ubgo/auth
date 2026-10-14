@@ -1,0 +1,23 @@
+{
+  "_table": "memories",
+  "_v": 1,
+  "archived_at": null,
+  "body": "docsync is wired into ubgo/auth: every constant a package README names is a //ds:def block (no space, keeps godoc clean) cited with [`Name`](ds:block?id=...); task docs:drift in the gate. Since 2026-10-01 .ds/config.toml uses include.mode=repo so the docs/ guides carry docsync-written code copies (tampered/stale caught by ds check). Grouped and typed consts both bind in ds v0.1.3. Open upstream: ubgo/docsync issue 2 (repo-mode source link is repository-relative).",
+  "confidence": null,
+  "created_at": "2026-09-29T09:20:00.033853000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "mem_01a0ec76be217d0f84df8e92ffbf6760",
+  "kind": "retrieved",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "superseded_by_id": null,
+  "trust_score": 0.5,
+  "tx_at": "2026-09-29T09:20:00.033853000Z",
+  "updated_at": "2026-10-01T04:11:25.587192000Z",
+  "valid_at": null,
+  "valid_until": null,
+  "validated_by_actor_id": null
+}

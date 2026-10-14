@@ -1,0 +1,3 @@
+func (u *appUser) Bindings() []sqlb.Binding {
+	return sqlb.Bindings(auth.UserBindings(&u.User), email.Bindings(&u.EmailColumns))
+}

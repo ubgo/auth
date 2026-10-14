@@ -1,0 +1,13 @@
+func germanMail(m auth.Message) (subject, text string) {
+	if m.Purpose == auth.PurposeVerify {
+		return "Bitte bestätigen Sie Ihre E-Mail-Adresse", "Öffnen Sie diesen Link, um die Adresse zu bestätigen:\n\n" + m.Link + "\n"
+	}
+	text = "Eine Nachricht zu Ihrem Konto.\n"
+	if m.Link != "" {
+		text += "\nLink: " + m.Link + "\n"
+	}
+	if m.Code != "" {
+		text += "\nCode: " + m.Code + "\n"
+	}
+	return "Eine Nachricht zu Ihrem Konto", text
+}

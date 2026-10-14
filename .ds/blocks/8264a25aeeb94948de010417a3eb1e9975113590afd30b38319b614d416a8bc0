@@ -1,0 +1,3 @@
+type ListResult struct {
+	Addresses []Address `json:"addresses"`
+}

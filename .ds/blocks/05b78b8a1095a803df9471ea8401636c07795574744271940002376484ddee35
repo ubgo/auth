@@ -1,0 +1,1 @@
+func DistinctErrors() Option { return func(p *Plugin) { p.distinct = true } }

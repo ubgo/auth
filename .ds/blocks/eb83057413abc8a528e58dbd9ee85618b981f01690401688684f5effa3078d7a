@@ -1,0 +1,14 @@
+func post[Out, In any](t *testing.T, b *browser, path string, in In, status int) Out {
+	t.Helper()
+	raw, err := json.Marshal(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, err := http.NewRequest(http.MethodPost, b.srv.URL+path, bytes.NewReader(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", b.origin)
+	return do[Out](t, b, req, status)
+}

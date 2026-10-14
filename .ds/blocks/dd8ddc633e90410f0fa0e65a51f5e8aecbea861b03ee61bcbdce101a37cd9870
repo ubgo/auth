@@ -1,0 +1,10 @@
+func (p *Plugin) Set(ctx context.Context, v any) error {
+	s, ok := auth.CurrentSession(ctx)
+	if !ok {
+		return auth.ErrSignedOut
+	}
+	if s.APIKeyID != "" {
+		return auth.ErrSessionDataUnavailable
+	}
+	return p.SetFor(ctx, s, v)
+}

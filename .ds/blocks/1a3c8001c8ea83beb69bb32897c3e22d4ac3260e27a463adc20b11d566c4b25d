@@ -1,0 +1,3 @@
+func WithStatelessSessions(key []byte) Option {
+	return func(s *settings) { s.stateless, s.statelessKey = true, key }
+}

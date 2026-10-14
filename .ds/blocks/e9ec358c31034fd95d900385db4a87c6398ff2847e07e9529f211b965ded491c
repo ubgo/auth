@@ -1,0 +1,7 @@
+func Get[T any](ctx context.Context, p *Plugin) (v T, ok bool, err error) {
+	s, ok := auth.CurrentSession(ctx)
+	if !ok || s.APIKeyID != "" {
+		return v, false, nil
+	}
+	return GetFor[T](ctx, p, s.ID)
+}

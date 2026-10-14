@@ -1,0 +1,3 @@
+type Grant interface {
+	AuthorizeCode(ctx context.Context, c *auth.Call, in CodeRequest) (Binding, error)
+}

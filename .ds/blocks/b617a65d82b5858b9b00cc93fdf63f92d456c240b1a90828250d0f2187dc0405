@@ -1,0 +1,8 @@
+func WithMessages(c MessageCatalog) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithMessages", c) {
+			return
+		}
+		s.messages = c
+	}
+}

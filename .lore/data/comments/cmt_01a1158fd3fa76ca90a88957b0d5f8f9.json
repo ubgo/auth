@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r33 round 2 (2026-10-07): JWT access tokens use typ JWT, not at+jwt (being aligned with better-auth in round 3); a reused refresh token inside RefreshReuseInterval gets a new pair rather than a replay of the old one; RP-initiated logout needs id_token_hint.",
+  "created_at": "2026-10-07T08:51:49.882422000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1158fd3fa76ca90a88957b0d5f8f9",
+  "updated_at": "2026-10-07T08:51:49.882426000Z"
+}

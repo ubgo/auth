@@ -1,0 +1,36 @@
+func (p *Plugin) CreateManagedConnection(ctx context.Context, in CreateManagedRequest) (IssuedCredential, error) {
+	if err := p.requireManaged(); err != nil {
+		return IssuedCredential{}, err
+	}
+	if len(in.CreationRequestID) < minCreationRequestID || len(in.CreationRequestID) > maxIDLength || !validID(in.ProvisioningDomainID) || !validScopes(in.Scopes) {
+		return IssuedCredential{}, auth.ErrBadRequest
+	}
+	var out IssuedCredential
+	err := p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		var id string
+		taken, err := p.exists(ctx, p.core.Select().Columns(sqlb.Bind(ConnID, &id)).From(TableConnection).Where(sqlb.Eq(ConnCreationReq, &in.CreationRequestID)).Limit(1))
+		if err != nil {
+			return err
+		}
+		if taken {
+			return ErrCreationRequestConflict
+		}
+		if id, err = p.core.NewID(managedConnPrefix); err != nil {
+			return err
+		}
+		if _, err := p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableConnection).Row(p.newConn(id, in.ProvisioningDomainID, true, &in.CreationRequestID, in.ActorID)...)); err != nil {
+			return err
+		}
+		if err := p.event(ctx, id, EventConnectionCreated, in.ActorID, ""); err != nil {
+			return err
+		}
+		cred, tok, err := p.issueCredential(ctx, id, in.ActorID, in.Scopes, in.ExpiresAt, EventCredentialIssued)
+		if err != nil {
+			return err
+		}
+		conn, err := p.managedView(ctx, id)
+		out = IssuedCredential{Connection: conn, Credential: cred, Token: tok}
+		return err
+	})
+	return out, err
+}

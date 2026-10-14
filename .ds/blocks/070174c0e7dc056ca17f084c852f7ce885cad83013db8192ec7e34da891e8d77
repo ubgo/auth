@@ -1,0 +1,6 @@
+func DefaultPolicy(_ context.Context, in PolicyRequest) (bool, error) {
+	if in.DeviceTrusted {
+		return false, nil
+	}
+	return in.SingleFactor || in.Operation == "" || slices.Contains(CredentialSignIns, in.Operation), nil
+}

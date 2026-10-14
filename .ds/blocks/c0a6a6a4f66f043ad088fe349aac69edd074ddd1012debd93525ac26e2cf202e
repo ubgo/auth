@@ -1,0 +1,1 @@
+func (p *Plugin) SessionPredicates() []sqlb.Predicate { return []sqlb.Predicate{sqlb.IsNull(BannedAt)} }

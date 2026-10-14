@@ -1,0 +1,13 @@
+type Ownership struct {
+	Table sqlb.Table
+	ID    sqlb.Expr[string]
+	Owner sqlb.Expr[string]
+	// NotFound replaces ErrResourceNotFound, for a plugin with its own code
+	// ("apikey.not_found").
+	NotFound error
+	// Forbidden, when set, is answered for a row that exists and belongs to
+	// another user, as better-auth answers FORBIDDEN. Left nil, that row is
+	// answered like a missing one (NotFound), which is the safe default:
+	// telling the two apart tells a caller which ids exist.
+	Forbidden error
+}

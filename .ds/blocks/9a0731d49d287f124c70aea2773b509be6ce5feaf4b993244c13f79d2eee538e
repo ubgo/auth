@@ -1,0 +1,1 @@
+const DeliveryTimeout = 30 * time.Second

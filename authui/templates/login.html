@@ -1,0 +1,18 @@
+{{define "body"}}
+{{if .HasPassword}}
+<form method="post" action="{{.Prefix}}/login">
+<label>{{.T .IdentifierInput.Key}}<input name="identifier" type="{{.IdentifierInput.Type}}" autocomplete="{{.IdentifierInput.Autocomplete}}" required value="{{.Identifier}}"></label>
+<label>{{.T "authui.password"}}<input type="password" name="password" autocomplete="current-password" required data-reveal></label>
+<label class="check"><input type="checkbox" name="remember" value="1" checked> {{.T "authui.remember"}}</label>
+<button type="submit">{{.T "authui.sign_in"}}</button>
+</form>
+<p><a href="{{.Prefix}}/forgot-password">{{.T "authui.forgot_link"}}</a></p>
+{{end}}
+{{if .HasMagicLink}}
+<form method="post" action="{{.Prefix}}/magic-link-send">
+<label>{{.T "authui.magic_label"}}<input name="identifier" type="email" autocomplete="email" required></label>
+<button type="submit" class="secondary">{{.T "authui.magic_button"}}</button>
+</form>
+{{end}}
+{{template "methods" .}}{{if .HasPassword}}<p>{{.T "authui.no_account"}} <a href="{{.Prefix}}/signup">{{.T "authui.sign_up_link"}}</a></p>{{end}}
+{{end}}

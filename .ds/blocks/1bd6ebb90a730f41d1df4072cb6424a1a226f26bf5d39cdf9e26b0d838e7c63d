@@ -1,0 +1,8 @@
+func WithSecurityLog(q SecurityQueue) Option {
+	return func(s *settings) {
+		if q.Name == "" {
+			q.Name = "log"
+		}
+		s.securitySinks = append(s.securitySinks, securitySinkSpec{sink: &logSecuritySink{}, queue: q, owner: "auth.WithSecurityLog"})
+	}
+}

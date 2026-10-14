@@ -1,0 +1,19 @@
+type Verification struct {
+	ID string
+
+	// Identifier names what the token is about. Which id it holds depends on
+	// Purpose, and each purpose's owner documents it: an identity id for an
+	// email verification, a user id for a password reset, a provider name for
+	// an OAuth state.
+	Identifier string
+
+	Purpose    Purpose
+	ExpiresAt  time.Time
+	ConsumedAt *time.Time
+
+	// Meta is free text owned by the purpose's plugin, such as an OAuth PKCE
+	// verifier. Empty for most purposes.
+	Meta string
+
+	CreatedAt time.Time
+}

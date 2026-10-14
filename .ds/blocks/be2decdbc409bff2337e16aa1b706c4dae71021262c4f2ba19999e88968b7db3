@@ -1,0 +1,11 @@
+func (x *app) onAccepted(ctx context.Context, acc invite.Accepted) error {
+	conn, err := x.auth.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	role := cmp.Or(Role(acc.Role), RoleMember)
+	_, err = conn.ExecContext(ctx,
+		`INSERT INTO app_member (user_id, role, invited_by) VALUES (?, ?, ?) ON CONFLICT (user_id) DO NOTHING`,
+		acc.UserID, string(role), acc.CreatedBy)
+	return err
+}

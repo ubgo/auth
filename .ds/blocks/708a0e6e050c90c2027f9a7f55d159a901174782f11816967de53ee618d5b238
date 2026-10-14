@@ -1,0 +1,3 @@
+func Configuration(id string, opts ...Option) Option {
+	return func(p *Plugin) { p.specs = append(p.specs, configSpec{id: id, opts: opts}) }
+}

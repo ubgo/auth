@@ -1,0 +1,6 @@
+func newHandler(g *authgate.Gate) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", g.Handler())
+	mux.Handle("/{$}", g.RequireUser(http.HandlerFunc(dashboard)))
+	return mux
+}

@@ -1,0 +1,14 @@
+func (p *Plugin) PassChallenge(ctx context.Context, c *auth.Call) error {
+	if c.Transport == auth.TransportGo || c.Annotation(AnnotationVerified) == annotationTrue {
+		return nil
+	}
+	proof := c.Header(p.header)
+	if proof == "" {
+		return auth.ErrChallengeRequired
+	}
+	if err := p.verify(ctx, proof); err != nil {
+		return err
+	}
+	c.Annotate(AnnotationVerified, annotationTrue)
+	return nil
+}

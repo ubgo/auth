@@ -1,0 +1,27 @@
+func (p *Plugin) doAdd(ctx context.Context, c *auth.Call, in AddRequest) (auth.Done, error) {
+	n := utf8.RuneCountInString(in.Name)
+	if n == 0 || n > MaxNameLength {
+		return auth.Done{}, ErrNameInvalid
+	}
+	var have int64
+	if err := p.a.One(ctx, p.a.Select().Columns(sqlb.Bind(sqlb.Count(), &have)).From(TableDevice).Where(sqlb.Eq(UserID, c.User.ID))); err != nil {
+		return auth.Done{}, err
+	}
+	if have >= int64(p.max) {
+		return auth.Done{}, ErrTooMany
+	}
+	id, err := p.a.NewID(IDPrefix)
+	if err != nil {
+		return auth.Done{}, err
+	}
+	_, err = p.a.Exec(ctx, sqlb.NewInsert(p.a.Dialect()).Into(TableDevice).Row(
+		sqlb.Set(ID, id), sqlb.Set(UserID, c.User.ID), sqlb.Set(Name, in.Name), sqlb.Set(CreatedAt, p.a.Now()),
+	))
+	if auth.IsUniqueViolation(err) {
+		return auth.Done{}, ErrNameTaken
+	}
+	if err != nil {
+		return auth.Done{}, err
+	}
+	return auth.Done{OK: true}, nil
+}

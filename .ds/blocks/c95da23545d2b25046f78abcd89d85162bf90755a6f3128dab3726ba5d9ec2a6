@@ -1,0 +1,8 @@
+type Revoker interface {
+	Provider
+	// Revoke invalidates the tokens at the provider: the refresh token when
+	// there is one (which revokes the access tokens it issued), else the
+	// access token. A provider with no revocation endpoint returns nil and
+	// revokes nothing.
+	Revoke(ctx context.Context, hc *http.Client, tokens TokenSet) error
+}

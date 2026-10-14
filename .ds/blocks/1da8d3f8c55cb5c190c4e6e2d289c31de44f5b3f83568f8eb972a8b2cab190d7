@@ -1,0 +1,1 @@
+var CoreUserColumns = []string{ColUserID, ColUserName, ColUserImage, ColUserCreatedAt, ColUserUpdatedAt, ColUserSessionsValidAfter}

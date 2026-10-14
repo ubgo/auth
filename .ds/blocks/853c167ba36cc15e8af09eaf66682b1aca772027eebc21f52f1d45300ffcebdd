@@ -1,0 +1,22 @@
+func DeriveSecretKeys(label string, secrets ...[]byte) ([][]byte, error) {
+	if len(secrets) == 0 {
+		return nil, ErrNoSecret
+	}
+	if label == "" {
+		return nil, fmt.Errorf("%w: DeriveKey needs a label", ErrBadOperation)
+	}
+	out := make([][]byte, 0, len(secrets))
+	for i, secret := range secrets {
+		if len(secret) < MinSecretSize {
+			return nil, fmt.Errorf("%w: secret %d has %d bytes", ErrSecretTooShort, i, len(secret))
+		}
+		// hkdf.Key fails only for a length beyond 255 hashes; SealKeySize is
+		// one, so the error cannot occur with a non-empty secret.
+		key, err := hkdf.Key(sha256.New, secret, nil, keyLabelPrefix+label, SealKeySize)
+		if err != nil {
+			return nil, fmt.Errorf("auth: derive key %q: %w", label, err)
+		}
+		out = append(out, key)
+	}
+	return out, nil
+}

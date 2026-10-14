@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim, via lead r12-jwt brief):\nBuild the four JWT parity features (the JWT section of docsi/plans/compare/better-auth/tokens.md): 1. jwt.IssueOnSession() Set-Auth-JWT header exposed via CORS; 2. JWT cookie cache SessionCache whose snapshot is a signed JWT; 3. jwt.JWKSPath(path) and jwt.RemoteJWKS(url); 4. RS256 and ES256 (EdDSA default) with pinned verification.\nContext: plugin/jwt, docs/plugins/jwt.md, tokens.md rows. Don't commit.\nAcceptance: unit tests per function, integration on three engines, task check, staticcheck, task cover.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-06T04:31:34.972762000Z",
+  "created_at": "2026-10-06T04:06:09.539954000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a10f63ed837e9eae628a853947a88d",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-06T04:06:11.908550000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "JWT parity: IssueOnSession, JWT cookie cache, JWKS path/remote, RS256/ES256",
+  "updated_at": "2026-10-06T04:31:34.972774000Z"
+}

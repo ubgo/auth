@@ -1,0 +1,40 @@
+func (a *Auth) CheckCode(ctx context.Context, purpose Purpose, subject, code string, maxAttempts int) error {
+	if maxAttempts <= 0 {
+		maxAttempts = DefaultCodeMaxAttempts
+	}
+	var id string
+	var hash []byte
+	q := a.Select().Columns(sqlb.Bind(codeID, &id), sqlb.Bind(codeHashCol, &hash)).From(tableCode).
+		Where(sqlb.Eq(codeSubject, subject), sqlb.Eq(codePurpose, purpose),
+			sqlb.Greater(codeExpiresAt, a.now()), sqlb.Less(codeAttempts, maxAttempts)).
+		Limit(1)
+	if err := a.One(ctx, q); err != nil {
+		if errors.Is(err, sqlb.ErrNoRows) {
+			return ErrCodeInvalid
+		}
+		return err
+	}
+	d := a.cfg.Dialect
+	if subtle.ConstantTimeCompare(hashCode(id, code), hash) != 1 {
+		inc := sqlb.NewUpdate(d).Table(tableCode).
+			Set(sqlb.SetExpr(codeAttempts, sqlb.Add(codeAttempts, sqlb.Literal[int]("1")))).
+			Where(sqlb.Eq(codeID, id))
+		// The ctx AfterTx hands back carries no transaction (the one in
+		// ctx has ended), so Exec writes on the database handle.
+		a.AfterTx(ctx, func(ctx context.Context) {
+			if _, err := a.Exec(ctx, inc); err != nil {
+				a.logger.Error("auth: count failed code attempt", "error", err)
+			}
+		})
+		return ErrCodeInvalid
+	}
+	del := sqlb.NewDelete(d).From(tableCode).Where(sqlb.Eq(codeID, id))
+	n, err := a.Exec(ctx, del)
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return ErrCodeInvalid
+	}
+	return nil
+}

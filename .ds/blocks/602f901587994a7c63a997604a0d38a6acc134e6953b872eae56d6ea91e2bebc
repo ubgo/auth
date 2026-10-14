@@ -1,0 +1,11 @@
+type Migration struct {
+	// Owner is CorePluginName or the name of the plugin that ships it;
+	// Migrations refuses a plugin migration that names another owner.
+	Owner string
+	// Name orders nothing; it only identifies. Prefix it with a number, as
+	// "0001_tables", so a listing reads in the order it was written.
+	Name string
+	// Statements run in order, one ExecContext each, written for the engine
+	// the migration was generated for.
+	Statements []string
+}

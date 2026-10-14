@@ -1,0 +1,15 @@
+func DefaultTemplate(m auth.Message) string {
+	switch m.Purpose {
+	case auth.PurposeVerify:
+		return "Your verification code is " + m.Code + "."
+	case auth.PurposeReset:
+		return "Reset your password here: " + m.Link
+	case auth.PurposeSignUpAttempt:
+		return "Someone tried to sign up with your chat handle. If it was not you, nothing happens."
+	default:
+		if m.DefaultText != "" {
+			return m.DefaultText
+		}
+		return m.Link
+	}
+}

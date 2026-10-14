@@ -1,0 +1,4 @@
+export async function whoAmI(): Promise<string | null> {
+  const { data } = await auth.session();
+  return data?.user.id ?? null;
+}

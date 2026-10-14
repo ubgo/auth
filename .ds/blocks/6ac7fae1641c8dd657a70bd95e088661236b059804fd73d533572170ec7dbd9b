@@ -1,0 +1,8 @@
+type UserTable struct {
+	// Table is one the plugin declares through TableOwner; New refuses one
+	// it does not, because the registry would then name a table nobody
+	// creates.
+	Table sqlb.Table
+	// Column holds the user id, as "user_id".
+	Column string
+}

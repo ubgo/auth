@@ -1,0 +1,12 @@
+func (a *Auth) SetFields(ctx context.Context, userID string, f Fields) error {
+	sets, err := a.decodeFields(f)
+	if err != nil || len(sets) == 0 {
+		return err
+	}
+	q := sqlb.NewUpdate(a.cfg.Dialect).Table(TableUser).
+		Set(append(sets, sqlb.Set(UserUpdatedAt, a.now()))...).Where(sqlb.Eq(UserID, userID))
+	if _, err := a.Exec(ctx, q); err != nil {
+		return fmt.Errorf("auth: set sign-up fields: %w", err)
+	}
+	return nil
+}

@@ -1,0 +1,10 @@
+func (p *Plugin) doRemove(ctx context.Context, c *auth.Call, in RemoveRequest) (auth.Done, error) {
+	n, err := p.a.Exec(ctx, sqlb.NewDelete(p.a.Dialect()).From(TableDevice).Where(sqlb.Eq(ID, in.ID), sqlb.Eq(UserID, c.User.ID)))
+	if err != nil {
+		return auth.Done{}, err
+	}
+	if n == 0 {
+		return auth.Done{}, ErrNotFound
+	}
+	return auth.Done{OK: true}, nil
+}

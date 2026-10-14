@@ -1,0 +1,8 @@
+func WithBackground(run BackgroundFunc) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithBackground", run) {
+			return
+		}
+		s.background = run
+	}
+}

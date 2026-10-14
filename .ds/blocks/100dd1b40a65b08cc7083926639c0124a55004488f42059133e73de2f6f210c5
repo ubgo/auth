@@ -1,0 +1,6 @@
+func NewMemoryVerificationStore(now func() time.Time) VerificationStore {
+	if now == nil {
+		now = time.Now
+	}
+	return NewStorageVerificationStore(&memoryStorage{now: now, vals: map[string]memoryValue{}})
+}

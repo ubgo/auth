@@ -1,0 +1,13 @@
+type AccessTokenResult struct {
+	// AccessToken is revealed on purpose: delivering it is this route's
+	// job (ExposeAccessTokens).
+	AccessToken string `json:"accessToken"`
+	// ExpiresAt is when AccessToken expires; nil when the provider did not
+	// say.
+	ExpiresAt *time.Time `json:"accessTokenExpiresAt"`
+	// Scopes are the scopes the provider said it granted.
+	Scopes []string `json:"scopes"`
+	// IDToken is the OpenID Connect ID token of the last exchange, "" when
+	// the provider issued none.
+	IDToken string `json:"idToken,omitempty"`
+}

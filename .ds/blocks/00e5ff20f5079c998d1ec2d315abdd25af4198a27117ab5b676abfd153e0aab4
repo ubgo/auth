@@ -1,0 +1,8 @@
+func WithSessionCache(c SessionCache, ttl time.Duration) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithSessionCache", c) {
+			return
+		}
+		s.cache, s.cacheTTL = c, ttl
+	}
+}

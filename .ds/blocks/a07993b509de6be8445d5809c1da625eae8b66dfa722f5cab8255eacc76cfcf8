@@ -1,0 +1,4 @@
+type appUser struct {
+	auth.User
+	email.EmailColumns
+}

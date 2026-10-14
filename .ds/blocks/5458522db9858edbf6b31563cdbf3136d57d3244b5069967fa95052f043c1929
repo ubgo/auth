@@ -1,0 +1,5 @@
+type SessionLifetime struct {
+	Idle         time.Duration
+	Max          time.Duration
+	RefreshAfter time.Duration
+}

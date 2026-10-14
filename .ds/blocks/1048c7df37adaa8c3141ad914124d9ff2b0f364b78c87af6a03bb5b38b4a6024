@@ -1,0 +1,3 @@
+func LimitRange(digits, limit int, window time.Duration) Option {
+	return func(p *Plugin) { p.rangeRules = append(p.rangeRules, rangeLimit{digits, limit, window}) }
+}

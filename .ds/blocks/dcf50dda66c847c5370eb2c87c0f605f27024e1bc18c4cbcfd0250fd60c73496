@@ -1,0 +1,40 @@
+func (p *Plugin) DecommissionConnection(ctx context.Context, in DecommissionRequest) (DecommissionResult, error) {
+	c, ok, err := p.loadConn(ctx, in.ConnectionID)
+	if err != nil {
+		return DecommissionResult{}, err
+	}
+	if !ok || (in.ProvisioningDomainID != "" && c.domain != in.ProvisioningDomainID) {
+		return DecommissionResult{}, ErrConnectionNotFound
+	}
+	d := p.core.Dialect()
+	if c.status == ConnectionActive {
+		err := p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+			now := p.now()
+			if _, err := p.core.Exec(ctx, sqlb.NewUpdate(d).Table(TableConnection).
+				Set(sqlb.Set(ConnStatus, ConnectionDecommissioning), sqlb.Set(ConnDecomStarted, &now)).
+				Where(sqlb.Eq(ConnID, c.id), sqlb.Eq(ConnStatus, ConnectionActive))); err != nil {
+				return err
+			}
+			if _, err := p.core.Exec(ctx, sqlb.NewUpdate(d).Table(TableCredential).Set(sqlb.Set(CredStatus, CredentialDecommissioned)).
+				Where(sqlb.Eq(CredConnection, c.id), sqlb.Eq(CredStatus, CredentialActive))); err != nil {
+				return err
+			}
+			return p.event(ctx, c.id, EventConnectionDecommissioning, in.ActorID, "")
+		})
+		if err != nil {
+			return DecommissionResult{}, err
+		}
+		c.status = ConnectionDecommissioning
+	}
+	for done := 0; c.status == ConnectionDecommissioning && (in.MaxBatches == 0 || done < in.MaxBatches); done++ {
+		if c, err = p.decommissionBatch(ctx, c, in.ActorID); err != nil {
+			return DecommissionResult{}, err
+		}
+	}
+	res := DecommissionResult{ConnectionID: c.id, ProvisioningDomainID: c.domain, Status: DecommissionReconciling,
+		DecommissionedAt: c.decommissioned, ReconciledUsers: c.reconciled, Batches: c.batches}
+	if c.status == ConnectionDecommissioned {
+		res.Status = DecommissionComplete
+	}
+	return res, nil
+}

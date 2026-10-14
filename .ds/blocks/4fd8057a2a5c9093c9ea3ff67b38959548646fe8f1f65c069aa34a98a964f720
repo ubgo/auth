@@ -1,0 +1,30 @@
+func (x *app) purchase(w http.ResponseWriter, r *http.Request) {
+	var in purchaseRequest
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil || in.Item == "" {
+		http.Error(w, "item is required", http.StatusBadRequest)
+		return
+	}
+	ctx := r.Context()
+	u := authhttp.MustUser(r)
+	res, err := x.db.ExecContext(ctx, `INSERT INTO app_purchase (user_id, item) VALUES (?, ?)`, u.ID, in.Item)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	out := purchaseResponse{}
+	if out.OrderID, err = res.LastInsertId(); err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	step, err := x.referrals.MarkStep(ctx, u.ID, StepFirstPurchase, map[string]string{"item": in.Item})
+	switch {
+	case errors.Is(err, referral.ErrNotFound):
+	case err != nil:
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	default:
+		out.ReferralStatus = step.Status
+		out.ReferralCompleted = !step.AlreadyCompleted && step.Status == referral.StatusCompleted
+	}
+	writeJSON(w, out)
+}

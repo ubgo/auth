@@ -1,0 +1,3 @@
+func AskEverySignIn(_ context.Context, in PolicyRequest) (bool, error) {
+	return !in.DeviceTrusted, nil
+}

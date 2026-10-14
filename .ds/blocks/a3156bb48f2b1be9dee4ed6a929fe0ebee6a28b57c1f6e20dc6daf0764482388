@@ -1,0 +1,1 @@
+func Texts(c auth.MessageCatalog) Option { return func(cfg *config) { cfg.texts = c } }

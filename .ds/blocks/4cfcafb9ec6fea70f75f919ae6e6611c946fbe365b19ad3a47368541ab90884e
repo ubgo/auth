@@ -1,0 +1,1 @@
+func CookieDomain(domain string) Option { return func(c *config) { c.cookieDomain = domain } }

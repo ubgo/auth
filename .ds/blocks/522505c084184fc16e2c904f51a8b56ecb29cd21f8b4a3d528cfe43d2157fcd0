@@ -1,0 +1,1 @@
+func WithSession(c SessionConfig) Option { return func(s *settings) { s.cfg.Session = c } }

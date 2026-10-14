@@ -1,0 +1,11 @@
+func PayPal(clientID, clientSecret string, sandbox bool) *OAuth2 {
+	o := &OAuth2{
+		ID: "paypal", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		AuthURL: PayPalAuthURL, TokenURL: PayPalTokenURL, Scopes: openIDScopes(),
+		FetchProfile: UserInfoProfile(PayPalProfileURL, payPalSubjectClaim),
+	}
+	if sandbox {
+		o.AuthURL, o.TokenURL, o.FetchProfile = PayPalSandboxAuthURL, PayPalSandboxTokenURL, UserInfoProfile(PayPalSandboxProfileURL, payPalSubjectClaim)
+	}
+	return o
+}

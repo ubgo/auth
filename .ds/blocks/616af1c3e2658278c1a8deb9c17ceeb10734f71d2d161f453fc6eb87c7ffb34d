@@ -1,0 +1,34 @@
+func importOrgs(ctx context.Context, a *auth.Auth, orgs *organization.Plugin, source string, in []org) []orgResult {
+	out := make([]orgResult, 0, len(in))
+	for _, o := range in {
+		res := orgResult{Org: o}
+		creator := pickCreator(o)
+		meta, _ := json.Marshal(importedFrom{Source: source, SourceID: o.SourceID}) // two strings always encode
+		res.Err = a.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+			created, err := orgs.CreateFor(ctx, creator, organization.CreateRequest{Name: o.Name, Slug: o.Slug, Metadata: meta})
+			if err != nil {
+				return fmt.Errorf("create: %w", err)
+			}
+			res.ID = created.ID
+			for _, m := range o.Members {
+				if m.UserID == creator {
+					continue
+				}
+				if err := orgs.AddMember(ctx, created.ID, m.UserID, m.Role); err != nil {
+					return fmt.Errorf("member %s: %w", m.UserID, err)
+				}
+			}
+			return nil
+		})
+		for _, m := range o.Members {
+			switch {
+			case m.UserID == creator && m.Role != organization.RoleOwner:
+				res.Notes = append(res.Notes, fmt.Sprintf("%s is the owner (was %s): an organization starts with its creator as owner", m.UserID, m.Role))
+			case m.Note != "":
+				res.Notes = append(res.Notes, m.UserID+": "+m.Note)
+			}
+		}
+		out = append(out, res)
+	}
+	return out
+}

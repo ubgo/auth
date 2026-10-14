@@ -1,0 +1,14 @@
+func newProvider(jw *jwt.Plugin, cimd ...oauthprovider.CIMDOption) *oauthprovider.Plugin {
+	return oauthprovider.New(jw,
+		oauthprovider.Issuer(baseURL),
+		oauthprovider.LoginPage(loginPath),
+		oauthprovider.ConsentPage(consentPath),
+		oauthprovider.Scopes(append(slices.Clone(oauthprovider.DefaultScopes), scopeMCPTools, scopeInvoicesRead)...),
+		oauthprovider.ProtectedResource(mcpURL, scopeMCPTools),
+		oauthprovider.ProtectedResource(invoicesURL, scopeInvoicesRead),
+		oauthprovider.RegistrationDefaultResources(mcpURL, invoicesURL),
+		oauthprovider.MCP(),
+		oauthprovider.CacheResources(0),
+		oauthprovider.ClientIDMetadataDocuments(append(slices.Clone(cimd), oauthprovider.CIMDProfileMCP())...),
+	)
+}

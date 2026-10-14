@@ -1,0 +1,3 @@
+type SecuritySink interface {
+	WriteSecurity(ctx context.Context, batch []SecurityEvent) error
+}

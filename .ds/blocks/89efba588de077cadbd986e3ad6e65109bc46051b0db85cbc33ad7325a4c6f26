@@ -1,0 +1,6 @@
+func (p *Plugin) Validate(*auth.Config) error {
+	if p.max < 1 {
+		return ErrBadMax
+	}
+	return nil
+}

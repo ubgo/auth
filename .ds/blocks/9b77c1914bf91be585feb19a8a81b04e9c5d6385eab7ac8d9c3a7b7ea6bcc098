@@ -1,0 +1,11 @@
+func dashboard(w http.ResponseWriter, r *http.Request) {
+	u, ok := authhttp.CurrentUser(r)
+	if !ok {
+		http.Redirect(w, r, authui.PathLogin, http.StatusSeeOther)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := dashboardPage.Execute(w, dashboardData{App: appName, Name: u.Name}); err != nil {
+		log.Printf("dashboard: %v", err)
+	}
+}

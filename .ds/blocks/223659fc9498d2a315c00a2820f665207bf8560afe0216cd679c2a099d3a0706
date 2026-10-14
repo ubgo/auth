@@ -1,0 +1,11 @@
+func CookiePrefix(prefix string) Option {
+	if prefix == "" {
+		panic("authhttp: CookiePrefix: the prefix is empty")
+	}
+	for _, r := range prefix {
+		if r <= ' ' || r >= 0x7f || strings.ContainsRune(cookieNameSeparators, r) {
+			panic("authhttp: CookiePrefix: " + strconv.Quote(prefix) + " is not a cookie-name token")
+		}
+	}
+	return func(c *config) { c.cookiePrefix = prefix }
+}

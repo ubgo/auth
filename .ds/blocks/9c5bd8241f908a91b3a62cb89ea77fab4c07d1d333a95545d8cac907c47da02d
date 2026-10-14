@@ -1,0 +1,25 @@
+func newAuth(db *sql.DB, m email.Mailer, sms phone.SMSSender, totpKey []byte) (*auth.Auth, deps, error) {
+	pw := password.New(password.AcceptLegacyHashes(password.Bcrypt(), password.DjangoPBKDF2(), password.Scrypt(password.BetterAuthScrypt)))
+	op := oauth.New(oauth.WithProviders(
+		oauth.Google(envOr("GOOGLE_CLIENT_ID"), envOr("GOOGLE_CLIENT_SECRET")),
+		oauth.GitHub(envOr("GITHUB_CLIENT_ID"), envOr("GITHUB_CLIENT_SECRET")),
+	), oauth.TrustedProviders("google", "github"))
+	ad := admin.New()
+	d := deps{Password: pw, OAuth: op, Admin: ad}
+	plugins := []auth.Plugin{
+		email.New(email.Login(), email.Recover(), email.Multiple(), email.WithMailer(m)),
+		phone.New(phone.WithSMS(sms)),
+		username.New(),
+		pw, op, ad,
+	}
+	if totpKey != nil {
+		d.TwoFactor = twofactor.New(twofactor.WithEncryptionKey(totpKey))
+		plugins = append(plugins, d.TwoFactor)
+	}
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(plugins...),
+	)
+	return a, d, err
+}

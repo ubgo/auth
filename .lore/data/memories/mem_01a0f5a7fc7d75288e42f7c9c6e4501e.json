@@ -1,0 +1,23 @@
+{
+  "_table": "memories",
+  "_v": 1,
+  "archived_at": "2026-10-12T04:49:16.815116000Z",
+  "body": "ubgo/docsync was recreated on 2026-09-30 and is PUBLIC; its old issues 18 and 19 are gone. Do not put private ubgo/auth or ubgo/sqlb code or paths into docsync issues; use neutral reproductions.",
+  "confidence": null,
+  "created_at": "2026-10-01T04:10:22.205331000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "mem_01a0f5a7fc7d75288e42f7c9c6e4501e",
+  "kind": "retrieved",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "superseded_by_id": null,
+  "trust_score": 0.5,
+  "tx_at": "2026-10-01T04:10:22.205332000Z",
+  "updated_at": "2026-10-12T04:49:16.815133000Z",
+  "valid_at": null,
+  "valid_until": null,
+  "validated_by_actor_id": null
+}

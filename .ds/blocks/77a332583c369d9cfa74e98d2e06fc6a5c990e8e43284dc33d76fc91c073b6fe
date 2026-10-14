@@ -1,0 +1,17 @@
+type RateEvent struct {
+	Op        OpInfo
+	Plugin    string
+	Transport Transport
+	// Rule is the rule that was over its limit, with Action resolved (never
+	// ""). For WithRateLimit's blanket rule Match is the call's operation.
+	Rule    RateRule
+	Outcome RateOutcome
+	// Count is the call's number in the rule's current window: Limit+1 for
+	// the first call over it. 0 when a RateDecider store decided, since a
+	// decider reports no count.
+	Count int
+	// Err is the error the caller got: ErrRateLimited (blocked),
+	// ErrChallengeRequired or the challenger's error (challenged); nil when
+	// the call went through (logged, challenge passed).
+	Err error
+}

@@ -1,0 +1,23 @@
+func (a *Auth) DeleteUser(ctx context.Context, id string) error {
+	return a.endAlways(ctx, func(ctx context.Context, m hookMode) error {
+		return a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+			u, err := a.User(ctx, id)
+			if err != nil {
+				return err
+			}
+			if err := runHooks(ctx, a, tx, pickUser, stageBeforeDelete, nil, &u); err != nil {
+				return err
+			}
+			if err := a.fireUserSessionsEnded(ctx, tx, m, id, "", SessionEndUserDeleted); err != nil {
+				return err
+			}
+			if err := a.deleteUserRows(ctx, id); err != nil {
+				return err
+			}
+			a.EvictCachedSessions(ctx, id)
+			q := sqlb.NewDelete(a.cfg.Dialect).From(TableUser).Where(sqlb.Eq(UserID, id))
+			_, err = a.Exec(ctx, q)
+			return err
+		})
+	})
+}

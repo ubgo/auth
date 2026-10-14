@@ -1,0 +1,33 @@
+func importRecords(ctx context.Context, a *auth.Auth, d deps, recs []record, dryRun bool) summary {
+	var s summary
+	for _, r := range recs {
+		o := outcome{Record: r}
+		if r.Skip != "" {
+			s.Skipped++
+			s.Outcomes = append(s.Outcomes, o)
+			continue
+		}
+		if dryRun {
+			o.Notes = planNotes(r, d)
+			s.Imported++
+			s.Outcomes = append(s.Outcomes, o)
+			continue
+		}
+		o.Err = a.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+			id, notes, err := importOne(ctx, a, d, r)
+			o.UserID, o.Notes = id, notes
+			return err
+		})
+		if o.Err != nil {
+			o.UserID = ""
+			s.Failed++
+		} else {
+			s.Imported++
+			if !r.BannedUntil.IsZero() && r.BannedUntil.After(a.Now()) {
+				s.ToBan = append(s.ToBan, o.UserID)
+			}
+		}
+		s.Outcomes = append(s.Outcomes, o)
+	}
+	return s
+}

@@ -1,0 +1,32 @@
+func (a *Auth) ImportUsers(ctx context.Context, users []ImportUser) ([]ImportResult, error) {
+	if a.db == nil {
+		return nil, ErrNoDatabase
+	}
+	ctx = Quiet(ctx)
+	out := make([]ImportResult, 0, len(users))
+	failed := 0
+	for i, in := range users {
+		res := ImportResult{Index: i}
+		res.Err = a.Tx(ctx, func(ctx context.Context, _ sqlbTx) error {
+			u, err := a.CreateUser(ctx, NewUser{ID: in.ID, Name: in.Name, Image: in.Image, CreatedAt: in.CreatedAt})
+			if err != nil {
+				return err
+			}
+			for _, idn := range in.Identities {
+				if _, err := a.CreateIdentity(ctx, NewIdentity{UserID: u.ID, Kind: idn.Kind, Raw: idn.Value, Verified: idn.Verified, Primary: idn.Primary}); err != nil {
+					return fmt.Errorf("identity %s %q: %w", idn.Kind, idn.Value, err)
+				}
+			}
+			res.User = u
+			return nil
+		})
+		if res.Err != nil {
+			failed++
+		}
+		out = append(out, res)
+	}
+	if failed > 0 {
+		return out, fmt.Errorf("%w: %d of %d", ErrImportFailed, failed, len(users))
+	}
+	return out, nil
+}

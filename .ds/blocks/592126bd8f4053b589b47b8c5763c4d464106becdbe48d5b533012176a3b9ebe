@@ -1,0 +1,1 @@
+func WithBaseURL(u string) Option { return func(s *settings) { s.cfg.BaseURL = u } }

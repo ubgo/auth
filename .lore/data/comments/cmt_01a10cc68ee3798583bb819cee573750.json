@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: SessionCache has only Drop(CacheKey) per token (sessioncache.go); no eviction by user, so a ban still reaches a cached device only after the cache TTL. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:01.731613000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5b9ff597b7982c6a097320866b0",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68ee3798583bb819cee573750",
+  "updated_at": "2026-10-05T15:55:01.731613000Z"
+}

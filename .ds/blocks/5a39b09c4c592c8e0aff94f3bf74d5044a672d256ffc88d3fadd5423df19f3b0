@@ -1,0 +1,1 @@
+func (c *Call) SetInput(v any) { c.Input, c.inputSet = v, true }

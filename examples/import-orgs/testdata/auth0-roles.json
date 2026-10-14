@@ -1,0 +1,4 @@
+[
+  {"name": "Admin", "users": [{"user_id": "auth0|5f1a2b3c4d5e6f7a8b9c0d1e"}]},
+  {"name": "Support", "users": [{"user_id": "github|8675309"}]}
+]

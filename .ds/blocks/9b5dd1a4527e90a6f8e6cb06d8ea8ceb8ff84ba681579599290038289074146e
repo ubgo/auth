@@ -1,0 +1,6 @@
+func (p *Plugin) Redeem(ctx context.Context, deviceCode, clientID, grant string) (Redemption, error) {
+	if grant == "" {
+		return Redemption{}, ErrInvalidRequest
+	}
+	return p.redeem(ctx, deviceCode, clientID, grant)
+}

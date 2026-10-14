@@ -1,0 +1,482 @@
+version: '3'
+
+# A test piped into grep or tee still fails the task.
+set: [pipefail]
+
+vars:
+  DESIGN_SPEC: '{{.HOME}}/.claude-work/skills/satl-design-spec/design-spec'
+
+tasks:
+  docs:
+    desc: Rebuild the design site in docsi/design from docsi/design/src
+    cmds: ['"{{.DESIGN_SPEC}}" build docsi/design']
+
+  docs:check:
+    desc: Report anything missing from the design site (sections without an example, TODOs)
+    cmds: ['"{{.DESIGN_SPEC}}" check docsi/design']
+
+  build:
+    desc: Compile every package
+    cmds: ['go build ./...']
+
+  test:
+    desc: Run the full test suite
+    cmds: ['testlock go test ./...']
+
+  # The heavy tasks (check, cover, contrib, gomin, test:engines and its
+  # prefixed twin) run under the machine-wide `testlock` (~/.local/bin), so
+  # two suites never run at once on this machine; a nested call passes
+  # straight through. Each public task takes the lock and runs its internal
+  # :run twin. -count=1 stays only on runs against a live service (MySQL,
+  # Postgres, Redis); plain runs may use Go's test cache.
+  check:
+    desc: The gate - gofmt, vet and tests of every module, the gqlgen example, the negative type-safety build, and the PoC's wiring guards
+    cmds: ['testlock task check:run']
+
+  # Called through testlock by the public task above; no desc keeps it off task --list.
+  check:run:
+    cmds:
+      - 'test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)'
+      - 'go vet ./...'
+      - 'go test ./...'
+      - task: integration
+      - task: integration:prefixed
+      - task: contrib
+      - task: gqlgen:example
+      - task: typecheck
+      - task: gomin
+      - task: poc:quiet
+      - task: docs:wrap
+      - task: docs:drift
+      - task: docs:api:check
+      - task: docs:features:check
+      - task: ts:check
+
+  cover:
+    desc: Statement coverage of every library package, unit and integration profiles merged; fails below COVER_MIN (default 0, report only). Uses the local Redis (127.0.0.1:7012) for contrib/redis; the merged profile is .cover/merged.profile
+    cmds: ['testlock task cover:run COVER_MIN={{.COVER_MIN | default "0"}}']
+
+  # Called through testlock by the public task above; no desc keeps it off task --list.
+  cover:run:
+    env:
+      GOFLAGS: -mod=mod
+      GOSUMDB: 'off'
+      AUTH_TEST_REDIS_ADDR: 127.0.0.1:7012
+    vars:
+      COVER_MIN: '{{.COVER_MIN | default "0"}}'
+      OUT: '{{.ROOT_DIR}}/.cover'
+      PKGS: github.com/ubgo/auth/...,github.com/ubgo/auth/plugin/password/...,github.com/ubgo/auth/plugin/passkey/...,github.com/ubgo/auth/plugin/organization/...,github.com/ubgo/auth/plugin/deviceauth/...,github.com/ubgo/auth/plugin/deviceauth/oauthdevice/...,github.com/ubgo/auth/plugin/scim/...,github.com/ubgo/auth/plugin/oauthproxy/...,github.com/ubgo/auth/plugin/sso/...,github.com/ubgo/auth/plugin/samlidp/...,github.com/ubgo/auth/plugin/oauthprovider/...,github.com/ubgo/auth/plugin/agentauth/...,github.com/ubgo/auth/plugin/referral/...,github.com/ubgo/auth/plugin/access/...,github.com/ubgo/auth/authui/...
+    cmds:
+      - /bin/rm -rf {{.OUT}} && mkdir -p {{.OUT}}
+      - go test -coverprofile={{.OUT}}/core.out ./... > /dev/null
+      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
+        # contrib/redis talks to a live Redis, so only it skips the test cache.
+        cmd: 'cd {{.ITEM}} && go test {{if eq .ITEM "contrib/redis"}}-count=1 {{end}}-coverprofile={{.OUT}}/{{replace "/" "-" .ITEM}}.out ./... > /dev/null'
+      # plugin/ldap and plugin/siwe need a database and a driver, which their own
+      # modules do not carry, so their flows are proven by the example programs'
+      # tests (examples/ldap-sign-in, examples/siwe-sign-in) and counted here.
+      - cd examples && go test -count=1 -coverpkg=github.com/ubgo/auth/plugin/ldap/...,github.com/ubgo/auth/plugin/siwe/... -coverprofile={{.OUT}}/examples-ldap-siwe.out ./ldap-sign-in ./siwe-sign-in > /dev/null
+      # plugin/webhook's delivery through a real auth.New and database is proven
+      # by examples/webhooks and counted here.
+      - cd examples && go test -coverpkg=github.com/ubgo/auth/plugin/webhook/... -coverprofile={{.OUT}}/examples-webhook.out ./webhooks > /dev/null
+      # Batch 5's features are proven end to end by their example programs
+      # (a real auth.New, database and HTTP handler), counted here like the
+      # ldap and siwe flows above.
+      - cd examples && go test -coverpkg=github.com/ubgo/auth,github.com/ubgo/auth/plugin/twofactor,github.com/ubgo/auth/plugin/passkey,github.com/ubgo/auth/plugin/organization,github.com/ubgo/auth/plugin/metadata,github.com/ubgo/auth/plugin/jwt/...,github.com/ubgo/auth/plugin/organization/orgjwt,github.com/ubgo/auth/plugin/samlidp -coverprofile={{.OUT}}/examples-batch5.out ./two-factor-security-key ./org-domains ./user-metadata ./jwt-templates ./session-tasks ./token-rotation ./saml-idp > /dev/null
+      - cd integration && go test -count=1 -coverpkg={{.PKGS}} -coverprofile={{.OUT}}/integration.out . > {{.OUT}}/integration.log 2>&1 || (grep -E 'FAIL|_test.go:[0-9]+:' {{.OUT}}/integration.log; exit 1)
+      - cd integration && go run ./cmd/covmerge -min {{.COVER_MIN}} -o {{.OUT}}/merged.profile {{.OUT}}/*.out
+
+  docs:drift:
+    desc: docsync - fail when code a doc sentence cites (ds:block links) changed since the sentence was acked; needs the ds CLI (go install github.com/ubgo/docsync/cli/cmd/ds@latest)
+    cmds:
+      - 'command -v ds >/dev/null || { echo "docs:drift needs the ds CLI: go install github.com/ubgo/docsync/cli/cmd/ds@latest"; exit 1; }'
+      - ds check
+
+  docs:api:
+    desc: Regenerate docs/reference/http-api.md (the table of every route) and docs/reference/openapi.json (the OpenAPI 3.1 document) from the operation list auth.New builds with every plugin wired
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - go run ./cmd/apiref -dir ../docs/reference -client ../clients/ts/src
+
+  docs:api:check:
+    desc: Fail when docs/reference/http-api.md, openapi.json, the error-code lists or the TypeScript client in clients/ts/src differ from what task docs:api would write
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - go run ./cmd/apiref -check ../docs/reference -client ../clients/ts/src
+
+  ts:check:
+    desc: Type-check the TypeScript client in clients/ts, the app-generated client of examples/ts-client-custom/web and the runnable examples ts-client-flows/web and ts-client-bearer/web under strict (tsc on PATH, 5.6 or later), then prove the negative type test fails exactly where marked
+    dir: clients/ts
+    cmds:
+      - 'command -v tsc >/dev/null || { echo "FAIL: tsc is not on PATH (npm i -g typescript)"; exit 1; }'
+      - tsc -p .
+      # The second way: a client an app wrote with `auth client ts`, and the
+      # frontend code that calls its own plugin. Its Go test fails when the
+      # committed copy is stale; this fails when the frontend does not compile.
+      - tsc -p ../../examples/ts-client-custom/web
+      # The runnable client examples; their Go tests (in task check through
+      # the examples module) run them with node, this checks they compile.
+      - tsc -p ../../examples/ts-client-flows/web
+      - tsc -p ../../examples/ts-client-bearer/web
+      - task: ts:typecheck
+
+  ts:typecheck:
+    desc: Prove the typed client rejects wrong code (clients/ts/test/typecheck/bad.ts MUST fail to compile, each marked line with its marked error and no other)
+    dir: clients/ts/test/typecheck
+    vars:
+      # One per `expect TSnnnn` line in bad.ts.
+      TS_TYPECHECK_EXPECTED: 9
+    cmds:
+      - |
+        out=$(tsc -p . 2>&1) && { echo "FAIL: bad.ts compiled, so the client's types are not guarding"; exit 1; }
+        if echo "$out" | grep -qE "error TS(2304|2305|2307|2724)"; then
+          echo "FAIL: bad.ts refers to a name or module that no longer exists:"; echo "$out"; exit 1
+        fi
+        errs=$(echo "$out" | grep -oE "^bad\.ts\([0-9]+,[0-9]+\): error TS[0-9]+")
+        n=$(echo "$errs" | grep -c "error TS")
+        if [ "$n" -ne {{.TS_TYPECHECK_EXPECTED}} ]; then
+          echo "FAIL: expected {{.TS_TYPECHECK_EXPECTED}} type errors, got $n:"; echo "$out"; exit 1
+        fi
+        echo "$errs" | while IFS= read -r e; do
+          line=$(echo "$e" | sed -E 's/^bad\.ts\(([0-9]+),.*/\1/')
+          code=$(echo "$e" | sed -E 's/.*error (TS[0-9]+)$/\1/')
+          sed -n "${line}p" bad.ts | grep -q "expect $code" || { echo "FAIL: bad.ts:$line failed with $code, not the error it is marked with"; exit 1; }
+        done || exit 1
+        echo "ok: tsc rejected all {{.TS_TYPECHECK_EXPECTED}} deliberately-wrong lines, each with its marked error"
+
+  ts:smoke:
+    desc: Run clients/ts/test/smoke.ts against the two-factor example on port 8095 (AUTH_SMOKE_PORT) in cookie and bearer mode, including a pending second factor, then clients/ts/examples/options.ts against a stub fetch; needs node 22.18+ (runs .ts without a flag) and takes up to 30s for a fresh TOTP step
+    vars:
+      PORT: '{{.AUTH_SMOKE_PORT | default "8095"}}'
+      WORK:
+        sh: mktemp -d
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - defer: rm -rf {{.WORK}}
+      - cd examples && go build -o {{.WORK}}/two-factor ./two-factor
+      # The server writes its SQLite file into its working directory, so it
+      # runs in the temporary one. Task's shell does not give a background
+      # command's pid, so the server is stopped by its unique binary path.
+      - cd {{.WORK}} && PORT={{.PORT}} {{.WORK}}/two-factor > server.log 2>&1 &
+      - defer: pkill -f {{.WORK}}/two-factor || true
+      - curl -s -o /dev/null --retry 20 --retry-connrefused --retry-delay 1 http://localhost:{{.PORT}}/auth/session
+      - cd clients/ts && AUTH_SMOKE_URL=http://localhost:{{.PORT}}/auth node test/smoke.ts
+      # The per-call options against a stub fetch (no server): docs/client/reference.md shows its output.
+      - cd clients/ts && node examples/options.ts
+      # The runtime's token handling and missing-fetch error against a stub fetch (no server).
+      - cd clients/ts && node test/runtime.ts
+
+  docs:features:
+    desc: Regenerate docs/reference/features.md (every feature with its package, guide section and example) from the rows in integration/cmd/featref; fails when a guide heading or an example's use of the API is gone
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - go run ./cmd/featref -root ..
+
+  docs:features:check:
+    desc: Fail when docs/reference/features.md differs from what task docs:features would write
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - go run ./cmd/featref -root .. -check
+
+  docs:wrap:
+    desc: Fail on hard-wrapped prose in any Markdown file of the repo (every paragraph, bullet and table row is one physical line)
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - go run ./cmd/mdwrap ..
+
+  gomin:
+    desc: Vet every module, test files included, under the Go toolchain its go.mod declares, so a stated minimum (go 1.24 for the core) is proven rather than claimed; downloads a missing toolchain once
+    cmds: ['testlock task gomin:run']
+
+  # Called through testlock by the public task above; no desc keeps it off task --list.
+  gomin:run:
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - |
+        find . -name go.mod -not -path './.cover/*' | sort | while read -r f; do
+          d=$(dirname "$f"); v=$(awk '/^go /{print $2}' "$f")
+          case $v in *.*.*) ;; *) v=$v.0 ;; esac
+          echo "go$v $d"
+          (cd "$d" && GOTOOLCHAIN=go$v go vet ./...) || exit 1
+        done
+
+  contrib:
+    desc: Vet and test every separate module - plugins with third-party dependencies, the pages, the examples and the contrib adapters
+    cmds: ['testlock task contrib:run']
+
+  # Called through testlock by the public task above; no desc keeps it off task --list.
+  contrib:run:
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, examples, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
+        cmd: 'cd {{.ITEM}} && go vet ./... && go test ./...'
+
+  gqlgen:example:
+    desc: Regenerate the gqlgen example, build it and sign a user in through the generated server (for codegen the build is the test)
+    dir: contrib/gqlgen/example
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - go generate ./...
+      - go build ./...
+      - testlock go vet ./...
+      - testlock go test ./...
+
+  integration:
+    desc: End-to-end tests against SQLite (separate module, so no driver reaches the core's go.mod); task test:engines adds Postgres and MySQL
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+      GOSUMDB: off
+    cmds:
+      - 'GOPROXY="file://$(go env GOMODCACHE)/cache/download" testlock go test ./...'
+
+  integration:prefixed:
+    desc: The SQLite integration suite a second time with every table renamed (auth.WithTablePrefix "t_" through AUTH_TEST_TABLE_PREFIX), so any place still using a table's label as its real name fails loudly
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+      GOSUMDB: off
+      AUTH_TEST_TABLE_PREFIX: t_
+    cmds:
+      - 'GOPROXY="file://$(go env GOMODCACHE)/cache/download" testlock go test ./...'
+
+  test:engines:
+    desc: Run the integration suite on SQLite, Postgres (host Postgres.app) and MySQL (compose.yml's throwaway mysql profile, removed after the run), plain and then with every table renamed
+    cmds: ['testlock task test:engines:run']
+
+  test:engines:prefixed:
+    desc: The integration suite on all three engines with every table renamed (auth.WithTablePrefix "t_" through AUTH_TEST_TABLE_PREFIX)
+    cmds: ['testlock task test:engines:run PREFIXED_ONLY=1']
+
+  # The defer is registered BEFORE the profile starts: Task registers a defer
+  # only when it reaches it, so one placed after a failed `up --wait` would
+  # never run and the container would outlive the run.
+  # Called through testlock by the public task above; no desc keeps it off task --list.
+  test:engines:run:
+    dir: integration
+    env:
+      GOFLAGS: -mod=mod
+      AUTH_TEST_PG_DSN: postgres://postgres:root@localhost:5432/auth_test?sslmode=disable
+      AUTH_TEST_MYSQL_DSN: root:auth@tcp(127.0.0.1:33070)/auth
+    cmds:
+      - defer: {task: engines:mysql:down}
+      - task: engines:pg
+      - task: engines:mysql
+      # -timeout 30m: the integration package runs every engine in one go test
+      # process and takes about ten minutes on a busy machine, past go test's
+      # default 10m limit.
+      - cmd: go test -count=1 -p 1 -timeout 30m ./...
+        if: '[ -z "{{.PREFIXED_ONLY}}" ]'
+      - AUTH_TEST_TABLE_PREFIX=t_ go test -count=1 -p 1 -timeout 30m ./...
+
+  test:redis:
+    desc: Run the Redis rate store test against the local Redis container (127.0.0.1:7012)
+    dir: contrib/redis
+    env:
+      AUTH_TEST_REDIS_ADDR: 127.0.0.1:7012
+    cmds:
+      - testlock go test -count=1 ./...
+
+  engines:pg:
+    desc: Create the auth_test database on host Postgres if missing
+    cmds:
+      - 'PGPASSWORD=root psql -h localhost -U postgres -d postgres -Atc "select 1 from pg_database where datname=''auth_test''" | grep -q 1 || PGPASSWORD=root psql -h localhost -U postgres -d postgres -c "CREATE DATABASE auth_test"'
+
+  engines:mysql:
+    desc: Start compose.yml's throwaway MySQL 8 (profile mysql, 127.0.0.1:33070, root/auth, database auth) and wait until it answers; test:engines removes it afterwards
+    cmds: ['docker compose --profile mysql up -d --wait']
+
+  engines:mysql:down:
+    desc: Remove the throwaway MySQL and its data (test:engines already does this after every run)
+    cmds: ['docker compose --profile mysql down -v --remove-orphans']
+
+  test:ldap:
+    desc: Run plugin/ldap's Client against a real directory (compose.yml's throwaway lldap profile over LDAPS with a certificate made for the run, removed afterwards); opt-in, not part of check
+    cmds: ['testlock task test:ldap:run']
+
+  # The defer is registered before the profile starts, so a failed start
+  # still removes the container and the throwaway certificate.
+  # Called through testlock by the public task above; no desc keeps it off task --list.
+  test:ldap:run:
+    env:
+      AUTH_TEST_LDAP_CERTS: '{{.LDAP_CERTS}}'
+    vars:
+      LDAP_CERTS: /tmp/ubgo-auth-ldap-certs
+    cmds:
+      - defer: 'docker compose --profile ldap down -v --remove-orphans; /bin/rm -rf {{.LDAP_CERTS}}'
+      - mkdir -p {{.LDAP_CERTS}}
+      - openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=localhost -addext subjectAltName=DNS:localhost,IP:127.0.0.1 -keyout {{.LDAP_CERTS}}/key.pem -out {{.LDAP_CERTS}}/cert.pem 2>/dev/null
+      - chmod 644 {{.LDAP_CERTS}}/key.pem
+      - docker compose --profile ldap up -d --wait
+      - cd plugin/ldap && GOFLAGS=-mod=mod AUTH_TEST_LDAP_CA={{.LDAP_CERTS}}/cert.pem go test -count=1 -tags ldapserver -run TestServer ./...
+
+  fuzz:
+    desc: Run every fuzz target for FUZZTIME each (default 20s); not part of check, run it before a release
+    vars:
+      FUZZTIME: '{{.FUZZTIME | default "20s"}}'
+    cmds:
+      - for:
+          - ./plugin/email FuzzNormalizeIsIdempotent
+          - ./plugin/phone FuzzNormalize
+          - ./plugin/username FuzzValidateNeverLooksLikeAnotherKind
+          - ./plugin/password FuzzParseHash
+          - ./authhttp FuzzDecode
+        cmd: 'set -- {{.ITEM}}; go test "$1" -run="^$" -fuzz="^$2\$" -fuzztime={{.FUZZTIME}}'
+
+  typecheck:
+    desc: Prove the typed columns reject wrong code (this build MUST fail)
+    vars:
+      # One per wrong line in examples/typecheck/bad.go.
+      TYPECHECK_EXPECTED: 4
+    cmds:
+      - |
+        # Each wrong line must fail for the RIGHT reason: a type mismatch. A
+        # line that fails because a name is undefined proves nothing, and once
+        # made this gate pass vacuously after a rename.
+        out=$(cd examples && go build -tags typecheck_negative ./typecheck/ 2>&1) && {
+          echo "FAIL: examples/typecheck compiled, so the type guards are not working"; exit 1; }
+        if echo "$out" | grep -q "undefined"; then
+          echo "FAIL: examples/typecheck refers to a name that no longer exists:"; echo "$out"; exit 1
+        fi
+        n=$(echo "$out" | grep -c "bad.go:")
+        if [ "$n" -ne {{.TYPECHECK_EXPECTED}} ]; then
+          echo "FAIL: expected {{.TYPECHECK_EXPECTED}} type errors, got $n:"; echo "$out"; exit 1
+        fi
+        echo "ok: the compiler rejected all {{.TYPECHECK_EXPECTED}} deliberately-wrong lines"
+
+  poc:quiet:
+    desc: Run the PoC and discard its output; it exits non-zero if a wiring guard stops firing
+    dir: examples
+    cmds: ['go run ./poc > /dev/null']
+
+  poc:
+    desc: Print the SQL every plugin composition generates (touches no database)
+    dir: examples
+    cmds: ['go run ./poc']
+
+  # The React UI kit (clients/react: @ubgo/auth-react and its shadcn
+  # registry), its demo (examples/react-demo/web), the hooks-only example
+  # (examples/react-headless/web) and the router examples
+  # (examples/react-router-app, examples/nextjs-app). None of these is part
+  # of `task check`, because they need node_modules: run `task ui:install`
+  # once, then `task ui:check` before offering a commit that touches any of them.
+  ui:install:
+    desc: Install the node dependencies of the React UI kit, its demo and the react-headless, react-router-app and nextjs-app examples (pnpm, frozen lockfiles) and build the shadcn registry
+    cmds:
+      - cd clients/react && pnpm install --frozen-lockfile
+      - cd examples/react-demo/web && pnpm install --frozen-lockfile
+      - cd examples/react-headless/web && pnpm install --frozen-lockfile
+      - cd examples/react-router-app && pnpm install --frozen-lockfile
+      - cd examples/nextjs-app && pnpm install --frozen-lockfile
+      - task: ui:registry
+
+  ui:registry:
+    desc: Build clients/react/registry/registry.json into clients/react/registry/r (the JSON shadcn add reads; gitignored)
+    dir: clients/react/registry
+    cmds: ['../node_modules/.bin/shadcn build registry.json --output r']
+
+  ui:add:
+    desc: Install registry items into the demo the way an app would, e.g. task ui:add ITEMS="@ubgo/sign-in-form" (serves the registry on 127.0.0.1:5181 meanwhile)
+    deps: [ui:registry]
+    dir: examples/react-demo/web
+    cmds: ['./scripts/registry-add.sh {{.ITEMS}}']
+
+  ui:check:
+    desc: Type-check @ubgo/auth-react (strict), fail when a demo component differs from its registry source, then type-check and build the demo and the react-headless, react-router-app and nextjs-app examples
+    cmds:
+      - cd clients/react && pnpm exec tsc -p .
+      # The open-redirect rule every component's redirectTo goes through.
+      - cd clients/react && node test/redirect.ts
+      # Passkey autofill: conditional mediation, and aborting before any other way in.
+      - cd clients/react && node test/autofill.ts
+      # The admin dashboard's pager and request building.
+      - cd clients/react && node test/admin.ts
+      - cd examples/react-demo/web && ./scripts/registry-drift.sh
+      - cd examples/react-demo/web && pnpm exec tsc -b && pnpm exec vite build --logLevel warn
+      # Every registry component rendered to HTML in Node with no window, as an SSR framework would.
+      - cd examples/react-demo/web && node scripts/ssr.mjs
+      - cd examples && GOFLAGS=-mod=mod go build -o /dev/null ./react-demo
+      # The hooks-only example: strict tsc (app and the e2e script) and a
+      # production build into a throwaway directory, so no dist/ is left.
+      - cd examples/react-headless/web && pnpm exec tsc -b && out=$(mktemp -d) && pnpm exec vite build --logLevel warn --outDir "$out" --emptyOutDir && rm -rf "$out"
+      # The React Router example, the same way.
+      - cd examples/react-router-app && pnpm exec tsc -b && out=$(mktemp -d) && pnpm exec vite build --logLevel warn --outDir "$out" --emptyOutDir && rm -rf "$out"
+      # The Next.js example: next build (which writes next-env.d.ts and the
+      # route types into .next, gitignored), then strict tsc of the app and
+      # the e2e script.
+      - cd examples/nextjs-app && pnpm exec next build > /dev/null && pnpm exec tsc --noEmit
+
+  demo:
+    desc: 'Run the React UI kit demo with zero setup: the Go API (8097, SQLite created, migrated and seeded on start) and Vite (5180) together; open http://localhost:5180, Ctrl-C stops both (task ui:install once first)'
+    interactive: true
+    cmds: ['./examples/react-demo/demo.sh']
+
+  demo:reset:
+    desc: Delete the demo's SQLite file and recreate it with the seeded user (stop task demo first)
+    dir: examples/react-demo
+    env:
+      GOFLAGS: -mod=mod
+    cmds:
+      - 'if lsof -nP -iTCP:8097 -sTCP:LISTEN >/dev/null 2>&1; then echo "Stop task demo first (port 8097 is in use)."; exit 1; fi'
+      - rm -f react-demo.db react-demo.db-wal react-demo.db-shm react-demo.db.2fa-key
+      - cd .. && DEMO_DB=react-demo/react-demo.db go run ./react-demo seed
+
+  ui:dev:
+    desc: Run the demo API (8097) and Vite (5180) in two runbay sessions instead of the foreground (same as task demo otherwise)
+    cmds:
+      - runbay ptyd run --title "react-demo api :8097" --cwd {{.ROOT_DIR}}/examples/react-demo -- env GOFLAGS=-mod=mod DEMO_DB=react-demo.db PORT=8097 APP_URL=http://localhost:5180 go run .
+      - runbay ptyd run --title "react-demo web :5180" --cwd {{.ROOT_DIR}}/examples/react-demo/web -- pnpm dev
+
+  ui:e2e:
+    desc: Drive the demo's sign-in, then /account-sections (sections alone, useReauth, SESSIONS_QUERY_KEY), then passkey autofill and the organization pages (e2e-org.mjs), then the admin dashboard (e2e-admin.mjs), then the session task, security keys, organization domains and admin metadata (e2e-phase2.mjs), headless (Playwright) against a throwaway API and Vite on 8098/5182; screenshots of each step in examples/react-demo/web/.shots/e2e
+    dir: examples/react-demo/web
+    # Five runs, each on a fresh API and database: e2e.mjs signs the demo
+    # user in often enough to reach the sign-in rate limit, which would
+    # refuse e2e-sections.mjs's sign-ins on a shared server.
+    cmds:
+      - ./scripts/with-servers.sh node scripts/e2e.mjs
+      - ./scripts/with-servers.sh node scripts/e2e-sections.mjs
+      - ./scripts/with-servers.sh node scripts/e2e-org.mjs
+      # The fresh window is 20s so the script stays under the five sign-ins per
+      # account per 15 minutes and waits the window out once on purpose.
+      - DEMO_FRESH_WINDOW=20s ./scripts/with-servers.sh node scripts/e2e-admin.mjs
+      - DEMO_FRESH_WINDOW=10m ./scripts/with-servers.sh node scripts/e2e-phase2.mjs
+
+  ui:headless:
+    desc: Drive examples/react-headless (the kit's hooks with no registry components) headless with Playwright against a throwaway API and Vite on 8113/5190 (task ui:install once first)
+    dir: examples/react-headless/web
+    cmds: ['./scripts/with-servers.sh node scripts/e2e.ts']
+
+  ui:router:
+    desc: Drive examples/react-router-app (the kit wired to React Router) headless with Playwright against a throwaway API and Vite on 8120/5200 (task ui:install once first)
+    dir: examples/react-router-app
+    cmds: ['./scripts/with-servers.sh node scripts/e2e.ts']
+
+  ui:nextjs:
+    desc: Build examples/nextjs-app (the kit wired to the Next.js App Router) and drive it headless with Playwright against a throwaway API and next start on 8121/5201 (task ui:install once first)
+    dir: examples/nextjs-app
+    cmds: ['./scripts/with-servers.sh node scripts/e2e.ts']
+
+  ui:shots:
+    desc: Screenshot every demo route in light and dark at 1280 and 390 wide, headless, against a throwaway API and Vite on 8098/5182, into examples/react-demo/web/.shots (gitignored)
+    dir: examples/react-demo/web
+    cmds: ['./scripts/with-servers.sh node scripts/shots.mjs']
+
+  docs:shots:
+    desc: Retake the screenshots the docs embed (docs/assets/screenshots, committed) headless, from the React demo and the react-headless, react-router-app and nextjs-app examples against throwaway servers on 8140-8143/5220-5223, compressed with pngquant and optipng when on PATH (task ui:install once first)
+    dir: examples/react-demo/web
+    cmds: ['./scripts/docs-shots.sh']

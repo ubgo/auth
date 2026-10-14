@@ -1,0 +1,9 @@
+type OperationEvent struct {
+	Op        OpInfo
+	Plugin    string
+	Transport Transport
+	// Duration is from the pipeline's first check to the result, measured on
+	// the configured clock.
+	Duration time.Duration
+	Err      error
+}

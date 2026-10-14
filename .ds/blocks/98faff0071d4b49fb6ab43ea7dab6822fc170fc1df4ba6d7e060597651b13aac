@@ -1,0 +1,15 @@
+type ErrorPageData struct {
+	Code        string
+	Message     string
+	Description string
+	// Lang is the page's language tag: the request's locale when the
+	// catalogue translates the page's heading for it, else "en", so the
+	// lang attribute always names the language the fixed strings are in.
+	Lang string
+	// Title, Heading and Back are the page's fixed strings, from
+	// auth.WithMessages under ErrorPageTitleCode, ErrorPageHeadingCode and
+	// ErrorPageBackCode, else English.
+	Title, Heading, Back string
+	// Nonce is ErrorPageOptions.Nonce's value for this request, or empty.
+	Nonce string
+}

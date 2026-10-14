@@ -1,0 +1,1 @@
+	DefaultRemoteTimeout = 10 * time.Second

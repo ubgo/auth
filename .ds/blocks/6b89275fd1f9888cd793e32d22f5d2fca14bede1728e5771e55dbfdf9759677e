@@ -1,0 +1,4 @@
+func HashToken(t Token) []byte {
+	sum := sha256.Sum256([]byte(t))
+	return sum[:]
+}

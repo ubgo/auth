@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "Rows left partial in docsi/plans/compare/better-auth/core.md for the owner: (1) cookie attributes that weaken (HttpOnly/Secure off, no __Host- prefix) as an escape hatch with a start-up warning? rows advanced.cookies, defaultCookieAttributes; (2) accountLinking.requireLocalEmailVerified=false (link to an unverified local address); (3) updateEmailWithoutVerification for a verified address; (4) updateUser additionalFields through POST /auth/profile with per-column validation; (5) declarative plugin schema (fields, indexes) instead of per-engine DDL; (6) a session-stored locale field; (7) Discord/community channel (transport contributing). Not built for time: VK refresh needs device_id kept with the tokens (providers.md), account.storeStateStrategy cookie mode (core.md).",
+  "commitment": "accepted",
+  "completed_at": "2026-10-08T06:59:37.102818000Z",
+  "created_at": "2026-10-08T06:29:50.918893000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a11a3432c67dbbabc7914a5a69d756",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "low",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c16f7d569454b9c6793d9792",
+  "title": "Owner decisions from p2-core partial rows (2026-10-08)",
+  "updated_at": "2026-10-08T06:59:37.102832000Z"
+}

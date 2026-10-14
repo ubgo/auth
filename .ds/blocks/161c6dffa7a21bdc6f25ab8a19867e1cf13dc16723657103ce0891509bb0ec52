@@ -1,0 +1,45 @@
+func sessionOptions(cfg config) ([]auth.Option, error) {
+	var opts []auth.Option
+	var rdb *redis.Client
+	if cfg.Store == storeRedis || cfg.Cache == cacheRedis {
+		if cfg.RedisAddr == "" {
+			return nil, errNoRedis
+		}
+		rdb = redis.NewClient(&redis.Options{Addr: cfg.RedisAddr})
+		if err := rdb.Ping(context.Background()).Err(); err != nil {
+			return nil, fmt.Errorf("redis at %s does not answer: %w", cfg.RedisAddr, err)
+		}
+	}
+
+	switch cfg.Store {
+	case storeDatabase:
+		// Nothing to add: auth_session is the default.
+	case storeMemory:
+		opts = append(opts, auth.WithSessionStore(auth.NewMemorySessionStore()))
+	case storeRedis:
+		opts = append(opts, auth.WithSessionStore(redisrate.NewSessionStore(rdb)))
+	case storeCustom:
+		store := cfg.CustomStore
+		if store == nil {
+			store = newLoggingStore(auth.NewMemorySessionStore(), log.Default())
+		}
+		opts = append(opts, auth.WithSessionStore(store))
+	case storeStateless:
+		opts = append(opts, auth.WithStatelessSessions(cfg.Key))
+	}
+
+	switch cfg.Cache {
+	case cacheNone:
+	case cacheSnapshot:
+		opts = append(opts, auth.WithSessionCache(auth.NewSnapshotCache(cfg.Key), cacheTTL))
+	case cacheMemory:
+		opts = append(opts, auth.WithSessionCache(auth.NewMemorySessionCache(memoryCacheEntries), cacheTTL))
+	case cacheRedis:
+		opts = append(opts, auth.WithSessionCache(redisrate.NewSessionCache(rdb), cacheTTL))
+	}
+
+	if cfg.Lifetimes == lifetimesByClient {
+		opts = append(opts, auth.WithSessionPolicy(auth.ByCredential(webLifetime, appLifetime)))
+	}
+	return opts, nil
+}

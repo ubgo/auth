@@ -1,0 +1,3 @@
+func AllowPrefixes(prefixes ...string) Option {
+	return func(p *Plugin) { p.prefixes = append(p.prefixes, prefixes...) }
+}

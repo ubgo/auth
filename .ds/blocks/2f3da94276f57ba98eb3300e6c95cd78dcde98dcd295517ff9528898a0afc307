@@ -1,0 +1,10 @@
+func ExamplePlugin_RequirePermission() {
+	orgs := organization.New()
+	orgInPath := func(r *http.Request) string { return r.PathValue("org") }
+	createProject := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusCreated) })
+	mux := http.NewServeMux()
+	// Inside authhttp.Middleware in a real app.
+	mux.Handle("POST /orgs/{org}/projects", orgs.RequirePermission(orgInPath, access.Request{"project": access.All("create")})(createProject))
+	fmt.Println("mounted")
+	// Output: mounted
+}

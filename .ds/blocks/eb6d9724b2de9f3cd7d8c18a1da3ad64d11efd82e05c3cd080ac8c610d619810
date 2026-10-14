@@ -1,0 +1,12 @@
+func ValidateProvider(prov Provider) error {
+	if !auth.KindNamePattern.MatchString(prov.Name()) {
+		return fmt.Errorf("oauth: provider name %q must match %s", prov.Name(), auth.KindNamePattern)
+	}
+	switch o := prov.(type) {
+	case *OAuth2:
+		return validateOAuth2(o)
+	case *OIDCProvider:
+		return validateOIDC(o)
+	}
+	return nil
+}

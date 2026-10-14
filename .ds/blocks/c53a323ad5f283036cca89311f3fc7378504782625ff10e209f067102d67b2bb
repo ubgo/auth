@@ -1,0 +1,50 @@
+type OAuth2 struct {
+	ID           string
+	ClientID     string
+	ClientSecret string
+	AuthURL      string
+	TokenURL     string
+	Scopes       []string
+	// FetchProfile reads the profile with the access token.
+	FetchProfile func(ctx context.Context, hc *http.Client, accessToken string) (Profile, error)
+	// TokenAuth is how the token endpoint is authenticated to; the zero
+	// value is ClientSecretPost.
+	TokenAuth TokenAuth
+	// AuthParams are added to every authorization URL: prompt=select_account,
+	// access_type=offline, hd=example.com and the like. A key the protocol
+	// owns (state, client_id, redirect_uri, response_type, scope,
+	// code_challenge, code_challenge_method) is ignored, so a parameter here
+	// can never weaken the flow.
+	AuthParams url.Values
+	// TokenParams are added to every token and refresh request. A key the
+	// grant owns (grant_type, code, redirect_uri, code_verifier,
+	// refresh_token, client_id, client_secret) is ignored.
+	TokenParams url.Values
+	// OptionalScopes are the scopes a start request may add to Scopes
+	// (StartRequest.Scopes), for incremental authorization: ask for the
+	// calendar only when the user reaches the calendar page. A scope not
+	// listed here is refused with ErrBadScope.
+	OptionalScopes []string
+	// TokenLifetime is used as the access token's lifetime when the token
+	// response carries no expires_in, so Tokens can still refresh it in
+	// time. Zero keeps the expiry unknown, which disables refresh.
+	TokenLifetime time.Duration
+	// IDToken makes the provider accept ID tokens (the id-token operation)
+	// and, with ProfileFromToken, read the profile from the token response's
+	// id_token instead of FetchProfile. Zero accepts none.
+	IDToken IDTokenConfig
+	// EndSessionURL is the provider's RP-initiated logout endpoint (OpenID
+	// Connect RP-Initiated Logout 1.0). Empty means the provider has none and
+	// the logout operation answers ErrLogoutUnsupported.
+	EndSessionURL string
+	// ClientSecretFunc replaces ClientSecret with a secret computed per token
+	// request, for a provider whose secret is a short-lived signed assertion
+	// (Apple; see AppleClientSecret). Validate refuses it on a PublicClient.
+	ClientSecretFunc func(ctx context.Context) (string, error)
+
+	// idOnce and idVerifier build the ID-token verifier once, so one key
+	// cache serves every request. now is the clock, set by tests.
+	idOnce     sync.Once
+	idVerifier *idTokenVerifier
+	now        func() time.Time
+}

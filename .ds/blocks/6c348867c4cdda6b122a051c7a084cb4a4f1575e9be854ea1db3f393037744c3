@@ -1,0 +1,1 @@
+func Wrap(gp goth.Provider) oauth.Provider { return &provider{gp: gp} }

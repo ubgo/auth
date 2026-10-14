@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-07T07:00:39.240303000Z",
+  "created_at": "2026-10-01T05:59:47.995615000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0f60c2c1b79669affa5b4e7b04011",
+  "mission_id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "plan_id": null,
+  "priority": "low",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-07T06:49:21.847112000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "email: verifying an address another account owns answers auth.identity_taken, which tells the mailbox owner the address has an account; decide whether that is acceptable",
+  "updated_at": "2026-10-07T07:00:39.240316000Z"
+}

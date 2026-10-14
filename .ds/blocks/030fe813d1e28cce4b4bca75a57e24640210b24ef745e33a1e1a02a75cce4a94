@@ -1,0 +1,6 @@
+type SessionUserFinder interface {
+	SessionStore
+	// FindWithUser is Find plus the user, refused (ErrSessionNotFound) when
+	// the user fails any of checks.
+	FindWithUser(ctx context.Context, tokenHash []byte, now time.Time, checks []sqlb.Predicate) (Session, User, error)
+}

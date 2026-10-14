@@ -1,0 +1,4 @@
+type appUser struct {
+	auth.User
+	Handle username.Data
+}

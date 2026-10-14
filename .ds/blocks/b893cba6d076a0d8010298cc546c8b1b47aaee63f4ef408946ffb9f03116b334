@@ -1,0 +1,29 @@
+type CallbackResult struct {
+	User auth.UserView `json:"user"`
+	// Created is true when the callback created the user.
+	Created bool `json:"created"`
+	// Linked is true when the callback linked the provider to the signed-in
+	// user.
+	Linked     bool   `json:"linked"`
+	RedirectTo string `json:"redirectTo"`
+	// SecondFactorRequired is true when the session is pending a second
+	// factor; the app page at RedirectTo asks for it.
+	SecondFactorRequired bool `json:"secondFactorRequired"`
+	// EmailVerificationRequired is true when VerifyEmailBeforeSignIn held
+	// the sign-in: the user exists, no session was issued, and RedirectTo
+	// carries `?error=oauth.email_not_verified`.
+	EmailVerificationRequired bool       `json:"emailVerificationRequired,omitempty"`
+	Token                     auth.Token `json:"-"`
+	// Data is what the start request carried in StartRequest.Data; empty
+	// for an id-token sign-in.
+	Data string `json:"data"`
+	// ServerContext is what the WithServerContext functions returned at
+	// the start (better-auth's serverContext): server-set values, never
+	// sent to the client (json "-"), read by an After hook on the callback.
+	ServerContext map[string]string `json:"-"`
+	// Reauthentication is the outcome of a re-authentication callback
+	// (EndpointReauthenticate), nil for every other flow: the session is
+	// fresh, or the second factor is due with a ticket. No session is
+	// issued and Token stays empty; RedirectTo carries ParamReauth.
+	Reauthentication *auth.Reauthentication `json:"reauthentication,omitempty"`
+}

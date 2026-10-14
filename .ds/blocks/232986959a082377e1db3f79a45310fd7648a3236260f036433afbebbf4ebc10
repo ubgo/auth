@@ -1,0 +1,52 @@
+func (a *Auth) CheckSchema(ctx context.Context) (SchemaReport, error) {
+	if a.db == nil {
+		return SchemaReport{}, ErrNoDatabase
+	}
+	var r SchemaReport
+	states, err := a.MigrationStatus(ctx)
+	if err != nil {
+		return r, err
+	}
+	for _, s := range states {
+		switch {
+		case s.Changed:
+			r.ChangedMigrations = append(r.ChangedMigrations, s.Owner+"/"+s.Name)
+		case !s.Applied:
+			r.PendingMigrations = append(r.PendingMigrations, s.Owner+"/"+s.Name)
+		}
+	}
+	ms, err := a.Migrations()
+	if err != nil {
+		return r, err
+	}
+	expected := expectedSchema(ms)
+	live, err := a.listNames(ctx, "list tables", a.tablesQuery())
+	if err != nil {
+		return r, err
+	}
+	have := map[string]bool{}
+	for _, t := range live {
+		have[t] = true
+	}
+	tables := make([]string, 0, len(expected))
+	for t := range expected {
+		tables = append(tables, t)
+	}
+	slices.Sort(tables)
+	for _, t := range tables {
+		if !have[t] {
+			r.MissingTables = append(r.MissingTables, t)
+			continue
+		}
+		cols, err := a.listNames(ctx, "list columns", a.columnsQuery(t))
+		if err != nil {
+			return r, err
+		}
+		for _, c := range expected[t] {
+			if !slices.Contains(cols, c) {
+				r.MissingColumns = append(r.MissingColumns, t+"."+c)
+			}
+		}
+	}
+	return r, nil
+}

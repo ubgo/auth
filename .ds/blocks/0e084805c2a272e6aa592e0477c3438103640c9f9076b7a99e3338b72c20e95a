@@ -1,0 +1,7 @@
+func Cloudflare(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "cloudflare", DisplayName: "Cloudflare", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		AuthURL: CloudflareAuthURL, TokenURL: CloudflareTokenURL, Scopes: []string{"user-details.read"},
+		FetchProfile: CloudflareProfile(CloudflareProfileURL),
+	}
+}

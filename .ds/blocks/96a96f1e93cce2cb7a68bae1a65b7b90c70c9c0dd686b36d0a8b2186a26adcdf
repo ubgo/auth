@@ -1,0 +1,9 @@
+func (c *countingCache) Get(ctx context.Context, k auth.CacheKey, now time.Time) (auth.Session, auth.User, bool, error) {
+	s, u, ok, err := c.next.Get(ctx, k, now)
+	if ok {
+		c.hits.Add(1)
+	} else {
+		c.misses.Add(1)
+	}
+	return s, u, ok, err
+}

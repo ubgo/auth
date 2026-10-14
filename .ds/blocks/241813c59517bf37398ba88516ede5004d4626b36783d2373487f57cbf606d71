@@ -1,0 +1,5 @@
+type memoryKV struct {
+	mu   sync.Mutex
+	now  func() time.Time
+	data map[string]kvEntry
+}

@@ -1,0 +1,29 @@
+func TestReferral_FailedSignUpLeavesNoCode(t *testing.T) {
+	a, err := auth.New(
+		auth.WithDB(openTestDB(t), sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(email.MailerFunc(discard))), password.New(), referral.New(), refuser{address: bobEmail}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = a.Close() })
+	if _, err := a.Migrate(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	b := newBrowser(t, newHandler(a))
+	post[none](t, b, "/auth/password/sign-up", fields{"identifier": aliceEmail, "password": testPassword}, http.StatusOK)
+	post[errorAnswer](t, newBrowser(t, newHandler(a)), "/auth/password/sign-up", fields{"identifier": bobEmail, "password": testPassword}, http.StatusInternalServerError)
+
+	var users, codes int64
+	q, err := a.Select().Columns(sqlb.Bind(sqlb.Count(), &users), sqlb.Bind(sqlb.CountOf(referral.Code), &codes)).From(auth.TableUser).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sqlb.One(context.Background(), a.DB(), q); err != nil {
+		t.Fatal(err)
+	}
+	if users != 1 || codes != 1 {
+		t.Fatalf("%d users and %d codes after the failed sign-up, want 1 and 1", users, codes)
+	}
+}

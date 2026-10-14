@@ -1,0 +1,3 @@
+func txClient(tx *sql.Tx) *ent.Client {
+	return ent.NewClient(ent.Driver(entsql.NewDriver(entDialect, entsql.Conn{ExecQuerier: tx})))
+}

@@ -1,0 +1,1 @@
+func PartitionedCookies() Option { return func(c *config) { c.partitioned = true } }

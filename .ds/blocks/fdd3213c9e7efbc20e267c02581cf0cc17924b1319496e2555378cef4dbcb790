@@ -1,0 +1,8 @@
+func mintJobToken(ctx context.Context, jw *jwt.Plugin) (jwt.TokenResult, error) {
+	return jw.Sign(ctx, jwt.SignRequest{
+		Subject: jobSubject,
+		TTL:     jobTTL,
+		Alg:     jwt.RS256,
+		Claims:  map[string]any{claimRole: roleWorker},
+	})
+}

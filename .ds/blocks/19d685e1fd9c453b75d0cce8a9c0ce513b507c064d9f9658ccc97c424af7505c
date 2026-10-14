@@ -1,0 +1,8 @@
+func WithTracer(t Tracer) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithTracer", t) {
+			return
+		}
+		s.tracer = t
+	}
+}

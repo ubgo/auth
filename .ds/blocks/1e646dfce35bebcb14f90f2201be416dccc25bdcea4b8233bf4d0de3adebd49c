@@ -1,0 +1,3 @@
+func TemplatesByLocale(byLocale map[string]Template) Option {
+	return func(p *Plugin) { p.localized = byLocale }
+}

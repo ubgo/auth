@@ -1,0 +1,19 @@
+func (p *Plugin) doAdd(ctx context.Context, c *auth.Call, in HandleRequest) (auth.Done, error) {
+	switch _, err := p.userHandle(ctx, c.User.ID, ""); {
+	case err == nil:
+		return auth.Done{}, ErrHasHandle
+	case !errors.Is(err, auth.ErrIdentityNotFound):
+		// A failed lookup must not fall through to an insert, or a user
+		// could end up with two handles.
+		return auth.Done{}, err
+	}
+	idn, err := c.Auth.CreateIdentity(ctx, auth.NewIdentity{UserID: c.User.ID, Kind: KindChat, Raw: in.Handle})
+	if err != nil {
+		return auth.Done{}, err
+	}
+	code, err := c.Auth.IssueCode(ctx, PurposeVerifyCode, idn.ID, p.codeTTL)
+	if err != nil {
+		return auth.Done{}, err
+	}
+	return auth.Done{OK: true}, c.Auth.Deliver(ctx, idn, auth.Message{Purpose: auth.PurposeVerify, Code: code})
+}

@@ -1,0 +1,11 @@
+func TestReferral_TwoOwnersOfAColumnFailAtStartUp(t *testing.T) {
+	_, err := auth.New(
+		auth.WithDB(openTestDB(t), sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(email.MailerFunc(discard))), password.New(), referral.New(), growth{}),
+	)
+	if !errors.Is(err, auth.ErrColumnConflict) {
+		t.Fatalf("auth.New = %v, want ErrColumnConflict", err)
+	}
+	t.Logf("auth.New: %v", err)
+}

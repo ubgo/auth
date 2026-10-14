@@ -1,0 +1,7 @@
+const messages: Partial<Record<AuthErrorCode | ClientErrorCode, string>> = {
+  "password.invalid_credentials": "Wrong address or password.",
+  "password.too_short": "Use a longer password.",
+  "auth.rate_limited": "Too many attempts. Wait a moment and try again.",
+  "client.network_error": "You seem to be offline.",
+  "client.unknown_code": "Something went wrong. Try again.",
+};

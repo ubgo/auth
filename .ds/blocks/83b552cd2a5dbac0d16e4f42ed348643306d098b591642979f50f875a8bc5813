@@ -1,0 +1,3 @@
+func openEnt(db *sql.DB) *ent.Client {
+	return ent.NewClient(ent.Driver(entsql.OpenDB(entDialect, db)))
+}

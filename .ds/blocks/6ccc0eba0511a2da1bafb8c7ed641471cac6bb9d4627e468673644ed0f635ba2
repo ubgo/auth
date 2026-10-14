@@ -1,0 +1,5 @@
+export async function onVerifyEmailPage(): Promise<string> {
+  const { data, error } = await auth.email.verify({ token: tokenFromLink() });
+  if (error) return error.code === "auth.token_invalid" ? "This link has expired. Ask for a new one." : error.message;
+  return `${data.email} is verified.`;
+}

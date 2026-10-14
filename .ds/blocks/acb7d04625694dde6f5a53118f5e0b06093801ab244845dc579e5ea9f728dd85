@@ -1,0 +1,18 @@
+func (p *Plugin) Authorize(ctx context.Context, want access.Permissions) error {
+	sess, ok := auth.CurrentSession(ctx)
+	if !ok || sess.APIKeyID == "" {
+		return ErrPermissionDenied
+	}
+	r, err := p.keyByID(ctx, sess.APIKeyID)
+	if errors.Is(err, sqlb.ErrNoRows) {
+		return ErrPermissionDenied
+	}
+	if err != nil {
+		return err
+	}
+	s, _ := p.config(r.configID)
+	if !s.grants(r.k.Permissions, want) {
+		return ErrPermissionDenied
+	}
+	return nil
+}

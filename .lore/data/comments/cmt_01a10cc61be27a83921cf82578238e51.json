@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Done: auth.WithRateRules (ratelimit.go) adds or replaces a shipped plugin's rule from outside, never removes one; round 1; pinned by TestWithRateRules_ReplacesThePluginsRules in switches_test.go. Verified by r10-lore audit 2026-10-05.",
+  "created_at": "2026-10-05T15:54:32.290679000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5dd6405745dbef3babcbbca8ee8",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc61be27a83921cf82578238e51",
+  "updated_at": "2026-10-05T15:54:32.290680000Z"
+}

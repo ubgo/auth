@@ -1,0 +1,17 @@
+func (p *Plugin) ImportHash(ctx context.Context, userID string, hash string) error {
+	if !p.recognizes(hash) {
+		return ErrHashUnrecognized
+	}
+	return p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		if _, err := p.core.User(ctx, userID); err != nil {
+			return err
+		}
+		switch _, err := p.load(ctx, userID); {
+		case err == nil:
+			return ErrHasPassword
+		case !errors.Is(err, sqlb.ErrNoRows):
+			return err
+		}
+		return p.store(ctx, userID, hash, true)
+	})
+}

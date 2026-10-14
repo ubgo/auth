@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Context: the better-auth comparison listed 60 rows for the billing plugins (Stripe, Polar, Autumn, Chargebee, Commet, Creem, Dodo Payments) plus one community row for other payment providers (Paystack, Flutterwave, Razorpay, PayU, Lark, Solana payments, Stellar). Chosen: skip them; the rows are now n/a (➖) in docsi/plans/compare/better-auth/org.md with an owner note. Reasoning: they are payments and entitlements, not authentication. Alternatives: build a Stripe module now. Not needed later either as a core change: a billing module can be added as its own module using plugin-owned tables, after-sign-up hooks and plugin operations. Dub lead tracking (attribution, not payment) was not part of this decision.",
+  "confidence": null,
+  "created_at": "2026-10-08T10:57:26.093273000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a11b292e4d7436b5c9c8f5f9c0a6e6",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Owner 2026-10-08: payment and billing integrations are skipped",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-08T10:57:26.093274000Z"
+}

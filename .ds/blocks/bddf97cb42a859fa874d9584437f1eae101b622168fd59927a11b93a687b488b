@@ -1,0 +1,27 @@
+func (p *Plugin) DisplayForm(handle, display string) (string, error) {
+	if display == "" {
+		return handle, nil
+	}
+	shown := display
+	if p.displayNorm != nil {
+		shown = p.displayNorm(display)
+	}
+	if p.displayValid != nil {
+		checked := display
+		if p.displayAfterNorm {
+			checked = shown
+		}
+		if err := p.displayValid(checked); err != nil {
+			return "", ErrDisplayInvalid
+		}
+	}
+	want, err := p.kind.Normalize(handle)
+	if err != nil {
+		return "", err
+	}
+	got, err := p.kind.Normalize(shown)
+	if err != nil || got != want {
+		return "", ErrDisplayInvalid
+	}
+	return shown, nil
+}

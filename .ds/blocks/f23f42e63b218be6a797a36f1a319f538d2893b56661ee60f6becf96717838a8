@@ -1,0 +1,8 @@
+func WithTrustedOriginFunc(fn OriginFunc) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithTrustedOriginFunc", fn) {
+			return
+		}
+		s.originFunc = fn
+	}
+}

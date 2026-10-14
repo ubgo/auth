@@ -1,0 +1,10 @@
+func newHandler(a *auth.Auth, ak *apikey.Plugin) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	api := authhttp.Middleware(a)
+	mux.Handle("GET /api/orders", api(authhttp.RequireScope(scopeOrdersRead)(http.HandlerFunc(listOrders))))
+	mux.Handle("POST /api/refunds", api(authhttp.RequireFunc(func(r *http.Request) error {
+		return ak.Authorize(r.Context(), apikey.Permissions{resourceOrders: {actionRefund}})
+	})(http.HandlerFunc(refund))))
+	return mux
+}

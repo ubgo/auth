@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "ds map --budget 2000",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}

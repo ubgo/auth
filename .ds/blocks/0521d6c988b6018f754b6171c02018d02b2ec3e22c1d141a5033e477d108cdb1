@@ -1,0 +1,7 @@
+func Discord(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "discord", DisplayName: "Discord", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: DiscordAuthURL, TokenURL: DiscordTokenURL, Scopes: []string{"identify", "email"},
+		FetchProfile: DiscordProfile(DiscordUserURL),
+	}
+}

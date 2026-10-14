@@ -1,0 +1,16 @@
+func (p *Plugin) Unlock(ctx context.Context, userID string) error {
+	if p.core == nil {
+		return auth.ErrOperationNotWired
+	}
+	upd := sqlb.NewUpdate(p.core.Dialect()).Table(TableFactor).
+		Set(sqlb.Set(FactorLockedUntil, nil), sqlb.Set(FactorFailures, 0)).
+		Where(sqlb.Eq(FactorUserID, userID))
+	n, err := p.core.Exec(ctx, upd)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrNotEnrolled
+	}
+	return nil
+}

@@ -1,0 +1,4 @@
+type Identity struct {
+	Kind  auth.IdentifierKindName
+	Value string
+}

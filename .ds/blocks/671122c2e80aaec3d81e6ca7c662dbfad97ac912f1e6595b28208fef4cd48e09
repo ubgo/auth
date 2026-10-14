@@ -1,0 +1,38 @@
+func samlMapping(raw string) (sso.SAMLMapping, []string, error) {
+	var out sso.SAMLMapping
+	var m supabaseMapping
+	if raw == "" {
+		return out, nil, nil
+	}
+	if err := json.Unmarshal([]byte(raw), &m); err != nil {
+		return out, nil, fmt.Errorf("attribute_mapping: %w", err)
+	}
+	var notes []string
+	keys := slices.Sorted(maps.Keys(m.Keys))
+	for _, k := range keys {
+		attr := m.Keys[k].Name
+		if names := m.Keys[k].Names; attr == "" && len(names) > 0 {
+			attr = names[0]
+			if len(names) > 1 {
+				notes = append(notes, fmt.Sprintf("%s: kept the first of %d attribute names (%s)", k, len(names), attr))
+			}
+		}
+		switch {
+		case attr == "":
+		case k == "email":
+			out.Email = attr
+		case k == "name":
+			out.Name = attr
+		case k == "first_name" || k == "given_name":
+			out.FirstName = attr
+		case k == "last_name" || k == "family_name":
+			out.LastName = attr
+		default:
+			if out.ExtraFields == nil {
+				out.ExtraFields = map[string]string{}
+			}
+			out.ExtraFields[k] = attr
+		}
+	}
+	return out, notes, nil
+}

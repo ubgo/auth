@@ -1,0 +1,3 @@
+func Auth0(domain, clientID, clientSecret string) *OIDCProvider {
+	return OIDC("auth0", withHTTPS(domain), clientID, clientSecret)
+}

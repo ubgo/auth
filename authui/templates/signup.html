@@ -1,0 +1,10 @@
+{{define "body"}}
+<form method="post" action="{{.Prefix}}/signup">
+<label>{{.T "authui.name"}}<input name="name" autocomplete="name" value="{{.Name}}"></label>
+<label>{{.T .IdentifierInput.Key}}<input name="identifier" type="{{.IdentifierInput.Type}}" autocomplete="{{.IdentifierInput.Autocomplete}}" required value="{{.Identifier}}"></label>
+<label>{{.T "authui.password"}}<input type="password" name="password" autocomplete="new-password" required minlength="8" data-reveal></label>
+{{if .TermsVersion}}<label class="check"><input type="checkbox" name="terms" value="{{.TermsVersion}}" required> {{.T "authui.accept_terms"}} <a href="{{.TermsURL}}">{{.T "authui.terms"}}</a></label>{{end}}
+<button type="submit">{{.T "authui.create_account"}}</button>
+</form>
+{{template "methods" .}}<p>{{.T "authui.have_account"}} <a href="{{.Prefix}}/login">{{.T "authui.sign_in"}}</a></p>
+{{end}}

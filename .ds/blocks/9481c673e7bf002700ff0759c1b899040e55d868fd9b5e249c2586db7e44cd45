@@ -1,0 +1,23 @@
+func (a *Auth) ConsumeVerification(ctx context.Context, purpose Purpose, tok Token) (Verification, error) {
+	var out Verification
+	err := a.Tx(ctx, func(ctx context.Context, _ sqlbTx) error {
+		now := a.now()
+		hash := HashToken(tok)
+		q := sqlb.NewUpdate(a.cfg.Dialect).Table(TableVerification).Set(sqlb.Set(VerificationConsumedAt, &now)).
+			Where(
+				sqlb.Eq(VerificationTokenHash, hash), sqlb.Eq(VerificationPurpose, purpose),
+				sqlb.IsNull(VerificationConsumedAt), sqlb.Greater(VerificationExpiresAt, now),
+			)
+		n, err := a.Exec(ctx, q)
+		if err != nil {
+			return fmt.Errorf("auth: consume verification: %w", err)
+		}
+		if n != 1 {
+			return ErrTokenInvalid
+		}
+		sel := a.Select().Columns(VerificationBindings(&out)...).From(TableVerification).
+			Where(sqlb.Eq(VerificationTokenHash, hash)).Limit(1)
+		return a.One(ctx, sel)
+	})
+	return out, err
+}

@@ -1,0 +1,8 @@
+type InitiatedExchanger interface {
+	Provider
+	// ExchangeInitiated trades code for the person's profile without a
+	// verifier. The token response must carry an ID token whose signature,
+	// issuer, audience and lifetime verify and which carries no nonce, and
+	// the profile's subject must be the token's.
+	ExchangeInitiated(ctx context.Context, hc *http.Client, code, redirectURI string) (Profile, error)
+}

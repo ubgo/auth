@@ -1,0 +1,6 @@
+func (x *app) handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(x.auth, authhttp.Prefix(authPrefix)))
+	mux.Handle("GET /security/sign-ins", authhttp.Middleware(x.auth)(authhttp.RequireUser(http.HandlerFunc(x.signIns))))
+	return mux
+}

@@ -1,0 +1,33 @@
+func SplitBody(data []byte, dst any) (Fields, error) {
+	rv := reflect.ValueOf(dst)
+	if rv.Kind() != reflect.Pointer || rv.IsNil() || rv.Elem().Kind() != reflect.Struct {
+		return nil, errSplitTarget
+	}
+	var all map[string]json.RawMessage
+	if err := json.Unmarshal(data, &all); err != nil {
+		return nil, err
+	}
+	known := jsonNames(rv.Elem().Type())
+	own := map[string]json.RawMessage{}
+	var rest Fields
+	for k, v := range all {
+		if known[strings.ToLower(k)] {
+			own[k] = v
+			continue
+		}
+		if rest == nil {
+			rest = Fields{}
+		}
+		rest[k] = v
+	}
+	body, err := json.Marshal(own)
+	if err != nil {
+		return nil, err
+	}
+	dec := json.NewDecoder(bytes.NewReader(body))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(dst); err != nil {
+		return nil, err
+	}
+	return rest, nil
+}

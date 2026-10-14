@@ -1,0 +1,43 @@
+func (p *Plugin) Sign(ctx context.Context, in SignRequest) (TokenResult, error) {
+	if in.Subject == "" {
+		return TokenResult{}, ErrEmptySubject
+	}
+	typ, err := tokenTypeOf(in.Type)
+	if err != nil {
+		return TokenResult{}, err
+	}
+	signer, err := p.signerForKey(in.Alg, in.KeyID)
+	if err != nil {
+		return TokenResult{}, err
+	}
+	ttl := in.TTL
+	if ttl <= 0 {
+		ttl = p.ttl
+	}
+	if ttl > MaxTTL {
+		ttl = MaxTTL
+	}
+	now := p.core.Now()
+	exp := now.Add(ttl)
+	claims := map[string]any{}
+	for k, v := range in.Claims {
+		if slices.Contains(reservedClaims, k) {
+			return TokenResult{}, fmt.Errorf("%w: %q", ErrReservedClaim, k)
+		}
+		claims[k] = v
+	}
+	claims[claimIssuer], claims[claimSubject], claims[claimIssuedAt], claims[claimNotBefore], claims[claimExpires], claims[claimTokenID] = p.issuer, in.Subject, now.Unix(), now.Unix(), exp.Unix(), rand.Text()
+	aud := in.Audience
+	if aud == nil {
+		aud = p.audience
+	}
+	setAudience(claims, aud)
+	if in.SessionID != "" {
+		claims[claimSession] = in.SessionID
+	}
+	tok, err := signWith(ctx, signer, typ, claims)
+	if err != nil {
+		return TokenResult{}, err
+	}
+	return TokenResult{Token: tok, ExpiresAt: exp}, nil
+}

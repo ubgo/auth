@@ -1,0 +1,3 @@
+type Validator interface {
+	Validate(*Config) error
+}

@@ -1,0 +1,4 @@
+type countingCache struct {
+	next         auth.SessionCache
+	hits, misses atomic.Int64
+}

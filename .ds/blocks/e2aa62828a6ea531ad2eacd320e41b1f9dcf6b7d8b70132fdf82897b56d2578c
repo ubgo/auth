@@ -1,0 +1,3 @@
+func options(secret []byte) []auth.Option {
+	return []auth.Option{auth.WithSecret(secret), auth.WithDeliveryOutbox()}
+}

@@ -1,0 +1,13 @@
+func (p *Plugin) PublicKeys() JWKS {
+	keys := p.publishedKeys()
+	out := JWKS{Keys: make([]JWK, 0, len(keys))}
+	for _, k := range keys {
+		// auth.New refused an unsupported key, but a custom Signer's list
+		// may change later; a key with no JWK form is left out rather than
+		// published broken.
+		if j, ok := jwkOf(k); ok {
+			out.Keys = append(out.Keys, j)
+		}
+	}
+	return out
+}

@@ -1,0 +1,75 @@
+# Runs the same gates as a developer machine (`task check`, then the Postgres
+# and MySQL integration suites) so heavy runs need not happen locally. The
+# repository is public, where GitHub Actions minutes are free.
+
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: task check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+          cache: true
+      - uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: tools the gate needs (tsc, the docsync CLI, a pass-through testlock; CI has one job at a time)
+        run: |
+          npm i -g typescript
+          go install github.com/ubgo/docsync/cli/cmd/ds@latest
+          mkdir -p "$HOME/.local/bin"
+          printf '#!/bin/sh\nexec "$@"\n' > "$HOME/.local/bin/testlock"
+          chmod +x "$HOME/.local/bin/testlock"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: task check (every module, SQLite integration suite, gqlgen example, type and dependency gates)
+        run: task check
+
+  engines:
+    name: integration on Postgres 17 and MySQL 8
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: auth_test
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 20
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: auth
+          MYSQL_DATABASE: auth_test
+        ports: ["3306:3306"]
+        options: --health-cmd "mysqladmin ping -pauth" --health-interval 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+          cache: true
+      - name: integration suite on SQLite, Postgres and MySQL, race detector on
+        working-directory: integration
+        env:
+          GOFLAGS: -mod=mod
+          AUTH_TEST_PG_DSN: postgres://postgres:root@localhost:5432/auth_test?sslmode=disable
+          AUTH_TEST_MYSQL_DSN: root:auth@tcp(127.0.0.1:3306)/auth_test
+        run: go test -race -count=1 -p 1 ./...

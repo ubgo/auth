@@ -1,0 +1,1 @@
+func WithSigningKey(k ed25519.PrivateKey) Option { return func(p *Plugin) { p.key = k } }

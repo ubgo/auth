@@ -1,0 +1,7 @@
+{{define "body"}}
+<form method="post" action="{{.Prefix}}/forgot-password">
+<label>{{.T .IdentifierInput.Key}}<input name="identifier" type="{{.IdentifierInput.Type}}" autocomplete="{{.IdentifierInput.Autocomplete}}" required></label>
+<button type="submit">{{.T "authui.send_reset"}}</button>
+</form>
+<p><a href="{{.Prefix}}/login">{{.T "authui.back_to_sign_in"}}</a></p>
+{{end}}

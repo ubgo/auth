@@ -1,0 +1,30 @@
+func (l *ledger) execute(_ context.Context, ex agentauth.Execution) (any, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	user := ex.Session.User.ID
+	switch ex.Capability.Name {
+	case capListInvoices:
+		out := make([]invoice, 0, len(seedInvoices))
+		for _, inv := range seedInvoices {
+			inv.Paid = l.paid[user+"/"+inv.ID]
+			out = append(out, inv)
+		}
+		return out, nil
+	case capPayInvoice:
+		// Arguments are decoded JSON, so a number arrives as float64. A missing
+		// or mistyped argument is refused, never read as "" or 0.
+		id, okID := ex.Arguments[argInvoiceID].(string)
+		amount, okAmount := ex.Arguments[argAmount].(float64)
+		if !okID || !okAmount {
+			return nil, errBadArguments
+		}
+		for _, inv := range seedInvoices {
+			if inv.ID == id && inv.Amount == amount {
+				l.paid[user+"/"+id] = true
+				return payment{InvoiceID: id, Amount: amount, PaidBy: ex.Session.Agent.ID}, nil
+			}
+		}
+		return nil, errUnknownInvoice
+	}
+	return nil, errors.New("unreachable: the plugin refuses capabilities outside the catalogue")
+}

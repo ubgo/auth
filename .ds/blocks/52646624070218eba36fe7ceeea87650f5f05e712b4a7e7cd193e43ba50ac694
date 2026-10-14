@@ -1,0 +1,7 @@
+func HubSpot(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "hubspot", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: HubSpotAuthURL, TokenURL: HubSpotTokenURL, Scopes: []string{"oauth"},
+		FetchProfile: HubSpotProfile(HubSpotTokenInfoURL),
+	}
+}

@@ -1,0 +1,13 @@
+func meHandler(a *auth.Auth) http.Handler {
+	pw := passwordPlugin(a)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u := authhttp.MustUser(r)
+		has, err := pw.HasPassword(r.Context(), u.ID)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(meResponse{ID: u.ID, HasPassword: has}) // a client that hung up cannot be told
+	})
+}

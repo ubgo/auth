@@ -1,0 +1,18 @@
+type IDTokenRequest struct {
+	// IDToken is the provider's ID token, a compact JWS.
+	IDToken string `json:"idToken"`
+	// Nonce is the value the app sent to the provider, when it sent one;
+	// the token's nonce claim must be it or its SHA-256 hex.
+	Nonce string `json:"nonce,omitempty"`
+	// SignUp says the person meant to sign up, which ExplicitSignUp
+	// requires before a user is created.
+	SignUp bool `json:"signUp,omitempty"`
+	// AccessToken is the access token the native SDK received with the ID
+	// token, better-auth's idToken.accessToken. It is taken only when the ID
+	// token binds it: an at_hash claim (OpenID Connect Core 3.1.3.6) equal
+	// to the hash of this value, so a client cannot attach a stolen or
+	// unrelated token to a verified identity. A token without at_hash, or
+	// with another hash, is ErrIDTokenInvalid. Once taken, it is the
+	// account's stored access token under StoreTokens, like a callback's.
+	AccessToken string `json:"accessToken,omitempty"`
+}

@@ -1,0 +1,29 @@
+type CreateRequest struct {
+	// Config names the key configuration (Configuration); "" is
+	// DefaultConfig. An unknown one is ErrUnknownConfig.
+	Config string `json:"configId"`
+	Name   string `json:"name"`
+	// Scopes are the key's scopes; nil (the field left out) takes the
+	// configuration's DefaultScopes, an empty list none.
+	Scopes []string `json:"scopes"`
+	// Prefix is the key's own prefix after the configuration's, allowed
+	// only under AllowKeyPrefix (ErrBadKeyPrefix otherwise).
+	Prefix string `json:"prefix"`
+	// ExpiresInDays is optional; 0 means the key never expires, unless
+	// WithExpiry sets a default or a maximum.
+	ExpiresInDays int `json:"expiresInDays"`
+	// Metadata is a JSON object kept with the key and returned in
+	// Key.Metadata; it needs AllowMetadata (ErrMetadataDisabled otherwise).
+	Metadata json.RawMessage `json:"metadata"`
+	// OrganizationID names the organization that owns the key; required by
+	// an OrganizationOwned configuration (ErrOrganizationIDRequired) and
+	// refused by any other (ErrNotOrganizationConfig). The caller needs the
+	// apiKey "create" permission in it.
+	OrganizationID string `json:"organizationId"`
+	// Permissions are the key's resource-to-actions permissions, checked
+	// against WithPermissions (ErrBadPermissions); nil takes the
+	// configuration's DefaultPermissions. Go only, never read from a client,
+	// as better-auth makes permissions a server-only property: a user must
+	// not grant their own key powers the app did not decide.
+	Permissions access.Permissions `json:"-"`
+}

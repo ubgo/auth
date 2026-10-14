@@ -1,0 +1,19 @@
+func TestPhoneNumbers_Refusals(t *testing.T) {
+	a, sms := newTestAuth(t)
+	b := newBrowser(t, newHandler(a))
+
+	post[auth.Done](t, b, "/auth/phone/send-code", fields{"phone": typedNumber}, http.StatusOK)
+	bad := post[errorAnswer](t, b, "/auth/phone/sign-in", fields{"phone": typedNumber, "code": wrongCode}, http.StatusBadRequest)
+	if bad.Error.Code != phone.ErrCodeInvalid.Code {
+		t.Fatalf("wrong code = %+v", bad.Error)
+	}
+	for name, number := range map[string]string{"abroad": abroadNumber, "unassigned": unassignedNumber, "garbage": "call me maybe"} {
+		res := post[errorAnswer](t, b, "/auth/phone/send-code", fields{"phone": number}, http.StatusBadRequest)
+		if res.Error.Code != auth.ErrIdentifierInvalid.Code {
+			t.Errorf("%s number = %+v", name, res.Error)
+		}
+	}
+	if n := sms.count(a); n != 1 {
+		t.Fatalf("%d texts sent, want only the first", n)
+	}
+}

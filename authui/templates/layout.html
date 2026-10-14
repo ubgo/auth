@@ -1,0 +1,19 @@
+{{define "layout"}}<!doctype html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.T .Title}} · {{.AppName}}</title>
+<link rel="stylesheet" href="{{.Prefix}}/_authui/ui.css">
+<script src="{{.Prefix}}/_authui/ui.js" defer></script>
+</head>
+<body>
+<main class="card">
+<h1>{{.T .Title}}</h1>
+{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}
+{{if .Notice}}<p class="notice" role="status">{{.Notice}}</p>{{end}}
+{{template "body" .}}
+</main>
+</body>
+</html>{{end}}
+{{define "methods"}}{{if .Methods}}<div class="methods">{{range .Methods}}{{if .Field}}<form method="get" action="{{.Href}}" class="method method-{{.Kind}}"><label>{{$.T .FieldKey}}<input name="{{.Field}}" required></label><button type="submit" class="secondary">{{$.T .LabelKey}}</button></form>{{else}}<a class="method method-{{.Kind}}" href="{{.Href}}">{{$.T .LabelKey}}</a>{{end}}{{end}}</div>{{end}}{{end}}

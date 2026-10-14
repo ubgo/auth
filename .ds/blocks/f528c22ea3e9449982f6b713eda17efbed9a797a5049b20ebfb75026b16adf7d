@@ -1,0 +1,3 @@
+func (p *Plugin) ConfirmChange(ctx context.Context, number, code string) (ChangeResult, error) {
+	return p.confirmChange.Call(ctx, CodeRequest{Phone: number, Code: code})
+}

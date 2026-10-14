@@ -1,0 +1,6 @@
+func (p *Plugin) Columns() []auth.ColumnExtension {
+	return []auth.ColumnExtension{
+		{Table: auth.TableNameUser, Name: ColSuspendedAt, Type: auth.ColumnTimestamp, Nullable: true},
+		{Table: auth.TableNameUser, Name: ColPINHash, Type: auth.ColumnText, Nullable: true},
+	}
+}

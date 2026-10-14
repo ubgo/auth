@@ -1,0 +1,6 @@
+type Logouter interface {
+	Provider
+	// EndSession returns the provider's end_session_endpoint, or "" when the
+	// provider has none.
+	EndSession(ctx context.Context, hc *http.Client) (string, error)
+}

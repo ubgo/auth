@@ -1,0 +1,5 @@
+type Mailbox struct {
+	env  *Env
+	mu   sync.Mutex
+	sent []email.Mail
+}

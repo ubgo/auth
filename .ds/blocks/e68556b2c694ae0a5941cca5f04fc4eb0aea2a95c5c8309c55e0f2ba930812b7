@@ -1,0 +1,10 @@
+func checkWebhookKey(ctx context.Context, ak *apikey.Plugin, secret string) (string, error) {
+	v, err := ak.Verify(ctx, secret, scopeOrdersWrite)
+	if err != nil {
+		return "", err
+	}
+	if !v.Valid {
+		return "", v.Reason
+	}
+	return v.UserID, nil
+}

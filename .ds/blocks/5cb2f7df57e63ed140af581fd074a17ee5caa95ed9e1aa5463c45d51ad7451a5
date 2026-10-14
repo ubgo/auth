@@ -1,0 +1,3 @@
+func AllowAuthenticators(aaguids ...string) Option {
+	return func(p *Plugin) { p.allowAAGUIDs = append(p.allowAAGUIDs, aaguids...) }
+}

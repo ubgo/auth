@@ -1,0 +1,8 @@
+func DisplayNormalizer(fn func(display string) string) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("username.DisplayNormalizer", fn) {
+			return
+		}
+		p.displayNorm = fn
+	}
+}

@@ -1,0 +1,4 @@
+type memoryLog struct {
+	mu     sync.Mutex
+	events []audit.Event
+}

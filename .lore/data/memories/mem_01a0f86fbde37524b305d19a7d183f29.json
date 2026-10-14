@@ -1,0 +1,23 @@
+{
+  "_table": "memories",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Start a new session on ubgo/auth with docsi/handoff/2026-10-01-session-handoff.md: state, open items (docsync review, CHANGELOG, comparison recount, core round-1 finish), team procedure and gotchas.",
+  "confidence": null,
+  "created_at": "2026-10-01T17:07:47.811334000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "mem_01a0f86fbde37524b305d19a7d183f29",
+  "kind": "retrieved",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "superseded_by_id": null,
+  "trust_score": 0.5,
+  "tx_at": "2026-10-01T17:07:47.811335000Z",
+  "updated_at": "2026-10-01T17:07:47.811334000Z",
+  "valid_at": null,
+  "valid_until": null,
+  "validated_by_actor_id": null
+}

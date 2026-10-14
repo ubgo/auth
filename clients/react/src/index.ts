@@ -1,0 +1,165 @@
+// @ubgo/auth-react: the provider, hooks and contract the copy-in UI
+// components (registry/) are built on. Everything here is headless; the
+// look lives in the components an app copies in.
+
+export {
+  AuthProvider,
+  DEFAULT_AUTH_PATHS,
+  DEFAULT_BASE_URL,
+  useAuth,
+  useSafeRedirect,
+  type AnyAuthClient,
+  type AuthContextValue,
+  type AuthLinkProps,
+  type AuthPaths,
+  type AuthProviderProps,
+} from "./context.tsx";
+export {
+  ADMIN_CAPABILITIES,
+  ADMIN_QUERY_ROOT,
+  ADMIN_STALE_MS,
+  AdminReadError,
+  useAdminActions,
+  useAdminPermissions,
+  useAdminTwoFactor,
+  useAdminUser,
+  useAdminUserMetadata,
+  useAdminUserSessions,
+  useAdminUsers,
+  useImpersonation,
+  type AdminActions,
+  type AdminBanInput,
+  type AdminCapabilities,
+  type AdminCapability,
+  type AdminPermissionsState,
+  type AdminTwoFactorState,
+  type AdminUserMetadataState,
+  type AdminUserSessionsState,
+  type AdminUsersState,
+  type AdminUserState,
+  type ImpersonationState,
+} from "./admin.ts";
+export {
+  ADMIN_DEFAULT_PAGE_SIZE,
+  ADMIN_MAX_SEARCH_LENGTH,
+  ADMIN_PAGE_SIZES,
+  ADMIN_SEARCH_FIELDS,
+  ADMIN_USER_SORTS,
+  PAGE_GAP,
+  adminUsersCall,
+  lastPage,
+  normalPage,
+  normalPageSize,
+  pageItems,
+  pageRange,
+  type AdminSearchField,
+  type AdminUserSort,
+  type AdminUsersCall,
+  type AdminUsersQuery,
+  type PageItem,
+} from "./admin-paging.ts";
+export { usePasskeyAutofill, type PasskeyAutofill, type PasskeyAutofillOptions, type PasskeyAutofillStatus } from "./autofill.ts";
+export type { AuthComponentProps, HeadingLevel, SlotClassNames } from "./customization.ts";
+export { SignedIn, SignedOut, type SessionGateProps } from "./gates.tsx";
+export {
+  CLIENT_ERROR_MESSAGES,
+  errorMessage,
+  format,
+  useErrorMessage,
+  useLocalization,
+  type AnyErrorCode,
+  type AuthLocalization,
+  type ComponentLocalizations,
+} from "./localization.ts";
+export {
+  JWT_QUERY_ROOT,
+  JWT_REFRESH_MARGIN_MS,
+  useGetToken,
+  type GetTokenOptions,
+  type GetTokenResult,
+} from "./jwt.ts";
+export {
+  OAUTH_PROVIDERS_QUERY_KEY,
+  oauthStartURL,
+  useOAuthProviders,
+  type OAuthProvidersState,
+  type OAuthStartOptions,
+} from "./oauth.ts";
+export {
+  ORGANIZATION_QUERY_ROOT,
+  ORGANIZATION_STALE_MS,
+  OrganizationReadError,
+  useActiveOrganization,
+  useOrganizationActions,
+  useOrganizationInvitations,
+  useOrganizationMembers,
+  useOrganizationPermission,
+  useOrganizations,
+  useReceivedInvitations,
+  type ActiveOrganizationState,
+  type ActiveOrganizationTarget,
+  type OrganizationActions,
+  type OrganizationInvitationsState,
+  type OrganizationMembersOptions,
+  type OrganizationMembersState,
+  type OrganizationMemberTarget,
+  type OrganizationRoleChange,
+  type OrganizationPermissionState,
+  type OrganizationPermissions,
+  type OrganizationsState,
+  type ReceivedInvitationsState,
+} from "./organization.ts";
+export {
+  SESSION_TASK_PENDING_CODE,
+  SESSION_TASK_SETUP_MFA,
+  SessionTaskRedirect,
+  useSessionTaskRedirect,
+  useSessionTasks,
+  type SessionTaskRedirectProps,
+  type SessionTaskRoutes,
+  type SessionTasksState,
+} from "./session-tasks.ts";
+export {
+  DOMAIN_ENROLLMENT_MODES,
+  useDomainSuggestions,
+  useMembershipRequests,
+  useOrganizationDomainActions,
+  useOrganizationDomains,
+  type AddDomainInput,
+  type DomainEnrollmentMode,
+  type DomainSuggestionsState,
+  type MembershipRequestsState,
+  type OrganizationDomainActions,
+  type OrganizationDomainsState,
+} from "./organization-domains.ts";
+export { safeRedirect, safeRedirectOrUndefined, type SafeRedirectOptions } from "./redirect.ts";
+export {
+  pluginNamespace,
+  usePlugin,
+  usePluginClient,
+  type KnownPluginName,
+  type KnownPlugins,
+} from "./plugins.ts";
+export {
+  AUTH_QUERY_ROOT,
+  SESSION_QUERY_KEY,
+  SESSION_STALE_MS,
+  SessionReadError,
+  useSession,
+  useSessionActions,
+  type SessionActions,
+  type SessionState,
+  type UseSessionOptions,
+} from "./session.ts";
+export {
+  createPasskeyCredential,
+  getPasskeyCredential,
+  runPasskeyAutofill,
+  supportsPasskeyAutofill,
+  supportsPasskeys,
+  type PasskeyAutofillCalls,
+  type PasskeyAutofillOutcome,
+  type PasskeyAutofillStage,
+  type PasskeyCeremony,
+  type PasskeyFailure,
+} from "./webauthn.ts";

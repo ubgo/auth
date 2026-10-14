@@ -1,0 +1,6 @@
+id,email,encrypted_password,email_confirmed_at,phone,phone_confirmed_at,raw_user_meta_data,created_at,is_super_admin,banned_until,is_anonymous,deleted_at
+0b1f1c1e-0000-4000-8000-000000000001,ada@example.com,$2a$10$.VDWzUHMKxacncP3qG0uKOWekvMrCFfbKclDFnHy5vIwknXvFz246,2021-03-04 05:06:08.123456+00,,,"{""full_name"": ""Ada Lovelace"", ""avatar_url"": ""https://lh3.example/ada""}",2021-03-04 05:06:07.654321+00,t,,f,
+0b1f1c1e-0000-4000-8000-000000000002,,,,15555550102,2022-07-08 09:10:12+00,{},2022-07-08 09:10:11+00,f,,f,
+0b1f1c1e-0000-4000-8000-000000000003,,,,,,{},2023-01-01 00:00:00+00,f,,t,
+0b1f1c1e-0000-4000-8000-000000000004,dave@example.com,$2a$10$yWKqzAZp.mB10gk2hVmz8O07tlzY1ZIRdwOMU5PUXrszSgF5O5UbC,2023-05-06 07:08:09+00,,,"{""name"": ""Dave""}",2023-05-06 07:08:09+00,f,2099-01-01 00:00:00+00,f,
+0b1f1c1e-0000-4000-8000-000000000005,erin@example.com,,2023-05-06 07:08:09+00,,,{},2023-05-06 07:08:09+00,f,,f,2024-01-01 00:00:00+00

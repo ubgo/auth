@@ -1,0 +1,3 @@
+func (p *Plugin) ConfirmChange(ctx context.Context, t auth.Token) (VerifyResult, error) {
+	return p.confirmChange.Call(ctx, TokenRequest{Token: t})
+}

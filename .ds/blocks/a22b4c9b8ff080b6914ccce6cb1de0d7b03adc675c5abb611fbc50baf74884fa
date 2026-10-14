@@ -1,0 +1,6 @@
+type TableSchema struct {
+	Table   sqlb.Table
+	ID      string
+	Columns []SchemaColumn
+	Indexes []SchemaIndex
+}

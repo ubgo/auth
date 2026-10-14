@@ -1,0 +1,1 @@
+"auth: WithoutOriginCheck is on: every return and redirect URL is accepted (open redirect, token-bearing links to any host)"

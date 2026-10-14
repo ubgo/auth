@@ -1,0 +1,4 @@
+type GroupMapper interface {
+	SyncGroup(ctx context.Context, g GroupState) error
+	DeleteGroup(ctx context.Context, connectionID, groupID string) error
+}

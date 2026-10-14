@@ -1,0 +1,23 @@
+type Event struct {
+	ID             string          `json:"id"`
+	At             time.Time       `json:"at"`
+	Op             auth.EndpointID `json:"op"`
+	Plugin         string          `json:"plugin"`
+	Transport      auth.Transport  `json:"transport"`
+	OK             bool            `json:"ok"`
+	Code           string          `json:"code,omitempty"`
+	ActorID        string          `json:"actorId,omitempty"`
+	SessionID      string          `json:"sessionId,omitempty"`
+	SubjectID      string          `json:"subjectId,omitempty"`
+	ImpersonatorID string          `json:"impersonatorId,omitempty"`
+	Identifier     string          `json:"identifier,omitempty"`
+	IP             string          `json:"ip,omitempty"`
+	UserAgent      string          `json:"userAgent,omitempty"`
+	// OrgID is the organization the call acted in, when the operation's
+	// input reported one (OrgScoped); "" otherwise.
+	OrgID string `json:"orgId,omitempty"`
+	// Type is better-auth's name for what happened (TypeOf), derived from
+	// Op when the event is read or recorded, never stored: the vocabulary
+	// can grow without a migration.
+	Type EventType `json:"type"`
+}

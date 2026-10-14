@@ -1,0 +1,30 @@
+func (p *Plugin) Tokens(ctx context.Context, userID, provider string) (TokenSet, error) {
+	id, ts, err := p.loadTokens(ctx, userID, provider)
+	if err != nil {
+		return TokenSet{}, err
+	}
+	if ts.ExpiresAt.IsZero() || ts.RefreshToken == "" || p.core.Now().Add(RefreshMargin).Before(ts.ExpiresAt) {
+		return ts, nil
+	}
+	var r Refresher
+	for _, prov := range p.providers {
+		if rr, ok := prov.(Refresher); ok && prov.Name() == provider {
+			r = rr
+		}
+	}
+	if r == nil {
+		return ts, nil
+	}
+	fresh, err := r.Refresh(ctx, p.hc, ts.RefreshToken)
+	if err != nil {
+		p.core.Logger().Warn("oauth: refresh failed", "provider", provider, "error", err)
+		return TokenSet{}, ErrRefreshFailed
+	}
+	if fresh.RefreshToken == "" {
+		fresh.RefreshToken = ts.RefreshToken
+	}
+	if err := p.storeTokens(ctx, id, fresh); err != nil {
+		return TokenSet{}, err
+	}
+	return fresh, nil
+}

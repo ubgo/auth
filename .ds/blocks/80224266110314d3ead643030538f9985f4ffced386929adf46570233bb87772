@@ -1,0 +1,9 @@
+const (
+	// trustAge is how long a device the user trusted skips the factor.
+	trustAge = 30 * 24 * time.Hour
+	// maxWrongCodes wrong codes in a row lock the factor for lockFor.
+	maxWrongCodes = 3
+	// lockFor is how long a locked factor refuses every code, the right one
+	// included.
+	lockFor = 15 * time.Minute
+)

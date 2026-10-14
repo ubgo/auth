@@ -1,0 +1,13 @@
+func newAuth(db *sql.DB, m email.Mailer, logger *slog.Logger, tp trace.TracerProvider, obs auth.Observer) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+		),
+		auth.WithObserver(obs),
+		auth.WithTracer(authotel.Tracer(tp)),
+		auth.WithLogger(logger),
+	)
+}

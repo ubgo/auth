@@ -1,0 +1,5 @@
+func WriteErrorFor(w http.ResponseWriter, r *http.Request, err error) {
+	SetRetryAfter(w, err)
+	info := auth.ErrorInfoFor(r.Context(), err)
+	writeJSON(w, info.Status, errorBody{Error: info})
+}

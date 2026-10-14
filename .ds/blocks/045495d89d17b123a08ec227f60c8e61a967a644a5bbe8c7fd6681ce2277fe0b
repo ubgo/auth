@@ -1,0 +1,13 @@
+type ImpossibleTravelRule struct {
+	// MaxSpeedKmh is the fastest believable journey in km/h; 0 takes
+	// DefaultTravelSpeedKmh. A negative or non-finite value is refused.
+	MaxSpeedKmh float64
+	// MinDistanceKm is the distance below which two locations count as the
+	// same place, whatever the time: GeoIP is accurate to tens or hundreds of
+	// kilometres, and a carrier's address can resolve to another city. 0 takes
+	// DefaultTravelMinDistanceKm.
+	MinDistanceKm float64
+	// Action is what an impossible journey does: RateBlock (the default, 403
+	// auth.impossible_travel), RateLog or RateChallenge.
+	Action RateAction
+}

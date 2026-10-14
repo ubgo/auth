@@ -1,0 +1,7 @@
+func (p *Plugin) VerifyFor(ctx context.Context, config, secret string, scopes ...string) (Verification, error) {
+	s, ok := p.config(config)
+	if !ok {
+		return Verification{Reason: ErrUnknownConfig}, nil
+	}
+	return p.verify(ctx, s.id, secret, scopes)
+}

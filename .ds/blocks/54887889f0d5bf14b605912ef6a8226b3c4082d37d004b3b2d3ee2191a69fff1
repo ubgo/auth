@@ -1,0 +1,8 @@
+func (x *app) reward(ctx context.Context, e referral.Event) {
+	_, err := x.db.ExecContext(ctx,
+		`INSERT INTO app_credit (user_id, cents) VALUES (?, ?) ON CONFLICT (user_id) DO UPDATE SET cents = cents + excluded.cents`,
+		e.Referrer.ID, rewardCents)
+	if err != nil {
+		log.Printf("referral %s: credit %s: %v", e.ReferralID, e.Referrer.ID, err)
+	}
+}

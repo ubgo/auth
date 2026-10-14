@@ -1,0 +1,8 @@
+func newEnv(t *testing.T) *authtest.Env {
+	t.Helper()
+	return authtest.New(t, authtest.WithPlugins(func(e *authtest.Env) []auth.Plugin {
+		ps := plugins(e.Mail, e.SMS)
+		ps[1] = password.New(password.Argon2(fastArgon2))
+		return ps
+	}))
+}

@@ -1,0 +1,21 @@
+var openerPage = template.Must(template.New("opener").Parse(`<!doctype html>
+<meta charset="utf-8">
+<title>Embedded app</title>
+<button id="go">Sign in</button>
+<pre id="out"></pre>
+<script>
+const authOrigin = {{.AuthOrigin}};
+document.getElementById("go").onclick = () => {
+  const nonce = crypto.randomUUID();
+  const start = new URL("/auth/oauthpopup/start", authOrigin);
+  start.search = new URLSearchParams({provider: {{.Provider}}, popupOrigin: location.origin, popupNonce: nonce});
+  window.open(start, "signin", "width=500,height=600");
+  window.addEventListener("message", async (e) => {
+    if (e.origin !== authOrigin || e.data?.type !== {{.MessageType}} || e.data.nonce !== nonce) return;
+    if (e.data.error) { document.getElementById("out").textContent = e.data.error; return; }
+    const res = await fetch(new URL("/api/me", authOrigin), {headers: {Authorization: "Bearer " + e.data.token}});
+    document.getElementById("out").textContent = await res.text();
+  });
+};
+</script>
+`))

@@ -1,0 +1,7 @@
+func Vercel(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "vercel", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: VercelAuthURL, TokenURL: VercelTokenURL, Scopes: openIDScopes(),
+		FetchProfile: UserInfoProfile(VercelProfileURL, ""),
+	}
+}

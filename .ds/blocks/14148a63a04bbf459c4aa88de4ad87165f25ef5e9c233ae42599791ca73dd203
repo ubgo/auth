@@ -1,0 +1,14 @@
+type Verifier struct {
+	// Keys maps key ids to public keys; build it with KeysFromJWKS or add
+	// keys with KeyID.
+	Keys map[string]ed25519.PublicKey
+	// Lookup finds a key Keys does not hold, such as one published after a
+	// rotation; RemoteKeys.Lookup fetches the issuer's JWKS. Nil means Keys
+	// is the whole set.
+	Lookup   func(kid string) (ed25519.PublicKey, bool)
+	Issuer   string
+	Audience string
+	Leeway   time.Duration
+	// Now is the clock; nil means time.Now.
+	Now func() time.Time
+}

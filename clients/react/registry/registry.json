@@ -1,0 +1,972 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "ubgo-auth",
+  "homepage": "https://github.com/ubgo/auth",
+  "items": [
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "A button with variants and sizes, compact by default.",
+      "dependencies": [
+        "@base-ui/react@1.9.0",
+        "class-variance-authority@0.7.1"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/button.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "A text input.",
+      "dependencies": [
+        "@base-ui/react@1.9.0"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/input.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "label",
+      "type": "registry:ui",
+      "title": "Label",
+      "description": "A form label.",
+      "dependencies": [],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/label.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "separator",
+      "type": "registry:ui",
+      "title": "Separator",
+      "description": "A horizontal or vertical rule.",
+      "dependencies": [
+        "@base-ui/react@1.9.0"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/separator.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "field",
+      "type": "registry:ui",
+      "title": "Field",
+      "description": "Field, label, description and error layout for forms.",
+      "dependencies": [
+        "class-variance-authority@0.7.1"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/label",
+        "@ubgo/separator"
+      ],
+      "files": [
+        {
+          "path": "ui/field.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "A card with header, content and footer.",
+      "dependencies": [],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/card.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "alert",
+      "type": "registry:ui",
+      "title": "Alert",
+      "description": "A callout for form errors and notices.",
+      "dependencies": [
+        "class-variance-authority@0.7.1"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/alert.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "spinner",
+      "type": "registry:ui",
+      "title": "Spinner",
+      "description": "A loading spinner.",
+      "dependencies": [
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/spinner.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "avatar",
+      "type": "registry:ui",
+      "title": "Avatar",
+      "description": "A user avatar with fallback.",
+      "dependencies": [
+        "@base-ui/react@1.9.0"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/avatar.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:ui",
+      "title": "Dropdown Menu",
+      "description": "A menu opened from a trigger.",
+      "dependencies": [
+        "@base-ui/react@1.9.0",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/dropdown-menu.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "title": "Dialog",
+      "description": "A modal dialog.",
+      "dependencies": [
+        "@base-ui/react@1.9.0",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/button"
+      ],
+      "files": [
+        {
+          "path": "ui/dialog.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "input-otp",
+      "type": "registry:ui",
+      "title": "Input Otp",
+      "description": "A one-time-code input.",
+      "dependencies": [
+        "input-otp@1.5.0",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/input-otp.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Tabs.",
+      "dependencies": [
+        "@base-ui/react@1.9.0",
+        "class-variance-authority@0.7.1"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/tabs.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "checkbox",
+      "type": "registry:ui",
+      "title": "Checkbox",
+      "description": "A checkbox.",
+      "dependencies": [
+        "@base-ui/react@1.9.0",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/checkbox.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "alert-dialog",
+      "type": "registry:ui",
+      "title": "Alert Dialog",
+      "description": "A confirmation dialog for destructive actions.",
+      "dependencies": [
+        "@base-ui/react@1.9.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/button"
+      ],
+      "files": [
+        {
+          "path": "ui/alert-dialog.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "registry:ui",
+      "title": "Skeleton",
+      "description": "A loading placeholder.",
+      "dependencies": [],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/skeleton.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "A small status label.",
+      "dependencies": [
+        "@base-ui/react@1.9.0",
+        "class-variance-authority@0.7.1"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/badge.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "sign-in-form",
+      "type": "registry:component",
+      "title": "Sign in form",
+      "description": "Password, magic link, OAuth and passkey sign-in in one card, each shown only when its plugin is on. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/sign-in-form.tsx",
+          "type": "registry:component",
+          "target": "components/auth/sign-in-form.tsx"
+        }
+      ]
+    },
+    {
+      "name": "password-strength",
+      "type": "registry:component",
+      "title": "Password strength",
+      "description": "A four-step strength meter and hint under a new-password field. Used by sign-up-form and reset-password-form. Needs @ubgo/auth-react.",
+      "dependencies": [],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "auth/password-strength.tsx",
+          "type": "registry:component",
+          "target": "components/auth/password-strength.tsx"
+        }
+      ]
+    },
+    {
+      "name": "sign-up-form",
+      "type": "registry:component",
+      "title": "Sign up form",
+      "description": "Password sign-up with fields from the client's plugins (email, phone, username), OAuth buttons, a strength hint, an optional terms checkbox and the verify-your-email hand-off. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/checkbox",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/spinner",
+        "@ubgo/password-strength"
+      ],
+      "files": [
+        {
+          "path": "auth/sign-up-form.tsx",
+          "type": "registry:component",
+          "target": "components/auth/sign-up-form.tsx"
+        }
+      ]
+    },
+    {
+      "name": "forgot-password-form",
+      "type": "registry:component",
+      "title": "Forgot password form",
+      "description": "Asks for the email (or username) and mails a reset link; the answer never says whether the account exists. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/forgot-password-form.tsx",
+          "type": "registry:component",
+          "target": "components/auth/forgot-password-form.tsx"
+        }
+      ]
+    },
+    {
+      "name": "reset-password-form",
+      "type": "registry:component",
+      "title": "Reset password form",
+      "description": "The page a reset link opens: reads ?token=, asks for the new password twice with a strength hint, and turns into a request-a-new-link step when the link is spent or expired. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/spinner",
+        "@ubgo/password-strength"
+      ],
+      "files": [
+        {
+          "path": "auth/reset-password-form.tsx",
+          "type": "registry:component",
+          "target": "components/auth/reset-password-form.tsx"
+        }
+      ]
+    },
+    {
+      "name": "verify-email",
+      "type": "registry:component",
+      "title": "Verify email",
+      "description": "The page a verification link opens: posts ?token= once, refreshes the session when verifying signs in, and offers a new link when it expired. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/verify-email.tsx",
+          "type": "registry:component",
+          "target": "components/auth/verify-email.tsx"
+        }
+      ]
+    },
+    {
+      "name": "magic-link-callback",
+      "type": "registry:component",
+      "title": "Magic link callback",
+      "description": "The page a magic link opens: signs in with ?token= once, refreshes the session and moves on, or hands off to the second factor. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/magic-link-callback.tsx",
+          "type": "registry:component",
+          "target": "components/auth/magic-link-callback.tsx"
+        }
+      ]
+    },
+    {
+      "name": "user-button",
+      "type": "registry:component",
+      "title": "User button",
+      "description": "The signed-in user's avatar with a menu: name and email, Manage account, app items, Sign out. Signed out, a Sign in button. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/avatar",
+        "@ubgo/button",
+        "@ubgo/dropdown-menu",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/user-button.tsx",
+          "type": "registry:component",
+          "target": "components/auth/user-button.tsx"
+        }
+      ]
+    },
+    {
+      "name": "two-factor-challenge",
+      "type": "registry:component",
+      "title": "Two-factor challenge",
+      "description": "The pending-session step after sign-in: authenticator or delivered code (input-otp, auto-submit), recovery-code fallback, trust this device, timed-out state. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "input-otp@1.5.0",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/checkbox",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/input-otp",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/two-factor-challenge.tsx",
+          "type": "registry:component",
+          "target": "components/auth/two-factor-challenge.tsx"
+        }
+      ]
+    },
+    {
+      "name": "two-factor-setup",
+      "type": "registry:component",
+      "title": "Two-factor setup",
+      "description": "Turn the second factor on and off: QR code and key, confirm a first code, recovery codes shown once with copy and download, new codes and turn off behind a code. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "input-otp@1.5.0",
+        "lucide-react@1.55.0",
+        "uqr@0.1.2"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/checkbox",
+        "@ubgo/dialog",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/input-otp",
+        "@ubgo/skeleton",
+        "@ubgo/spinner",
+        "@ubgo/security-keys"
+      ],
+      "files": [
+        {
+          "path": "auth/two-factor-setup.tsx",
+          "type": "registry:component",
+          "target": "components/auth/two-factor-setup.tsx"
+        }
+      ]
+    },
+    {
+      "name": "passkey-list",
+      "type": "registry:component",
+      "title": "Passkey list",
+      "description": "The signed-in user's passkeys: add (WebAuthn), rename, remove with confirmation; AddPasskey also works on its own. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/alert-dialog",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/dialog",
+        "@ubgo/dropdown-menu",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/passkey-list.tsx",
+          "type": "registry:component",
+          "target": "components/auth/passkey-list.tsx"
+        }
+      ]
+    },
+    {
+      "name": "account-settings",
+      "type": "registry:component",
+      "title": "Account settings",
+      "description": "The account page: profile, email change, password, two-factor and passkeys, sessions, connected accounts and deletion, each section also exported on its own and shown only when its plugin is on. Protected changes ask for the password or a passkey again and retry. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/user-button",
+        "@ubgo/two-factor-setup",
+        "@ubgo/passkey-list",
+        "@ubgo/alert",
+        "@ubgo/alert-dialog",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/checkbox",
+        "@ubgo/dialog",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/account-settings.tsx",
+          "type": "registry:component",
+          "target": "components/auth/account-settings.tsx"
+        }
+      ]
+    },
+    {
+      "name": "confirm-email-change",
+      "type": "registry:component",
+      "title": "Confirm email change",
+      "description": "The page an email-change link opens: posts the token once; action=\"undo\" serves the undo link sent to the old address. Needs @ubgo/auth-react.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/user-button",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/confirm-email-change.tsx",
+          "type": "registry:component",
+          "target": "components/auth/confirm-email-change.tsx"
+        }
+      ]
+    },
+    {
+      "name": "organization-switcher",
+      "type": "registry:component",
+      "title": "Organization switcher",
+      "description": "The session's active organization as a menu button: switch between the user's organizations and their personal account, create a new one in a dialog. Needs @ubgo/auth-react and the organization plugin.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/dialog",
+        "@ubgo/dropdown-menu",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/organization-switcher.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-switcher.tsx"
+        }
+      ]
+    },
+    {
+      "name": "organization-members",
+      "type": "registry:component",
+      "title": "Organization members",
+      "description": "An organization's members a page at a time, its pending invitations, an invite form, and a menu per member to change their role, remove them (confirmed) or leave, each shown only to callers the server lets do it. Needs @ubgo/auth-react and the organization plugin.",
+      "dependencies": [
+        "@tanstack/react-form@1.33.5",
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/alert-dialog",
+        "@ubgo/avatar",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/dropdown-menu",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/organization-members.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-members.tsx"
+        }
+      ]
+    },
+    {
+      "name": "organization-invitations",
+      "type": "registry:component",
+      "title": "Organization invitations",
+      "description": "The invitations waiting for the signed-in user, with Accept and Decline: the page an invitation mail links to. Needs @ubgo/auth-react and the organization plugin.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/organization-invitations.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-invitations.tsx"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "A data table's elements at the compact density.",
+      "dependencies": [],
+      "registryDependencies": [
+        "utils"
+      ],
+      "files": [
+        {
+          "path": "ui/table.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "admin-users-table",
+      "type": "registry:component",
+      "title": "Admin users table",
+      "description": "Every user a page at a time for an admin: debounced email or name search, role and status filters, sort, a numbered pager with a page-size choice, and keyboard shortcuts (/ search, arrow keys page). Shown only to callers the server lets list users. Needs @ubgo/auth-react and the admin plugin.",
+      "dependencies": [
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/avatar",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/dropdown-menu",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner",
+        "@ubgo/table"
+      ],
+      "files": [
+        {
+          "path": "auth/admin-users-table.tsx",
+          "type": "registry:component",
+          "target": "components/auth/admin-users-table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "admin-user-detail",
+      "type": "registry:component",
+      "title": "Admin user detail",
+      "description": "One user as an admin sees them: identifiers, role, sessions (revoke one or all), second factor (pause, switch back on, reset), ban and unban, set a password, impersonate, and delete after a confirmation, each shown only to callers the server lets do it. Needs @ubgo/auth-react and the admin plugin.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/alert-dialog",
+        "@ubgo/avatar",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/dialog",
+        "@ubgo/dropdown-menu",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner",
+        "@ubgo/table"
+      ],
+      "files": [
+        {
+          "path": "auth/admin-user-detail.tsx",
+          "type": "registry:component",
+          "target": "components/auth/admin-user-detail.tsx"
+        }
+      ]
+    },
+    {
+      "name": "impersonation-banner",
+      "type": "registry:component",
+      "title": "Impersonation banner",
+      "description": "A strip shown only while an admin is impersonating this user, with the way back (stop impersonating). Mount it once in the layout. Needs @ubgo/auth-react and the admin plugin.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/button",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/impersonation-banner.tsx",
+          "type": "registry:component",
+          "target": "components/auth/impersonation-banner.tsx"
+        }
+      ]
+    },
+    {
+      "name": "task-setup-mfa",
+      "type": "registry:component",
+      "title": "Task: set up two-factor",
+      "description": "The page a session lands on when the server requires a second factor before it works (the setup-mfa session task): explains why, runs TwoFactorSetup (with its security keys section when the server offers keys), then re-reads the new session and goes on. Pair it with SessionTaskRedirect from @ubgo/auth-react. Needs the twofactor plugin.",
+      "dependencies": [
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/two-factor-setup"
+      ],
+      "files": [
+        {
+          "path": "auth/task-setup-mfa.tsx",
+          "type": "registry:component",
+          "target": "components/auth/task-setup-mfa.tsx"
+        }
+      ]
+    },
+    {
+      "name": "organization-domains",
+      "type": "registry:component",
+      "title": "Organization domains",
+      "description": "An organization's verified domains: add one, publish the TXT record shown, verify, choose how it brings people in, remove it (confirmed), and approve or reject requests to join, each for callers the server lets do it. Renders nothing when the server has no organization.Domains. Needs @ubgo/auth-react and the organization plugin.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/alert-dialog",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/dropdown-menu",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/organization-domains.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-domains.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-suggestions",
+      "type": "registry:component",
+      "title": "Domain suggestions",
+      "description": "The organizations the signed-in user could join by their verified address, with Request to join; renders nothing when there are none. Needs @ubgo/auth-react and the organization plugin with domains.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/badge",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/domain-suggestions.tsx",
+          "type": "registry:component",
+          "target": "components/auth/domain-suggestions.tsx"
+        }
+      ]
+    },
+    {
+      "name": "security-keys",
+      "type": "registry:component",
+      "title": "Security keys",
+      "description": "Security keys as a second factor: list, add (with proof from another factor when two-factor is on; the first key returns recovery codes) and remove. Renders nothing when the server does not offer security keys. Needs @ubgo/auth-react and the twofactor plugin with WithSecurityKeys.",
+      "dependencies": [
+        "@tanstack/react-query@5.104.1",
+        "lucide-react@1.55.0"
+      ],
+      "registryDependencies": [
+        "utils",
+        "@ubgo/alert",
+        "@ubgo/button",
+        "@ubgo/card",
+        "@ubgo/dialog",
+        "@ubgo/field",
+        "@ubgo/input",
+        "@ubgo/skeleton",
+        "@ubgo/spinner"
+      ],
+      "files": [
+        {
+          "path": "auth/security-keys.tsx",
+          "type": "registry:component",
+          "target": "components/auth/security-keys.tsx"
+        }
+      ]
+    }
+  ]
+}

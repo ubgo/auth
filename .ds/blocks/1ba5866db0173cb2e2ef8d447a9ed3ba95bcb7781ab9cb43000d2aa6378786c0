@@ -1,0 +1,4 @@
+func (p *Plugin) Change(ctx context.Context, address string) error {
+	_, err := p.change.Call(ctx, AddressRequest{Email: address})
+	return err
+}

@@ -1,0 +1,1 @@
+func VerifyEmailBeforeSignIn() Option { return func(p *Plugin) { p.holdUnverified = true } }

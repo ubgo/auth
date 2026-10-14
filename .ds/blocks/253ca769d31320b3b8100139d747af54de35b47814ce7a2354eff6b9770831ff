@@ -1,0 +1,18 @@
+func (p *Plugin) History(ctx context.Context, userID string) ([]Acceptance, error) {
+	if p.core == nil {
+		return nil, auth.ErrOperationNotWired
+	}
+	var row Acceptance
+	q := p.core.Select().Columns(sqlb.Bind(AcceptanceVersion, &row.Version), sqlb.Bind(AcceptanceAt, &row.AcceptedAt)).
+		From(TableAcceptance).Where(sqlb.Eq(AcceptanceUserID, userID)).
+		Order(sqlb.OrderBy(AcceptanceAt, sqlb.SortAsc), sqlb.OrderBy(AcceptanceVersion, sqlb.SortAsc))
+	out := []Acceptance{}
+	err := p.core.Each(ctx, q, func() error {
+		out = append(out, row)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("terms: read history: %w", err)
+	}
+	return out, nil
+}

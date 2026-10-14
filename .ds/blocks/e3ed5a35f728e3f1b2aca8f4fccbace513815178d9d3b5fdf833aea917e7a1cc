@@ -1,0 +1,3 @@
+func Zitadel(issuer, clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("zitadel", issuer, clientID, clientSecret), "Zitadel")
+}

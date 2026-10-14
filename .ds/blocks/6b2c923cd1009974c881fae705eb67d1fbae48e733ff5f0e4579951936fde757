@@ -1,0 +1,8 @@
+export async function organizationsTour(): Promise<void> {
+  const created = await auth.organization.create({ name: "Acme", slug: "acme" });
+  if (created.error) return;
+  await auth.organization.invite({ orgId: created.data.id, email: "bea@example.com", role: "member" });
+  const mine = await auth.organization.list();
+  for (const org of mine.data?.orgs ?? []) console.log(org.name, org.role);
+  await auth.organization.setActive({ orgId: created.data.id });
+}

@@ -1,0 +1,7 @@
+type SignInRequest struct {
+	Identifier string `json:"identifier"`
+	Password   Secret `json:"password"`
+	// Remember is the "remember me" box. Nil means remember, the usual
+	// default; false makes a transient session that ends with the browser.
+	Remember *bool `json:"remember,omitempty"`
+}

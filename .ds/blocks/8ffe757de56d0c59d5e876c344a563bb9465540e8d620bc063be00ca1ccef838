@@ -1,0 +1,3 @@
+func (p *Plugin) GenerateWith(ctx context.Context, in GenerateRequest) (GenerateResult, error) {
+	return p.generate.Call(context.WithValue(ctx, fromGoKey{}, true), in)
+}

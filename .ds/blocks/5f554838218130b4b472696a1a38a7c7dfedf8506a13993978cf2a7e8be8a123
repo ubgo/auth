@@ -1,0 +1,8 @@
+func PreviousKeys(keys ...crypto.PublicKey) Option {
+	return func(p *Plugin) {
+		if auth.RefuseNilEach(&p.optErrs, "jwt.PreviousKeys", keys) {
+			return
+		}
+		p.previous = append(p.previous, keys...)
+	}
+}

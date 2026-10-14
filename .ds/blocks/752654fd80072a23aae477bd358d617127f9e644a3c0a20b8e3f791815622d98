@@ -1,0 +1,10 @@
+type CreateRequest struct {
+	Name   string   `json:"name"`
+	Scopes []string `json:"scopes"`
+	// ExpiresInDays is optional; 0 means the key never expires, unless
+	// WithExpiry sets a default or a maximum.
+	ExpiresInDays int `json:"expiresInDays"`
+	// Metadata is a JSON object kept with the key and returned in
+	// Key.Metadata; it needs AllowMetadata (ErrMetadataDisabled otherwise).
+	Metadata json.RawMessage `json:"metadata"`
+}

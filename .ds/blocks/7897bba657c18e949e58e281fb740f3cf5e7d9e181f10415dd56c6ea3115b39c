@@ -1,0 +1,9 @@
+export function localStorageTokenStore(key = "auth-token"): TokenStore {
+  return {
+    get: () => localStorage.getItem(key),
+    set: (token) => {
+      if (token === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, token);
+    },
+  };
+}

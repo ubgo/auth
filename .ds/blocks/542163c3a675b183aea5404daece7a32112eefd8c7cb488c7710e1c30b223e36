@@ -1,0 +1,23 @@
+type Call struct {
+	Auth       *Auth
+	Op         OpInfo
+	Plugin     string
+	Transport  Transport
+	Client     Client
+	Credential Credential
+	// Session and User are nil for a signed-out call.
+	Session *Session
+	User    *User
+	Effects *Effects
+	// Flow is the client's flow binding; see Request.Flow.
+	Flow Token
+	// Input is the operation's decoded input, for hooks: a Before hook that
+	// restricts sign-up to one mail domain asserts it to the operation's
+	// input type. It is a copy; changing it changes nothing the operation
+	// sees, because the operation is the one place its logic lives and a hook
+	// that rewrote its input would be a second one. It is nil until the input
+	// is decoded, which is after the rate, origin and session checks.
+	Input any
+
+	header func(name string) string
+}

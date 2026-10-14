@@ -1,0 +1,7 @@
+func X(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "x", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		AuthURL: XAuthURL, TokenURL: XTokenURL, Scopes: []string{"users.read", "tweet.read", "offline.access", "users.email"},
+		FetchProfile: XProfile(XProfileURL),
+	}
+}

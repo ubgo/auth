@@ -1,0 +1,60 @@
+func CheckAssertion(r *SAMLResponse, req CheckRequest) (SAMLAssertion, error) {
+	switch {
+	case len(r.Assertions) == 0:
+		return SAMLAssertion{}, samlErr(SAMLNoAssertion, "no assertion")
+	case len(r.Assertions) > 1:
+		return SAMLAssertion{}, samlErr(SAMLMultipleAssertions, "%d assertions", len(r.Assertions))
+	}
+	a := r.Assertions[0]
+	switch {
+	case !a.Signed && (req.WantAssertionsSigned || !r.Signed):
+		return SAMLAssertion{}, samlErr(SAMLAssertionSigRequired, "assertion %q is not signed", a.ID)
+	case r.Issuer != "" && r.Issuer != req.IdPEntityID:
+		return SAMLAssertion{}, samlErr(SAMLIssuerMismatch, "response issuer %q", r.Issuer)
+	case a.Issuer != req.IdPEntityID:
+		return SAMLAssertion{}, samlErr(SAMLIssuerMismatch, "assertion issuer %q", a.Issuer)
+	case r.Destination != "" && r.Destination != req.ACSURL:
+		return SAMLAssertion{}, samlErr(SAMLDestinationMismatch, "destination %q", r.Destination)
+	case r.InResponseTo != req.RequestID:
+		return SAMLAssertion{}, samlErr(SAMLInResponseToMismatch, "response InResponseTo %q", r.InResponseTo)
+	}
+	if len(a.Audiences) == 0 {
+		return SAMLAssertion{}, samlErr(SAMLAudienceMissing, "no AudienceRestriction")
+	}
+	for _, aud := range a.Audiences {
+		if !slices.Contains(aud, req.Audience) {
+			return SAMLAssertion{}, samlErr(SAMLAudienceMismatch, "audiences %q, want %q", aud, req.Audience)
+		}
+	}
+	now, skew := req.Now, req.ClockSkew
+	bearer := false
+	for _, sc := range a.Confirmations {
+		if sc.Method != subjectBearer {
+			continue
+		}
+		switch {
+		case sc.Recipient != req.ACSURL:
+			return SAMLAssertion{}, samlErr(SAMLRecipientMismatch, "recipient %q", sc.Recipient)
+		case sc.InResponseTo != req.RequestID:
+			return SAMLAssertion{}, samlErr(SAMLInResponseToMismatch, "confirmation InResponseTo %q", sc.InResponseTo)
+		case sc.NotOnOrAfter.IsZero() || !now.Add(-skew).Before(sc.NotOnOrAfter):
+			return SAMLAssertion{}, samlErr(SAMLExpired, "confirmation NotOnOrAfter %s", sc.NotOnOrAfter)
+		case !sc.NotBefore.IsZero() && now.Add(skew).Before(sc.NotBefore):
+			return SAMLAssertion{}, samlErr(SAMLNotYetValid, "confirmation NotBefore %s", sc.NotBefore)
+		}
+		bearer = true
+	}
+	if !bearer {
+		return SAMLAssertion{}, samlErr(SAMLBearerMissing, "no bearer SubjectConfirmation")
+	}
+	if req.RequireTimestamps && (a.NotBefore.IsZero() || a.NotOnOrAfter.IsZero()) {
+		return SAMLAssertion{}, samlErr(SAMLMissingTimestamps, "Conditions lack NotBefore or NotOnOrAfter")
+	}
+	if !a.NotBefore.IsZero() && now.Add(skew).Before(a.NotBefore) {
+		return SAMLAssertion{}, samlErr(SAMLNotYetValid, "NotBefore %s", a.NotBefore)
+	}
+	if !a.NotOnOrAfter.IsZero() && !now.Add(-skew).Before(a.NotOnOrAfter) {
+		return SAMLAssertion{}, samlErr(SAMLExpired, "NotOnOrAfter %s", a.NotOnOrAfter)
+	}
+	return a, nil
+}

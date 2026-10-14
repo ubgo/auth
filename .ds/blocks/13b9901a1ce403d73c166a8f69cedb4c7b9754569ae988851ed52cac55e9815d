@@ -1,0 +1,12 @@
+func newAuth(db *sql.DB, d deployment) (*auth.Auth, error) {
+	proxy := oauthproxy.New(oauthproxy.ProductionURL(d.ProductionURL), oauthproxy.WithSecret(d.ProxySecret))
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(d.BaseURL),
+		auth.WithTrustedOrigins(d.PreviewOrigins...),
+		auth.WithPlugins(
+			oauth.New(oauth.WithProviders(proxy.Wrap(d.Provider))),
+			proxy,
+		),
+	)
+}

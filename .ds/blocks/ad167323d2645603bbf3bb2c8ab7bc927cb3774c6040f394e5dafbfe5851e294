@@ -1,0 +1,15 @@
+func New(opts ...Option) *Plugin {
+	p := &Plugin{
+		kind:     auth.IdentifierKind{Name: KindUsername, Unique: true, Normalize: Normalize, Validate: Validate},
+		reserved: make(map[string]struct{}, len(DefaultReserved)),
+	}
+	for _, n := range DefaultReserved {
+		p.reserved[n] = struct{}{}
+	}
+	for _, o := range opts {
+		o(p)
+	}
+	p.set = auth.Define(auth.OpInfo{ID: EndpointSet, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/set"}, p.doSet)
+	p.available = auth.Define(auth.OpInfo{ID: EndpointAvailable, Kind: auth.Query, Require: auth.Public, Path: "/available"}, p.doAvailable)
+	return p
+}

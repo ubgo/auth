@@ -1,0 +1,12 @@
+func accountLabel(ctx context.Context, a *auth.Auth, u auth.User) string {
+	ids, err := a.Identities(ctx, u.ID)
+	if err != nil {
+		return u.ID
+	}
+	for _, id := range ids {
+		if id.Kind == email.KindEmail {
+			return id.Value
+		}
+	}
+	return u.ID
+}

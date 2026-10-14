@@ -1,0 +1,7 @@
+func newAuth(db *sql.DB) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(plugins()...),
+	)
+}

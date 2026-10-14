@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Committed as 528c58d (auth) and 9a3e063 (private-repo docsi, pushed). auth not pushed: github.com/ubgo/auth does not exist.",
+  "created_at": "2026-09-29T09:56:29.667788000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec29c35c716f93ae78e547395580",
+  "entity_table": "tasks",
+  "id": "cmt_01a0ec9827637c408d4530b94f6f5e39",
+  "updated_at": "2026-09-29T09:56:29.667788000Z"
+}

@@ -1,0 +1,1 @@
+func SkipTrailingSlash() Option { return func(c *config) { c.lenientPaths = true } }

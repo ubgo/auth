@@ -1,0 +1,25 @@
+func (c cli) login(ctx context.Context, out io.Writer) (oauthprovider.TokenResponse, error) {
+	dc := &deviceauth.Client{CodeURL: c.CodeURL, TokenURL: c.TokenURL, ClientID: c.ClientID, HTTP: c.HTTP}
+	code, err := dc.RequestCode(ctx, cliScope)
+	if err != nil {
+		return oauthprovider.TokenResponse{}, err
+	}
+	if _, err := fmt.Fprintf(out, "open %s and enter the code %s\n", code.VerificationURI, code.UserCode); err != nil {
+		return oauthprovider.TokenResponse{}, err
+	}
+	interval := time.Duration(code.Interval) * time.Second
+	for {
+		if err := c.Wait(ctx, interval); err != nil {
+			return oauthprovider.TokenResponse{}, err
+		}
+		tok, pending, err := c.redeem(ctx, code.DeviceCode)
+		switch {
+		case err != nil:
+			return oauthprovider.TokenResponse{}, err
+		case pending == rfcSlowDown:
+			interval += slowDownStep
+		case pending == "":
+			return tok, nil
+		}
+	}
+}

@@ -1,0 +1,4 @@
+func me(c fiber.Ctx) error {
+	u := authfiber.MustUser(c)
+	return c.JSON(meResponse{ID: u.ID, Hello: u.Name})
+}

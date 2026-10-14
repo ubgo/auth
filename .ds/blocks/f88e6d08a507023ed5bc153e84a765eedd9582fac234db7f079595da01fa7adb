@@ -1,0 +1,15 @@
+func Open(key []byte, sealed, aad string) ([]byte, error) {
+	gcm, err := newGCM(key)
+	if err != nil {
+		return nil, err
+	}
+	raw, err := base64.RawStdEncoding.DecodeString(sealed)
+	if err != nil || len(raw) < gcm.NonceSize() {
+		return nil, ErrSealedCorrupt
+	}
+	plain, err := gcm.Open(nil, raw[:gcm.NonceSize()], raw[gcm.NonceSize():], []byte(aad))
+	if err != nil {
+		return nil, ErrSealedCorrupt
+	}
+	return plain, nil
+}

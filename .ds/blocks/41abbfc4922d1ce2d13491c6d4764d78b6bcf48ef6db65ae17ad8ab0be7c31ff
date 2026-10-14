@@ -1,0 +1,1 @@
+	ErrReused = auth.NewError("password.reused", http.StatusBadRequest, "Choose a password you have not used recently.")

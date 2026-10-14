@@ -1,0 +1,4 @@
+func (p *Plugin) SendCode(ctx context.Context, number string) error {
+	_, err := p.sendCode.Call(ctx, NumberRequest{Phone: number})
+	return err
+}

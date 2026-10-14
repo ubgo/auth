@@ -1,0 +1,3 @@
+func Normalize(raw string) (string, error) {
+	return strings.ToLower(strings.TrimPrefix(strings.TrimSpace(raw), "@")), nil
+}

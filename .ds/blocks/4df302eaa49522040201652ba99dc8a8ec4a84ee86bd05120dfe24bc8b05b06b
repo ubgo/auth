@@ -1,0 +1,46 @@
+func (a *Auth) CreateIdentity(ctx context.Context, in NewIdentity) (Identity, error) {
+	value, err := a.Normalize(in.Kind, in.Raw)
+	if err != nil {
+		return Identity{}, err
+	}
+	scope := in.ScopeID
+	if scope == nil {
+		if scope, err = a.scopeFor(ctx, in.Kind); err != nil {
+			return Identity{}, err
+		}
+	}
+	id, err := a.ids(IDPrefixIdentity)
+	if err != nil {
+		return Identity{}, err
+	}
+	now := a.now()
+	idn := Identity{ID: id, UserID: in.UserID, Kind: in.Kind, Value: value, ValueRaw: in.Raw, ScopeID: scope, CreatedAt: now}
+	if in.Verified {
+		idn.VerifiedAt = &now
+		idn.IsPrimary = in.Primary
+	}
+	err = a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+		if err := runHooks(ctx, a, tx, pickIdentity, stageBeforeCreate, nil, &idn); err != nil {
+			return err
+		}
+		if idn.IsPrimary {
+			if err := a.clearPrimary(ctx, idn.UserID, idn.Kind); err != nil {
+				return err
+			}
+		}
+		q := sqlb.NewInsert(a.cfg.Dialect).Into(TableIdentity).Row(
+			sqlb.Set(IdentityID, idn.ID), sqlb.Set(IdentityUserID, idn.UserID), sqlb.Set(IdentityKind, idn.Kind),
+			sqlb.Set(IdentityValue, idn.Value), sqlb.Set(IdentityValueRaw, idn.ValueRaw),
+			sqlb.Set(IdentityVerifiedAt, idn.VerifiedAt), sqlb.Set(IdentityIsPrimary, idn.IsPrimary),
+			sqlb.Set(IdentityScopeID, idn.ScopeID), sqlb.Set(IdentityCreatedAt, idn.CreatedAt),
+		)
+		if _, err := a.Exec(ctx, q); err != nil {
+			if isUniqueViolation(err) {
+				return ErrIdentityTaken
+			}
+			return fmt.Errorf("auth: insert identity: %w", err)
+		}
+		return runHooks(ctx, a, tx, pickIdentity, stageAfterCreate, nil, &idn)
+	})
+	return idn, err
+}

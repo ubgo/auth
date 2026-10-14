@@ -1,0 +1,3 @@
+func WithNormalizer(fn func(raw string) (string, error)) Option {
+	return func(p *Plugin) { p.kind.Normalize = fn }
+}

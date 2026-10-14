@@ -1,0 +1,19 @@
+func (p *Plugin) doMint(ctx context.Context, c *auth.Call, in MintRequest) (MintResult, error) {
+	if !strings.HasPrefix(in.Target, "/") || strings.HasPrefix(in.Target, "//") || strings.Contains(in.Target, `\`) {
+		return MintResult{}, ErrTargetInvalid // only this site's paths: no open redirect
+	}
+	id, err := p.a.NewID(IDPrefix)
+	if err != nil {
+		return MintResult{}, err
+	}
+	ticket := auth.NewToken()
+	expires := p.a.Now().Add(p.ttl)
+	if _, err := p.a.Exec(ctx, sqlb.NewInsert(p.a.Dialect()).Into(TableTicket).Row(
+		sqlb.Set(ID, id), sqlb.Set(UserID, c.User.ID), sqlb.Set(Hash, auth.HashToken(ticket)),
+		sqlb.Set(Target, in.Target), sqlb.Set(ExpiresAt, expires),
+	)); err != nil {
+		return MintResult{}, err
+	}
+	c.Effects.Header(HeaderTicket, ticket.Reveal())
+	return MintResult{ExpiresAt: expires}, nil
+}

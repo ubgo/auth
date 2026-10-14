@@ -1,0 +1,1 @@
+func WithMessage(msg string) Option { return func(c *Checker) { c.message = msg } }

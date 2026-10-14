@@ -1,0 +1,6 @@
+func UserBindings(dst *UserMembership) []sqlb.Binding {
+	return []sqlb.Binding{
+		sqlb.Bind(sqlb.Coalesce(MemberRole, sqlb.Literal[Role]("''")), &dst.Role),
+		sqlb.Bind(sqlb.Nullable(MemberJoinedAt), &dst.JoinedAt),
+	}
+}

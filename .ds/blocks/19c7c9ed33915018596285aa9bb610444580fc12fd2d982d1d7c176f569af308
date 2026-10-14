@@ -1,0 +1,1 @@
+func Multiple() Option { return func(p *Plugin) { p.multiple = true } }

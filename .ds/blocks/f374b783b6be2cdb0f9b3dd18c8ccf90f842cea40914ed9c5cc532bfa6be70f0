@@ -1,0 +1,7 @@
+func newVerifier(secret, siteVerifyURL string) *captcha.SiteVerify {
+	opts := []captcha.ProviderOption{captcha.WithExpectedAction(expectedAction)}
+	if siteVerifyURL != "" {
+		opts = append(opts, captcha.WithEndpoint(siteVerifyURL))
+	}
+	return captcha.Turnstile(secret, opts...)
+}

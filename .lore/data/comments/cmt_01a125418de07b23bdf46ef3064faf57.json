@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Closed 2026-10-10: built 2026-10-07 (plugin/access, organization roles.go/permissions.go, DynamicRoles, hasPermission, RequirePermission); comparison org.md rows 63-67 ✅.",
+  "created_at": "2026-10-10T10:00:15.584713000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f8673677714ca95b198eacc2995a",
+  "entity_table": "tasks",
+  "id": "cmt_01a125418de07b23bdf46ef3064faf57",
+  "updated_at": "2026-10-10T10:00:15.584714000Z"
+}

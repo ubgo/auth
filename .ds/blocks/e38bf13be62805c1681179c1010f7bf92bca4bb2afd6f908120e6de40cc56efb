@@ -1,0 +1,31 @@
+type Key struct {
+	ID string `json:"id"`
+	// Config is the configuration the key was made under.
+	Config string `json:"configId"`
+	Name   string `json:"name"`
+	// Prefix is the key's prefix in clear: the configuration's and, under
+	// AllowKeyPrefix, its own. Empty for a key made before migration 0003.
+	Prefix     string     `json:"prefix"`
+	Hint       string     `json:"hint"`
+	Scopes     []string   `json:"scopes"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	// Disabled is true while the owner has paused the key (UpdateRequest
+	// .Disabled); a disabled key is refused like an unknown one.
+	Disabled bool `json:"disabled"`
+	// Metadata is the owner's JSON object, or null.
+	Metadata json.RawMessage `json:"metadata"`
+	// OrganizationID is the owning organization of an organization-owned
+	// key, "" for a user's key.
+	OrganizationID string `json:"organizationId"`
+	// Permissions are the key's permissions (WithPermissions), or null.
+	Permissions access.Permissions `json:"permissions"`
+	// Limits are the key's rate limit and quota; Remaining is live.
+	Limits Limits `json:"limits"`
+	// UpdatedAt is when the key last changed: made, edited, or used (a use
+	// stamps it with last_used_at, at most once a minute, or with the
+	// counters of a key that has limits). Nil for a key unchanged since
+	// before migration 0003.
+	UpdatedAt *time.Time `json:"updatedAt"`
+}

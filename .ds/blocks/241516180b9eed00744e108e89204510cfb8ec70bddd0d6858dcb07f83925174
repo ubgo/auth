@@ -1,0 +1,18 @@
+func WithSigningKey(k crypto.Signer) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("jwt.WithSigningKey", k) {
+			return
+		}
+
+		switch key := k.(type) {
+		case ed25519.PrivateKey:
+			// Public() would panic on a short Ed25519 key, so it is
+			// checked here rather than in Validate.
+			if len(key) == ed25519.PrivateKeySize {
+				p.signer = keySigner{key: key}
+			}
+		default:
+			p.signer = keySigner{key: k}
+		}
+	}
+}

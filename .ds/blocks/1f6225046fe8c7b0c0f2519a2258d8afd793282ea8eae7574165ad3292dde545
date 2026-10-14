@@ -1,0 +1,14 @@
+func newAgentAuth(pk *passkey.Plugin, notify notifyFunc, b *bank) *agentauth.Plugin {
+	return agentauth.New(
+		agentauth.Capabilities(
+			agentauth.Capability{Name: capReadBalance, Description: "Read your balance"},
+			agentauth.Capability{
+				Name: capTransfer, Description: "Transfer money", RequiredConstraints: []string{argAmount},
+				ApprovalStrength: agentauth.StrengthWebAuthn,
+			},
+		),
+		agentauth.ProofOfPresence(pk),
+		agentauth.OnEvent(cibaNotifier(notify)),
+		agentauth.OnExecute(b.execute),
+	)
+}

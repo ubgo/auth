@@ -1,0 +1,10 @@
+func (a *Auth) AfterTx(ctx context.Context, fn func(context.Context)) {
+	st := txFrom(ctx)
+	if st == nil {
+		fn(ctx)
+		return
+	}
+	st.mu.Lock()
+	st.afterEnd = append(st.afterEnd, fn)
+	st.mu.Unlock()
+}

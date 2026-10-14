@@ -1,0 +1,8 @@
+func WithClock(now func() time.Time) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithClock", now) {
+			return
+		}
+		s.clock = now
+	}
+}

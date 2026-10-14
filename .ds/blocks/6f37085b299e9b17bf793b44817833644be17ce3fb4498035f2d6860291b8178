@@ -1,0 +1,10 @@
+func (p *Plugin) PassChallenge(ctx context.Context, c *auth.Call) error {
+	if c.Transport == auth.TransportGo {
+		return nil
+	}
+	token := c.Header(p.header)
+	if token == "" {
+		return auth.ErrChallengeRequired
+	}
+	return p.verify(ctx, c, token)
+}

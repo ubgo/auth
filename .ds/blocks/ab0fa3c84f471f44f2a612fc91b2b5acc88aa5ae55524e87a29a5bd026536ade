@@ -1,0 +1,28 @@
+func readAuthJS(in input) ([]record, error) {
+	var users []authjsUser
+	if err := json.NewDecoder(in.Main).Decode(&users); err != nil {
+		return nil, fmt.Errorf("auth.js users: %w", err)
+	}
+	accounts := map[string][]account{}
+	if in.Identities != nil {
+		var accs []authjsAccount
+		if err := json.NewDecoder(in.Identities).Decode(&accs); err != nil {
+			return nil, fmt.Errorf("auth.js accounts: %w", err)
+		}
+		for _, a := range accs {
+			if !authjsOAuthTypes[a.Type] {
+				continue
+			}
+			accounts[a.UserID] = append(accounts[a.UserID], account{Provider: a.Provider, AccountID: a.ProviderAccountID})
+		}
+	}
+	out := make([]record, 0, len(users))
+	for _, u := range users {
+		r := record{ID: u.ID, Name: u.Name, Image: u.Image, Accounts: accounts[u.ID]}
+		if u.Email != "" {
+			r.Emails = []identifier{{Value: u.Email, Verified: u.EmailVerified != "", Primary: true}}
+		}
+		out = append(out, r)
+	}
+	return out, nil
+}

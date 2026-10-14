@@ -1,0 +1,15 @@
+const (
+	// addr is where the server listens: this machine only, for development.
+	// Use ":8081" to accept connections from the network.
+	addr = "localhost:8081"
+	// baseURL is the app's public URL. Its origin is the only one allowed to
+	// send cookie-authenticated POSTs, and links in mail point at it.
+	baseURL = "http://localhost:8081"
+	// dbFile is the SQLite database, created next to where you run the program.
+	dbFile = "quickstart.db"
+	// authPrefix is where the library's routes are mounted.
+	authPrefix = "/auth"
+	// readHeaderTimeout bounds how long a client may take to send headers, so
+	// a slow client cannot hold a connection open forever.
+	readHeaderTimeout = 5 * time.Second
+)

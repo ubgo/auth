@@ -1,0 +1,3 @@
+func WithVerificationStore(s VerificationStore) Option {
+	return func(st *settings) { st.verifications = s }
+}

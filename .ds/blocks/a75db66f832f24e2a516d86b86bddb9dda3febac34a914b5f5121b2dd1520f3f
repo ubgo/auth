@@ -1,0 +1,8 @@
+func partnerProvider(issuer, clientID, clientSecret string) (oauth.Provider, error) {
+	gp, err := openidConnect.New(clientID, clientSecret, callbackURL(partnerName), issuer+"/.well-known/openid-configuration", partnerScopes...)
+	if err != nil {
+		return nil, err
+	}
+	gp.SetName(partnerName)
+	return authgoth.Wrap(gp), nil
+}

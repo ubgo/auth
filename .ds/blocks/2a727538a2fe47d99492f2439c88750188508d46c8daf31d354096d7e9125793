@@ -1,0 +1,15 @@
+func signingKey(getenv func(string) string) (ed25519.PrivateKey, error) {
+	if s := getenv(envSigningKey); s != "" {
+		seed, err := base64.RawURLEncoding.DecodeString(s)
+		if err != nil || len(seed) != ed25519.SeedSize {
+			return nil, fmt.Errorf("%s must be %d bytes, base64url without padding", envSigningKey, ed25519.SeedSize)
+		}
+		return ed25519.NewKeyFromSeed(seed), nil
+	}
+	_, key, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("%s is not set: signing with a new key; tokens stop verifying when the process restarts", envSigningKey)
+	return key, nil
+}

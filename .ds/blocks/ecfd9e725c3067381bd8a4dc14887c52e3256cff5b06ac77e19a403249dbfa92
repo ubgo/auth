@@ -1,0 +1,3 @@
+func PreviousKeys(keys ...crypto.PublicKey) Option {
+	return func(p *Plugin) { p.previous = append(p.previous, keys...) }
+}

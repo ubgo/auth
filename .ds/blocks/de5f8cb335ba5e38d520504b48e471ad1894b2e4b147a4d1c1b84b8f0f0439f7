@@ -1,0 +1,3 @@
+func Bindings(c *TwoFactorColumns) []sqlb.Binding {
+	return []sqlb.Binding{sqlb.Bind(Enabled, &c.TwoFactorEnabled)}
+}

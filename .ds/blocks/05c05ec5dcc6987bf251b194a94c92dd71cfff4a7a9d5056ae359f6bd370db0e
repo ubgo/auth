@@ -1,0 +1,12 @@
+func newAuth(db *sql.DB, m email.Mailer, bot chat.Sender, now func() time.Time) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithClock(now),
+		auth.WithPlugins(
+			email.New(email.Login(), email.WithMailer(m)),
+			password.New(),
+			chat.New(bot, chat.Recover()),
+		),
+	)
+}

@@ -1,0 +1,15 @@
+func TestReferral_MigrationIsWrittenByTheCore(t *testing.T) {
+	a := newTestAuth(t)
+	ddl, err := a.MigrationSQL()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"ALTER TABLE auth_user ADD COLUMN referral_code",
+		"CREATE UNIQUE INDEX auth_user_referral_code_key ON auth_user (referral_code)",
+	} {
+		if !strings.Contains(ddl, want) {
+			t.Fatalf("migration SQL lacks %q:\n%s", want, ddl)
+		}
+	}
+}

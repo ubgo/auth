@@ -1,0 +1,14 @@
+func GenerateKey(alg Alg) (crypto.Signer, error) {
+	switch {
+	case alg == EdDSA || alg == "":
+		_, k, err := ed25519.GenerateKey(rand.Reader)
+		return k, err
+	case slices.Contains(rsaAlgs, alg):
+		k, err := rsa.GenerateKey(rand.Reader, MinRSABits)
+		return bindRSA(k, err, alg)
+	}
+	if c, ok := curveOf(func(c ecCurve) bool { return c.alg == alg }); ok {
+		return ecdsa.GenerateKey(c.curve, rand.Reader)
+	}
+	return nil, fmt.Errorf("%w: algorithm %q", ErrUnsupportedKey, alg)
+}

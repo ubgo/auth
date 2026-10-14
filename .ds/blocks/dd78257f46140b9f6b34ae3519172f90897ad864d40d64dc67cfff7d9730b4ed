@@ -1,0 +1,13 @@
+func signedOut(a *auth.Auth, w http.ResponseWriter, r *http.Request) {
+	list, err := a.RevokedSessions(r.Context(), authhttp.MustUser(r).ID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	out := signedOutResponse{Sessions: make([]endedSession, 0, len(list))}
+	for _, s := range list {
+		// RevokedSessions returns only rows with RevokedAt set.
+		out.Sessions = append(out.Sessions, endedSession{ID: s.ID, UserAgent: s.UserAgent, CreatedAt: s.CreatedAt, RevokedAt: *s.RevokedAt})
+	}
+	writeJSON(w, out)
+}

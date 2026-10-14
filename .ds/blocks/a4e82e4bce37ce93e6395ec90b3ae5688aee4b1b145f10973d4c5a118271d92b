@@ -1,0 +1,15 @@
+func (p *Plugin) EnableFor(ctx context.Context, userID string) error {
+	if err := p.requireConfirmed(ctx, userID); err != nil {
+		return err
+	}
+	return p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		on, err := p.enabledFor(ctx, userID)
+		if err != nil || on {
+			return err
+		}
+		if err := auth.SetUserColumn(ctx, p.core, PluginName, userID, Enabled, true); err != nil {
+			return err
+		}
+		return p.core.EndUserSessions(ctx, userID, "", auth.SessionEndCredentialChanged)
+	})
+}

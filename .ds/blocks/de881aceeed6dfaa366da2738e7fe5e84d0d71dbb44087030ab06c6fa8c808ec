@@ -1,0 +1,9 @@
+func registerResourceServer(ctx context.Context, op *oauthprovider.Plugin) (oauthprovider.Registration, error) {
+	return op.CreateClient(ctx, oauthprovider.ClientSpec{
+		ClientMetadata: oauthprovider.ClientMetadata{
+			Name:       resourceServerName,
+			GrantTypes: []string{oauthprovider.GrantClientCredentials},
+		},
+		IntrospectAny: true,
+	})
+}

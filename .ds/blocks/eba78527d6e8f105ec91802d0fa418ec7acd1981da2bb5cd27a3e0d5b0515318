@@ -1,0 +1,8 @@
+func WithSessionExtras(fn SessionExtras) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithSessionExtras", fn) {
+			return
+		}
+		s.sessionExtras = fn
+	}
+}

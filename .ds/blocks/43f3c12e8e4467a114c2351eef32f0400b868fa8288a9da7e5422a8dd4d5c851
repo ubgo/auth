@@ -1,0 +1,14 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+		),
+		auth.WithUserColumns(appColumns...),
+		// Only what a stranger may choose. colPlan grants something, so the
+		// app's billing code writes it, never the sign-up form.
+		auth.WithSignUpFields(colCompany, colSeats, colNewsletter),
+	)
+}

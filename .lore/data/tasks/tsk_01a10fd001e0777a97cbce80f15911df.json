@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim, via the lead):\n  THE OWNER: \"do all however better auth is doing\". Build: 1. per-enrolment issuer; 2. skipVerificationOnEnable (opt-in); 3. get-totp-uri guarded by password and a fresh sign-in; 4. verify without issuing a session (disableSession) plus a Go CheckCode-style call with the same rate limits and lockout; 5. view-backup-codes as an opt-in encrypted storage mode (key derived from auth.WithSecret under a fixed KeyLabel), viewing needs a fresh sign-in; 6-7. table-rename and field-rename rows set to partial.\n\nContext:\n  Files: plugin/twofactor, docs/plugins/twofactor.md, docsi/plans/compare/better-auth/factors.md (Two-factor section).\n\nAcceptance:\n  Every Two-factor row ✅ or 🟡 with reasons starting '👤 Owner decided (2026-10-06): '; task check green; integration on three engines; staticcheck; task cover; report to main.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-07T06:25:19.558528000Z",
+  "created_at": "2026-10-06T06:04:12.640484000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a10fd001e0777a97cbce80f15911df",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-06T06:04:16.252591000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Two-factor parity with better-auth (r15-twofactor)",
+  "updated_at": "2026-10-07T06:25:19.558530000Z"
+}

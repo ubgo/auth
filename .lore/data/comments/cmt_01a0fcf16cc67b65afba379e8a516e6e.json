@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Answered by the owner 2026-10-02 (decision dec_01a0fcedbd807cb5ae459329f5d99c9e): organizations are not core auth. plugin/organization moved to its own module; the nested-groups redesign comes after the core authentication gaps are closed.",
+  "created_at": "2026-10-02T14:07:55.590721000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec29c3a0747489de36c367e0373f",
+  "entity_table": "tasks",
+  "id": "cmt_01a0fcf16cc67b65afba379e8a516e6e",
+  "updated_at": "2026-10-02T14:07:55.590722000Z"
+}

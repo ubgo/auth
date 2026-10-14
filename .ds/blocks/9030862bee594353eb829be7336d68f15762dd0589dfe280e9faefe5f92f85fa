@@ -1,0 +1,24 @@
+type SignRequest struct {
+	// Subject is the sub claim; required.
+	Subject string
+	// Audience is the aud claim; nil takes the plugin's Audience.
+	Audience []string
+	// TTL is the token's lifetime; 0 takes the plugin's, and more than MaxTTL
+	// becomes MaxTTL, like WithTTL.
+	TTL time.Duration
+	// Claims are app claims; a registered claim here is ErrReservedClaim.
+	Claims map[string]any
+	// Type is the JWS "typ" header; "" is "JWT". An OAuth provider's access
+	// token uses "at+jwt" (RFC 9068). It is a media-type name: letters,
+	// digits and "+-." only (ErrBadType otherwise), and never
+	// SessionCacheType, so no Sign call can mint a session-cache snapshot.
+	Type string
+	// SessionID is the sid claim, for an ID token that a logout request can
+	// later bind to the browser's session; "" leaves it out.
+	SessionID string
+	// Alg picks the signing algorithm, better-auth's signingAlgorithm: ""
+	// or the signing key's algorithm signs with it, another one with the
+	// AlgorithmKeys key of that algorithm, and an algorithm with no key is
+	// ErrNoAlgorithmKey.
+	Alg Alg
+}

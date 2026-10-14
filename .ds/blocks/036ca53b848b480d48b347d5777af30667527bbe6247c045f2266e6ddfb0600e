@@ -1,0 +1,6 @@
+func (c *faultConn) ExecContext(ctx context.Context, q string, args []driver.NamedValue) (driver.Result, error) {
+	if err := c.f.step(); err != nil {
+		return nil, err
+	}
+	return inner[driver.ExecerContext](c.Conn).ExecContext(ctx, q, args)
+}

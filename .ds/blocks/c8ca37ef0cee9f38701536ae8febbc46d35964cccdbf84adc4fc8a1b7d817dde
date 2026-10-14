@@ -1,0 +1,9 @@
+func WithClock(now func() time.Time) Option {
+	return func(s *settings) {
+		if now == nil {
+			s.refuseNil("WithClock")
+			return
+		}
+		s.clock = now
+	}
+}

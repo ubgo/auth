@@ -1,0 +1,15 @@
+type StartRequest struct {
+	// ReturnTo is a path on this site to land on after sign-in.
+	ReturnTo string `json:"returnTo"`
+	// Link, when LinkFlag, links the provider to the signed-in user instead
+	// of signing in. A string because it arrives in a URL query.
+	Link string `json:"link"`
+	// Prompt is forwarded to a ParamsProvider as the prompt parameter
+	// (select_account, consent, login, none).
+	Prompt string `json:"prompt"`
+	// LoginHint is forwarded as login_hint, to pre-fill the account.
+	LoginHint string `json:"loginHint"`
+	// Scopes are extra scopes, space-separated, each listed in the
+	// provider's OptionalScopes; for incremental authorization.
+	Scopes string `json:"scopes"`
+}

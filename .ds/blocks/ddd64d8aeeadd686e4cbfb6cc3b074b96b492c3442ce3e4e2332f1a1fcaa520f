@@ -1,0 +1,14 @@
+export async function saveNickname(client: AppClient, value: string): Promise<SaveOutcome> {
+  const { data, error } = await client.nickname.set({ nickname: value });
+  if (error) {
+    switch (error.code) {
+      case "nickname.too_long": // the plugin's own code, typed like the library's
+        return { error: "That nickname is too long." };
+      case "auth.signed_out":
+        return { error: "Sign in again to change your nickname." };
+      default:
+        return { error: error.message };
+    }
+  }
+  return { saved: data.nickname };
+}

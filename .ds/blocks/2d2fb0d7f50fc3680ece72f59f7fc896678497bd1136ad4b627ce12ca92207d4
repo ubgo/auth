@@ -1,0 +1,17 @@
+func openAPISpec() []byte {
+	return []byte(`{
+  "openapi": "3.1.0",
+  "info": {"title": "Invoices", "description": "Read and pay your invoices"},
+  "paths": {
+    "/invoices": {
+      "get": {"operationId": "list_invoices", "description": "List your invoices",
+        "responses": {"200": {"description": "The invoices", "content": {"application/json": {"schema": {"type": "array"}}}}}}
+    },
+    "/invoices/{id}/pay": {
+      "post": {"operationId": "pay_invoice", "description": "Pay one invoice",
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "The payment"}}}
+    }
+  }
+}`)
+}

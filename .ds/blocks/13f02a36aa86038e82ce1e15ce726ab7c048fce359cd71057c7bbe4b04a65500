@@ -1,0 +1,1 @@
+func (e RateEvent) FirstInWindow() bool { return e.Count == 0 || e.Count == e.Rule.Limit+1 }

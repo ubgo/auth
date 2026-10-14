@@ -1,0 +1,16 @@
+func hooks(a *auth.Auth) organization.Hooks {
+	return organization.Hooks{
+		AfterCreateOrg: func(ctx context.Context, org organization.Org, _ auth.User) error {
+			_, err := addProject(ctx, a, org.ID, defaultProject)
+			return err
+		},
+		BeforeDeleteOrg: func(ctx context.Context, org organization.Org) error {
+			conn, err := a.Conn(ctx)
+			if err != nil {
+				return err
+			}
+			_, err = conn.ExecContext(ctx, deleteProjects, org.ID)
+			return err
+		},
+	}
+}

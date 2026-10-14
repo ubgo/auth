@@ -1,0 +1,4 @@
+func NewSessionCache(client redis.Cmdable, opts ...Option) *SessionCache {
+	c := newConfig(DefaultCacheKeyPrefix, opts)
+	return &SessionCache{optionErr: optionErr{c.optErrs.OptionErr()}, client: client, prefix: c.prefix, now: c.now}
+}

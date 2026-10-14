@@ -1,0 +1,8 @@
+func Types(m map[auth.EndpointID]EventType) Option {
+	return func(p *Plugin) {
+		if p.types == nil {
+			p.types = map[auth.EndpointID]EventType{}
+		}
+		maps.Copy(p.types, m)
+	}
+}

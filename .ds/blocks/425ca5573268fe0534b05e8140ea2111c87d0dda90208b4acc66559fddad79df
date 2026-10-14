@@ -1,0 +1,7 @@
+func DefaultTexts() map[string]string {
+	out := make(map[string]string, len(englishTexts))
+	for k, v := range englishTexts {
+		out[string(k)] = v
+	}
+	return out
+}

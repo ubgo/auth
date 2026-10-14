@@ -1,0 +1,27 @@
+const inboxPageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Agent requests</title>
+<ul id="list"></ul>
+<pre id="out"></pre>
+<script>
+const api = (path, init) => fetch("` + authPrefix + `/agentauth/" + path, init).then(r => r.json());
+const approve = (body) => api("approve-capability", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+const answer = async (id) => {
+  let res = await approve({approval_id: id, action: "approve"});
+  if (res.status === "webauthn_required") {
+    const cred = await navigator.credentials.get({publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(res.webauthn.webauthn_options.publicKey)});
+    res = await approve({approval_id: id, action: "approve", webauthn_response: {ceremony: res.webauthn.ceremony, credential: cred.toJSON()}});
+  }
+  document.getElementById("out").textContent = JSON.stringify(res, null, 2);
+};
+api("pending-approvals").then(({requests}) => requests.forEach((r) => {
+  const li = document.createElement("li");
+  li.textContent = (r.agent_name || r.agent_id) + " asks for " + r.capabilities.join(", ") + ": " + (r.binding_message || "") + " ";
+  const b = document.createElement("button");
+  b.textContent = "Approve";
+  b.onclick = () => answer(r.approval_id);
+  li.append(b);
+  document.getElementById("list").append(li);
+}));
+</script>
+`

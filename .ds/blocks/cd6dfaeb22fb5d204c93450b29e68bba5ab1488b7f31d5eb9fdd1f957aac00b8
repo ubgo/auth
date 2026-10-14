@@ -1,0 +1,11 @@
+type LogoutRequest struct {
+	// ReturnTo is where the provider sends the browser after its logout, as
+	// post_logout_redirect_uri, instead of PostLogoutURL. It passes the same
+	// TrustsReturnURL check as a sign-in's returnTo, so it is a path on this
+	// site, a URL on a trusted origin or a trusted deep-link scheme;
+	// anything else is ErrBadReturnTo and the session is not ended. A path
+	// is made absolute against the base URL, because the parameter must be
+	// an absolute URI. It must still be registered at the provider, which
+	// refuses an unregistered one on its own page.
+	ReturnTo string `json:"returnTo,omitempty"`
+}

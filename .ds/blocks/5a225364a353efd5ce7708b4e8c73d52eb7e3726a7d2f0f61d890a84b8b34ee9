@@ -1,0 +1,3 @@
+func OpenAPIDocument(a *auth.Auth, info OpenAPIInfo, opts ...Option) []byte {
+	return marshalOpenAPI(buildOpenAPI(a, info, newConfig(opts)))
+}

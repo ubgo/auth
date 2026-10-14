@@ -1,0 +1,65 @@
+func (a *Auth) Orphans(ctx context.Context) ([]Orphan, error) {
+	if a.db == nil {
+		return nil, ErrNoDatabase
+	}
+	owners := map[string]bool{CorePluginName: true}
+	// By real name, since the catalogue reports real names.
+	tables := map[string]bool{}
+	for _, t := range a.declaredTables() {
+		tables[a.TableName(t)] = true
+	}
+	for _, p := range a.plugins {
+		owners[p.Name()] = true
+	}
+	columns := map[string]bool{}
+	for _, c := range CoreUserColumns {
+		columns[c] = true
+	}
+	for _, c := range a.columns {
+		columns[c.Name] = true
+	}
+	var out []Orphan
+
+	ledger, err := a.listNames(ctx, "read ledger", "SELECT DISTINCT owner FROM "+a.TableName(TableMigrations))
+	if err != nil {
+		return nil, err
+	}
+	for _, o := range ledger {
+		if !owners[o] {
+			out = append(out, Orphan{Kind: OrphanOwner, Name: o})
+		}
+	}
+
+	names, err := a.listNames(ctx, "list tables", a.tablesQuery())
+	if err != nil {
+		return nil, err
+	}
+	// A removed plugin's table carries the library prefix under this Auth's
+	// table prefix, as every table did while the plugin was registered. A
+	// table that plugin had renamed with RenameTable cannot be told apart
+	// from the app's own and is not reported.
+	orphanPrefix := a.tablePrefix + authTablePrefix
+	for _, n := range names {
+		if strings.HasPrefix(n, orphanPrefix) && !tables[n] {
+			out = append(out, Orphan{Kind: OrphanTable, Name: n})
+		}
+	}
+	cols, err := a.listNames(ctx, "list columns", a.columnsQuery(a.TableName(TableUser)))
+	if err != nil {
+		return nil, err
+	}
+	for _, n := range cols {
+		// MySQL's generated uniqueness columns live on auth_identity, never
+		// on auth_user, so every auth_user column must be declared.
+		if !columns[n] {
+			out = append(out, Orphan{Kind: OrphanColumn, Name: n})
+		}
+	}
+	slices.SortFunc(out, func(x, y Orphan) int {
+		if c := strings.Compare(string(x.Kind), string(y.Kind)); c != 0 {
+			return c
+		}
+		return strings.Compare(x.Name, y.Name)
+	})
+	return out, nil
+}

@@ -1,0 +1,14 @@
+func (p *Plugin) doRedeem(ctx context.Context, c *auth.Call, in RedeemRequest) (auth.Done, error) {
+	var target string
+	var expires time.Time
+	err := p.a.One(ctx, p.a.Select().Columns(sqlb.Bind(Target, &target), sqlb.Bind(ExpiresAt, &expires)).
+		From(TableTicket).Where(sqlb.Eq(Hash, auth.HashToken(in.Ticket.Token()))))
+	if errors.Is(err, sqlb.ErrNoRows) || (err == nil && !p.a.Now().Before(expires)) {
+		return auth.Done{}, ErrInvalid
+	}
+	if err != nil {
+		return auth.Done{}, err
+	}
+	c.Effects.Redirect(target)
+	return auth.Done{OK: true}, nil
+}

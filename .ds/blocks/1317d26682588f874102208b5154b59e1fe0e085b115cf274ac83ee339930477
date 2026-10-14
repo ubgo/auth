@@ -1,0 +1,3 @@
+func (p *Plugin) VerifyWith(ctx context.Context, in VerifyRequest) (VerifyResult, error) {
+	return p.verify.Call(ctx, in)
+}

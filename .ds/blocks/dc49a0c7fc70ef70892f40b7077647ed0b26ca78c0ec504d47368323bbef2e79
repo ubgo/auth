@@ -1,0 +1,25 @@
+func (a relationAuthorizer) Authorize(ctx context.Context, req organization.AccessRequest) (bool, error) {
+	if len(req.Request) == 0 {
+		return false, nil
+	}
+	anyRes := false
+	for res, want := range req.Request {
+		ok := len(want.Actions) > 0
+		for _, act := range want.Actions {
+			has, err := a.store.Check(ctx, "user:"+req.UserID, "can_"+act+"_"+res, "organization:"+req.OrgID)
+			if err != nil {
+				return false, err
+			}
+			if want.Connector == access.Or && has {
+				ok = true
+				break
+			}
+			ok = ok && has
+		}
+		if !ok && req.Connector != access.Or {
+			return false, nil
+		}
+		anyRes = anyRes || ok
+	}
+	return anyRes, nil
+}

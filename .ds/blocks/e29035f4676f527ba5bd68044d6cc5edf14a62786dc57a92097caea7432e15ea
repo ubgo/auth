@@ -1,0 +1,8 @@
+func WithObserver(o Observer) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithObserver", o) {
+			return
+		}
+		s.observer = o
+	}
+}

@@ -1,0 +1,20 @@
+func (p *Plugin) Profile(ctx context.Context, userID, provider string) (Profile, error) {
+	f, ok := p.provider(provider).(ProfileFetcher)
+	if !ok {
+		return Profile{}, ErrProfileUnsupported
+	}
+	ts, err := p.Tokens(ctx, userID, provider)
+	if err != nil {
+		return Profile{}, err
+	}
+	prof, err := f.FetchProfileWith(ctx, p.hc, ts)
+	switch {
+	case errors.Is(err, ErrProfileUnsupported):
+		return Profile{}, err
+	case err != nil:
+		p.core.Logger().Warn("oauth: profile failed", "provider", provider, "error", err)
+		return Profile{}, ErrProviderFailed
+	}
+	prof.Tokens = ts
+	return prof, nil
+}

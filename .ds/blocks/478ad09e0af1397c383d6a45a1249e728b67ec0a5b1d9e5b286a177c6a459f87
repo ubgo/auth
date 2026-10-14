@@ -1,0 +1,9 @@
+func WithMessages(c MessageCatalog) Option {
+	return func(s *settings) {
+		if c == nil {
+			s.refuseNil("WithMessages")
+			return
+		}
+		s.messages = c
+	}
+}

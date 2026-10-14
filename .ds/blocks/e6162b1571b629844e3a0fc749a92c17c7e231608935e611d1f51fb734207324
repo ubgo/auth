@@ -1,0 +1,1 @@
+	DefaultAccessTokenTTL = time.Hour

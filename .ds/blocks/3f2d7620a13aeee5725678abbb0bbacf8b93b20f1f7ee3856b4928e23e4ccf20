@@ -1,0 +1,14 @@
+func Validate(v string) error {
+	if n := len(v); n < MinLength || n > MaxLength {
+		return errors.New("username: wrong length")
+	}
+	for i, r := range v {
+		if i == 0 && !unicode.IsLower(r) {
+			return errors.New("username: must start with a letter")
+		}
+		if !(r >= 'a' && r <= 'z') && !unicode.IsDigit(r) && r != '-' && r != '_' {
+			return errors.New("username: letters, digits, - and _ only")
+		}
+	}
+	return nil
+}

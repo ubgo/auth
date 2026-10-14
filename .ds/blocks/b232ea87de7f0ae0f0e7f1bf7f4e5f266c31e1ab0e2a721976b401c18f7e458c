@@ -1,0 +1,5 @@
+var auth0OrgRoles = map[string]organization.Role{
+	"owner":  organization.RoleOwner,
+	"admin":  organization.RoleAdmin,
+	"member": organization.RoleMember,
+}

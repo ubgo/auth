@@ -1,0 +1,1 @@
+func NewStorageRateStore(kv SecondaryStorage) RateStore { return storageRateStore{kv: kv} }

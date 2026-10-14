@@ -1,0 +1,8 @@
+func GenerateToken(fn TokenGenerator) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("magiclink.GenerateToken", fn) {
+			return
+		}
+		p.genToken = fn
+	}
+}

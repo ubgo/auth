@@ -1,0 +1,4 @@
+func (p *Plugin) Available(ctx context.Context, handle string) (bool, error) {
+	r, err := p.available.Call(ctx, Request{Username: handle})
+	return r.Available, err
+}

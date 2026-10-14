@@ -1,0 +1,3 @@
+func LINE(clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("line", LINEIssuer, clientID, clientSecret), "LINE")
+}

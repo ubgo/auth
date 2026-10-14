@@ -1,0 +1,7 @@
+func Linear(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "linear", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: LinearAuthURL, TokenURL: LinearTokenURL, Scopes: []string{"read"},
+		FetchProfile: LinearProfile(LinearGraphQLURL),
+	}
+}

@@ -1,0 +1,7 @@
+type SchemaIndex struct {
+	// Name is unique within the table; the index is created as
+	// <real table name>_<Name>, so a renamed table renames its indexes.
+	Name    string
+	Columns []string
+	Unique  bool
+}

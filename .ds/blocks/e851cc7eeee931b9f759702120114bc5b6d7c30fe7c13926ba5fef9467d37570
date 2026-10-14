@@ -1,0 +1,3 @@
+func WithRateLimit(limit int, window time.Duration) Option {
+	return func(s *settings) { s.globalRate = &RateRule{Key: ByIP, Limit: limit, Window: window} }
+}

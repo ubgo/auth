@@ -1,0 +1,8 @@
+func Snapchat(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "snapchat", DisplayName: "Snapchat", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		AuthURL: SnapchatAuthURL, TokenURL: SnapchatTokenURL, RevokeURL: SnapchatRevokeURL,
+		Scopes:       []string{SnapchatScopePrefix + "user.external_id", SnapchatScopePrefix + "user.display_name", SnapchatScopePrefix + "user.bitmoji.avatar"},
+		FetchProfile: SnapchatProfile(SnapchatMeURL),
+	}
+}

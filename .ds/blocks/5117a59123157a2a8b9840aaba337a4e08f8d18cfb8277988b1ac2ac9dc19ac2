@@ -1,0 +1,3 @@
+func (g *Integration) ExtensionGrant() oauthprovider.ExtensionGrant {
+	return oauthprovider.ExtensionGrant{Type: deviceauth.GrantType, Handle: g.redeem, ErrorNamespace: errorNamespace}
+}

@@ -1,0 +1,10 @@
+func writeProblem(w http.ResponseWriter, _ *http.Request, info auth.ErrorInfo) {
+	w.Header().Set("Content-Type", problemContentType)
+	w.WriteHeader(info.Status)
+	_ = json.NewEncoder(w).Encode(problem{ // a client that hung up cannot be told
+		Type:   problemTypeBase + info.Code,
+		Title:  info.Message,
+		Status: info.Status,
+		Code:   info.Code,
+	})
+}

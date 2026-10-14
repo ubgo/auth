@@ -1,0 +1,6 @@
+func plugins(dir ldap.Directory, opts ...ldap.Option) []auth.Plugin {
+	return []auth.Plugin{
+		email.New(email.Login(), email.Recover(), email.WithMailer(email.MailerFunc(logMail))),
+		ldap.New(append([]ldap.Option{ldap.WithDirectory(dir), ldap.MapAttributes(ldap.AttributeMap{Subject: "entryUUID"})}, opts...)...),
+	}
+}

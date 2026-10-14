@@ -1,0 +1,17 @@
+func (p *Plugin) Handler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", http.MethodGet)
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		switch strings.TrimSuffix(r.URL.Path, "/") {
+		case "/start":
+			p.start(w, r)
+		case "/complete":
+			p.complete(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}

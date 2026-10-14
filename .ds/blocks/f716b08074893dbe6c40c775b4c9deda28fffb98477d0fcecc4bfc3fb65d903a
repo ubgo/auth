@@ -1,0 +1,9 @@
+func WithSessionCache(c SessionCache, ttl time.Duration) Option {
+	return func(s *settings) {
+		if c == nil {
+			s.refuseNil("WithSessionCache")
+			return
+		}
+		s.cache, s.cacheTTL = c, ttl
+	}
+}

@@ -1,0 +1,6 @@
+type Loader interface {
+	Provider
+	// Load fetches what the provider would otherwise fetch at its first
+	// flow, and reports why it cannot be used.
+	Load(ctx context.Context, hc *http.Client) error
+}

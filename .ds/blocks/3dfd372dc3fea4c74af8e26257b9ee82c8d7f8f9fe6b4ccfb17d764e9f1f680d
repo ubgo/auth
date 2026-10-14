@@ -1,0 +1,1 @@
+func AuthenticatorSelection(s Selection) Option { return func(p *Plugin) { p.sel = s } }

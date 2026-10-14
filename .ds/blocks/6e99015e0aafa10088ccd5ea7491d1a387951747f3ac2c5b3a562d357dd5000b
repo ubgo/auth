@@ -1,0 +1,3 @@
+type DeviceRecognizer interface {
+	KnownDevice(ctx context.Context, in DeviceSignIn) (bool, error)
+}

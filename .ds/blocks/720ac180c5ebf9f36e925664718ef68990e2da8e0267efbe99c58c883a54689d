@@ -1,0 +1,3 @@
+func (a *Auth) IssueCode(ctx context.Context, purpose Purpose, subject string, ttl time.Duration) (string, error) {
+	return a.IssueCodeWith(ctx, purpose, subject, ttl, CodeOptions{})
+}

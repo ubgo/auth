@@ -1,0 +1,3 @@
+func Claims(fn func(ctx context.Context, u auth.User) map[string]any) Option {
+	return func(p *Plugin) { p.claims = fn }
+}

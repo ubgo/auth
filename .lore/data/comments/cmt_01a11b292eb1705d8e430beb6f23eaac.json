@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Owner decided 2026-10-08: billing integrations (Stripe, Polar, Autumn, Chargebee, Commet, Creem, Dodo Payments, and the community payment providers) are skipped: payments and entitlements, not authentication; can be added later as separate modules with no core change (plugin-owned tables, after-sign-up hooks, plugin operations). 61 comparison rows moved from ❌ to ➖ in org.md; viewer rebuilt (2617 rows: ✅ 2074, 🟡 26, ❌ 75, ➖ 442). Recorded as a lore decision.",
+  "created_at": "2026-10-08T10:57:26.193007000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a11b292eb1705d8e430beb6f23eaac",
+  "updated_at": "2026-10-08T10:57:26.193008000Z"
+}

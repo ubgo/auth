@@ -1,0 +1,19 @@
+type Request struct {
+	Transport  Transport
+	Client     Client
+	Credential Credential
+	// Delivery is how the client asked to receive a token issued during this
+	// request (HTTP: the Auth-Token-Mode header). Empty means DeliveryCookie.
+	Delivery TokenDelivery
+	// Token is the raw session token, empty when Credential is CredentialNone.
+	Token Token
+	// Flow is the value the client holds from an earlier BindFlow effect, or
+	// empty. HTTP transports keep it in a cookie of its own.
+	Flow Token
+	// CachedSession is the value the client holds from an earlier
+	// EffectCacheSession, or empty. Only the snapshot cache uses one; a
+	// transport passes whatever the client sent, and the cache decides.
+	CachedSession string
+	// Header reads a request header. Nil for transports without headers.
+	Header func(name string) string
+}

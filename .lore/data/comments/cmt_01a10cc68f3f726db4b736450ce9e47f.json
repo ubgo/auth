@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open as a decision: the behaviour is unchanged (email verify and confirm-change answer auth.identity_taken) and is now documented as a known limit in docs/plugins/email.md. Needs the owner's call. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:01.823143000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f60c2c1b79669affa5b4e7b04011",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68f3f726db4b736450ce9e47f",
+  "updated_at": "2026-10-05T15:55:01.823143000Z"
+}

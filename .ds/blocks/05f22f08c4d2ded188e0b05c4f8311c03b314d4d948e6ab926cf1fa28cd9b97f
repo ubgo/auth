@@ -1,0 +1,1 @@
+	jwksMaxAge = 24 * time.Hour

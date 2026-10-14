@@ -1,0 +1,3 @@
+type Redactor interface {
+	Redact(ctx context.Context, e Event) Event
+}

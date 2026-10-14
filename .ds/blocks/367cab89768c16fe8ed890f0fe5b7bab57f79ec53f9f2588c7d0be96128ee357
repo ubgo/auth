@@ -1,0 +1,6 @@
+type IssuerChecker interface {
+	Provider
+	// ExpectedIssuer is the iss every authorization response must carry, or
+	// "" when the provider sends none.
+	ExpectedIssuer() string
+}

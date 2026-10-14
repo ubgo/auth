@@ -1,0 +1,7 @@
+type ProfileFetcher interface {
+	Provider
+	// FetchProfileWith reads the profile with tokens. A provider whose
+	// profile exists only in the ID token of the exchange (ProfileFromToken
+	// with no other source) answers ErrProfileUnsupported.
+	FetchProfileWith(ctx context.Context, hc *http.Client, tokens TokenSet) (Profile, error)
+}

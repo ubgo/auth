@@ -1,0 +1,26 @@
+func (a *Auth) IssueCode(ctx context.Context, purpose Purpose, subject string, ttl time.Duration) (string, error) {
+	n, err := rand.Int(rand.Reader, big.NewInt(codeModulus(a.cfg.CodeLength)))
+	if err != nil {
+		return "", fmt.Errorf("auth: read random code: %w", err)
+	}
+	code := fmt.Sprintf("%0*d", a.cfg.CodeLength, n.Int64())
+	id, err := a.ids(idPrefixCode)
+	if err != nil {
+		return "", err
+	}
+	now := a.now()
+	d := a.cfg.Dialect
+	del := sqlb.NewDelete(d).From(tableCode).Where(sqlb.Eq(codeSubject, subject), sqlb.Eq(codePurpose, purpose))
+	if _, err := a.Exec(ctx, del); err != nil {
+		return "", err
+	}
+	ins := sqlb.NewInsert(d).Into(tableCode).Row(
+		sqlb.Set(codeID, id), sqlb.Set(codeSubject, subject), sqlb.Set(codePurpose, purpose),
+		sqlb.Set(codeHashCol, hashCode(id, code)), sqlb.Set(codeAttempts, 0),
+		sqlb.Set(codeExpiresAt, now.Add(ttl)), sqlb.Set(codeCreatedAt, now),
+	)
+	if _, err := a.Exec(ctx, ins); err != nil {
+		return "", fmt.Errorf("auth: insert code: %w", err)
+	}
+	return code, nil
+}

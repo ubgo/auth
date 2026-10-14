@@ -1,0 +1,13 @@
+func invoicesAPI(keys *jwt.RemoteKeys) http.Handler {
+	guard := oauthprovider.ResourceGuard{
+		Issuer:   baseURL,
+		Audience: invoicesURL,
+		Keys:     keys.Lookup,
+		Scopes:   []string{scopeInvoicesRead},
+	}
+	return guard.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tok, _ := oauthprovider.GuardedTokenFrom(r.Context()) // always set behind the guard
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(invoicesAnswer{UserID: tok.Subject, Invoices: sampleInvoices}) // a client that hung up cannot be told
+	}))
+}

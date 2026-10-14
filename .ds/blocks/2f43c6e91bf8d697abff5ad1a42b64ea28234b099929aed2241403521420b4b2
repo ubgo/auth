@@ -1,0 +1,3 @@
+func WithDisabledOperations(ids ...EndpointID) Option {
+	return func(s *settings) { s.disabled = append(s.disabled, ids...) }
+}

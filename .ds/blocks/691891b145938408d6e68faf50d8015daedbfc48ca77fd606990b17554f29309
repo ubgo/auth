@@ -1,0 +1,8 @@
+func WithSigner(s Signer) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("jwt.WithSigner", s) {
+			return
+		}
+		p.signer = s
+	}
+}

@@ -1,0 +1,13 @@
+type SignInRequest struct {
+	Phone string `json:"phone"`
+	Code  string `json:"code"`
+	// Fields sets the auth.WithSignUpFields columns of the account a code
+	// creates, each of its declared type, else auth.ErrFieldInvalid before
+	// the code is checked. The same columns may also be sent as top-level
+	// keys, as better-auth does; one sent both ways is auth.ErrFieldInvalid.
+	// Ignored when the number already has an owner.
+	Fields auth.Fields `json:"fields,omitempty"`
+	// top holds the top-level keys of a JSON body that are not fields of
+	// this struct, for auth.Auth.MergeFields; never set from Go.
+	top auth.Fields
+}

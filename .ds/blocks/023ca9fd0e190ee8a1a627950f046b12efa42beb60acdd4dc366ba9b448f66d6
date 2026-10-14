@@ -1,0 +1,4 @@
+var (
+	webLifetime = auth.SessionLifetime{Idle: 7 * day, Max: 30 * day}
+	appLifetime = auth.SessionLifetime{Idle: 90 * day, Max: 365 * day}
+)

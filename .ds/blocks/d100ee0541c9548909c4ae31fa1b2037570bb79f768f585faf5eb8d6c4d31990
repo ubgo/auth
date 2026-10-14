@@ -1,0 +1,1 @@
+	appleSecretLifetime = 24 * time.Hour

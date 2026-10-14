@@ -1,0 +1,10 @@
+func (p *Plugin) DataHooks() auth.DataHooks {
+	return auth.DataHooks{User: auth.TableHooks[auth.User]{
+		AfterCreate: func(ctx context.Context, _ sqlb.DBTX, u *auth.User) error {
+			if auth.RequestHeader(ctx, TermsHeader) != p.current {
+				return nil
+			}
+			return p.record(ctx, u.ID)
+		},
+	}}
+}

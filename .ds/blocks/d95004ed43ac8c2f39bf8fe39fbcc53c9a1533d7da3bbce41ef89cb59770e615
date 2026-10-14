@@ -1,0 +1,8 @@
+func WithRateExempt(fn RateExemptFunc) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithRateExempt", fn) {
+			return
+		}
+		s.rateExempt = fn
+	}
+}

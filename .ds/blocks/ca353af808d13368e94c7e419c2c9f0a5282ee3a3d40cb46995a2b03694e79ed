@@ -1,0 +1,13 @@
+func TestConformance_OpenIDConnect(t *testing.T) {
+	rep := oauthtest.Run(t, func(u string) oauth.Provider {
+		gp, err := openidConnect.New(oauthtest.ClientID, oauthtest.ClientSecret, oauthtest.RedirectURI, u+oauthtest.DiscoveryPath, "email", "profile")
+		if err != nil {
+			t.Fatalf("openidConnect.New: %v", err)
+		}
+		gp.SetName("corp")
+		return authgoth.Wrap(gp)
+	}, oauthtest.NoPKCE(), oauthtest.WantScopes("openid", "email", "profile"))
+	if rep.PKCE || !rep.ReportsVerified || rep.Provider != "corp" {
+		t.Fatalf("report = %+v", rep)
+	}
+}

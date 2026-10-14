@@ -1,0 +1,20 @@
+const invitePageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Invitation</title>
+<pre id="out"></pre>
+<button id="go">Accept</button>
+<script>
+const token = new URLSearchParams(location.search).get("token");
+const out = document.getElementById("out");
+fetch("` + authPrefix + `/invite/get?token=" + encodeURIComponent(token))
+  .then(r => r.json()).then(v => { out.textContent = v.error ? v.error.message : (v.inviterName || "Someone") + " invited you."; });
+document.getElementById("go").onclick = async () => {
+  const res = await fetch("` + authPrefix + `/invite/activate", {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({token}),
+  });
+  const v = await res.json();
+  if (!res.ok) { out.textContent = v.error.message; return; }
+  location.href = v.action === "accepted" ? "/me" : "/sign-up";
+};
+</script>
+`

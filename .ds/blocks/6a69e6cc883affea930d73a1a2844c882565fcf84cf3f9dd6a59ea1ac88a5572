@@ -1,0 +1,9 @@
+func PluginOf[T Plugin](a *Auth) (T, error) {
+	var zero T
+	for _, p := range a.plugins {
+		if typed, ok := p.(T); ok {
+			return typed, nil
+		}
+	}
+	return zero, ErrPluginNotRegistered
+}

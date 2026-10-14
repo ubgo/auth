@@ -1,0 +1,27 @@
+func (a *Auth) TrustsReturnURL(target string) bool {
+	if a.noOriginCheck {
+		// WithoutOriginCheck: any destination, as better-auth's
+		// disableOriginCheck. A line break or a backslash is still refused:
+		// that guards the Location header against injection and URL
+		// confusion, which is not a destination policy. See its comment for
+		// the risk.
+		return target != "" && !strings.ContainsAny(target, "\\\n\r")
+	}
+	if target == "" || strings.ContainsAny(target, "\\\n\r") {
+		return false
+	}
+	if strings.HasPrefix(target, "/") {
+		return !strings.HasPrefix(target, "//")
+	}
+	u, err := url.Parse(target)
+	if err != nil || u.Scheme == "" {
+		return false
+	}
+	if _, ok := a.trustedSchemes[strings.ToLower(u.Scheme)]; ok {
+		return true
+	}
+	if a.loopbackReturn && isLoopbackReturn(u) {
+		return true
+	}
+	return u.Host != "" && a.TrustsOrigin(u.Scheme+"://"+u.Host)
+}

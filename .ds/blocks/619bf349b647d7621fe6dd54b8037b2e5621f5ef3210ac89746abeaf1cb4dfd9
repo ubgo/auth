@@ -1,0 +1,39 @@
+func (a *Auth) Deliver(ctx context.Context, to Identity, m Message) error {
+	d, ok := a.kindOwner[to.Kind].(Deliverer)
+	if !ok {
+		return fmt.Errorf("%w: kind %q", ErrNoDeliverer, to.Kind)
+	}
+	if isQuiet(ctx) {
+		return nil
+	}
+	if m.Locale == "" {
+		m.Locale = a.Locale(ctx)
+	}
+	outboxID := ""
+	if a.outbox != nil {
+		id, err := a.enqueue(ctx, to, m)
+		if err != nil {
+			return err
+		}
+		outboxID = id
+	}
+	a.AfterCommit(ctx, func(ctx context.Context) {
+		a.deliveries.Add(1)
+		a.background(context.WithoutCancel(ctx), func(ctx context.Context) {
+			defer a.deliveries.Done()
+			sendCtx, cancel := context.WithTimeout(ctx, DeliveryTimeout)
+			err := d.Deliver(sendCtx, to, m)
+			cancel()
+			if err != nil {
+				a.logger.Error("auth: delivery failed", "kind", string(to.Kind), "purpose", string(m.Purpose), "error", err)
+			}
+			if outboxID == "" {
+				return
+			}
+			if err := a.outboxDone(ctx, outboxID, 1, err); err != nil {
+				a.logger.Error("auth: delivery outbox", "id", outboxID, "error", err)
+			}
+		})
+	})
+	return nil
+}

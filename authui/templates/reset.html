@@ -1,0 +1,9 @@
+{{define "body"}}
+{{if .Token}}
+<form method="post" action="{{.Prefix}}/reset-password">
+<input type="hidden" name="token" value="{{.Token}}">
+<label>{{.T "authui.new_password"}}<input type="password" name="password" autocomplete="new-password" required minlength="8" data-reveal></label>
+<button type="submit">{{.T "authui.set_password"}}</button>
+</form>
+{{else}}<p><a href="{{.Prefix}}/login">{{.T "authui.sign_in"}}</a></p>{{end}}
+{{end}}

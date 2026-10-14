@@ -1,0 +1,10 @@
+func newHandler(a *auth.Auth) http.Handler {
+	r := chi.NewRouter()
+	r.Use(middleware.Recoverer)
+	r.Mount(authPrefix, authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	r.Group(func(r chi.Router) {
+		r.Use(authhttp.Middleware(a), authhttp.RequireUser)
+		r.Get("/me", me)
+	})
+	return r
+}

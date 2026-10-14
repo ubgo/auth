@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "accessapikey skips resources removed from the statements, as apikey.Vocabulary does. A passkey sign-in without user verification counts as one factor, so the twofactor default asks. OAuth and SSO sign-ins keep better-auth's default of not asking. SSO keeps only the POST start route, as better-auth does.",
+  "confidence": null,
+  "created_at": "2026-10-08T15:43:42.271097000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a11c2f44bf7192b38e85afe8f9b4d8",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Owner 2026-10-08: accessapikey matches built-in; non-UV passkey asks 2FA; OAuth/SSO no 2FA; SSO POST only",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-08T15:43:42.271098000Z"
+}

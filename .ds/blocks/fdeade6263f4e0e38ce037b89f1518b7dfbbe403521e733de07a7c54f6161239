@@ -1,0 +1,27 @@
+func (a *Auth) Deliver(ctx context.Context, to Identity, m Message) error {
+	d, ok := a.kindOwner[to.Kind].(Deliverer)
+	if !ok {
+		return fmt.Errorf("%w: kind %q", ErrNoDeliverer, to.Kind)
+	}
+	if isQuiet(ctx) {
+		return nil
+	}
+	if st := stateFrom(ctx); m.Locale == "" && st != nil {
+		m.Locale = st.req.Client.Locale
+	}
+	if m.Locale == "" {
+		m.Locale = a.defaultLocale
+	}
+	a.AfterCommit(ctx, func(ctx context.Context) {
+		a.deliveries.Add(1)
+		a.background(context.WithoutCancel(ctx), func(ctx context.Context) {
+			defer a.deliveries.Done()
+			ctx, cancel := context.WithTimeout(ctx, DeliveryTimeout)
+			defer cancel()
+			if err := d.Deliver(ctx, to, m); err != nil {
+				a.logger.Error("auth: delivery failed", "kind", string(to.Kind), "purpose", string(m.Purpose), "error", err)
+			}
+		})
+	})
+	return nil
+}

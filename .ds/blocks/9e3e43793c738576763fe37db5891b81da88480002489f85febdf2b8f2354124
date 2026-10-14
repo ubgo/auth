@@ -1,0 +1,7 @@
+func Zoom(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "zoom", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		AuthURL: ZoomAuthURL, TokenURL: ZoomTokenURL,
+		FetchProfile: ZoomProfile(ZoomProfileURL),
+	}
+}

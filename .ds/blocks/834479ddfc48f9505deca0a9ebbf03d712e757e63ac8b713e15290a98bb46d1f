@@ -1,0 +1,3 @@
+func WithPlugins(ps ...Plugin) Option {
+	return func(s *settings) { s.plugins = append(s.plugins, ps...) }
+}

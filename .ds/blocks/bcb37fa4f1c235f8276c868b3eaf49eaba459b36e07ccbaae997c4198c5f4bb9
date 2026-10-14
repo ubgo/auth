@@ -1,0 +1,12 @@
+func me(ll *lastlogin.Plugin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := authhttp.MustUser(r)
+		last, err := ll.Of(r.Context(), u.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(meResponse{ID: u.ID, LastMethod: last.LastLoginMethod, LastAt: last.LastLoginAt}) // a client that hung up cannot be told
+	}
+}

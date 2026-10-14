@@ -1,0 +1,3 @@
+func WithSessionRevocations(r SessionRevocations) Option {
+	return func(s *settings) { s.revocations = r }
+}

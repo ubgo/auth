@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r33 round 5 more behaviour changes (2026-10-07): EnforcePerClientResources(false) turns off the client-resource link rule; a resource declared only in code no longer narrows scopes (needs a database row with an allowlist); default application_type is web, so loopback http redirect URIs need native; client_credentials needs a scope ceiling set from Go.",
+  "created_at": "2026-10-07T10:40:20.226123000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a115f32b0272269a955c928a7ce543",
+  "updated_at": "2026-10-07T10:40:20.226123000Z"
+}

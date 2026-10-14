@@ -1,0 +1,3 @@
+func WithMultiSession(max int) Option {
+	return func(s *settings) { s.cfg.MultiSession = MultiSessionConfig{Enabled: true, Max: max} }
+}

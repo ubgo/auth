@@ -1,0 +1,4 @@
+export const auth = createAuthClient({
+  baseURL: "/auth",
+  plugins: [email(), password(), twofactor()],
+});

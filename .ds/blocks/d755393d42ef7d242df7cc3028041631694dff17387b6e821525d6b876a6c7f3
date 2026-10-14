@@ -1,0 +1,7 @@
+func grantByEmail(ctx context.Context, a *auth.Auth, ad *admin.Plugin, address string) (string, error) {
+	idn, err := a.FindIdentity(ctx, email.KindEmail, address, true)
+	if err != nil {
+		return "", fmt.Errorf("find a verified %s: %w", address, err)
+	}
+	return idn.UserID, ad.Grant(ctx, idn.UserID)
+}

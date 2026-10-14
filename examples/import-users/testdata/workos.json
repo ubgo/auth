@@ -1,0 +1,8 @@
+{
+  "object": "list",
+  "data": [
+    {"object": "user", "id": "user_01HXAMPLE0000000000000ADA", "email": "ada@example.com", "email_verified": true, "first_name": "Ada", "last_name": "Lovelace", "profile_picture_url": "https://workoscdn.example/ada.png", "created_at": "2021-03-04T05:06:07.000Z", "updated_at": "2026-01-02T03:04:05.000Z"},
+    {"object": "user", "id": "user_01HXAMPLE0000000000000BOB", "email": "bob@example.com", "email_verified": false, "first_name": "Bob", "last_name": null, "profile_picture_url": null, "created_at": "2022-07-08T09:10:11.000Z", "updated_at": "2022-07-08T09:10:11.000Z"}
+  ],
+  "list_metadata": {"before": null, "after": null}
+}

@@ -1,0 +1,10 @@
+func (a *Auth) ErrorInfo(ctx context.Context, err error) ErrorInfo {
+	info := ErrorOf(err)
+	if a.messages == nil {
+		return info
+	}
+	if msg, ok := a.messages.Message(a.Locale(ctx), info.Code); ok {
+		info.Message = msg
+	}
+	return info
+}

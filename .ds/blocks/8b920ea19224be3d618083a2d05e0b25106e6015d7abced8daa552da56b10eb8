@@ -1,0 +1,38 @@
+func TestMobile_BrowserGetsTheShorterLifetime(t *testing.T) {
+	a := newTestAuth(t)
+	srv := httptest.NewTLSServer(newHandler(a)) // the cookie is Secure, and a jar keeps it only over https
+	defer srv.Close()
+	jar, _ := cookiejar.New(nil)
+	client := srv.Client()
+	client.Jar = jar
+
+	raw, _ := json.Marshal(map[string]string{"identifier": testEmail, "password": testPassword})
+	req, _ := http.NewRequest(http.MethodPost, srv.URL+"/auth/password/sign-up", bytes.NewReader(raw))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", baseURL)
+	res, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cookie *http.Cookie
+	for _, c := range res.Cookies() {
+		if c.Name == authhttp.CookieName {
+			cookie = c
+		}
+	}
+	if res.StatusCode != http.StatusOK || cookie == nil || res.Header.Get(authhttp.SetTokenHeader) != "" {
+		t.Fatalf("browser sign-up: %d cookie=%v header=%q", res.StatusCode, cookie, res.Header.Get(authhttp.SetTokenHeader))
+	}
+	if cookie.Expires.After(time.Now().Add(webLifetime.Idle + time.Minute)) {
+		t.Fatalf("cookie expires %v, want within the web idle lifetime %v", cookie.Expires, webLifetime.Idle)
+	}
+	res, err = client.Get(srv.URL + "/me")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var me meResponse
+	decode(t, res, http.StatusOK, &me)
+	if me.Credential != auth.CredentialCookie {
+		t.Fatalf("/me = %+v, want the cookie credential", me)
+	}
+}

@@ -1,0 +1,19 @@
+func runOutbox(ctx context.Context, a *auth.Auth, interval time.Duration) {
+	tick := time.NewTicker(interval)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+		}
+		res, err := a.SendOutbox(ctx)
+		if err != nil {
+			log.Printf("outbox: %v", err)
+			continue
+		}
+		if res.Sent+res.Failed > 0 {
+			log.Printf("outbox: sent=%d failed=%d", res.Sent, res.Failed)
+		}
+	}
+}

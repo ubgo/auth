@@ -1,0 +1,7 @@
+func Figma(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "figma", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		AuthURL: FigmaAuthURL, TokenURL: FigmaTokenURL, Scopes: []string{"current_user:read"},
+		FetchProfile: FigmaProfile(FigmaProfileURL),
+	}
+}

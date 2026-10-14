@@ -1,0 +1,8 @@
+func WithDefaultProviders(ps ...Provider) Option {
+	return func(p *Plugin) {
+		for _, pr := range ps {
+			pr.Default, pr.DomainVerified = true, true
+			p.defaults = append(p.defaults, pr)
+		}
+	}
+}

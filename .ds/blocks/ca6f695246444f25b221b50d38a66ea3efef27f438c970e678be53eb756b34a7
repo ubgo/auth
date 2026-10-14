@@ -1,0 +1,5 @@
+type ParamsAllowLister interface {
+	ParamsProvider
+	// OptionalParamList is the parameter names a request may set.
+	OptionalParamList() []string
+}

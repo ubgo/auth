@@ -1,0 +1,8 @@
+func CacheResourcesIn(kv auth.SecondaryStorage, ttl time.Duration) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauthprovider.CacheResourcesIn", kv) {
+			return
+		}
+		p.resourceCache = &resourceCache{store: kv, ttl: ttl}
+	}
+}

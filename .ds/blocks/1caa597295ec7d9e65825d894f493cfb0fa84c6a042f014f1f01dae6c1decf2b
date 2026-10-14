@@ -1,0 +1,10 @@
+func newHandler(a *auth.Auth, o *orders) http.Handler {
+	forKeys := func(scope string, h http.HandlerFunc) http.Handler {
+		return authhttp.Middleware(a)(authhttp.RequireScope(scope)(h))
+	}
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle("GET /api/orders", forKeys(scopeOrdersRead, o.list))
+	mux.Handle("POST /api/orders", forKeys(scopeOrdersWrite, o.add))
+	return mux
+}

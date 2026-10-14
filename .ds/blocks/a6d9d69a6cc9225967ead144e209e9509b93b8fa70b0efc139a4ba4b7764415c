@@ -1,0 +1,4 @@
+func OIDC(name, issuer, clientID, clientSecret string) *OIDCProvider {
+	return &OIDCProvider{ID: name, Issuer: strings.TrimSuffix(issuer, "/"), ClientID: clientID, ClientSecret: clientSecret,
+		Scopes: openIDScopes()}
+}

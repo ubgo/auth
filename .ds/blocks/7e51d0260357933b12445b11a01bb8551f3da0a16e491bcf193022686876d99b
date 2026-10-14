@@ -1,0 +1,16 @@
+func MicrosoftPhoto(fetch func(ctx context.Context, hc *http.Client, accessToken string) (Profile, error), size MicrosoftPhotoSize) (func(ctx context.Context, hc *http.Client, accessToken string) (Profile, error), error) {
+	if !slices.Contains(MicrosoftPhotoSizes, size) || fetch == nil {
+		return nil, ErrPhotoSize
+	}
+	photoURL := fmt.Sprintf(MicrosoftPhotoURLFormat, size, size)
+	return func(ctx context.Context, hc *http.Client, accessToken string) (Profile, error) {
+		p, err := fetch(ctx, hc, accessToken)
+		if err != nil {
+			return Profile{}, err
+		}
+		if img := photoDataURL(ctx, hc, photoURL, accessToken); img != "" {
+			p.Image = img
+		}
+		return p, nil
+	}, nil
+}

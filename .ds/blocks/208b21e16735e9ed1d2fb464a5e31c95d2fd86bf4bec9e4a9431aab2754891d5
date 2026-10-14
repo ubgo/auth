@@ -1,0 +1,4 @@
+type EmailColumns struct {
+	PrimaryEmail    *string
+	EmailVerifiedAt *time.Time
+}

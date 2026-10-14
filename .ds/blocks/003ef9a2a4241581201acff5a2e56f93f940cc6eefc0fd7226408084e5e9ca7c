@@ -1,0 +1,20 @@
+func newHandler(a *auth.Auth) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle("GET "+dashboardPath, authhttp.Middleware(a)(http.HandlerFunc(dashboard)))
+	mux.Handle("/", authui.Handler(a,
+		authui.AppName(appName),
+		authui.AfterSignIn(dashboardPath),
+		authui.APIPrefix(authPrefix),
+		authui.Templates(pageTemplates()),
+		authui.Texts(pageTexts),
+		// Same ID as the plugin's button, so this one replaces it in place.
+		authui.Methods(authhttp.SignInMethod{
+			ID:    githubMethodID,
+			Kind:  oauth.UIMethodKind,
+			Label: githubLabel,
+			Route: "/" + oauth.PluginName + "/" + githubProvider + "/start",
+		}),
+	))
+	return mux
+}

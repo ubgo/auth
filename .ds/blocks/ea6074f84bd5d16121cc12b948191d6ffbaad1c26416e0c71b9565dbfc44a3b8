@@ -1,0 +1,4 @@
+type SignInResult struct {
+	User  auth.UserView `json:"user"`
+	Token auth.Token    `json:"-"`
+}

@@ -1,0 +1,3 @@
+func HuggingFace(clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("huggingface", HuggingFaceIssuer, clientID, clientSecret), "Hugging Face")
+}

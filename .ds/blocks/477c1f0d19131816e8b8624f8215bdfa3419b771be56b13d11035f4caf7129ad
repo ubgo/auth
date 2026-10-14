@@ -1,0 +1,3 @@
+type CredentialListener interface {
+	CredentialChanged(ctx context.Context, userID string) error
+}

@@ -1,0 +1,54 @@
+func TestP3CommunityInvite_PrivateRoleCookie(t *testing.T) {
+	eachEngine(t, func(t *testing.T, e *env) {
+		em, pw := e.emailPlugin(), e.passwordPlugin()
+		var got []invite.Accepted
+		iv := invite.New(
+			invite.CanCreate(func(_ context.Context, u auth.User, in invite.Request) error {
+				if in.Role == "admin" && u.Name != "Root" {
+					return invite.ErrForbidden
+				}
+				return nil
+			}),
+			invite.OnAccepted(func(_ context.Context, acc invite.Accepted) error {
+				got = append(got, acc)
+				return nil
+			}),
+		)
+		a := e.newAuth(t, nil, em, pw, iv)
+		_, ines := p3Inviter(t, a, "Ines")
+		root, rootCtx := p3Inviter(t, a, "Root")
+
+		if _, err := iv.Create(ines, invite.Request{Role: "admin"}); !errors.Is(err, invite.ErrForbidden) {
+			t.Fatalf("an admin invite by a non-root: %v", err)
+		}
+		cr := must[invite.Created](t)(iv.Create(rootCtx, invite.Request{Email: "Bob@Example.com", Role: "admin", MaxUses: 9}))
+		if cr.Token != "" || cr.URL != "" {
+			t.Fatalf("a private invite's token must go by mail only: %+v", cr)
+		}
+		tok := e.mail.LastToken(t, a, "bob@example.com")
+		act := must[invite.ActivateResult](t)(iv.Activate(anon(a), tok))
+		if act.Action != invite.ActionSignInRequired {
+			t.Fatalf("signed-out activate = %+v", act)
+		}
+		if _, err := p3SignUp(a, pw, "bob@example.com", "Bob", nil, map[string]string{invite.CookieName: tok.Reveal()}); err != nil {
+			t.Fatal(err)
+		}
+		bob := p3UserID(t, a, "bob@example.com")
+		if len(got) != 1 || got[0].UserID != bob || got[0].Role != "admin" || got[0].CreatedBy != root.ID || !got[0].NewAccount {
+			t.Fatalf("accepted = %+v", got)
+		}
+		if l := must[invite.ListResult](t)(iv.List(rootCtx, invite.ListRequest{})); l.Invites[0].MaxUses != 1 || l.Invites[0].Email != "bob@example.com" {
+			t.Fatalf("a private invite is single-use: %+v", l)
+		}
+
+		pub := must[invite.Created](t)(iv.Create(ines, invite.Request{}))
+		carolCtx := p3SessionFor(t, a, root.ID)
+		act = must[invite.ActivateResult](t)(iv.Activate(carolCtx, pub.Token.Token()))
+		if act.Action != invite.ActionAccepted || len(got) != 2 || got[1].NewAccount {
+			t.Fatalf("signed-in activate = %+v %+v", act, got)
+		}
+		if _, err := iv.Activate(carolCtx, pub.Token.Token()); !errors.Is(err, invite.ErrInvalid) {
+			t.Fatalf("one user used one invite twice: %v", err)
+		}
+	})
+}

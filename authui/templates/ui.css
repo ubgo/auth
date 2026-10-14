@@ -1,0 +1,19 @@
+:root{--fg:#1f2328;--muted:#656d76;--line:#d0d7de;--bg:#f6f8fa;--card:#fff;--accent:#0969da;--err:#cf222e;--ok:#1a7f37}
+@media (prefers-color-scheme:dark){:root{--fg:#e6edf3;--muted:#8d96a0;--line:#30363d;--bg:#0d1117;--card:#161b22;--accent:#4493f8;--err:#f85149;--ok:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.card{max-width:26rem;margin:2rem auto;padding:1.5rem;background:var(--card);border:1px solid var(--line);border-radius:10px}
+@media (max-width:30rem){.card{margin:0;border:0;border-radius:0;min-height:100vh}}
+h1{font-size:1.4rem;margin:0 0 1rem}h2{font-size:1rem;margin:1.5rem 0 .5rem}
+label{display:block;margin:.75rem 0;font-weight:600;font-size:.9rem}
+label.check{display:flex;gap:.5rem;align-items:center;font-weight:400}
+input:not([type=checkbox]){display:block;width:100%;margin-top:.3rem;padding:.6rem .7rem;font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:6px}
+button{width:100%;margin-top:.5rem;padding:.65rem;font:inherit;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:6px;cursor:pointer}
+button.secondary{background:transparent;color:var(--fg);border:1px solid var(--line)}
+button.danger{background:transparent;color:var(--err);border:1px solid var(--err)}
+button.small{width:auto;padding:.3rem .7rem;margin:0}
+.reveal{width:auto;margin:.3rem 0 0;padding:.2rem .6rem;font-size:.8rem;font-weight:400;background:transparent;color:var(--muted);border:1px solid var(--line)}
+.error{color:var(--err)}.notice{color:var(--ok)}a{color:var(--accent)}
+.sessions{list-style:none;padding:0}.sessions li{display:flex;justify-content:space-between;gap:1rem;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--line)}
+small{color:var(--muted)}
+.methods{margin-top:1rem}.methods a.method{display:block;margin-top:.5rem;padding:.65rem;text-align:center;font-weight:600;color:var(--fg);text-decoration:none;border:1px solid var(--line);border-radius:6px}

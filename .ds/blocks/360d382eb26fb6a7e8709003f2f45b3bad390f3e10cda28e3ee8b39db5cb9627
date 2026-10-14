@@ -1,0 +1,32 @@
+func orgAuthorizer(policy []policyLine, frozen *frozenOrgs) organization.AuthorizerFunc {
+	allows := func(roles []organization.Role, resource, action string) bool {
+		return slices.ContainsFunc(policy, func(l policyLine) bool {
+			return slices.Contains(roles, l.Role) &&
+				(l.Resource == wildcard || l.Resource == resource) &&
+				(l.Action == wildcard || l.Action == action)
+		})
+	}
+	return func(_ context.Context, req organization.AccessRequest) (bool, error) {
+		if len(req.Request) == 0 || frozen.frozen(req.OrgID) {
+			return false, nil
+		}
+		roles := req.Role.Parts()
+		anyResource := false
+		for resource, want := range req.Request {
+			ok := len(want.Actions) > 0
+			for _, action := range want.Actions {
+				has := allows(roles, resource, action)
+				if want.Connector == access.Or && has {
+					ok = true
+					break
+				}
+				ok = ok && has
+			}
+			if !ok && req.Connector != access.Or {
+				return false, nil
+			}
+			anyResource = anyResource || ok
+		}
+		return anyResource, nil
+	}
+}

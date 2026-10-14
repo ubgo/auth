@@ -1,0 +1,3 @@
+func (p *Plugin) Create(ctx context.Context, in CreateRequest) (CreateResult, error) {
+	return p.create.Call(ctx, in)
+}

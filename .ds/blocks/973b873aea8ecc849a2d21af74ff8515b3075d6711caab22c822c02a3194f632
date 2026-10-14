@@ -1,0 +1,9 @@
+func SetUserColumn[T any](ctx context.Context, a *Auth, plugin, userID string, col sqlb.Expr[T], v T) error {
+	if col.Table().Name != TableNameUser || !a.ownsColumn(plugin, col.Name()) {
+		return fmt.Errorf("%w: %q writes %q", ErrNotColumnOwner, plugin, col.Name())
+	}
+	q := sqlb.NewUpdate(a.cfg.Dialect).Table(TableUser).
+		Set(sqlb.Set(col, v), sqlb.Set(UserUpdatedAt, a.now())).Where(sqlb.Eq(UserID, userID))
+	_, err := a.Exec(ctx, q)
+	return err
+}

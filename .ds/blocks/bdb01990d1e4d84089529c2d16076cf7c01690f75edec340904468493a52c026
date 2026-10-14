@@ -1,0 +1,17 @@
+  async function change() {
+    if (password === null) return
+    const { error } = await password.change({ current, new: next, revokeOtherSessions: true })
+    if (error?.code === FRESH_SESSION_REQUIRED) {
+      // The dialog confirms the session the user already has, then runs this again.
+      reauth.request(() => void change())
+      return
+    }
+    if (error !== null) {
+      setStatus(messageFor(error))
+      return
+    }
+    setCurrent("")
+    setNext("")
+    setStatus("Password changed. Other devices are signed out.")
+    await queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY })
+  }

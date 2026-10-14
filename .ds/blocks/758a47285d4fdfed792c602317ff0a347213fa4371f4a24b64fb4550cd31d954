@@ -1,0 +1,25 @@
+type UpdateRequest struct {
+	ID string `json:"id"`
+	// Config, when set, must be the key's configuration (ErrNotFound
+	// otherwise). The key's own configuration's rules apply either way.
+	Config string `json:"configId"`
+	// Name renames the key; under RequireName a blank name is refused.
+	Name *string `json:"name"`
+	// ExpiresInDays sets a new expiry from now, under the same WithExpiry
+	// rules as create: 0 is "never" unless a default or a maximum applies.
+	ExpiresInDays *int `json:"expiresInDays"`
+	// ExpiresIn sets a new expiry in seconds from now, better-auth's unit,
+	// under the same rules as CreateRequest.ExpiresIn; setting it with
+	// ExpiresInDays is ErrExpiryConflict.
+	ExpiresIn *int64 `json:"expiresIn"`
+	// Disabled pauses the key (true) or resumes it (false). A disabled key
+	// is refused exactly like an unknown one.
+	Disabled *bool `json:"disabled"`
+	// Metadata replaces the key's metadata; needs AllowMetadata.
+	Metadata json.RawMessage `json:"metadata"`
+	// Scopes replaces the key's scopes, each one declared with Scopes
+	// (ErrUnknownScope otherwise); nil leaves them, an empty list clears
+	// them. Widening a key's scopes needs the same fresh sign-in as minting
+	// one with them.
+	Scopes []string `json:"scopes"`
+}

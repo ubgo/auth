@@ -1,0 +1,26 @@
+func signup(ctx context.Context, a *auth.Auth, pw *password.Plugin, in signupRequest) (signupResponse, error) {
+	name := strings.TrimSpace(in.Workspace)
+	if name == "" {
+		return signupResponse{}, errWorkspaceName
+	}
+	var out signupResponse
+	err := a.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		res, err := pw.SignUp(ctx, password.SignUpRequest{Identifier: in.Email, Password: in.Password, Name: in.Name})
+		if err != nil {
+			return err
+		}
+		id, err := a.NewID(workspaceIDPrefix)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, insertWorkspace, id, name, res.User.ID); err != nil {
+			if auth.IsUniqueViolation(err) {
+				return errWorkspaceTaken
+			}
+			return err
+		}
+		out = signupResponse{User: res.User, Workspace: Workspace{ID: id, Name: name}}
+		return nil
+	})
+	return out, err
+}

@@ -1,0 +1,18 @@
+func (o orgAdapter) BySlug(ctx context.Context, slug string) (string, bool, error) {
+	var id string
+	q, err := sqlb.NewSelect(sqlb.SQLiteDialect{}).
+		Columns(sqlb.Bind(organization.OrgID, &id)).
+		From(organization.TableOrg).
+		Where(sqlb.Eq(organization.OrgSlug, slug)).
+		Build()
+	if err != nil {
+		return "", false, err
+	}
+	switch err := sqlb.One(ctx, o.db, q); {
+	case errors.Is(err, sqlb.ErrNoRows):
+		return "", false, nil
+	case err != nil:
+		return "", false, err
+	}
+	return id, true, nil
+}

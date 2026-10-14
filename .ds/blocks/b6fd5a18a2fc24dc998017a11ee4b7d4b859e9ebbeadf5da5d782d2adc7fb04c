@@ -1,0 +1,35 @@
+func (a *Auth) SendOutbox(ctx context.Context) (OutboxResult, error) {
+	var out OutboxResult
+	if a.outbox == nil {
+		return out, fmt.Errorf("%w: SendOutbox needs WithDeliveryOutbox", ErrBadOperation)
+	}
+	rows, err := a.dueOutbox(ctx)
+	if err != nil {
+		return out, err
+	}
+	table := a.TableName(TableDeliveryOutbox)
+	claim := placeholders(a.Engine(), "UPDATE "+table+" SET "+colOutboxAttempts+" = "+colOutboxAttempts+" + 1, "+colOutboxNextAttemptAt+
+		" = ? WHERE "+colOutboxID+" = ? AND "+colOutboxNextAttemptAt+" <= ? AND "+colOutboxAttempts+" < ?")
+	for _, r := range rows {
+		now := a.now()
+		res, err := a.db.ExecContext(ctx, claim, now.Add(deliveryLease), r.id, now, MaxDeliveryAttempts)
+		if err != nil {
+			return out, fmt.Errorf("auth: claim delivery outbox: %w", err)
+		}
+		// RowsAffected is supported by every engine the core runs on.
+		if n, _ := res.RowsAffected(); n == 0 {
+			continue // another call or the post-commit send holds it
+		}
+		sendErr := a.sendOutboxRow(ctx, r)
+		if sendErr != nil {
+			out.Failed++
+			a.logger.Error("auth: outbox delivery failed", "id", r.id, "attempt", r.attempts+1, "error", sendErr)
+		} else {
+			out.Sent++
+		}
+		if err := a.outboxDone(ctx, r.id, r.attempts+1, sendErr); err != nil {
+			return out, err
+		}
+	}
+	return out, nil
+}

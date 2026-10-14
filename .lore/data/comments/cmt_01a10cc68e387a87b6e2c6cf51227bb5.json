@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Status 2026-10-05: better-auth is done and its gaps were worked through in rounds 1 to 5 plus the won't-do review. docsi/plans/compare/ still holds only better-auth; the next products from LANDSCAPE.md have not started.",
+  "created_at": "2026-10-05T15:55:01.560677000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f6a972767ccda33f3ad1c7f8644d",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68e387a87b6e2c6cf51227bb5",
+  "updated_at": "2026-10-05T15:55:01.560677000Z"
+}

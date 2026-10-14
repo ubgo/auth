@@ -1,0 +1,4 @@
+func (p *Plugin) MakePrimary(ctx context.Context, address string) error {
+	_, err := p.makePrimary.Call(ctx, AddressRequest{Email: address})
+	return err
+}

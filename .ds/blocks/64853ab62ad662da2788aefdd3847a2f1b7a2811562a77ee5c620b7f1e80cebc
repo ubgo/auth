@@ -1,0 +1,9 @@
+type SignInResult struct {
+	User auth.UserView `json:"user"`
+	// Created is true when the code created the account.
+	Created bool `json:"created"`
+	// SecondFactorRequired is true when the session is pending a second
+	// factor.
+	SecondFactorRequired bool       `json:"secondFactorRequired"`
+	Token                auth.Token `json:"-"`
+}

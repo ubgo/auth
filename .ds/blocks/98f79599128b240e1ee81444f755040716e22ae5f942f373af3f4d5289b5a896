@@ -1,0 +1,14 @@
+type Client struct {
+	// CodeURL is where CodeHandler is mounted, such as
+	// "https://app.example.com/auth/device/code".
+	CodeURL string
+	// TokenURL is where TokenHandler is mounted.
+	TokenURL string
+	// ClientID is sent with every request.
+	ClientID string
+	// HTTP sends the requests; nil is http.DefaultClient.
+	HTTP *http.Client
+	// Sleep waits between polls and returns ctx's error when ctx ends first;
+	// nil waits on a timer. A test replaces it to move a fake clock.
+	Sleep func(ctx context.Context, d time.Duration) error
+}

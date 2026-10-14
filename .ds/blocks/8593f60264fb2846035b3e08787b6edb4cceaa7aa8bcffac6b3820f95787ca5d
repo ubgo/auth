@@ -1,0 +1,36 @@
+func (p *Plugin) complete(ctx context.Context, c *auth.Call, r row, from Status) (Result, error) {
+	n, err := c.Auth.Exec(ctx, sqlb.NewDelete(c.Auth.Dialect()).From(TableChallenge).
+		Where(sqlb.Eq(ChallengeID, r.id), sqlb.Eq(ChallengeStatus, from)))
+	if err != nil {
+		return Result{}, err
+	}
+	if n != 1 {
+		return Result{}, ErrInvalid
+	}
+	kindName, value, _ := strings.Cut(r.identifier, identifierSeparator)
+	if r.scope != "" {
+		if s, ok := auth.ScopeFrom(ctx); ok && s != r.scope {
+			return Result{}, ErrInvalid
+		}
+		ctx = auth.WithScope(ctx, r.scope)
+	}
+	var create *auth.NewUser
+	if p.signUp {
+		create = &auth.NewUser{Name: r.name}
+	}
+	in, err := c.SignInProvenAs(ctx, auth.IdentifierKindName(kindName), value, create)
+	if errors.Is(err, auth.ErrIdentityNotFound) {
+		// The owner went away, or (without SignUp) never existed and the
+		// code was guessed: the same answer as a spent challenge.
+		return Result{}, ErrInvalid
+	}
+	if err != nil {
+		return Result{}, err
+	}
+	if err := c.Effects.SetCookie(CookieName, "", time.Time{}); err != nil {
+		return Result{}, err
+	}
+	view := auth.ViewOf(in.User)
+	return Result{State: StateCompleted, User: &view, Created: in.Created,
+		SecondFactorRequired: in.Session.SecondFactorPending, Token: in.Token}, nil
+}

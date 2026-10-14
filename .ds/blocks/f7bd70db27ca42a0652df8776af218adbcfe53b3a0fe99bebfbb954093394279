@@ -1,0 +1,1 @@
+var statements = access.Statements{resourceOrders: {actionRead, actionRefund}}

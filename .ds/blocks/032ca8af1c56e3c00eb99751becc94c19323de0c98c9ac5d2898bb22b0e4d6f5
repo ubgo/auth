@@ -1,0 +1,16 @@
+const deletePageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Delete your account</title>
+<p>This deletes your account and everything in it. It cannot be undone.</p>
+<button id="go">Delete my account</button>
+<pre id="out"></pre>
+<script>
+document.getElementById("go").onclick = async () => {
+  const token = new URLSearchParams(location.search).get("token");
+  const res = await fetch("` + authPrefix + `/account/delete/confirm", {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({token}),
+  });
+  document.getElementById("out").textContent = res.ok ? "Your account is deleted." : (await res.json()).error.message;
+};
+</script>
+`

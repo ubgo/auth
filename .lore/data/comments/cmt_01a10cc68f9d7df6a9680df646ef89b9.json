@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: email.sendVerify calls IssueVerification each time and nothing revokes the earlier verify token (store.go has no revoke-by-purpose helper). Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:01.917905000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f60c2ba67dd397520cbaa6272841",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68f9d7df6a9680df646ef89b9",
+  "updated_at": "2026-10-05T15:55:01.917905000Z"
+}

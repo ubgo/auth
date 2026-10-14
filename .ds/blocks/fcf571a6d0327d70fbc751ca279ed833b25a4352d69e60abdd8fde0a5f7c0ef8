@@ -1,0 +1,22 @@
+func (a *Auth) RotateSessionToken(ctx context.Context, c *Call) (Token, error) {
+	if c.Session == nil {
+		return "", ErrSignedOut
+	}
+	if a.stateless != nil {
+		return a.stateless.seal(*c.Session)
+	}
+	tok := NewToken()
+	err := a.Tx(ctx, func(ctx context.Context, _ sqlbTx) error {
+		if err := a.sessions.Delete(ctx, c.Session.UserID, c.Session.ID); err != nil {
+			return fmt.Errorf("auth: rotate session: %w", err)
+		}
+		if err := a.sessions.Insert(ctx, *c.Session, HashToken(tok)); err != nil {
+			return fmt.Errorf("auth: rotate session: %w", err)
+		}
+		return a.forgetSession(ctx, c)
+	})
+	if err != nil {
+		return "", err
+	}
+	return tok, nil
+}

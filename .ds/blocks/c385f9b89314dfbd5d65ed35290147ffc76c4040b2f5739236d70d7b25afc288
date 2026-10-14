@@ -1,0 +1,9 @@
+func (a *Auth) ConsumeVerification(ctx context.Context, purpose Purpose, tok Token) (Verification, error) {
+	var out Verification
+	err := a.Tx(ctx, func(ctx context.Context, _ sqlbTx) error {
+		var err error
+		out, err = a.verifications.Consume(ctx, purpose, HashToken(tok), a.now())
+		return err
+	})
+	return out, err
+}

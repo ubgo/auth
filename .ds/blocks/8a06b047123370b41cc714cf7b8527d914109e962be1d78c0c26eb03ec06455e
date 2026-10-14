@@ -1,0 +1,7 @@
+func New(blockedDomains ...string) *Plugin {
+	p := &Plugin{blocked: blockedDomains}
+	p.setPIN = auth.Define(auth.OpInfo{ID: EndpointSetPIN, Kind: auth.Mutation, Require: auth.FreshSignIn, Path: "/set-pin"}, p.doSetPIN)
+	p.verify = auth.Define(auth.OpInfo{ID: EndpointVerify, Kind: auth.Mutation, Require: auth.PendingSecondFactor, Path: "/verify"}, p.doVerify)
+	p.suspend = auth.Define(auth.OpInfo{ID: EndpointSuspend, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/suspend"}, p.doSuspend)
+	return p
+}

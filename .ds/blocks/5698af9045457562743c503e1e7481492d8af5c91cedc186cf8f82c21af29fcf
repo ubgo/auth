@@ -1,0 +1,3 @@
+func WithRateRules(rules ...RateRule) Option {
+	return func(s *settings) { s.appRules = append(s.appRules, rules...) }
+}

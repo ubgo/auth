@@ -1,0 +1,23 @@
+func signupHandler(a *auth.Auth, pw *password.Plugin) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !a.TrustsOrigin(authhttp.RequestOf(r).Client.Origin) {
+			authhttp.WriteError(w, auth.ErrOriginNotTrusted)
+			return
+		}
+		var in signupRequest
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes)).Decode(&in); err != nil {
+			authhttp.WriteError(w, auth.ErrBadRequest)
+			return
+		}
+		out, err := signup(r.Context(), a, pw, in)
+		if err != nil {
+			var ae *auth.Error
+			if !errors.As(err, &ae) {
+				log.Printf("signup: %v", err)
+			}
+			authhttp.WriteError(w, err)
+			return
+		}
+		writeJSON(w, out)
+	})
+}

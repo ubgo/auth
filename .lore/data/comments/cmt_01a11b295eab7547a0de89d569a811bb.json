@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Correction to the billing comment above: one more billing row (Stripe in the 1.7 upgrade guide, transport.md) also moved to ➖, so 62 rows in all; totals now ✅ 2074, 🟡 26, ❌ 74, ➖ 443 of 2617.",
+  "created_at": "2026-10-08T10:57:38.475336000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a11b295eab7547a0de89d569a811bb",
+  "updated_at": "2026-10-08T10:57:38.475336000Z"
+}

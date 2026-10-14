@@ -1,0 +1,9 @@
+func WithSessionStore(s SessionStore) Option {
+	return func(st *settings) {
+		if s == nil {
+			st.refuseNil("WithSessionStore")
+			return
+		}
+		st.sessions = s
+	}
+}

@@ -1,0 +1,3 @@
+func Paybin(clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("paybin", PaybinIssuer, clientID, clientSecret), "Paybin")
+}

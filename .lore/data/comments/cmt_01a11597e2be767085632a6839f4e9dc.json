@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r30-org round 3 (2026-10-07): plugin/access was moved INTO the core module because plugin/admin (core module) now imports it for admin roles. This conflicts with the owner's module rule of 2026-10-02 (roles/permissions are not authentication, so they get their own module even with no dependency). Options: (a) keep access in core (stdlib only, no new dependency); (b) move admin role support into a separate module, e.g. plugin/admin/roles, so the core admin plugin keeps only the staff flag. Owner to decide. Also: the admin flag maps to an 'admin' role; admin_role column added.",
+  "created_at": "2026-10-07T09:00:37.950406000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a11597e2be767085632a6839f4e9dc",
+  "updated_at": "2026-10-07T09:00:37.950406000Z"
+}

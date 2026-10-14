@@ -1,0 +1,3 @@
+func WithCookie(name string, maxAge time.Duration) Option {
+	return func(p *Plugin) { p.cookie, p.cookieName, p.cookieAge = true, name, maxAge }
+}

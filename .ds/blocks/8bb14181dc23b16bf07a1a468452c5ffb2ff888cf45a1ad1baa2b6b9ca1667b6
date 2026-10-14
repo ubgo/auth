@@ -1,0 +1,13 @@
+func edgeClientIP(secret string) func(r *http.Request) string {
+	return func(r *http.Request) string {
+		ip, sig := r.Header.Get(edgeIPHeader), r.Header.Get(edgeSignatureHeader)
+		if secret == "" || ip == "" || net.ParseIP(ip) == nil {
+			return ""
+		}
+		got, err := hex.DecodeString(sig)
+		if err != nil || !hmac.Equal(got, signIP(secret, ip)) {
+			return ""
+		}
+		return ip
+	}
+}

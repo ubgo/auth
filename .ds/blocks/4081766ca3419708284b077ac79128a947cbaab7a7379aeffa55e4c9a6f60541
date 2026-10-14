@@ -1,0 +1,12 @@
+type SessionLifecycle interface {
+	// SessionEnded is one session of userID ending by id: sign-out, revoke,
+	// an admin ending it, a device's other account being ended.
+	SessionEnded(ctx context.Context, userID, id string) error
+	// UserSessionsEnded is every session of userID ending but exceptID,
+	// which is "" for all: sign-out everywhere, a password reset, a ban.
+	UserSessionsEnded(ctx context.Context, userID, exceptID string) error
+	// SessionReplaced is a pending second-factor session (old) becoming the
+	// full session (new) at PromoteSession: a new id, the same sign-in.
+	// What the plugin kept for old belongs to new now.
+	SessionReplaced(ctx context.Context, old, new Session) error
+}

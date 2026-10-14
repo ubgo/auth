@@ -1,0 +1,7 @@
+func plugins(difficulty int) []auth.Plugin {
+	return []auth.Plugin{
+		email.New(email.Login(), email.Recover(), email.WithMailer(email.MailerFunc(logMail))),
+		password.New(),
+		pow.New(pow.Difficulty(difficulty)),
+	}
+}

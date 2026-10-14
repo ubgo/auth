@@ -1,0 +1,17 @@
+func TestChat_CodeExpires(t *testing.T) {
+	clock := newClock()
+	a, bot, _ := newTestAuth(t, clock)
+	b := newBrowser(t, newHandler(a))
+	post[none](t, b, "/auth/password/sign-up", fields{"identifier": testEmail, "password": testPassword}, http.StatusOK)
+	post[auth.Done](t, b, "/auth/chat/add", fields{"handle": testHandle}, http.StatusOK)
+	code := bot.lastCode(t, a, storedHandle)
+
+	clock.Advance(chat.DefaultCodeTTL + time.Second)
+	late := post[errorAnswer](t, b, "/auth/chat/verify", fields{"handle": testHandle, "code": code}, http.StatusBadRequest)
+	if late.Error.Code != auth.ErrCodeInvalid.Code {
+		t.Fatalf("expired code = %+v", late.Error)
+	}
+	if idn := identityOf(t, a, testEmail, chat.KindChat); idn.Verified() {
+		t.Fatal("an expired code verified the handle")
+	}
+}

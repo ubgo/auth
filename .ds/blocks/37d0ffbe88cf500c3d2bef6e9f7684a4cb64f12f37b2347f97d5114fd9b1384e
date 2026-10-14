@@ -1,0 +1,43 @@
+func TestClient_GeneratedCopyIsCurrent(t *testing.T) {
+	db, err := sql.Open("sqlite", sqliteDSN(filepath.Join(t.TempDir(), "unused.db")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	a, err := newAuth(db, email.MailerFunc(discard))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+
+	out := t.TempDir()
+	var stdout, stderr bytes.Buffer
+	code, handled := command(context.Background(), a, []string{authCommand, authcli.CmdClient, authcli.CmdClientTS, "--out", out}, &stdout, &stderr)
+	if !handled || code != authcli.ExitOK {
+		t.Fatalf("auth client ts = %d (handled %v): %s", code, handled, stderr.String())
+	}
+	written, err := os.ReadDir(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(written) != 4 {
+		t.Fatalf("auth client ts wrote %d files, want 4", len(written))
+	}
+	for _, f := range written {
+		want, err := os.ReadFile(filepath.Join(out, f.Name()))
+		if err != nil {
+			t.Fatal(err)
+		}
+		have, err := os.ReadFile(filepath.Join(generatedDir, f.Name()))
+		if err != nil || !bytes.Equal(have, want) {
+			t.Fatalf("%s/%s is stale (%v); run: go generate ./ts-client-custom", generatedDir, f.Name(), err)
+		}
+	}
+	client, err := os.ReadFile(filepath.Join(generatedDir, "client.ts"))
+	if err != nil || !bytes.Contains(client, []byte("export function nickname(): Plugin<\"nickname\", NicknameOps>")) {
+		t.Fatalf("the committed client has no nickname() factory (%v)", err)
+	}
+	if _, handled := command(context.Background(), a, []string{"serve"}, &stdout, &stderr); handled {
+		t.Fatal("a command line that is not `auth …` was taken by authcli")
+	}
+}

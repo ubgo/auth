@@ -1,0 +1,21 @@
+func importProviders(ctx context.Context, a *auth.Auth, p *sso.Plugin, owner, spEntityID string, rows []samlRow) ([]result, error) {
+	s, tok, err := a.CreateSession(ctx, owner, auth.Client{UserAgent: "import-sso"})
+	if err != nil {
+		return nil, fmt.Errorf("owner %s: %w", owner, err)
+	}
+	defer func() { _ = a.DeleteSession(context.Background(), owner, s.ID) }() // best effort; it expires anyway
+	as := a.WithRequest(ctx, auth.Request{Transport: auth.TransportGo, Credential: auth.CredentialBearer, Token: tok})
+
+	out := make([]result, 0, len(rows))
+	for _, r := range rows {
+		res := result{Row: r, ProviderID: providerIDFor(r)}
+		cfg, notes, err := samlConfig(r, spEntityID)
+		res.Notes = notes
+		if err == nil {
+			_, err = p.RegisterProvider(as, sso.RegisterRequest{ProviderID: res.ProviderID, Issuer: spEntityID, Domain: strings.Join(r.Domains, ","), SAMLConfig: cfg})
+		}
+		res.Err = err
+		out = append(out, res)
+	}
+	return out, nil
+}

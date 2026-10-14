@@ -1,0 +1,14 @@
+func (f *fakeVerify) Check(_ context.Context, number, code string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	v, ok := f.open[number]
+	if !ok || time.Now().After(v.expires) || v.checks >= verifyMaxChecks {
+		return phone.ErrCodeInvalid
+	}
+	if subtle.ConstantTimeCompare([]byte(code), []byte(v.code)) != 1 { // a timing-safe compare, as for every secret
+		v.checks++
+		return phone.ErrCodeInvalid
+	}
+	delete(f.open, number)
+	return nil
+}

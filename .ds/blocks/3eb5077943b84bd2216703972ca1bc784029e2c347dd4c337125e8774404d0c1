@@ -1,0 +1,25 @@
+type Effect struct {
+	Kind      EffectKind
+	Token     Token
+	ExpiresAt time.Time
+	URL       string
+	Transient bool
+	Value     string
+	// UserID and SessionID name the session an EffectIssueSession is for,
+	// set by IssueSessionOf; IssueSession leaves them empty. Transports do
+	// not need them; an audit hook reading RequestEffects does, since a
+	// public sign-in's Call has no User.
+	UserID    string
+	SessionID string
+	// Name is the response header an EffectHeader sets, or the plugin
+	// cookie an EffectCookie sets.
+	Name string
+	// Replaces is set on an EffectIssueSession whose token takes the place
+	// of the one the request presented, for the same sign-in: a refresh
+	// that changed the token (WithTokenRotation, a resealed stateless
+	// token), a second-factor promotion, a completed session task. A
+	// multi-session transport then drops the old token instead of keeping
+	// it as another account on the device, where it would come back as a
+	// replaced token and, under WithTokenRotation, revoke the session.
+	Replaces bool
+}

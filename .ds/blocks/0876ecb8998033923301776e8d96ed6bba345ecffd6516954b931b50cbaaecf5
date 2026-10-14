@@ -1,0 +1,1 @@
+type BackgroundFunc func(ctx context.Context, task func(context.Context))

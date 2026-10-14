@@ -1,0 +1,4 @@
+export function continueWith(provider: string, returnTo = "/"): void {
+  const query = new URLSearchParams({ returnTo });
+  location.assign(`/auth/oauth/${encodeURIComponent(provider)}/start?${query}`);
+}

@@ -1,0 +1,9 @@
+func WithSecondaryStorage(kv SecondaryStorage) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithSecondaryStorage", kv) {
+			return
+		}
+		s.sessions = NewStorageSessionStore(kv)
+		s.rateStore = NewStorageRateStore(kv)
+	}
+}

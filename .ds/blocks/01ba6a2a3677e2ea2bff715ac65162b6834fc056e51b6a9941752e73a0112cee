@@ -1,0 +1,4 @@
+func (p *Plugin) UndoChange(ctx context.Context, t auth.Token) error {
+	_, err := p.undoChange.Call(ctx, TokenRequest{Token: t})
+	return err
+}
