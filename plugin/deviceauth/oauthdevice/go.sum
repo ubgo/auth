@@ -1,2 +1,8 @@
+github.com/ubgo/auth v0.1.0 h1:eFuoVMSz8EBeHahUBIoOOOZ+mJsKshFiUuzOVXqum/o=
+github.com/ubgo/auth v0.1.0/go.mod h1:orlEofooy4uqEEJT8iCpHiCyErZYQeCxj0K876bmUWE=
+github.com/ubgo/auth/plugin/deviceauth v0.1.0 h1:+AcdA7YH+OkoSAs4CVXqIETpBkHYrFkvccrLi/+oMUU=
+github.com/ubgo/auth/plugin/deviceauth v0.1.0/go.mod h1:SLzY7LtjSV3zOk0VejJA77mTN1V1R7W2UhZvzqflfyI=
+github.com/ubgo/auth/plugin/oauthprovider v0.1.0 h1:0/vn21qQaNOXZHM6BgmxZyDQAqNKmChnQhQT8yTA4XU=
+github.com/ubgo/auth/plugin/oauthprovider v0.1.0/go.mod h1:1Utq8CxAF9g3L1j0zSZlLnApR9n8XszsTQXOvJldI28=
 github.com/ubgo/sqlb v0.1.1 h1:/D1jcjUIjv5HaZuHRVwfyo5OYIbGkmvLe3vISIX2ta8=
 github.com/ubgo/sqlb v0.1.1/go.mod h1:OD0l9pgY+j8GjpFMHcN364SKaFnNXIuZk3FAzJHG71U=
