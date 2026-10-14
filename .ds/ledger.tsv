@@ -1,4 +1,4 @@
-# docsync ledger format=2 extract=1 repo=auth commit=25d69fb scanned_at=2026-10-14T06:18:01Z
+# docsync ledger format=2 extract=1 repo=auth commit=412f255 scanned_at=2026-10-14T11:18:09Z
 id	repo	kind	file	symbol	lines	hash	owner	stability	env	args
 accesstokeniplimit-x4wn8kqt	auth	const	plugin/oauth/clientaccess.go	accessTokenIPLimit	99	624b60c58c9d8bfb6ff1886c2fd605d2adeb6ea4da576068201b6c6958ce93f4	@khanakia	stable		id=accesstokeniplimit-x4wn8kqt owner=@khanakia stability=stable
 accesstokenipwindow-m7qk2xwn	auth	const	plugin/oauth/clientaccess.go	accessTokenIPWindow	101	9a24c52b7c6f8eb74643956369aba5ed0c892980a341c700ccb98ca61a12c23e	@khanakia	stable		id=accesstokenipwindow-m7qk2xwn owner=@khanakia stability=stable
@@ -1944,7 +1944,7 @@ translated-errors-newhandler-yu5wmag9	auth	func	examples/translated-errors/main.
 translated-errors-store-user-locale-v35bz7mj	auth	func	examples/translated-errors/main.go	setLocale	292-306	cea67806b43d50300e7317c1fa51bfc1c1373a38c1ce995785265e2fc4ab79b1		stable		id=translated-errors-store-user-locale-v35bz7mj
 tsclientcustom-auth-3kd9xq7v	auth	const	examples/ts-client-custom/web/src/app-auth.ts	auth	12	dd784e6c93931c4265cd541bf330435448da5fd77a48ee7edb3156bd864defac		stable		id=tsclientcustom-auth-3kd9xq7v
 tsclientcustom-command-7xw3kq9p	auth	func	examples/ts-client-custom/main.go	command	116-121	9befd617fea54ea186f3f2b870d9e5c0d631cc965a0caeeeb89fd4939d05cf7d		stable		id=tsclientcustom-command-7xw3kq9p
-tsclientcustom-fresh-5hm2qw8z	auth	func	examples/ts-client-custom/main_test.go	TestClient_GeneratedCopyIsCurrent	118-163	00c0f7187a7d626e74dbe6ff114561d6da06d043c28d91b259c7a40d6e9e475d		stable		id=tsclientcustom-fresh-5hm2qw8z
+tsclientcustom-fresh-5hm2qw8z	auth	func	examples/ts-client-custom/main_test.go	TestClient_GeneratedCopyIsCurrent	119-164	00c0f7187a7d626e74dbe6ff114561d6da06d043c28d91b259c7a40d6e9e475d		stable		id=tsclientcustom-fresh-5hm2qw8z
 tsclientcustom-main-4mq8zt2w	auth	func	examples/ts-client-custom/main.go	main	80-109	a0609d230a7f5e966d13ca6b722ec6f5da6bf9d88512dc877ef7721795f4230e		stable		id=tsclientcustom-main-4mq8zt2w
 tsclientcustom-newauth-9pk2wv6r	auth	func	examples/ts-client-custom/main.go	newAuth	128-138	5da7a7a412b558adf7a2ba7f0cb5a155a6128d82cce1550152f2eccebff7cbb5		stable		id=tsclientcustom-newauth-9pk2wv6r
 tsclientcustom-plugins-6wq2mz8k	auth	const	examples/ts-client-custom/web/src/app-auth.ts	plugins	8	06735703c76366e6083bc28a41692ee9ec4c86dbe6d231c5f4e6363ac4ff5ab6		stable		id=tsclientcustom-plugins-6wq2mz8k
@@ -2039,8 +2039,8 @@ twofactor-unlock-4tn8xm2q	auth	func	plugin/twofactor/admin.go	Plugin.Unlock	58-7
 twofactor-withsealer-7rq2mz4k	auth	func	plugin/twofactor/twofactor.go	WithSealer	451-458	b83183a427b3eaa77a207d1e78e7cf25097de66f06faa6ab2d1fcc406906c1c1	@khanakia	stable		id=twofactor-withsealer-7rq2mz4k owner=@khanakia stability=stable
 twofactor-withsecuritykeys-6tn2vq8m	auth	func	plugin/twofactor/factors.go	WithSecurityKeys	172-179	c612fde9f3baadbfc47513be6bc9e9e55916457ed2687fa37088bd9aa88be8c0	@khanakia	stable		id=twofactor-withsecuritykeys-6tn2vq8m owner=@khanakia stability=stable
 twofactorsettings-tfo7op01	auth	const	examples/two-factor-options/main.go	trustAge	45-53	80224266110314d3ead643030538f9985f4ffced386929adf46570233bb87772	@khanakia	stable		id=twofactorsettings-tfo7op01 owner=@khanakia stability=stable
-typecheck-extensions-3kq8wn5v	auth	func	clients/ts/test/typecheck/bad.ts	extensionMistakes	34-43	2ce465519bb6d467298630ef377a5460c32908bce30462850d1edebfa007a01b	@khanakia	stable		id=typecheck-extensions-3kq8wn5v owner=@khanakia stability=stable
-typecheck-mistakes-6qw2kx9m	auth	func	clients/ts/test/typecheck/bad.ts	mistakes	17-31	55eae043044aa16fd8e90bffc03d78f504024b65d2d01694e8ba31c9dfbfae81	@khanakia	stable		id=typecheck-mistakes-6qw2kx9m owner=@khanakia stability=stable
+typecheck-extensions-3kq8wn5v	auth	func	clients/ts/test/typecheck/bad.ts	extensionMistakes	36-45	2ce465519bb6d467298630ef377a5460c32908bce30462850d1edebfa007a01b	@khanakia	stable		id=typecheck-extensions-3kq8wn5v owner=@khanakia stability=stable
+typecheck-mistakes-6qw2kx9m	auth	func	clients/ts/test/typecheck/bad.ts	mistakes	17-33	3f7e13717977bde412bff9b548079c2b5a75bae0767a8eb032f62edc5aa1624a	@khanakia	stable		id=typecheck-mistakes-6qw2kx9m owner=@khanakia stability=stable
 typedataexportrequested-nnym6b47	auth	const	examples/audit-history/main.go	TypeDataExportRequested	103	b72672342395166003b7d69afc1fdaee43f9b194d528710bc6dbb24d30912bad	@khanakia	stable		id=typedataexportrequested-nnym6b47 owner=@khanakia stability=stable
 types-x2j6q9tb	auth	func	plugin/audit/types.go	Types	146-153	1ce3dc6b73c571eb9988524e9f3cd4fa2c90a08215e5733c63d25d51f0d050c3	@khanakia	stable		id=types-x2j6q9tb owner=@khanakia stability=stable
 unknowndevice-example-notify-3q7w5n8k	auth	func	examples/unknown-device/main.go	notify	83	4a0b402d030d9ca9f94e9005a4601a39f7e554015a8bd9cd2eea54ca6efd48ab		stable		id=unknowndevice-example-notify-3q7w5n8k

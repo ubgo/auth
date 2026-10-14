@@ -276,7 +276,7 @@ Then run your TypeScript type check. Every place the frontend relied on what cha
 A generated file that nobody regenerated is worse than none, because it compiles. Make your gate catch it. The example does it with a Go test, [`TestClient_GeneratedCopyIsCurrent`](ds:block?id=tsclientcustom-fresh-5hm2qw8z), that builds the app with `newAuth`, runs the real command into a temporary folder and compares every file with the committed copy:
 
 <!-- ds:block id=tsclientcustom-fresh-5hm2qw8z lines=13-38 -->
-**TestClient_GeneratedCopyIsCurrent** · [`examples/ts-client-custom/main_test.go:118-163`](../../examples/ts-client-custom/main_test.go#L118-L163)
+**TestClient_GeneratedCopyIsCurrent** · [`examples/ts-client-custom/main_test.go:119-164`](../../examples/ts-client-custom/main_test.go#L119-L164)
 
 ```go
 	out := t.TempDir()

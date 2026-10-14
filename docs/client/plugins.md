@@ -41,14 +41,16 @@ flowchart LR
 Nothing reaches the network: the code does not compile. The repository keeps a file of mistakes that must not compile, and `task ts:typecheck` fails unless each one fails with exactly the error it is marked with:
 
 <!-- ds:block id=typecheck-mistakes-6qw2kx9m -->
-**mistakes** · [`clients/ts/test/typecheck/bad.ts:17-31`](../../clients/ts/test/typecheck/bad.ts#L17-L31)
+**mistakes** · [`clients/ts/test/typecheck/bad.ts:17-33`](../../clients/ts/test/typecheck/bad.ts#L17-L33)
 
 ```typescript
 export async function mistakes(): Promise<void> {
   // A plugin that was not enabled has no namespace.
   await client.twofactor.verify({ code: "123456" }); // expect TS2339
-  // A required input field left out.
-  await client.password.signIn({ identifier: "a@example.com" }); // expect TS2345
+  // The required input left out. (An incomplete object literal is not used:
+  // tsc 5 reports it as TS2345 and tsc 7 as TS2741, so the marked code would
+  // depend on the compiler version; a missing argument is TS2554 in both.)
+  await client.password.signIn(); // expect TS2554
   // A field of the wrong type.
   await client.password.signIn({ identifier: 42, password: "x" }); // expect TS2322
   // A field the server would refuse as unknown.
@@ -60,23 +62,22 @@ export async function mistakes(): Promise<void> {
   console.log(r.data.user.id); // expect TS18047
 }
 ```
-<!-- /ds:block hash=55eae0 -->
+<!-- /ds:block hash=3f7e13 -->
 
-What `tsc` prints for it today (a real run of `tsc -p clients/ts/test/typecheck`):
+What `tsc` prints for it today (a real run of `tsc -p clients/ts/test/typecheck` with TypeScript 7.0.2, the version CI pins, cut to the lines of this block):
 
 ```text
-bad.ts(13,16): error TS2339: Property 'twofactor' does not exist on type 'AuthClient<CoreOps, readonly [Plugin<"password", PasswordOps>]>'.
-bad.ts(15,32): error TS2345: Argument of type '{ identifier: string; }' is not assignable to parameter of type 'PasswordSignInRequest'.
-  Property 'password' is missing in type '{ identifier: string; }' but required in type 'PasswordSignInRequest'.
-bad.ts(17,34): error TS2322: Type 'number' is not assignable to type 'string'.
-bad.ts(19,78): error TS2353: Object literal may only specify known properties, and 'keepMeIn' does not exist in type 'PasswordSignInRequest'.
-bad.ts(22,7): error TS2367: This comparison appears to be unintentional because the types '"admin.admin_target" | "admin.bad_filter" | "admin.bad_filter_field" | "admin.bad_filter_operator" | "admin.bad_filter_value" | "admin.bad_role" | "admin.bad_search_field" | ... 376 more ... | undefined' and '"password.invalid_credential"' have no overlap.
-bad.ts(24,15): error TS18047: 'r.data' is possibly 'null'.
+bad.ts(19,16): error TS2339: Property 'twofactor' does not exist on type 'AuthClient<CoreOps, readonly [Plugin<"password", PasswordOps, NoActions>], unknown>'.
+bad.ts(23,25): error TS2554: Expected 1-2 arguments, but got 0.
+bad.ts(25,34): error TS2322: Type 'number' is not assignable to type 'string'.
+bad.ts(27,78): error TS2353: Object literal may only specify known properties, and 'keepMeIn' does not exist in type 'PasswordSignInRequest'.
+bad.ts(30,7): error TS2367: This comparison appears to be unintentional because the types '"admin.admin_target" | "admin.bad_filter" | "admin.bad_filter_field" | "admin.bad_filter_operator" | "admin.bad_filter_value" | "admin.bad_role" | "admin.bad_search_field" | ... 428 more ... | undefined' and '"password.invalid_credential"' have no overlap.
+bad.ts(32,15): error TS18047: 'r.data' is possibly 'null'.
 ```
 
-The first line is the one this step is about: the client's type names the plugins it has (`readonly [Plugin<"password", PasswordOps>]`), and `twofactor` is not among them. In the editor the same thing shows as a red underline on `twofactor`, and autocomplete after `client.` lists only the core's methods and `password`. Add `twofactor()` to `plugins` and the error disappears.
+The first line is the one this step is about: the client's type names the plugins it has (`readonly [Plugin<"password", PasswordOps, NoActions>]`), and `twofactor` is not among them. In the editor the same thing shows as a red underline on `twofactor`, and autocomplete after `client.` lists only the core's methods and `password`. Add `twofactor()` to `plugins` and the error disappears.
 
-The other lines are the rest of what the types catch: a required field left out, a field of the wrong type, a field the server would refuse as unknown, a misspelt error code, and reading `data` before checking `error`.
+The other lines are the rest of what the types catch: the required input left out, a field of the wrong type, a field the server would refuse as unknown, a misspelt error code, and reading `data` before checking `error`.
 
 Passing the same plugin twice, or a plugin whose name is a core method, throws when the client is created (`auth client: "x" is given twice, or is also a core method`), because the namespaces would overwrite each other.
 
