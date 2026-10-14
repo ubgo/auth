@@ -10,8 +10,8 @@ tool github.com/99designs/gqlgen
 require (
 	github.com/99designs/gqlgen v0.17.94
 	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/contrib/gqlgen v0.0.0-20261014081355-f7af54573304
-	github.com/ubgo/auth/plugin/password v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/contrib/gqlgen v0.0.0-00010101000000-000000000000
+	github.com/ubgo/auth/plugin/password v0.0.0
 	github.com/ubgo/sqlb v0.1.1
 	github.com/vektah/gqlparser/v2 v2.5.36
 	modernc.org/sqlite v1.59.0

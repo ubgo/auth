@@ -19,10 +19,6 @@ tasks:
     desc: Compile every package
     cmds: ['go build ./...']
 
-  pin:
-    desc: Point every separate module's requirement on the core and its sibling modules at the pseudo-version of a pushed commit (REF, default HEAD), then tidy each; run after a core change is pushed, then commit and push the go.mod changes (the repository has no tags, so a consumer cannot resolve v0.0.0)
-    cmds: ['scripts/pin.sh {{.REF | default "HEAD"}}']
-
   test:
     desc: Run the full test suite
     cmds: ['testlock go test ./...']

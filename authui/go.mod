@@ -7,7 +7,7 @@ go 1.24.0
 
 require (
 	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/plugin/password v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/password v0.0.0
 )
 
 require (

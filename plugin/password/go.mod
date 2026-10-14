@@ -7,7 +7,7 @@ module github.com/ubgo/auth/plugin/password
 go 1.24.0
 
 require (
-	github.com/ubgo/auth v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth v0.0.0
 	github.com/ubgo/sqlb v0.1.1
 	golang.org/x/crypto v0.42.0
 )

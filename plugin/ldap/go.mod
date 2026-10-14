@@ -6,7 +6,7 @@ go 1.25.0
 
 require (
 	github.com/go-ldap/ldap/v3 v3.4.13
-	github.com/ubgo/auth v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth v0.0.0
 	github.com/ubgo/sqlb v0.1.1
 )
 

@@ -88,7 +88,7 @@ The mistakes people make with the library, by what they see. Every error code th
 | `WARN auth: rate limits are counted per process; pass auth.WithRateStore when you run more than one instance` on every run, including `auth migrate` | No shared rate store is configured. | Expected for one process. For several, `auth.WithDBRateStore()` or `contrib/redis`. |
 | `listen tcp :8080: bind: address already in use` | Another process has the port; the examples use `localhost:8081` for this reason. | Change the address. |
 | A Go test posts the library's request type and the password is wrong | `password.Secret` (an `auth.Token`) marshals as `"[redacted]"`. | Send a `map[string]string`. |
-| `go: github.com/ubgo/auth@v0.0.0: unknown revision` in your app | A `replace` directive from development leaked into a requirement. | Require a tagged version or the pseudo-version of a pushed commit: `go get github.com/ubgo/auth@latest`. |
+| `go: github.com/ubgo/auth@v0.0.0: unknown revision` in your app | A `replace` directive from development leaked into a requirement. | Require a tagged version. |
 | `task check` fails with `apiref: docs/reference/http-api.md is stale; run task docs:api` | A plugin gained or lost an operation and the generated route table was not regenerated. | `task docs:api`, then commit the file. |
 | `task check` fails with `featref: docs/reference/features.md is stale; run task docs:features`, or with `featref: <feature>: no heading …` or `example … does not match` | A guide heading was renamed or renumbered, an example stopped using a feature's API, or a row in `integration/cmd/featref/features.go` changed without regenerating. | Fix the row's guide prefix or example expression in `features.go`, then `task docs:features` and commit the page. |
 
