@@ -3,7 +3,7 @@
   "_v": 1,
   "activation": "always",
   "applies_to_description": null,
-  "archived_at": null,
+  "archived_at": "2026-10-14T08:45:28.597484000Z",
   "body": "Never make github.com/ubgo/sqlb or github.com/ubgo/auth public: no visibility change, no public repository, no publishing to a public registry or site, without the owner saying so.",
   "confidence": null,
   "created_at": "2026-09-29T09:38:49.210402000Z",
@@ -18,5 +18,5 @@
   "source_ref": null,
   "superseded_by_id": null,
   "trust_score": 0.5,
-  "updated_at": "2026-09-29T09:38:49.210402000Z"
+  "updated_at": "2026-10-14T08:45:28.597848000Z"
 }

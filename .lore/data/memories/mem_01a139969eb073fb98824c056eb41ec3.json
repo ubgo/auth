@@ -1,0 +1,23 @@
+{
+  "_table": "memories",
+  "_v": 1,
+  "archived_at": null,
+  "body": "ubgo/auth is public at github.com/ubgo/auth since 2026-10-14 (owner's decision; history replaced by one fresh commit). GitHub Actions runs task check and the Postgres/MySQL suites on push to main, PRs and on demand (task ci, task ci:status); locally only the touched package's tests run. docsi/ stays a private overlay and is never tracked.",
+  "confidence": null,
+  "created_at": "2026-10-14T08:45:34.768256000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "mem_01a139969eb073fb98824c056eb41ec3",
+  "kind": "core",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "superseded_by_id": "mem_01a12e718fad7255bd1b67c69bfdf6fc",
+  "trust_score": 0.5,
+  "tx_at": "2026-10-14T08:45:34.769851000Z",
+  "updated_at": "2026-10-14T08:45:34.768256000Z",
+  "valid_at": null,
+  "valid_until": null,
+  "validated_by_actor_id": null
+}

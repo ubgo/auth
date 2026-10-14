@@ -16,8 +16,8 @@
   "superseded_by_id": "mem_01a0f5a7fc7d75288e42f7c9c6e4501e",
   "trust_score": 0.5,
   "tx_at": "2026-10-12T04:49:16.717370000Z",
-  "updated_at": "2026-10-12T04:49:16.717151000Z",
+  "updated_at": "2026-10-14T08:45:28.088981000Z",
   "valid_at": null,
-  "valid_until": null,
+  "valid_until": "2026-10-14T08:45:28.088956000Z",
   "validated_by_actor_id": null
 }
