@@ -14,3 +14,8 @@ resolver:
 directives:
   signedIn:
     skip_runtime: false
+
+# The module is developed inside the repository's go.work, and `go mod tidy`
+# ignores the workspace, so a tidy here would resolve the auth modules from
+# their published tags instead of the working tree.
+skip_mod_tidy: true

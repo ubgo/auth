@@ -9,12 +9,8 @@ go 1.25.0
 
 require (
 	github.com/markbates/goth v1.82.0
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.1.0
 	golang.org/x/oauth2 v0.27.0
 )
 
 require github.com/ubgo/sqlb v0.1.1 // indirect
-
-// Development inside this repository builds against the working tree. A
-// consumer's build ignores replace directives in dependencies.
-replace github.com/ubgo/auth => ../../

@@ -8,11 +8,7 @@ module github.com/ubgo/auth/plugin/organization
 go 1.24.0
 
 require (
-	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/plugin/access v0.0.0
+	github.com/ubgo/auth v0.1.0
+	github.com/ubgo/auth/plugin/access v0.1.0
 	github.com/ubgo/sqlb v0.1.1
 )
-
-replace github.com/ubgo/auth => ../..
-
-replace github.com/ubgo/auth/plugin/access => ../access

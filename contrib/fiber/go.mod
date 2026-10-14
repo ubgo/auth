@@ -6,7 +6,7 @@ go 1.25.0
 
 require (
 	github.com/gofiber/fiber/v3 v3.5.0
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.1.0
 )
 
 require (
@@ -27,7 +27,3 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 )
-
-// Development inside this repository builds against the working tree. A
-// consumer's build ignores replace directives in dependencies.
-replace github.com/ubgo/auth => ../../

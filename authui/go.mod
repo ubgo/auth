@@ -6,19 +6,12 @@ module github.com/ubgo/auth/authui
 go 1.24.0
 
 require (
-	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/plugin/password v0.0.0
+	github.com/ubgo/auth v0.1.0
+	github.com/ubgo/auth/plugin/password v0.1.0
 )
 
 require (
 	github.com/ubgo/sqlb v0.1.1 // indirect
 	golang.org/x/crypto v0.42.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
-)
-
-// Development inside this repository builds against the working tree. A
-// consumer's build ignores replace directives in dependencies.
-replace (
-	github.com/ubgo/auth => ../
-	github.com/ubgo/auth/plugin/password => ../plugin/password
 )

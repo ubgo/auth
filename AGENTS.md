@@ -22,7 +22,7 @@ If it is not green, the change is not done. GitHub Actions runs `task check` and
 
 **Never suppress a diagnostic to make a gate pass.** No `//nolint`, no deleted assertion, no skipped test, no loosened type. Fix the cause.
 
-**The core module depends only on the standard library and `github.com/ubgo/sqlb`.** `deps_test.go` enforces it. A package that needs another module is its own module (like `plugin/password`, `plugin/passkey`, `authui`, `contrib/*`) with a `replace` directive, and so is a feature that is not authentication (`plugin/organization`; permissions and ACL later), even with no dependency,, and is added to the `contrib` task in `Taskfile.yml`.
+**The core module depends only on the standard library and `github.com/ubgo/sqlb`.** `deps_test.go` enforces it. A package that needs another module is its own module (like `plugin/password`, `plugin/passkey`, `authui`, `contrib/*`) listed in the root `go.work`, and so is a feature that is not authentication (`plugin/organization`; permissions and ACL later), even with no dependency, and is added to the `contrib` task in `Taskfile.yml`. No `go.mod` carries a `replace` to a local path: the committed `go.work` joins the modules for development, and each `go.mod` requires the others at a tagged version.
 
 **Auth code is held to a higher bar.** Every comparison of a secret is constant-time (`guard_test.go` checks the syntax tree), sign-in hashes a password even for an unknown account (a timing test), and every error path is enumeration-safe. No feature ships without the test that would catch its absence.
 

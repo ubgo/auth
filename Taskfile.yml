@@ -71,7 +71,6 @@ tasks:
   # Called through testlock by the public task above; no desc keeps it off task --list.
   cover:run:
     env:
-      GOFLAGS: -mod=mod
       GOSUMDB: 'off'
       AUTH_TEST_REDIS_ADDR: 127.0.0.1:7012
     vars:
@@ -107,16 +106,12 @@ tasks:
   docs:api:
     desc: Regenerate docs/reference/http-api.md (the table of every route) and docs/reference/openapi.json (the OpenAPI 3.1 document) from the operation list auth.New builds with every plugin wired
     dir: integration
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - go run ./cmd/apiref -dir ../docs/reference -client ../clients/ts/src
 
   docs:api:check:
     desc: Fail when docs/reference/http-api.md, openapi.json, the error-code lists or the TypeScript client in clients/ts/src differ from what task docs:api would write
     dir: integration
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - go run ./cmd/apiref -check ../docs/reference -client ../clients/ts/src
 
@@ -166,8 +161,6 @@ tasks:
       PORT: '{{.AUTH_SMOKE_PORT | default "8095"}}'
       WORK:
         sh: mktemp -d
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - defer: rm -rf {{.WORK}}
       - cd examples && go build -o {{.WORK}}/two-factor ./two-factor
@@ -186,24 +179,18 @@ tasks:
   docs:features:
     desc: Regenerate docs/reference/features.md (every feature with its package, guide section and example) from the rows in integration/cmd/featref; fails when a guide heading or an example's use of the API is gone
     dir: integration
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - go run ./cmd/featref -root ..
 
   docs:features:check:
     desc: Fail when docs/reference/features.md differs from what task docs:features would write
     dir: integration
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - go run ./cmd/featref -root .. -check
 
   docs:wrap:
     desc: Fail on hard-wrapped prose in any Markdown file of the repo (every paragraph, bullet and table row is one physical line)
     dir: integration
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - go run ./cmd/mdwrap ..
 
@@ -212,17 +199,40 @@ tasks:
     cmds: ['testlock task gomin:run']
 
   # Called through testlock by the public task above; no desc keeps it off task --list.
+  # The committed go.work declares the newest module's Go version, which an
+  # older toolchain refuses to read. So each module is vetted in a throwaway
+  # workspace holding only the modules that declare the same or an older
+  # version (a module's local dependencies never declare a newer one), plus
+  # the go.work replace lines that point at those modules.
   gomin:run:
-    env:
-      GOFLAGS: -mod=mod
+    vars:
+      WORK:
+        sh: mktemp -d
     cmds:
+      - defer: rm -rf {{.WORK}}
       - |
-        find . -name go.mod -not -path './.cover/*' | sort | while read -r f; do
+        root=$(pwd)
+        find . -name go.mod -not -path './.cover/*' | sort > {{.WORK}}/mods
+        while read -r f; do
           d=$(dirname "$f"); v=$(awk '/^go /{print $2}' "$f")
           case $v in *.*.*) ;; *) v=$v.0 ;; esac
+          w={{.WORK}}/go$v.work
+          if [ ! -f "$w" ]; then
+            echo "go $v" > "$w"
+            while read -r g; do
+              gv=$(awk '/^go /{print $2}' "$g")
+              case $gv in *.*.*) ;; *) gv=$gv.0 ;; esac
+              [ "$(printf '%s\n%s\n' "$gv" "$v" | sort -V | tail -1)" = "$v" ] || continue
+              # Go does not clean a "/./" inside an absolute use path.
+              gd=$(dirname "$g"); p=$root; [ "$gd" = . ] || p=$root/${gd#./}
+              echo "use $p" >> "$w"
+              awk -v d="$gd" -v p="$p" 'function norm(x) { sub(/^\.\//, "", x); sub(/\/$/, "", x); return x == "" ? "." : x }
+                $1 == "replace" && norm($NF) == norm(d) { $NF = p; print }' go.work >> "$w"
+            done < {{.WORK}}/mods
+          fi
           echo "go$v $d"
-          (cd "$d" && GOTOOLCHAIN=go$v go vet ./...) || exit 1
-        done
+          (cd "$d" && GOWORK="$w" GOTOOLCHAIN=go$v go vet ./...) || exit 1
+        done < {{.WORK}}/mods
 
   contrib:
     desc: Vet and test every separate module - plugins with third-party dependencies, the pages, the examples and the contrib adapters
@@ -230,8 +240,6 @@ tasks:
 
   # Called through testlock by the public task above; no desc keeps it off task --list.
   contrib:run:
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, examples, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
         cmd: 'cd {{.ITEM}} && go vet ./... && go test ./...'
@@ -239,8 +247,6 @@ tasks:
   gqlgen:example:
     desc: Regenerate the gqlgen example, build it and sign a user in through the generated server (for codegen the build is the test)
     dir: contrib/gqlgen/example
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - go generate ./...
       - go build ./...
@@ -251,7 +257,6 @@ tasks:
     desc: End-to-end tests against SQLite (separate module, so no driver reaches the core's go.mod); task test:engines adds Postgres and MySQL
     dir: integration
     env:
-      GOFLAGS: -mod=mod
       GOSUMDB: off
     cmds:
       - 'GOPROXY="file://$(go env GOMODCACHE)/cache/download" testlock go test ./...'
@@ -260,7 +265,6 @@ tasks:
     desc: The SQLite integration suite a second time with every table renamed (auth.WithTablePrefix "t_" through AUTH_TEST_TABLE_PREFIX), so any place still using a table's label as its real name fails loudly
     dir: integration
     env:
-      GOFLAGS: -mod=mod
       GOSUMDB: off
       AUTH_TEST_TABLE_PREFIX: t_
     cmds:
@@ -281,7 +285,6 @@ tasks:
   test:engines:run:
     dir: integration
     env:
-      GOFLAGS: -mod=mod
       AUTH_TEST_PG_DSN: postgres://postgres:root@localhost:5432/auth_test?sslmode=disable
       AUTH_TEST_MYSQL_DSN: root:auth@tcp(127.0.0.1:33070)/auth
     cmds:
@@ -334,7 +337,7 @@ tasks:
       - openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=localhost -addext subjectAltName=DNS:localhost,IP:127.0.0.1 -keyout {{.LDAP_CERTS}}/key.pem -out {{.LDAP_CERTS}}/cert.pem 2>/dev/null
       - chmod 644 {{.LDAP_CERTS}}/key.pem
       - docker compose --profile ldap up -d --wait
-      - cd plugin/ldap && GOFLAGS=-mod=mod AUTH_TEST_LDAP_CA={{.LDAP_CERTS}}/cert.pem go test -count=1 -tags ldapserver -run TestServer ./...
+      - cd plugin/ldap && AUTH_TEST_LDAP_CA={{.LDAP_CERTS}}/cert.pem go test -count=1 -tags ldapserver -run TestServer ./...
 
   fuzz:
     desc: Run every fuzz target for FUZZTIME each (default 20s); not part of check, run it before a release
@@ -421,7 +424,7 @@ tasks:
       - cd examples/react-demo/web && pnpm exec tsc -b && pnpm exec vite build --logLevel warn
       # Every registry component rendered to HTML in Node with no window, as an SSR framework would.
       - cd examples/react-demo/web && node scripts/ssr.mjs
-      - cd examples && GOFLAGS=-mod=mod go build -o /dev/null ./react-demo
+      - cd examples && go build -o /dev/null ./react-demo
       # The hooks-only example: strict tsc (app and the e2e script) and a
       # production build into a throwaway directory, so no dist/ is left.
       - cd examples/react-headless/web && pnpm exec tsc -b && out=$(mktemp -d) && pnpm exec vite build --logLevel warn --outDir "$out" --emptyOutDir && rm -rf "$out"
@@ -440,8 +443,6 @@ tasks:
   demo:reset:
     desc: Delete the demo's SQLite file and recreate it with the seeded user (stop task demo first)
     dir: examples/react-demo
-    env:
-      GOFLAGS: -mod=mod
     cmds:
       - 'if lsof -nP -iTCP:8097 -sTCP:LISTEN >/dev/null 2>&1; then echo "Stop task demo first (port 8097 is in use)."; exit 1; fi'
       - rm -f react-demo.db react-demo.db-wal react-demo.db-shm react-demo.db.2fa-key
@@ -450,7 +451,7 @@ tasks:
   ui:dev:
     desc: Run the demo API (8097) and Vite (5180) in two runbay sessions instead of the foreground (same as task demo otherwise)
     cmds:
-      - runbay ptyd run --title "react-demo api :8097" --cwd {{.ROOT_DIR}}/examples/react-demo -- env GOFLAGS=-mod=mod DEMO_DB=react-demo.db PORT=8097 APP_URL=http://localhost:5180 go run .
+      - runbay ptyd run --title "react-demo api :8097" --cwd {{.ROOT_DIR}}/examples/react-demo -- env DEMO_DB=react-demo.db PORT=8097 APP_URL=http://localhost:5180 go run .
       - runbay ptyd run --title "react-demo web :5180" --cwd {{.ROOT_DIR}}/examples/react-demo/web -- pnpm dev
 
   ui:e2e:

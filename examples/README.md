@@ -146,4 +146,4 @@ Each test builds the app with the same functions `main` uses and drives it over 
 
 ## Why a separate module
 
-`examples` is its own Go module with `replace` directives to the working tree, so the SQLite driver and the web frameworks it imports never reach the go.mod of an app that imports `github.com/ubgo/auth`.
+`examples` is its own Go module, joined to the working tree by the root `go.work`, so the SQLite driver and the web frameworks it imports never reach the go.mod of an app that imports `github.com/ubgo/auth`.

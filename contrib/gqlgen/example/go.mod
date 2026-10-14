@@ -9,9 +9,9 @@ tool github.com/99designs/gqlgen
 
 require (
 	github.com/99designs/gqlgen v0.17.94
-	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/contrib/gqlgen v0.0.0-00010101000000-000000000000
-	github.com/ubgo/auth/plugin/password v0.0.0
+	github.com/ubgo/auth v0.1.0
+	github.com/ubgo/auth/contrib/gqlgen v0.1.0
+	github.com/ubgo/auth/plugin/password v0.1.0
 	github.com/ubgo/sqlb v0.1.1
 	github.com/vektah/gqlparser/v2 v2.5.36
 	modernc.org/sqlite v1.59.0
@@ -39,10 +39,4 @@ require (
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-)
-
-replace (
-	github.com/ubgo/auth => ../../../
-	github.com/ubgo/auth/contrib/gqlgen => ../
-	github.com/ubgo/auth/plugin/password => ../../../plugin/password
 )

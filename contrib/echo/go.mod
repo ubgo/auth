@@ -6,7 +6,7 @@ go 1.25.0
 
 require (
 	github.com/labstack/echo/v4 v4.15.4
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.1.0
 )
 
 require (
@@ -21,7 +21,3 @@ require (
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 )
-
-// Development inside this repository builds against the working tree. A
-// consumer's build ignores replace directives in dependencies.
-replace github.com/ubgo/auth => ../../

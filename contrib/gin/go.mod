@@ -6,7 +6,7 @@ go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.12.0
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.1.0
 )
 
 require (
@@ -41,7 +41,3 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )
-
-// Development inside this repository builds against the working tree. A
-// consumer's build ignores replace directives in dependencies.
-replace github.com/ubgo/auth => ../../

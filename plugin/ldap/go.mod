@@ -6,7 +6,7 @@ go 1.25.0
 
 require (
 	github.com/go-ldap/ldap/v3 v3.4.13
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.1.0
 	github.com/ubgo/sqlb v0.1.1
 )
 
@@ -16,7 +16,3 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	golang.org/x/crypto v0.50.0 // indirect
 )
-
-// Development inside this repository builds against the working tree. A
-// consumer's build ignores replace directives in dependencies.
-replace github.com/ubgo/auth => ../../

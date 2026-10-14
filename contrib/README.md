@@ -38,4 +38,4 @@ Runnable programs: [examples/gin](../examples/gin), [examples/echo](../examples/
 
 ## Adding a module
 
-A new adapter or backend goes in its own folder with its own `go.mod` and a `replace github.com/ubgo/auth => ../..` line for development, and is added to the `contrib` task's list in the root `Taskfile.yml`, so `task check` vets and tests it. An adapter reuses `authhttp`'s building blocks (`OperationHandler`, `RequestOf`, `ApplyEffects`, `WriteError`) rather than reimplementing them, so cookies and error answers stay identical across frameworks.
+A new adapter or backend goes in its own folder with its own `go.mod` (requiring `github.com/ubgo/auth` at a tagged version, no `replace`), is listed in the root `go.work` for development, and is added to the `contrib` task's list in the root `Taskfile.yml`, so `task check` vets and tests it. An adapter reuses `authhttp`'s building blocks (`OperationHandler`, `RequestOf`, `ApplyEffects`, `WriteError`) rather than reimplementing them, so cookies and error answers stay identical across frameworks.

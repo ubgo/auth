@@ -18,7 +18,7 @@ import (
 // (LoadUserColumns, phone.Of, username.Of). It runs on every engine the
 // environment reaches, as the integration suite does:
 //
-//	go test -mod=mod -run '^$' -bench Composite ./integration
+//	go test -run '^$' -bench Composite ./integration
 //	task test:engines sets the DSNs for Postgres and MySQL.
 func BenchmarkComposite_OneStatementVsAccessors(b *testing.B) {
 	for _, eng := range engines(b) {

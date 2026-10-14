@@ -16,25 +16,25 @@ require (
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/russellhaering/gosaml2 v0.12.0
 	github.com/russellhaering/goxmldsig v1.6.1
-	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/authui v0.0.0
-	github.com/ubgo/auth/contrib/echo v0.0.0
-	github.com/ubgo/auth/contrib/fiber v0.0.0
-	github.com/ubgo/auth/contrib/gin v0.0.0
-	github.com/ubgo/auth/contrib/goth v0.0.0-00010101000000-000000000000
-	github.com/ubgo/auth/contrib/otel v0.0.0-00010101000000-000000000000
-	github.com/ubgo/auth/contrib/redis v0.0.0
-	github.com/ubgo/auth/plugin/agentauth v0.0.0-00010101000000-000000000000
-	github.com/ubgo/auth/plugin/deviceauth v0.0.0
-	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.0.0-00010101000000-000000000000
-	github.com/ubgo/auth/plugin/ldap v0.0.0-00010101000000-000000000000
-	github.com/ubgo/auth/plugin/oauthprovider v0.0.0
-	github.com/ubgo/auth/plugin/oauthproxy v0.0.0
-	github.com/ubgo/auth/plugin/organization v0.0.0
-	github.com/ubgo/auth/plugin/passkey v0.0.0
-	github.com/ubgo/auth/plugin/password v0.0.0
-	github.com/ubgo/auth/plugin/referral v0.0.0
-	github.com/ubgo/auth/plugin/scim v0.0.0
+	github.com/ubgo/auth v0.1.0
+	github.com/ubgo/auth/authui v0.1.0
+	github.com/ubgo/auth/contrib/echo v0.1.0
+	github.com/ubgo/auth/contrib/fiber v0.1.0
+	github.com/ubgo/auth/contrib/gin v0.1.0
+	github.com/ubgo/auth/contrib/goth v0.1.0
+	github.com/ubgo/auth/contrib/otel v0.1.0
+	github.com/ubgo/auth/contrib/redis v0.1.0
+	github.com/ubgo/auth/plugin/agentauth v0.1.0
+	github.com/ubgo/auth/plugin/deviceauth v0.1.0
+	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.1.0
+	github.com/ubgo/auth/plugin/ldap v0.1.0
+	github.com/ubgo/auth/plugin/oauthprovider v0.1.0
+	github.com/ubgo/auth/plugin/oauthproxy v0.1.0
+	github.com/ubgo/auth/plugin/organization v0.1.0
+	github.com/ubgo/auth/plugin/passkey v0.1.0
+	github.com/ubgo/auth/plugin/password v0.1.0
+	github.com/ubgo/auth/plugin/referral v0.1.0
+	github.com/ubgo/auth/plugin/scim v0.1.0
 	github.com/ubgo/sqlb v0.1.1
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/sdk v1.38.0
@@ -120,57 +120,15 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/ubgo/auth/contrib/phonenumbers v0.0.0
-	github.com/ubgo/auth/plugin/access v0.0.0
-	github.com/ubgo/auth/plugin/siwe v0.0.0
-	github.com/ubgo/auth/plugin/sso v0.0.0
-	github.com/ubgo/auth/plugin/samlidp v0.0.0
-	github.com/ubgo/auth/plugin/webhook v0.0.0
+	github.com/ubgo/auth/contrib/phonenumbers v0.1.0
+	github.com/ubgo/auth/plugin/access v0.1.0
+	github.com/ubgo/auth/plugin/samlidp v0.1.0
+	github.com/ubgo/auth/plugin/siwe v0.1.0
+	github.com/ubgo/auth/plugin/sso v0.1.0
+	github.com/ubgo/auth/plugin/webhook v0.1.0
 	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	modernc.org/libc v1.75.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-// Development inside this repository builds against the working tree.
-replace (
-	github.com/ubgo/auth => ../
-	github.com/ubgo/auth/authui => ../authui
-	github.com/ubgo/auth/contrib/echo => ../contrib/echo
-	github.com/ubgo/auth/contrib/fiber => ../contrib/fiber
-	github.com/ubgo/auth/contrib/gin => ../contrib/gin
-	github.com/ubgo/auth/contrib/phonenumbers => ../contrib/phonenumbers
-	github.com/ubgo/auth/contrib/redis => ../contrib/redis
-	github.com/ubgo/auth/plugin/organization => ../plugin/organization
-	github.com/ubgo/auth/plugin/passkey => ../plugin/passkey
-	github.com/ubgo/auth/plugin/password => ../plugin/password
-)
-
-replace github.com/ubgo/auth/plugin/sso => ../plugin/sso
-
-replace github.com/ubgo/auth/plugin/scim => ../plugin/scim
-
-replace github.com/ubgo/auth/plugin/deviceauth => ../plugin/deviceauth
-
-replace github.com/ubgo/auth/plugin/access => ../plugin/access
-
-// Modules the documentation examples import; go adds their require lines
-// on first use (task runs with -mod=mod).
-replace (
-	github.com/ubgo/auth/contrib/goth => ../contrib/goth
-	github.com/ubgo/auth/contrib/otel => ../contrib/otel
-	github.com/ubgo/auth/plugin/agentauth => ../plugin/agentauth
-	github.com/ubgo/auth/plugin/deviceauth/oauthdevice => ../plugin/deviceauth/oauthdevice
-	github.com/ubgo/auth/plugin/oauthprovider => ../plugin/oauthprovider
-	github.com/ubgo/auth/plugin/oauthproxy => ../plugin/oauthproxy
-	github.com/ubgo/auth/plugin/referral => ../plugin/referral
-)
-
-replace github.com/ubgo/auth/plugin/ldap => ../plugin/ldap
-
-replace github.com/ubgo/auth/plugin/siwe => ../plugin/siwe
-
-replace github.com/ubgo/auth/plugin/samlidp => ../plugin/samlidp
-
-replace github.com/ubgo/auth/plugin/webhook => ../plugin/webhook

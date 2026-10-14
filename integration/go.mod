@@ -12,15 +12,15 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.1
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.7.5
-	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/authui v0.0.0
-	github.com/ubgo/auth/plugin/deviceauth v0.0.0
-	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.0.0
-	github.com/ubgo/auth/plugin/oauthproxy v0.0.0
-	github.com/ubgo/auth/plugin/organization v0.0.0
-	github.com/ubgo/auth/plugin/passkey v0.0.0
-	github.com/ubgo/auth/plugin/password v0.0.0
-	github.com/ubgo/auth/plugin/scim v0.0.0
+	github.com/ubgo/auth v0.1.0
+	github.com/ubgo/auth/authui v0.1.0
+	github.com/ubgo/auth/plugin/deviceauth v0.1.0
+	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.1.0
+	github.com/ubgo/auth/plugin/oauthproxy v0.1.0
+	github.com/ubgo/auth/plugin/organization v0.1.0
+	github.com/ubgo/auth/plugin/passkey v0.1.0
+	github.com/ubgo/auth/plugin/password v0.1.0
+	github.com/ubgo/auth/plugin/scim v0.1.0
 	github.com/ubgo/sqlb v0.1.1
 	modernc.org/sqlite v1.58.0
 )
@@ -54,15 +54,15 @@ require (
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
-	github.com/ubgo/auth/plugin/access v0.0.0
-	github.com/ubgo/auth/plugin/agentauth v0.0.0
-	github.com/ubgo/auth/plugin/ldap v0.0.0
-	github.com/ubgo/auth/plugin/oauthprovider v0.0.0
-	github.com/ubgo/auth/plugin/referral v0.0.0
-	github.com/ubgo/auth/plugin/siwe v0.0.0
-	github.com/ubgo/auth/plugin/samlidp v0.0.0
-	github.com/ubgo/auth/plugin/webhook v0.0.0
-	github.com/ubgo/auth/plugin/sso v0.0.0
+	github.com/ubgo/auth/plugin/access v0.1.0
+	github.com/ubgo/auth/plugin/agentauth v0.1.0
+	github.com/ubgo/auth/plugin/ldap v0.1.0
+	github.com/ubgo/auth/plugin/oauthprovider v0.1.0
+	github.com/ubgo/auth/plugin/referral v0.1.0
+	github.com/ubgo/auth/plugin/samlidp v0.1.0
+	github.com/ubgo/auth/plugin/siwe v0.1.0
+	github.com/ubgo/auth/plugin/sso v0.1.0
+	github.com/ubgo/auth/plugin/webhook v0.1.0
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
@@ -72,33 +72,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-replace (
-	github.com/ubgo/auth => ../
-	github.com/ubgo/auth/authui => ../authui
-	github.com/ubgo/auth/plugin/deviceauth => ../plugin/deviceauth
-	github.com/ubgo/auth/plugin/deviceauth/oauthdevice => ../plugin/deviceauth/oauthdevice
-	github.com/ubgo/auth/plugin/oauthproxy => ../plugin/oauthproxy
-	github.com/ubgo/auth/plugin/organization => ../plugin/organization
-	github.com/ubgo/auth/plugin/passkey => ../plugin/passkey
-	github.com/ubgo/auth/plugin/password => ../plugin/password
-	github.com/ubgo/auth/plugin/scim => ../plugin/scim
-)
-
-replace github.com/ubgo/auth/plugin/oauthprovider => ../plugin/oauthprovider
-
-replace github.com/ubgo/auth/plugin/sso => ../plugin/sso
-
-replace github.com/ubgo/auth/plugin/agentauth => ../plugin/agentauth
-
-replace github.com/ubgo/auth/plugin/referral => ../plugin/referral
-
-replace github.com/ubgo/auth/plugin/access => ../plugin/access
-
-replace github.com/ubgo/auth/plugin/ldap => ../plugin/ldap
-
-replace github.com/ubgo/auth/plugin/siwe => ../plugin/siwe
-
-replace github.com/ubgo/auth/plugin/samlidp => ../plugin/samlidp
-
-replace github.com/ubgo/auth/plugin/webhook => ../plugin/webhook
