@@ -16,25 +16,25 @@ require (
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/russellhaering/gosaml2 v0.12.0
 	github.com/russellhaering/goxmldsig v1.6.1
-	github.com/ubgo/auth v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/authui v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/contrib/echo v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/contrib/fiber v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/contrib/gin v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/contrib/goth v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/contrib/otel v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/contrib/redis v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/agentauth v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/deviceauth v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/ldap v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/oauthprovider v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/oauthproxy v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/organization v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/passkey v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/password v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/referral v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/scim v0.0.0-20261014084637-dc7c057a66dd
+	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth/authui v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/contrib/echo v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/contrib/fiber v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/contrib/gin v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/contrib/goth v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/contrib/otel v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/contrib/redis v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/agentauth v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/deviceauth v0.0.0
+	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/ldap v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/oauthprovider v0.0.0
+	github.com/ubgo/auth/plugin/oauthproxy v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/organization v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/passkey v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/password v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/referral v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/scim v0.0.0-20261014081355-f7af54573304
 	github.com/ubgo/sqlb v0.1.1
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/sdk v1.38.0
@@ -120,12 +120,12 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/ubgo/auth/contrib/phonenumbers v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/access v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/samlidp v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/siwe v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/sso v0.0.0-20261014084637-dc7c057a66dd
-	github.com/ubgo/auth/plugin/webhook v0.0.0-20261014084637-dc7c057a66dd
+	github.com/ubgo/auth/contrib/phonenumbers v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/access v0.0.0
+	github.com/ubgo/auth/plugin/samlidp v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/siwe v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/sso v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/webhook v0.0.0-20261014081355-f7af54573304
 	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	modernc.org/libc v1.75.6 // indirect
