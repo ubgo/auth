@@ -17,13 +17,13 @@ module github.com/ubgo/auth/plugin/password
 go 1.24.0
 
 require (
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.0.0-20261014081355-f7af54573304
 	github.com/ubgo/sqlb v0.1.1
 	golang.org/x/crypto v0.42.0
 )
 ```
 
-Require the core at a released version. Require `github.com/ubgo/sqlb` only if the plugin builds queries or declares typed columns itself (an identifier plugin that uses only `CreateIdentity`, `IssueCode` and `Deliver` does not).
+Require the core at a released version, or, while the library has no tags, at the pseudo-version of a pushed commit that `go get github.com/ubgo/auth@latest` writes (the library's own modules do this; see [CONTRIBUTING](../../CONTRIBUTING.md#pinning-the-separate-modules)). Require `github.com/ubgo/sqlb` only if the plugin builds queries or declares typed columns itself (an identifier plugin that uses only `CreateIdentity`, `IssueCode` and `Deliver` does not).
 
 Check: `go build ./...` in the plugin's directory downloads the core and nothing you did not ask for; `go mod graph | grep -v ubgo` lists exactly the third-party modules your plugin needs.
 
@@ -112,7 +112,7 @@ From the module tooling:
 | Symptom | Cause |
 |---|---|
 | An app that imports your plugin now downloads a module it never used | The plugin requires it. Move the code that needs it into a separate module, as the library does with `plugin/password`. |
-| `go: github.com/ubgo/auth@v0.0.0: ... unknown revision v0.0.0` in a consumer | A `replace` directive hid an unreleased version during development. Require a tagged version. |
+| `go: github.com/ubgo/auth@v0.0.0: ... unknown revision v0.0.0` in a consumer | A `replace` directive hid an unreleased version during development. Require a tagged version or the pseudo-version of a pushed commit (`go get github.com/ubgo/auth@latest`). |
 
 ## Next
 

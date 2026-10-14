@@ -13,14 +13,14 @@ require (
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/ubgo/auth v0.0.0
-	github.com/ubgo/auth/authui v0.0.0
+	github.com/ubgo/auth/authui v0.0.0-20261014081355-f7af54573304
 	github.com/ubgo/auth/plugin/deviceauth v0.0.0
-	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.0.0
-	github.com/ubgo/auth/plugin/oauthproxy v0.0.0
-	github.com/ubgo/auth/plugin/organization v0.0.0
-	github.com/ubgo/auth/plugin/passkey v0.0.0
-	github.com/ubgo/auth/plugin/password v0.0.0
-	github.com/ubgo/auth/plugin/scim v0.0.0
+	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/oauthproxy v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/organization v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/passkey v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/password v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/scim v0.0.0-20261014081355-f7af54573304
 	github.com/ubgo/sqlb v0.1.1
 	modernc.org/sqlite v1.58.0
 )
@@ -55,14 +55,14 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/ubgo/auth/plugin/access v0.0.0
-	github.com/ubgo/auth/plugin/agentauth v0.0.0
-	github.com/ubgo/auth/plugin/ldap v0.0.0
+	github.com/ubgo/auth/plugin/agentauth v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/ldap v0.0.0-20261014081355-f7af54573304
 	github.com/ubgo/auth/plugin/oauthprovider v0.0.0
-	github.com/ubgo/auth/plugin/referral v0.0.0
-	github.com/ubgo/auth/plugin/siwe v0.0.0
-	github.com/ubgo/auth/plugin/samlidp v0.0.0
-	github.com/ubgo/auth/plugin/webhook v0.0.0
-	github.com/ubgo/auth/plugin/sso v0.0.0
+	github.com/ubgo/auth/plugin/referral v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/samlidp v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/siwe v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/sso v0.0.0-20261014081355-f7af54573304
+	github.com/ubgo/auth/plugin/webhook v0.0.0-20261014081355-f7af54573304
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect

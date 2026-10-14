@@ -17,6 +17,20 @@ task cover          # statement coverage, unit and integration merged, per packa
 
 `task --list` shows every other command. CI runs the same gate on GitHub Actions (`.github/workflows/test.yml`): `task check` plus the Postgres and MySQL integration suites, on every push to `main`, on every pull request and on demand. `task ci` starts a run on the pushed `main` and `task ci:status` shows the latest runs and the failing job's last log lines, so the heavy suites need not run on your machine; run the touched package's tests locally while you work.
 
+## Pinning the separate modules
+
+The repository has no version tags. Each separate module (every plugin, `authui`, every `contrib` adapter, the examples) requires the core, and any sibling module it uses, at the pseudo-version of a pushed commit, such as `github.com/ubgo/auth v0.0.0-20261014081355-f7af54573304`. Its `replace` directives keep development in the repository on the working tree; a consumer's build ignores them and resolves the pseudo-version instead. A requirement of `v0.0.0` would be "unknown revision v0.0.0" for every app that runs `go get`.
+
+After a change to the core, or to a module another one imports, is pushed:
+
+```sh
+task pin              # or: task pin REF=<sha>; the commit must be on origin/main
+git commit -am "Pin the separate modules to <short sha>"
+git push
+```
+
+`task pin` (`scripts/pin.sh`, needs `jq`) asks proxy.golang.org for the commit's pseudo-version, writes it into every requirement on `github.com/ubgo/auth` and its sub-modules, and runs `go mod tidy` in each module. The pinned commit's own `go.mod` files must already be pinned, because a sibling requirement reads them; that holds once every module has been pinned, so one run is enough. Check from outside the repository: in an empty module, `GOWORK=off GOPROXY=https://proxy.golang.org GOFLAGS=-mod=mod go get github.com/ubgo/auth/plugin/password@latest` succeeds.
+
 ## The rules a change is reviewed against
 
 **Auth code is held to a higher bar.** A broken checkout produces a support ticket in an hour; a timing leak on a login endpoint produces nothing for years and then a breach. Every comparison of a secret is constant-time, every error path is enumeration-safe in message and timing, and no feature ships without the test that would catch its absence.

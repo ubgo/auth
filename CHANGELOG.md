@@ -31,6 +31,7 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 ### Changed
 
+- Modules: every plugin, `authui`, every `contrib` adapter and the examples now require the core and their sibling modules at the pseudo-version of a pushed commit instead of `v0.0.0`, so `go get github.com/ubgo/auth/plugin/password@latest` works in an app while the repository has no tags. `task pin` (`scripts/pin.sh`) re-pins them after a core change; see CONTRIBUTING.
 - orgjwt: `orgjwt.Claims` returns `(jwt.ClaimsFunc, error)` and refuses `orgjwt.Permissions(nil)` (or a nil source) when the app starts (and returns a func that fails every token, so ignoring the error is still loud), naming the option, instead of failing every token call at request time (unreleased API).
 - [security] auth: under `WithTokenRotation`, a replaced session token presented after its grace window revokes the session for every holder and emits `session.token_reuse` at alert.
 - [security] authhttp/auth: under `WithMultiSession`, a token re-issued for the same sign-in is no longer kept as a second account cookie and no longer counts against the device cap. The re-issues covered are a refresh that changed the token, a second-factor promotion, a completed session task and a stateless reseal.

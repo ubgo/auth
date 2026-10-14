@@ -11,7 +11,7 @@ require (
 	github.com/mattermost/xml-roundtrip-validator v0.1.0
 	github.com/russellhaering/gosaml2 v0.12.0
 	github.com/russellhaering/goxmldsig v1.6.1
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.0.0-20261014081355-f7af54573304
 	modernc.org/sqlite v1.58.0
 )
 

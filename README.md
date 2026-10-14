@@ -63,7 +63,7 @@ If you want a separate identity product with an admin console and federation acr
 ## Quick start
 
 ```sh
-go get github.com/ubgo/auth github.com/ubgo/auth/plugin/password
+go get github.com/ubgo/auth@latest github.com/ubgo/auth/plugin/password@latest
 ```
 
 ```go
