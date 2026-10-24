@@ -1,0 +1,1 @@
+type OriginFunc func(origin string) bool

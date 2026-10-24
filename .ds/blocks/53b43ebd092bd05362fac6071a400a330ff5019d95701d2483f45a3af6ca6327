@@ -1,0 +1,12 @@
+func (a *Auth) EvictCachedSessions(ctx context.Context, userID string) bool {
+	d, ok := a.cache.(SessionCacheUserDropper)
+	if !ok {
+		return false
+	}
+	a.AfterCommit(ctx, func(ctx context.Context) {
+		if err := d.DropUser(ctx, userID); err != nil {
+			a.logger.Error("auth: session cache eviction failed", "user", userID, "error", err)
+		}
+	})
+	return true
+}

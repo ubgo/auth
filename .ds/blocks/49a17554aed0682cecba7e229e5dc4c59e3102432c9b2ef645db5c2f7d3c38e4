@@ -1,0 +1,16 @@
+func importWorkspace(ctx context.Context, a *auth.Auth, orgs *organization.Plugin, in ImportRequest) (organization.Org, error) {
+	var org organization.Org
+	err := a.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		var err error
+		if org, err = orgs.CreateFor(ctx, in.OwnerID, organization.CreateRequest{Name: in.Name, Slug: in.Slug}); err != nil {
+			return err
+		}
+		for _, name := range in.Projects {
+			if _, err := addProject(ctx, a, org.ID, name); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return org, err
+}

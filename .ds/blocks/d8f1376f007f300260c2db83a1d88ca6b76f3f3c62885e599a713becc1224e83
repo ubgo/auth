@@ -1,0 +1,13 @@
+func newHandler(a *auth.Auth) (http.Handler, error) {
+	pw, err := auth.PluginOf[*password.Plugin](a)
+	if err != nil {
+		return nil, err
+	}
+	withAuth := authhttp.Middleware(a, localeRule)
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authRoutes(a))
+	mux.Handle("POST "+loginPath, withAuth(login(a, pw)))
+	mux.Handle("POST "+localePath, withAuth(authhttp.RequireUser(setLocale(a))))
+	mux.Handle("GET "+mePath, withAuth(authhttp.RequireUser(me(a))))
+	return mux, nil
+}

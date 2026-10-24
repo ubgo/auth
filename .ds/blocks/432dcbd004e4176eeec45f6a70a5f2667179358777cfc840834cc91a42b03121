@@ -1,0 +1,8 @@
+func (p *workerPool) Run(ctx context.Context, task func(context.Context)) {
+	select {
+	case p.tasks <- poolTask{ctx: ctx, run: task}:
+	default:
+		p.overflow.Add(1)
+		go task(ctx)
+	}
+}

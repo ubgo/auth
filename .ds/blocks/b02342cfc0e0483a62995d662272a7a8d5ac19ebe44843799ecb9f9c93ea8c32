@@ -1,0 +1,7 @@
+type TableHooks[T any] struct {
+	BeforeCreate func(ctx context.Context, tx sqlb.DBTX, row *T) error
+	AfterCreate  func(ctx context.Context, tx sqlb.DBTX, row *T) error
+	BeforeUpdate func(ctx context.Context, tx sqlb.DBTX, old, new *T) error
+	AfterUpdate  func(ctx context.Context, tx sqlb.DBTX, old, new *T) error
+	BeforeDelete func(ctx context.Context, tx sqlb.DBTX, row *T) error
+}

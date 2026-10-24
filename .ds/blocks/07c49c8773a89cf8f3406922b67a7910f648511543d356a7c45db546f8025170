@@ -1,0 +1,1 @@
+var BetterAuthScrypt = ScryptParams{N: 16384, R: 16, P: 1, KeyLen: 64}

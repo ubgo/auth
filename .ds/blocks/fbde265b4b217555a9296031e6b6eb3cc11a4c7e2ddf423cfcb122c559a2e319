@@ -1,0 +1,3 @@
+func (p *Plugin) VerifyCode(ctx context.Context, address, code string) (VerifyResult, error) {
+	return p.verifyCode.Call(ctx, AddressCodeRequest{Email: address, Code: code})
+}

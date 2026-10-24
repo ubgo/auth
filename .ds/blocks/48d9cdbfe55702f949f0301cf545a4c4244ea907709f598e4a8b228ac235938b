@@ -1,0 +1,7 @@
+func newJWT(key ed25519.PrivateKey) *jwt.Plugin {
+	return jwt.New(
+		jwt.WithSigningKey(key),
+		jwt.Audience(audience),
+		jwt.IssueOnSession(),
+	)
+}

@@ -1,0 +1,7 @@
+func newHandler(a *auth.Auth, ag *agentauth.Plugin) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.HandleFunc("GET "+agentauth.DefaultDeviceAuthorizationPage, approvalPage)
+	mux.Handle("/", ag.Handler())
+	return mux
+}

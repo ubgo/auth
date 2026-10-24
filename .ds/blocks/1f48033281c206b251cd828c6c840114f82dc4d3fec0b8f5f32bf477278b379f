@@ -1,0 +1,4 @@
+export async function finishWithCode(code: string): Promise<boolean> {
+  const { data, error } = await auth.emailchallenge.verifyOtp({ otp: code });
+  return !error && data.state === "completed";
+}

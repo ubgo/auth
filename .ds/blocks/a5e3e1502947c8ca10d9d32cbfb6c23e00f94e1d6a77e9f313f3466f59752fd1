@@ -1,0 +1,19 @@
+func TestStale_DeletesAfterTheGraceWithAFinalMail(t *testing.T) {
+	e, _, ada := world(t)
+	e.Clock.Advance(inactiveAfter + day)
+	maintain(t, e, false)
+	e.Clock.Advance(deletionGrace - day)
+	if res := maintain(t, e, false); !idle(res) || !exists(t, e, ada) {
+		t.Fatalf("inside the grace: %v, exists %v", res, exists(t, e, ada))
+	}
+	e.Clock.Advance(2 * day)
+	if res := maintain(t, e, false); res[keyDeleted] != 1 || exists(t, e, ada) {
+		t.Fatalf("after the grace: %v, exists %v", res, exists(t, e, ada))
+	}
+	if n := len(mails(e, deletedSubject)); n != 1 {
+		t.Fatalf("%d final mails, want 1", n)
+	}
+	if res := maintain(t, e, false); !idle(res) || len(mails(e, deletedSubject)) != 1 {
+		t.Fatalf("second run after the deletion: %v, want nothing", res)
+	}
+}

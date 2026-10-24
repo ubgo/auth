@@ -1,0 +1,3 @@
+type Maintainer interface {
+	Maintain(ctx context.Context, o MaintainOptions) (map[string]int64, error)
+}

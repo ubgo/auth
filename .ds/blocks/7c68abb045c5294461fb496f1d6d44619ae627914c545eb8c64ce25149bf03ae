@@ -1,0 +1,17 @@
+func newAuth(db *sql.DB, m email.Mailer, deletion auth.AccountDeletion, extra ...auth.Option) (*auth.Auth, error) {
+	opts := []auth.Option{
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+		),
+		auth.WithUserColumns(appColumns...),
+		auth.WithProfileFields(colTimezone),
+		auth.WithMultiSession(maxDeviceAccounts),
+		auth.WithSessionArchive(),
+		auth.WithFreshWindow(freshWindow),
+		auth.WithAccountDeletion(deletion),
+	}
+	return auth.New(append(opts, extra...)...)
+}

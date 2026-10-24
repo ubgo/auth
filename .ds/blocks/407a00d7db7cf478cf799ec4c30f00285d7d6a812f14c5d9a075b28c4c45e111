@@ -1,0 +1,7 @@
+func (p *Plugin) Deliver(ctx context.Context, to auth.Identity, m auth.Message) error {
+	render := p.template
+	if t, ok := auth.PickLocale(p.localized, m.Locale); ok {
+		render = t
+	}
+	return p.sender.Send(ctx, to.Value, render(m))
+}

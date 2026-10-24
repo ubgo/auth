@@ -1,0 +1,10 @@
+type GeoLocation struct {
+	// Country is the ISO 3166-1 alpha-2 code ("DE"), upper-case, or "" when
+	// only coordinates are known.
+	Country string
+	// Latitude and Longitude are degrees, valid only when HasCoordinates.
+	Latitude, Longitude float64
+	// HasCoordinates is whether Latitude and Longitude mean anything; a
+	// country-only database leaves it false and so cannot judge travel.
+	HasCoordinates bool
+}

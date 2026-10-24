@@ -1,0 +1,19 @@
+func (p *Plugin) DeleteOrganizationKeys(ctx context.Context, orgID string) (int64, error) {
+	if orgID == "" {
+		return 0, nil
+	}
+	if p.cache != nil {
+		var hash []byte
+		var hashes [][]byte
+		if err := p.core.Each(ctx, p.core.Select().Columns(sqlb.Bind(KeyHash, &hash)).From(TableKey).
+			Where(sqlb.Eq(KeyOrganization, &orgID)), func() error { hashes = append(hashes, slices.Clone(hash)); return nil }); err != nil {
+			return 0, err
+		}
+		for _, h := range hashes {
+			if err := p.cacheDrop(ctx, h); err != nil {
+				return 0, err
+			}
+		}
+	}
+	return p.core.Exec(ctx, sqlb.NewDelete(p.core.Dialect()).From(TableKey).Where(sqlb.Eq(KeyOrganization, &orgID)))
+}

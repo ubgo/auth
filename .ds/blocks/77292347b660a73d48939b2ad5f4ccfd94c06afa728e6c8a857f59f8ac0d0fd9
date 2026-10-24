@@ -1,0 +1,16 @@
+export type UseSessionOptions = {
+  /**
+   * Ask the server again every this many milliseconds while the component is
+   * mounted, so a session revoked elsewhere (another device, an admin) leaves
+   * this tab within that time. False (the default) polls never; the session
+   * is still re-read on window focus once it is SESSION_STALE_MS old.
+   */
+  readonly refetchInterval?: number | false;
+  /** Keep polling while the tab is in the background. False by default, so a hidden tab costs nothing. */
+  readonly refetchIntervalInBackground?: boolean;
+  /**
+   * Re-read when the window regains focus: true (the default) once the
+   * session is SESSION_STALE_MS old, "always" on every focus, false never.
+   */
+  readonly refetchOnWindowFocus?: boolean | "always";
+};

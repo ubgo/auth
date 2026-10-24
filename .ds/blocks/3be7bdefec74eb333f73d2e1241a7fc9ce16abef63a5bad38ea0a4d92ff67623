@@ -1,0 +1,7 @@
+func Spotify(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "spotify", DisplayName: "Spotify", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: SpotifyAuthURL, TokenURL: SpotifyTokenURL, Scopes: []string{"user-read-email"},
+		FetchProfile: SpotifyProfile(SpotifyProfileURL),
+	}
+}

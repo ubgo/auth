@@ -1,0 +1,13 @@
+func newAuth(db *sql.DB, m email.Mailer, frozen *frozenOrgs) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			admin.New(admin.WithAuthorizer(adminAuthorizer())),
+			organization.New(organization.WithAuthorizer(orgAuthorizer(orgPolicy, frozen))),
+			apikey.New(apikey.WithPermissions(accessapikey.New(keyAccess))),
+		),
+	)
+}

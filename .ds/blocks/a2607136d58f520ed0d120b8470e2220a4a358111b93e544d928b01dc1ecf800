@@ -1,0 +1,1 @@
+export const DOMAIN_ENROLLMENT_MODES = ["manual_invitation", "automatic_invitation", "automatic_suggestion", "automatic_join"] as const;

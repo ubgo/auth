@@ -1,0 +1,16 @@
+func readAuth0Roles(r io.Reader, adminRoles []string) (map[string][]string, error) {
+	var in []auth0TenantRole
+	if err := json.NewDecoder(r).Decode(&in); err != nil {
+		return nil, fmt.Errorf("auth0 roles: want an array of roles: %w", err)
+	}
+	out := map[string][]string{}
+	for _, role := range in {
+		if !slices.ContainsFunc(adminRoles, func(n string) bool { return strings.EqualFold(n, role.Name) }) {
+			continue
+		}
+		for _, u := range role.Users {
+			out[u.UserID] = []string{admin.RoleAdmin}
+		}
+	}
+	return out, nil
+}

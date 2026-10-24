@@ -1,0 +1,19 @@
+func workspace(orgs *organization.Plugin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		active, err := orgs.Active(r.Context())
+		if err != nil {
+			authhttp.WriteError(w, err)
+			return
+		}
+		if active.OrgID == nil {
+			authhttp.WriteError(w, errNoWorkspace)
+			return
+		}
+		out := workspaceResponse{OrgID: *active.OrgID}
+		if active.TeamID != nil {
+			out.TeamID = *active.TeamID
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(out) // a client that hung up cannot be told
+	}
+}

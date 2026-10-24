@@ -1,0 +1,1 @@
+func SkipStateCookieCheck() Option { return func(p *Plugin) { p.skipStateCookie = true } }

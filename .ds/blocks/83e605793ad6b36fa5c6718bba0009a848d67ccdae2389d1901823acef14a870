@@ -1,0 +1,4 @@
+var ScriptCSPHash = func() string {
+	h := sha256.Sum256([]byte(completionScript))
+	return "'sha256-" + base64.StdEncoding.EncodeToString(h[:]) + "'"
+}()

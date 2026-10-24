@@ -1,0 +1,3 @@
+type Scannable interface {
+	Bindings() []sqlb.Binding
+}

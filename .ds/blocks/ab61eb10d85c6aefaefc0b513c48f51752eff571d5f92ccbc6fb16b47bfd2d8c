@@ -1,0 +1,23 @@
+func newApp(db *sql.DB, m email.Mailer) (*auth.Auth, *audit.Plugin, error) {
+	au := audit.New(
+		// A new account is worth a second look in this app: rank sign-ups warn.
+		audit.Severities(map[auth.EndpointID]audit.Severity{"password.sign-up": audit.SeverityWarn}),
+		// A rule that needs the whole event: the monitoring account failing
+		// to sign in is expected, so it stays info.
+		audit.SeverityFunc(func(e audit.Event, current audit.Severity) audit.Severity {
+			if !e.OK && e.Identifier == monitorAddress {
+				return audit.SeverityInfo
+			}
+			return current
+		}),
+		// The IP is stored as its /24 (or /48) network and the email's local
+		// part is masked, before the row is written.
+		audit.Redact(audit.MaskPIIRedactor),
+	)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), password.New(), au),
+	)
+	return a, au, err
+}

@@ -1,0 +1,9 @@
+func WithIDs(gen func(prefix string) (string, error)) Option {
+	return func(s *settings) {
+		if gen == nil {
+			s.refuseNil("WithIDs")
+			return
+		}
+		s.ids = gen
+	}
+}

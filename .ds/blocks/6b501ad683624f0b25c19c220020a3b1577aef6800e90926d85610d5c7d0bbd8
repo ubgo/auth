@@ -1,0 +1,9 @@
+func WithRateStore(r RateStore) Option {
+	return func(s *settings) {
+		if r == nil {
+			s.refuseNil("WithRateStore")
+			return
+		}
+		s.rateStore = r
+	}
+}

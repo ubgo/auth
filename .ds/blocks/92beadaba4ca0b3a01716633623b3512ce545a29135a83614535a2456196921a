@@ -1,0 +1,6 @@
+func (p *Plugin) SessionExtras(ctx context.Context, c *auth.Call) (any, error) {
+	if c.User == nil {
+		return nil, nil
+	}
+	return p.mine(ctx, c.User.ID)
+}

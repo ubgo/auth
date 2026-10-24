@@ -1,0 +1,16 @@
+func (p *Plugin) RequireCurrent() func(http.Handler) http.Handler {
+	return authhttp.RequireFunc(func(r *http.Request) error {
+		u, ok := auth.CurrentUser(r.Context())
+		if !ok {
+			return auth.ErrSignedOut
+		}
+		yes, err := p.Accepted(r.Context(), u.ID)
+		if err != nil {
+			return err
+		}
+		if !yes {
+			return ErrNotAccepted
+		}
+		return nil
+	})
+}

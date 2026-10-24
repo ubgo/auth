@@ -1,0 +1,10 @@
+func UserBindings(dst *Data) []sqlb.Binding {
+	empty := sqlb.Literal[string]("''")
+	notPrimary := sqlb.Literal[bool]("FALSE")
+	return []sqlb.Binding{
+		sqlb.Bind(sqlb.Coalesce(IdentityValue, empty), &dst.Number),
+		sqlb.Bind(sqlb.Coalesce(IdentityValueRaw, empty), &dst.NumberRaw),
+		sqlb.Bind(IdentityVerifiedAt, &dst.VerifiedAt),
+		sqlb.Bind(sqlb.Coalesce(IdentityIsPrimary, notPrimary), &dst.IsPrimary),
+	}
+}

@@ -1,0 +1,3 @@
+func RenameTable(t sqlb.Table, realName string) Option {
+	return func(s *settings) { s.tableRenames = append(s.tableRenames, tableRename{table: t, real: realName}) }
+}

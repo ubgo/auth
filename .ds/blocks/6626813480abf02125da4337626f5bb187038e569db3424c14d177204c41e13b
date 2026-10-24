@@ -1,0 +1,15 @@
+func DeploymentURL(getenv func(string) string, fallback string) string {
+	for _, name := range vendorURLVars {
+		v := strings.TrimSpace(getenv(name))
+		if v == "" {
+			continue
+		}
+		if name == "VERCEL_URL" && !strings.Contains(v, "://") {
+			v = "https://" + v
+		}
+		if u, err := url.Parse(v); err == nil && u.IsAbs() && u.Host != "" && (u.Scheme == "https" || u.Scheme == "http") {
+			return strings.TrimSuffix(v, "/")
+		}
+	}
+	return fallback
+}

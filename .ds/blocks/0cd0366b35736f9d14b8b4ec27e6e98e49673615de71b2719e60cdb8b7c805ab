@@ -1,0 +1,3 @@
+func WithAccountDeletion(d AccountDeletion) Option {
+	return func(s *settings) { s.accountDeletion, s.accountDeletionOn = d, true }
+}

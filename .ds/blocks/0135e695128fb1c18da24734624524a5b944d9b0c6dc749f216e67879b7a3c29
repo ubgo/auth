@@ -1,0 +1,11 @@
+func meHandler(a *auth.Auth) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var u appUser
+		if err := a.LoadUser(r.Context(), authhttp.MustUser(r).ID, &u); err != nil {
+			authhttp.WriteError(w, err)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(meResponse{ID: u.ID, PrimaryEmail: u.PrimaryEmail, ReferralCode: u.ReferralCode}) // a client that hung up cannot be told
+	})
+}

@@ -1,0 +1,1 @@
+func (p *Plugin) Requires() []string { return []string{password.PluginName, email.PluginName} }

@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "With the core gaps closed, the owner chose to build all remaining areas: organizations, teams, roles, permissions and access control (org checklist); SSO (OIDC and SAML), SCIM, device authorization, OAuth proxy and popup; and acting as an OAuth/OIDC provider (oauth-provider, MCP, CIMD, agent auth). Each ships as its own module (module rule), opt-in, matching shape. This reverses the 2026-10-02 out-of-scope decision.",
+  "confidence": null,
+  "created_at": "2026-10-07T07:56:10.809409000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a1155ce0b9764d9794eaad8b622d08",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Owner 2026-10-07: organizations/roles, enterprise sign-in and OAuth provider are now in scope",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-07T07:56:10.809409000Z"
+}

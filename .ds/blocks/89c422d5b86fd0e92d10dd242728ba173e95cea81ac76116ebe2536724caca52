@@ -1,0 +1,3 @@
+func WithSecret(current []byte, previous ...[]byte) Option {
+	return func(s *settings) { s.cfg.secrets, s.secretSet = append([][]byte{current}, previous...), true }
+}

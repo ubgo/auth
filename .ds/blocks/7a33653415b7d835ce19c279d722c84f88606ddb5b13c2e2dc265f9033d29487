@@ -1,0 +1,14 @@
+func envOptions(lookup func(string) (string, bool)) ([]auth.Option, error) {
+	opts, err := auth.EnvOptions(lookup)
+	if err != nil {
+		return nil, err
+	}
+	for _, name := range auth.EnvVars {
+		state := "default"
+		if _, ok := lookup(name); ok {
+			state = "set"
+		}
+		log.Printf("config %s: %s", name, state) // never the value: AUTH_SECRET is one of them
+	}
+	return opts, nil
+}

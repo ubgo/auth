@@ -1,0 +1,22 @@
+type SecurityKeyStore interface {
+	// BeginSecurityKeyRegistration starts registering a key for u;
+	// attachment is "platform", "cross-platform" or "" for either.
+	BeginSecurityKeyRegistration(ctx context.Context, u auth.User, attachment string) (SecurityKeyChallenge, error)
+	// FinishSecurityKeyRegistration verifies the attestation of a ceremony
+	// begun for userID and stores the key.
+	FinishSecurityKeyRegistration(ctx context.Context, userID string, in SecurityKeyRegistration) (SecurityKey, error)
+	// BeginSecurityKeyAssertion starts an assertion naming userID's keys.
+	BeginSecurityKeyAssertion(ctx context.Context, userID string) (SecurityKeyChallenge, error)
+	// FinishSecurityKeyAssertion is nil only for a valid assertion, by one
+	// of userID's keys, of a ceremony begun for userID and not used before.
+	// Every refusal is ErrSecurityKeyInvalid; any other error is a failure
+	// of the server and is not counted against the user.
+	FinishSecurityKeyAssertion(ctx context.Context, userID string, in SecurityKeyResponse) error
+	// SecurityKeys lists userID's keys, oldest first; never nil.
+	SecurityKeys(ctx context.Context, userID string) ([]SecurityKey, error)
+	// RemoveSecurityKey deletes one of userID's keys; an id that is not
+	// theirs is ErrFactorNotFound.
+	RemoveSecurityKey(ctx context.Context, userID, id string) error
+	// RemoveSecurityKeys deletes every key of userID.
+	RemoveSecurityKeys(ctx context.Context, userID string) error
+}

@@ -1,0 +1,3 @@
+func (p *Plugin) TokenHandler(opts ...authhttp.Option) http.Handler {
+	return p.rfcHandler(p.token, opts)
+}

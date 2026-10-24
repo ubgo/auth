@@ -1,0 +1,21 @@
+function Account() {
+  const { user } = useSession()
+  const { signOut } = useSessionActions()
+  const message = useErrorMessage()
+  const [error, setError] = useState<AuthError | null>(null)
+
+  // redirectTo null: stay on this page; SignedOut renders once the cache
+  // says nobody is signed in. Everywhere goes to paths.afterSignOut.
+  const here = async () => setError(await signOut({ redirectTo: null }))
+  const everywhere = async () => setError(await signOut({ everywhere: true }))
+
+  return (
+    <section aria-labelledby="account">
+      <h2 id="account">Signed in as {user?.name}</h2>
+      <button type="button" onClick={here}>Sign out</button>
+      <button type="button" onClick={everywhere}>Sign out everywhere</button>
+      {error && <p role="alert">{message(error)}</p>}
+      <Rename />
+    </section>
+  )
+}

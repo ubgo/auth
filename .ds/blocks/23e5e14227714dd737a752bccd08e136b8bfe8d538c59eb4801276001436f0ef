@@ -1,0 +1,13 @@
+func WithDBAuto(db *sql.DB) Option {
+	return func(s *settings) {
+		s.db = db
+		ctx, cancel := context.WithTimeout(context.Background(), DetectTimeout)
+		defer cancel()
+		d, err := DetectDialect(ctx, db)
+		if err != nil {
+			s.optErrs.JoinOptionErr(fmt.Errorf("auth.WithDBAuto: %w", err))
+			return
+		}
+		s.cfg.Dialect = d
+	}
+}

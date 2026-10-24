@@ -1,0 +1,4 @@
+func ScopeFrom(ctx context.Context) (string, bool) {
+	s, ok := ctx.Value(scopeKey{}).(string)
+	return s, ok && s != ""
+}

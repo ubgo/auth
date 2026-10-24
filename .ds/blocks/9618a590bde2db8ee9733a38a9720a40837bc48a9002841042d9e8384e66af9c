@@ -1,0 +1,16 @@
+type Event struct {
+	ID             string          `json:"id"`
+	At             time.Time       `json:"at"`
+	Op             auth.EndpointID `json:"op"`
+	Plugin         string          `json:"plugin"`
+	Transport      auth.Transport  `json:"transport"`
+	OK             bool            `json:"ok"`
+	Code           string          `json:"code,omitempty"`
+	ActorID        string          `json:"actorId,omitempty"`
+	SessionID      string          `json:"sessionId,omitempty"`
+	SubjectID      string          `json:"subjectId,omitempty"`
+	ImpersonatorID string          `json:"impersonatorId,omitempty"`
+	Identifier     string          `json:"identifier,omitempty"`
+	IP             string          `json:"ip,omitempty"`
+	UserAgent      string          `json:"userAgent,omitempty"`
+}

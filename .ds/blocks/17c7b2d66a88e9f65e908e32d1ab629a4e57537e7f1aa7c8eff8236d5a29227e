@@ -1,0 +1,4 @@
+type botbox struct {
+	mu   sync.Mutex
+	sent map[string][]string
+}

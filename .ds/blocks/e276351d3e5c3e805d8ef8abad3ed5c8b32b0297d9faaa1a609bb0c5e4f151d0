@@ -1,0 +1,17 @@
+func (a *Auth) MigrationStatus(ctx context.Context) ([]MigrationState, error) {
+	ms, conn, err := a.migrationConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	applied, err := readLedger(ctx, conn, a.Engine())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]MigrationState, 0, len(ms))
+	for _, m := range ms {
+		sum, ok := applied[m.Owner+"/"+m.Name]
+		out = append(out, MigrationState{Owner: m.Owner, Name: m.Name, Applied: ok, Changed: ok && sum != m.Checksum()})
+	}
+	return out, nil
+}

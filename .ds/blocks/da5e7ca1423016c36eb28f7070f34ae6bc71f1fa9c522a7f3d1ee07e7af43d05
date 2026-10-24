@@ -1,0 +1,7 @@
+func Naver(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "naver", DisplayName: "Naver", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: NaverAuthURL, TokenURL: NaverTokenURL,
+		FetchProfile: NaverProfile(NaverProfileURL),
+	}
+}

@@ -1,0 +1,10 @@
+export async function reauthenticateWith(provider: string): Promise<string | null> {
+  const here = location.pathname + location.search;
+  const { data, error } = await auth.oauth.reauthenticate({ provider, returnTo: here, errorTo: here });
+  if (error) {
+    // oauth.reauth_not_linked: no account of this user at that provider.
+    return error.message;
+  }
+  location.assign(data.url);
+  return null;
+}

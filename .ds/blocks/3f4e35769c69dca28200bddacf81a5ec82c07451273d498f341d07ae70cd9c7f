@@ -1,0 +1,1 @@
+func DeleteSpentKeys() Option { return func(p *Plugin) { p.deleteSpent = true } }

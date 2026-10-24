@@ -1,0 +1,8 @@
+func newHandler(a *auth.Auth) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix), authhttp.Health(),
+		authhttp.OpenAPI(authhttp.OpenAPIInfo{Title: appName, Version: "1", Servers: []string{baseURL}})))
+	mux.Handle("GET "+homePath+"{$}", authhttp.Middleware(a)(http.HandlerFunc(home)))
+	mux.Handle("/", authui.Handler(a, authui.AppName(appName), authui.AfterSignIn(homePath)))
+	return mux
+}

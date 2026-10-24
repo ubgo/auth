@@ -1,0 +1,1 @@
+	ErrAuthenticatorNotAllowed = auth.NewError("passkey.authenticator_not_allowed", http.StatusForbidden, "This kind of passkey is not accepted here. Use another one.")

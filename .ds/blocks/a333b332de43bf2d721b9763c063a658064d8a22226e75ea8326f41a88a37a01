@@ -1,0 +1,4 @@
+export async function handoffToken(): Promise<string | null> {
+  const { data } = await auth.handoff.generate();
+  return data?.token ?? null;
+}

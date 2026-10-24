@@ -1,0 +1,3 @@
+func DefaultLink(base string, purpose auth.Purpose, t auth.Token) string {
+	return base + defaultPages[purpose] + "?token=" + url.QueryEscape(t.Reveal())
+}

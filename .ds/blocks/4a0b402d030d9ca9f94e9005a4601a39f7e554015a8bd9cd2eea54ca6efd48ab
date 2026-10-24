@@ -1,0 +1,1 @@
+func notify() auth.Option { return auth.WithUnknownDeviceNotification() }

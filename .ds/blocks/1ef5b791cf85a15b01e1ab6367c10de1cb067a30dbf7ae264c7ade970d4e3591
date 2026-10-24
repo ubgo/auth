@@ -1,0 +1,13 @@
+type SecondaryStorage interface {
+	// Get returns the value under key and true, or false when there is none
+	// or it expired. An error is a failure of the store, not a miss.
+	Get(ctx context.Context, key string) (string, bool, error)
+	// Set stores value under key for ttl (0: no expiry), replacing any.
+	Set(ctx context.Context, key, value string, ttl time.Duration) error
+	// Delete removes key; an absent key is no error.
+	Delete(ctx context.Context, key string) error
+	// Increment adds one to the counter under key and returns the new value,
+	// atomically. An absent key starts at 1 and expires ttl later; later
+	// increments never extend that, so the counter is a fixed window.
+	Increment(ctx context.Context, key string, ttl time.Duration) (int64, error)
+}

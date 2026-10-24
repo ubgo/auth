@@ -1,0 +1,46 @@
+func New(opts ...Option) (*Gate, error) {
+	g := &Gate{
+		providers: map[string]oauth.Provider{},
+		prefix:    DefaultPrefix,
+		lifetime:  DefaultSessionLifetime,
+		hc:        &http.Client{Timeout: oauth.DefaultHTTPTimeout},
+		logger:    slog.Default(),
+		now:       time.Now,
+	}
+	for _, o := range opts {
+		o(g)
+	}
+	if g.optionErr != nil {
+		return nil, g.optionErr
+	}
+	if len(g.order) == 0 {
+		return nil, ErrNoProviders
+	}
+	for _, name := range g.order {
+		if err := oauth.ValidateProvider(g.providers[name]); err != nil {
+			return nil, fmt.Errorf("authgate: %w", err)
+		}
+	}
+	if len(g.rules) == 0 && !g.allowAnyone {
+		return nil, ErrNoRule
+	}
+	base, err := checkBaseURL(g.baseURL)
+	if err != nil {
+		return nil, err
+	}
+	g.baseURL = base
+	if g.prefix != "" && !isLocalPath(g.prefix) {
+		return nil, fmt.Errorf("%w: Prefix %q is not a path", ErrBadOption, g.prefix)
+	}
+	keys, err := auth.DeriveSecretKeys(auth.KeyLabelAuthGate, g.secrets...)
+	if err != nil {
+		return nil, fmt.Errorf("authgate: WithSecret: %w", err)
+	}
+	// NewKeyRing fails only for a key that is not SealKeySize bytes, and
+	// DeriveSecretKeys returns exactly that size.
+	if g.ring, err = auth.NewKeyRing(keys[0], keys[1:]...); err != nil {
+		return nil, err
+	}
+	g.secrets = nil
+	return g, nil
+}

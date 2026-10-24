@@ -1,0 +1,4 @@
+export async function signInAs(methods: Methods<PasswordOps>, identifier: string, secret: string): Promise<string | null> {
+  const { data } = await methods.signIn({ identifier, password: secret });
+  return data?.user.name ?? null;
+}

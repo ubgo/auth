@@ -1,0 +1,7 @@
+[
+  {"id": "org_2abcDEF", "name": "Initech", "slug": "initech", "created_by": "user_2def",
+   "memberships": [
+     {"role": "org:admin", "public_user_data": {"user_id": "user_2def"}},
+     {"role": "org:billing", "public_user_data": {"user_id": "user_2abc"}}
+   ]}
+]

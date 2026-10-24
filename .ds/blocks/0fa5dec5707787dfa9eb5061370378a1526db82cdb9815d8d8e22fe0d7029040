@@ -1,0 +1,47 @@
+func Handler(a *auth.Auth, opts ...Option) http.Handler {
+	cfg := newConfig(opts)
+	routes := map[string]map[string]http.Handler{}
+	for _, op := range a.Operations() {
+		path := cfg.prefix + op.Route()
+		if routes[path] == nil {
+			routes[path] = map[string]http.Handler{}
+		}
+		routes[path][MethodOf(op.Info().Kind)] = serveOp(a, op, cfg)
+	}
+	if cfg.health {
+		routes[cfg.prefix+HealthPath] = map[string]http.Handler{http.MethodGet: http.HandlerFunc(serveHealth)}
+	}
+	if cfg.openapi != nil {
+		// Built once: the operation list is fixed for the life of the Auth.
+		routes[cfg.prefix+OpenAPIPath] = map[string]http.Handler{http.MethodGet: serveOpenAPI(marshalOpenAPI(buildOpenAPI(a, *cfg.openapi, cfg)))}
+	}
+	if cfg.reference != nil {
+		if cfg.openapi == nil {
+			panic("authhttp: Reference needs OpenAPI: the page renders the document OpenAPI serves")
+		}
+		routes[cfg.prefix+ReferencePath] = map[string]http.Handler{http.MethodGet: serveReference(cfg)}
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if cfg.lenientPaths && len(path) > 1 && strings.HasSuffix(path, "/") {
+			path = strings.TrimSuffix(path, "/")
+		}
+		byMethod, ok := routes[path]
+		if !ok {
+			WriteError(w, auth.ErrUnknownOperation)
+			return
+		}
+		h, ok := byMethod[r.Method]
+		if !ok {
+			allowed := make([]string, 0, len(byMethod))
+			for m := range byMethod {
+				allowed = append(allowed, m)
+			}
+			sort.Strings(allowed)
+			w.Header().Set(headerAllow, strings.Join(allowed, ", "))
+			WriteError(w, ErrMethodNotAllowed)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}

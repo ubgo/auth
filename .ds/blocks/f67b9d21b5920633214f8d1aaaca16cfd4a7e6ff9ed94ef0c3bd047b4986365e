@@ -1,0 +1,10 @@
+export const traced = createAuthClient({
+  baseURL: "/auth",
+  plugins: [password()],
+  onRequest: ({ headers }) => {
+    headers.set("X-Request-Id", crypto.randomUUID());
+  },
+  onError: ({ op, error }) => {
+    if (error.code !== "auth.signed_out") console.warn(op.id, error.code, error.rawCode);
+  },
+});

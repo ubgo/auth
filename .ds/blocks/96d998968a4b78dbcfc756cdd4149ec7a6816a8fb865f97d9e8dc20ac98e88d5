@@ -1,0 +1,17 @@
+func (a *Auth) Maintain(ctx context.Context, o MaintainOptions) (SweepResult, error) {
+	out := SweepResult{}
+	for _, p := range a.plugins {
+		m, ok := p.(Maintainer)
+		if !ok {
+			continue
+		}
+		counters, err := m.Maintain(ctx, o)
+		for k, v := range counters {
+			out[p.Name()+"."+k] = v
+		}
+		if err != nil {
+			return out, fmt.Errorf("auth: maintain %s: %w", p.Name(), err)
+		}
+	}
+	return out, nil
+}

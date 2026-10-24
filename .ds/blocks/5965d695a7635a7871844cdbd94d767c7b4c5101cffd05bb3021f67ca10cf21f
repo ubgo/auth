@@ -1,0 +1,17 @@
+func Example_policyAuthorizer() {
+	authz := policyAuthorizer{lines: [][3]string{
+		{"admin", admin.ResourceUser, admin.ActionBan},
+		{"admin", admin.ResourceUser, admin.ActionGet},
+		{"support", admin.ResourceUser, admin.ActionGet},
+	}}
+	p := admin.New(admin.WithAuthorizer(authz))
+
+	ctx := context.Background()
+	fmt.Println(p.CheckRolePermission(ctx, "support", admin.Permissions{admin.ResourceUser: {admin.ActionGet}}))
+	fmt.Println(p.CheckRolePermission(ctx, "support", admin.Permissions{admin.ResourceUser: {admin.ActionBan}}))
+	fmt.Println(p.CheckRolePermission(ctx, "support,admin", admin.Permissions{admin.ResourceUser: {admin.ActionBan}}))
+	// Output:
+	// true
+	// false
+	// true
+}

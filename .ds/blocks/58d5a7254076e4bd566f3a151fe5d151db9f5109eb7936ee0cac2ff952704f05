@@ -1,0 +1,78 @@
+func TestP3CommunityReferral(t *testing.T) {
+	eachEngine(t, func(t *testing.T, e *env) {
+		var completed, signedUp atomic.Int32
+		em, pw := e.emailPlugin(), e.passwordPlugin()
+		rf := referral.New(referral.Steps("first_purchase"),
+			referral.AfterSignUp(func(context.Context, referral.Event) { signedUp.Add(1) }),
+			referral.AfterCompleted(func(_ context.Context, ev referral.Event) {
+				if ev.Referrer.Name == "Alice" {
+					completed.Add(1)
+				}
+			}))
+		a := e.newAuth(t, nil, em, pw, rf)
+		owner := signUpVerified(t, e, a, pw, em)
+		me := p3SessionFor(t, a, owner.User.ID)
+		dash := must[referral.Dashboard](t)(rf.MyDashboard(me))
+		if len(dash.Code) != referral.CodeLength || dash.Stats.Total != 0 {
+			t.Fatalf("dashboard = %+v", dash)
+		}
+
+		if _, err := p3SignUp(a, pw, "mallory@example.com", "", map[string]string{referral.ReferralHeader: "ZZZZZZZZ"}, nil); !errors.Is(err, referral.ErrInvalidCode) {
+			t.Fatalf("a code naming nobody: %v", err)
+		}
+		if _, err := p3SignUp(a, pw, "bob@example.com", "Bob", map[string]string{referral.ReferralHeader: " " + dash.Code + " "}, nil); err != nil {
+			t.Fatal(err)
+		}
+		if err := rf.Remember(anon(a), "nope"); !errors.Is(err, referral.ErrInvalidCode) {
+			t.Fatalf("remember a bad code: %v", err)
+		}
+		if err := rf.Remember(anon(a), dash.Code); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := p3SignUp(a, pw, "carol@example.com", "Carol", nil, map[string]string{referral.CookieName: dash.Code}); err != nil {
+			t.Fatal(err)
+		}
+		bob := p3UserID(t, a, "bob@example.com")
+		res := must[referral.StepResult](t)(rf.MarkStep(context.Background(), bob, "first_purchase", map[string]string{"order": "o-1"}))
+		if res.AlreadyCompleted || res.Status != referral.StatusCompleted || !res.Progress.IsCompleted {
+			t.Fatalf("step = %+v", res)
+		}
+		again := must[referral.StepResult](t)(rf.MarkStep(context.Background(), bob, "first_purchase", nil))
+		if !again.AlreadyCompleted {
+			t.Fatalf("repeat step = %+v", again)
+		}
+		if _, err := rf.MarkStep(context.Background(), bob, "made_up", nil); !errors.Is(err, referral.ErrUnknownStep) {
+			t.Fatalf("unknown step: %v", err)
+		}
+		if _, err := rf.MarkStep(context.Background(), owner.User.ID, "first_purchase", nil); !errors.Is(err, referral.ErrNotFound) {
+			t.Fatalf("a user nobody referred: %v", err)
+		}
+		a.WaitDeliveries()
+		if completed.Load() != 1 || signedUp.Load() != 2 {
+			t.Fatalf("callbacks: completed %d signed-up %d", completed.Load(), signedUp.Load())
+		}
+
+		dash = must[referral.Dashboard](t)(rf.MyDashboard(me))
+		if dash.Stats != (referral.Stats{Total: 2, Completed: 1, Pending: 1, JoinedToday: 2}) {
+			t.Fatalf("stats = %+v", dash.Stats)
+		}
+		l := must[referral.ListResult](t)(rf.List(me, referral.ListRequest{}))
+		if l.Total != 2 || len(l.Referrals) != 2 {
+			t.Fatalf("list = %+v", l)
+		}
+		for _, r := range l.Referrals {
+			switch r.ReferredUser.Name {
+			case "Bob":
+				if r.ReferredUser.Email != "b***@example.com" || r.Status != referral.StatusCompleted || r.CompletedAt == nil {
+					t.Fatalf("bob's row = %+v", r)
+				}
+			case "Carol":
+				if r.Status != referral.StatusPending || len(r.Progress.RemainingSteps) != 1 {
+					t.Fatalf("carol's row = %+v", r)
+				}
+			default:
+				t.Fatalf("row = %+v", r)
+			}
+		}
+	})
+}

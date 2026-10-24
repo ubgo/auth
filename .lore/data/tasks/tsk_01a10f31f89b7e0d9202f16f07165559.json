@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim, via lead r11-oauth brief):\n  Build these six (owner decisions 2026-10-05/06): 1. Logout provider choice as a parameter (general logout route taking provider, same code path and returnTo validation). 2. Provider display names: DisplayName on providers + GET /auth/oauth/providers. 3. Discovery fallback: static endpoints used ONLY when discovery is unreachable; logged. 4. oauth.SkipBrokenProviders() opt-in. 5. OAuth2.GetToken hook replacing the code exchange. 6. oauth.AllowProviderInitiated() per-provider opt-in for IdP-initiated sign-in (OIDC only, ID token fully verified, never auto-linked, fresh sign-in, risk documented).\n\nContext:\n  Files: plugin/oauth/*, docs/plugins/oauth.md, the tokens checklist, providers.md\nAcceptance:\n  Unit tests per new function/behaviour, integration on SQLite/Postgres/MySQL where DB involved, each proven by breaking; checklist rows updated with owner markers; task check, staticcheck, task cover green.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-06T03:42:27.561513000Z",
+  "created_at": "2026-10-06T03:11:35.579918000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a10f31f89b7e0d9202f16f07165559",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-06T03:11:38.649935000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "oauth: six owner-decided feature builds (logout provider param, display names, discovery fallback, SkipBrokenProviders, GetToken, AllowProviderInitiated)",
+  "updated_at": "2026-10-06T03:42:27.561529000Z"
+}

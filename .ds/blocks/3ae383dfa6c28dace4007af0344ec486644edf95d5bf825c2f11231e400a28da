@@ -1,0 +1,16 @@
+func RequireUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := auth.CurrentUser(r.Context()); !ok {
+			// A session with tasks pending is signed in but not usable:
+			// 403 auth.session_task_pending tells the client to finish
+			// them (GET /session lists them) rather than to sign in.
+			if tasks := auth.CurrentSessionTasks(r.Context()); len(tasks) > 0 {
+				WriteErrorFor(w, r, &auth.SessionTaskError{Tasks: tasks})
+				return
+			}
+			WriteErrorFor(w, r, auth.ErrSignedOut)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}

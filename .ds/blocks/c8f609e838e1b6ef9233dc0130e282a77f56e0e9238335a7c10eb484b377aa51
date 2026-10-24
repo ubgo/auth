@@ -1,0 +1,18 @@
+func TestGuard_NoForeignKeys(t *testing.T) {
+	for path, f := range sourceFiles(t, ".") {
+		ast.Inspect(f, func(n ast.Node) bool {
+			lit, ok := n.(*ast.BasicLit)
+			if !ok || lit.Kind != token.STRING {
+				return true
+			}
+			s, err := strconv.Unquote(lit.Value)
+			if err != nil {
+				return true
+			}
+			if foreignKeyWords.MatchString(s) {
+				t.Errorf("%s: statement text %q spells a foreign key or cascade; the library creates none (ADR-0002), list the table in UserTables instead", path, s)
+			}
+			return true
+		})
+	}
+}

@@ -1,0 +1,18 @@
+type ReauthenticateRequest struct {
+	// Provider is the provider to confirm with; the user must have an
+	// account linked there.
+	Provider string `json:"provider"`
+	// ReturnTo is where the callback lands, with ParamReauth added: the page
+	// that asked, so it can rerun the refused action. Same rules as
+	// StartRequest.ReturnTo; empty is the site root.
+	ReturnTo string `json:"returnTo,omitempty"`
+	// ErrorTo is where a refused callback lands with `?error=<code>`; empty
+	// takes ReturnTo, so the user comes back to the page that asked.
+	ErrorTo string `json:"errorTo,omitempty"`
+	// Prompt is forwarded to a ParamsProvider ("login" asks the provider to
+	// sign the person in again rather than answer from its own session).
+	Prompt string `json:"prompt,omitempty"`
+	// LoginHint pre-fills the account at a ParamsProvider. Empty takes the
+	// address of the user's linked account there when there is exactly one.
+	LoginHint string `json:"loginHint,omitempty"`
+}

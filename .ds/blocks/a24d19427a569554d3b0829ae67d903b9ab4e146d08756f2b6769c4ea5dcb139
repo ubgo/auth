@@ -1,0 +1,3 @@
+type Sender interface {
+	Send(ctx context.Context, handle, text string) error
+}

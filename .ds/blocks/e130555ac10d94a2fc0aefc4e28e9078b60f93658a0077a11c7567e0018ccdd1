@@ -1,0 +1,1 @@
+func GenerateCode(fn CodeGenerator) Option { return func(p *Plugin) { p.genCode = fn } }

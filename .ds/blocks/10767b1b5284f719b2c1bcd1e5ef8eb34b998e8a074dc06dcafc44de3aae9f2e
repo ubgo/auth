@@ -1,0 +1,4 @@
+export async function secondFactor(code: string): Promise<boolean> {
+  const { error } = await auth.twofactor.verify({ code, trustDevice: true });
+  return error === null;
+}

@@ -1,0 +1,13 @@
+func (p *Plugin) CreateFor(ctx context.Context, userID string, in CreateRequest, l Limits) (CreateResult, error) {
+	s, ok := p.config(in.Config)
+	if !ok {
+		return CreateResult{}, ErrUnknownConfig
+	}
+	if err := l.validate(); err != nil {
+		return CreateResult{}, err
+	}
+	if _, err := p.core.User(ctx, userID); err != nil {
+		return CreateResult{}, err
+	}
+	return p.mint(ctx, s, userID, in, l, true)
+}

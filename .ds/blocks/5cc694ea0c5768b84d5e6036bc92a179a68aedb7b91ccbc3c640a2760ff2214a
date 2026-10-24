@@ -1,0 +1,3 @@
+func WithServerContext(fn ServerContextFunc) Option {
+	return func(p *Plugin) { p.serverContext = append(p.serverContext, fn) }
+}

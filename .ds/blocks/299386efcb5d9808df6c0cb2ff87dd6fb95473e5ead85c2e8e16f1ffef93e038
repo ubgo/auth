@@ -1,0 +1,18 @@
+export function App() {
+  return (
+    <AuthProvider client={client} baseURL={BASE_URL} paths={PATHS} localization={LOCALIZATION}>
+      <h1>React hooks, no components</h1>
+      {hasFlag(SIGNED_OUT_FLAG) && <p role="status">You were signed out on every device.</p>}
+      {hasFlag(SECOND_FACTOR_FLAG) && <p role="status">This account has a second factor: an app renders its challenge page here.</p>}
+      <SignedIn fallback={<p className="muted">Checking your session…</p>}>
+        <Account />
+      </SignedIn>
+      <SignedOut>
+        <PasswordSignIn />
+        <OAuthButtons />
+        <MagicLink />
+        <PasskeySupport />
+      </SignedOut>
+    </AuthProvider>
+  )
+}

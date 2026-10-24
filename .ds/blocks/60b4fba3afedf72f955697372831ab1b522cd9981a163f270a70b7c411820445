@@ -1,0 +1,14 @@
+func newUUIDv7(_ string) (string, error) {
+	var b [uuidSize]byte
+	if _, err := rand.Read(b[uuidTimeBytes:]); err != nil {
+		return "", fmt.Errorf("uuidv7: %w", err)
+	}
+	var ms [millisBytes]byte
+	binary.BigEndian.PutUint64(ms[:], uint64(time.Now().UnixMilli()))
+	copy(b[:uuidTimeBytes], ms[millisBytes-uuidTimeBytes:])
+	b[uuidVersionByte] = uuidVersion7 | b[uuidVersionByte]&lowNibble
+	b[uuidVariantByte] = uuidVariantRFC | b[uuidVariantByte]&lowSixBits
+	h := hex.EncodeToString(b[:])
+	// The text form groups the 32 hex digits 8-4-4-4-12.
+	return h[0:8] + "-" + h[8:12] + "-" + h[12:16] + "-" + h[16:20] + "-" + h[20:32], nil
+}

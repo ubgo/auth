@@ -1,0 +1,15 @@
+func desktopDocument(t *testing.T, clientID string) string {
+	t.Helper()
+	doc, err := json.Marshal(metadataDocument{ClientID: clientID, ClientMetadata: oauthprovider.ClientMetadata{
+		Name:            "Desktop agent",
+		RedirectURIs:    []string{clientRedirect},
+		ApplicationType: applicationNative,
+		AuthMethod:      oauthprovider.AuthMethodNone,
+		GrantTypes:      []string{oauthprovider.GrantAuthorizationCode},
+		ResponseTypes:   []string{responseCode},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(doc)
+}

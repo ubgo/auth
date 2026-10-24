@@ -1,0 +1,10 @@
+type Organizations interface {
+	// Role returns userID's role in orgID; ok is false when the user is not
+	// a member.
+	Role(ctx context.Context, orgID, userID string) (role string, ok bool, err error)
+	// BySlug returns the id of the organization with slug; ok is false
+	// when there is none.
+	BySlug(ctx context.Context, slug string) (orgID string, ok bool, err error)
+	// AddMember adds userID to orgID with role.
+	AddMember(ctx context.Context, orgID, userID, role string) error
+}

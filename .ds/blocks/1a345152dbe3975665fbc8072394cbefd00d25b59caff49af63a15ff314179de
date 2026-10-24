@@ -1,0 +1,9 @@
+func DecodeSessionData[T any](d AppData) (v T, ok bool, err error) {
+	if len(d) == 0 {
+		return v, false, nil
+	}
+	if err := json.Unmarshal(d, &v); err != nil {
+		return v, false, fmt.Errorf("auth: decode session data: %w", err)
+	}
+	return v, true, nil
+}

@@ -1,0 +1,8 @@
+type SessionTasker interface {
+	// SessionTasks declares every task the plugin may require, once at New.
+	SessionTasks() []SessionTask
+	// SessionTasksFor returns the tasks the session being created for in
+	// must complete, from those SessionTasks declared; none for a session
+	// that is usable at once. An error fails the sign-in.
+	SessionTasksFor(ctx context.Context, in SignInAttempt) ([]SessionTaskID, error)
+}

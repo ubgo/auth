@@ -1,0 +1,4 @@
+type TokenResult struct {
+	Token     string    `json:"token"`
+	ExpiresAt time.Time `json:"expiresAt"`
+}

@@ -1,0 +1,7 @@
+func (x *app) handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(x.auth, authhttp.Prefix(authPrefix)))
+	mux.HandleFunc("GET "+invite.DefaultPage, invitePage)
+	mux.Handle("GET /me", authhttp.Middleware(x.auth)(authhttp.RequireUser(http.HandlerFunc(x.me))))
+	return mux
+}

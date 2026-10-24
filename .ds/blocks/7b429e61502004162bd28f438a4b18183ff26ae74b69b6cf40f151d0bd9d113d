@@ -1,0 +1,3 @@
+type Tracer interface {
+	Start(ctx context.Context, s SpanInfo) (context.Context, Span)
+}

@@ -1,0 +1,3 @@
+func Cognito(region, userPoolID, clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("cognito", fmt.Sprintf(cognitoIssuerFormat, region, userPoolID), clientID, clientSecret), "Amazon Cognito")
+}

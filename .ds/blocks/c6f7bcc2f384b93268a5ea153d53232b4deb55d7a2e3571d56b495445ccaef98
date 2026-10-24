@@ -1,0 +1,13 @@
+type Profile struct {
+	// Subject is the provider's stable id for the person. Never the email,
+	// which the person can change at the provider.
+	Subject string
+	Email   string
+	// EmailVerified is the provider's claim that the person controls Email.
+	// Only a verified claim can link to an existing account.
+	EmailVerified bool
+	Name          string
+	Image         string
+	// Tokens are the provider's tokens, kept only with StoreTokens.
+	Tokens TokenSet
+}

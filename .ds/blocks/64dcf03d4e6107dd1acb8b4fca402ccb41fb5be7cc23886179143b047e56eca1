@@ -1,0 +1,8 @@
+func AllowKeyPrefix(max int) Option {
+	return func(p *Plugin) {
+		if max == 0 {
+			max = maxKeyPrefixLength
+		}
+		p.keyPrefixMax = max
+	}
+}

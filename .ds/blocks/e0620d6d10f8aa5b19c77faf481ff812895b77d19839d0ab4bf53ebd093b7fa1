@@ -1,0 +1,7 @@
+func (a *Auth) SendVerification(ctx context.Context, to Identity) error {
+	s, ok := a.kindOwner[to.Kind].(VerificationSender)
+	if !ok {
+		return fmt.Errorf("%w: kind %q", ErrNoVerificationSender, to.Kind)
+	}
+	return s.SendVerification(ctx, to)
+}

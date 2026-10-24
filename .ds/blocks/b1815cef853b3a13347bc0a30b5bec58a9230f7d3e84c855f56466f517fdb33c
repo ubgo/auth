@@ -1,0 +1,12 @@
+func rateStore(redisAddr string) (auth.Option, error) {
+	if redisAddr == "" {
+		log.Printf("rate limits: counted in the database table %s", auth.TableNameRateLimit)
+		return auth.WithDBRateStore(), nil
+	}
+	client := redis.NewClient(&redis.Options{Addr: redisAddr})
+	if err := client.Ping(context.Background()).Err(); err != nil {
+		return nil, fmt.Errorf("redis at %s does not answer: %w", redisAddr, err)
+	}
+	log.Printf("rate limits: counted in Redis at %s", redisAddr)
+	return auth.WithRateStore(redisrate.New(client)), nil
+}

@@ -1,0 +1,8 @@
+type JWK struct {
+	KeyType string `json:"kty"`
+	Curve   string `json:"crv"`
+	X       string `json:"x"`
+	KeyID   string `json:"kid"`
+	Use     string `json:"use"`
+	Alg     string `json:"alg"`
+}

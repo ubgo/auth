@@ -1,0 +1,6 @@
+func securitySinks(w io.Writer) []auth.Option {
+	return []auth.Option{
+		auth.WithSecuritySink(jsonDrain(w), drainQueue),
+		auth.WithSecurityLog(auth.SecurityQueue{}),
+	}
+}

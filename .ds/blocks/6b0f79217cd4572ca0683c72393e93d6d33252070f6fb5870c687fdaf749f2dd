@@ -1,0 +1,3 @@
+func Links(fn func(p auth.Purpose, t auth.Token) string) Option {
+	return func(p *Plugin) { p.links = fn }
+}

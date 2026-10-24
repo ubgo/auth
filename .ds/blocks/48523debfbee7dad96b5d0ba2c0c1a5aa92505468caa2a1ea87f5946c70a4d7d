@@ -1,0 +1,6 @@
+const (
+	ParamReauth        = "reauth"
+	ParamReauthTicket  = "reauthTicket"
+	ReauthFresh        = "fresh"
+	ReauthSecondFactor = "second_factor"
+)

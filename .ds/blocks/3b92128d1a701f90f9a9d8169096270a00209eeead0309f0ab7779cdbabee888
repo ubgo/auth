@@ -1,0 +1,22 @@
+func (a *Auth) PromoteSession(ctx context.Context, c *Call) (Session, error) {
+	if c.Session == nil || !c.Session.SecondFactorPending {
+		return Session{}, ErrSignedOut
+	}
+	var out Session
+	err := a.Tx(ctx, func(ctx context.Context, _ sqlbTx) error {
+		if err := a.endSession(ctx, *c.Session); err != nil {
+			return err
+		}
+		s, tok, err := a.createSessionFull(ctx, c.Session.UserID, c.Client, sessionSeed{transient: c.Session.Transient, data: c.Session.Data, promoted: true})
+		if err != nil {
+			return err
+		}
+		if err := a.sessionReplaced(ctx, *c.Session, s); err != nil {
+			return err
+		}
+		c.Effects.IssueSessionOf(s, tok)
+		out = s
+		return nil
+	})
+	return out, err
+}

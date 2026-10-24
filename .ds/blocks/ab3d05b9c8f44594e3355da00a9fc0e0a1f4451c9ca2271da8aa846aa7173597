@@ -1,0 +1,13 @@
+var pageTexts = auth.Messages{
+	"en": {
+		string(authui.TextSignIn): "Log in",
+		footerKey:                 "Acme Ltd · Need help? support@example.com",
+	},
+	"fr": {
+		string(authui.TextSignIn):         "Se connecter",
+		string(authui.TextPassword):       "Mot de passe",
+		string(authui.TextCreateAccount):  "Créer un compte",
+		methodTextPrefix + githubMethodID: "Se connecter avec son compte GitHub professionnel",
+		footerKey:                         "Acme SARL · Besoin d’aide ? support@example.com",
+	},
+}

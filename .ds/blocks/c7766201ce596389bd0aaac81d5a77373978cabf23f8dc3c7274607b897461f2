@@ -1,0 +1,1 @@
+func RequireEmail() Option { return func(p *Plugin) { p.requireAnyEmail = true } }

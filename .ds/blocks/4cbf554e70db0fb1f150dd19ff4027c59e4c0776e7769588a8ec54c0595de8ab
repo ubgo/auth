@@ -1,0 +1,3 @@
+func (p *Plugin) SignInCode(ctx context.Context, address, code string) (CodeSignInResult, error) {
+	return p.signInCode.Call(ctx, CodeRequest{Email: address, Code: code})
+}

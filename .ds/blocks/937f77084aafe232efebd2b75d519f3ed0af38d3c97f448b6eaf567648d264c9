@@ -1,0 +1,9 @@
+type Verified struct {
+	Subject   string
+	SessionID string
+	// Actor is the admin behind an impersonation, or "".
+	Actor     string
+	ExpiresAt time.Time
+	// Extra holds every claim the app added with Claims, raw.
+	Extra map[string]json.RawMessage
+}

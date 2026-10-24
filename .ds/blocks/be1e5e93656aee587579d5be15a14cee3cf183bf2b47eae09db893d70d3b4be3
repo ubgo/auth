@@ -1,0 +1,1 @@
+var ErrFault = errors.New("authtest: injected database fault")

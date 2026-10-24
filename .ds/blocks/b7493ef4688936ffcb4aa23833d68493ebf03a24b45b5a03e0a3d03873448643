@@ -1,0 +1,7 @@
+func Dub(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "dub", DisplayName: "Dub", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: DubAuthURL, TokenURL: DubTokenURL, Scopes: []string{"user.read"},
+		FetchProfile: DubProfile(DubUserInfoURL),
+	}
+}

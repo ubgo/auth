@@ -1,0 +1,38 @@
+type IdentifierKind struct {
+	// Name is written to auth_identity.kind and to generated index names, so
+	// it must match KindNamePattern.
+	Name IdentifierKindName
+
+	// Unique requests a unique index over the normalized value, among rows of
+	// this kind.
+	Unique bool
+
+	// UniqueOnlyVerified narrows that index to verified rows. It is the right
+	// setting for anything a stranger can type: an unverified claim then
+	// grants nothing and blocks nobody.
+	UniqueOnlyVerified bool
+
+	// ScopedByTenant makes uniqueness hold per scope_id instead of globally.
+	ScopedByTenant bool
+
+	// CanLogin allows this kind in a sign-in lookup.
+	CanLogin bool
+
+	// CanRecover allows this kind to receive account-recovery messages. The
+	// plugin that registers it must implement Deliverer.
+	CanRecover bool
+
+	// Verifiable means the kind has a proof-of-control flow. A handle has none.
+	Verifiable bool
+
+	// RequireVerified refuses a sign-in through an unverified identity of
+	// this kind. Sign-in methods check it after the credential, so the
+	// refusal reveals nothing to a caller who does not know the password.
+	RequireVerified bool
+
+	// Normalize converts input to the one form that is stored and compared.
+	Normalize func(raw string) (string, error)
+
+	// Validate rejects a normalized value that is malformed. Optional.
+	Validate func(normalized string) error
+}

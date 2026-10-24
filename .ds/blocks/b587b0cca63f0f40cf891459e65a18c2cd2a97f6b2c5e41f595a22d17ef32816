@@ -1,0 +1,3 @@
+func MirrorSessionStore(primary, secondary SessionStore) SessionStore {
+	return mirrorSessionStore{primary: primary, secondary: secondary, logger: slog.Default()}
+}

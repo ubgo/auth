@@ -1,0 +1,3 @@
+func WithProviders(ps ...Provider) Option {
+	return func(p *Plugin) { p.providers = append(p.providers, ps...) }
+}

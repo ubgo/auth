@@ -1,0 +1,1 @@
+func AcceptForms() Option { return func(c *config) { c.forms = true } }

@@ -1,0 +1,4 @@
+export async function firstUsers(): Promise<number> {
+  const { data } = await auth.admin.users({ limit: "20" });
+  return data?.total ?? 0;
+}

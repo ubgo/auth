@@ -1,0 +1,11 @@
+func (b *botbox) last(t *testing.T, a *auth.Auth, handle string) string {
+	t.Helper()
+	a.WaitDeliveries()
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	list := b.sent[handle]
+	if len(list) == 0 {
+		t.Fatalf("no chat message sent to @%s", handle)
+	}
+	return list[len(list)-1]
+}

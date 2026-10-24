@@ -1,0 +1,10 @@
+func (p *Plugin) doCode(ctx context.Context, c *auth.Call, _ struct{}) (CodeResult, error) {
+	var cols ReferralColumns
+	if err := p.a.LoadUserColumns(ctx, c.User.ID, Bindings(&cols)...); err != nil {
+		return CodeResult{}, err
+	}
+	if cols.ReferralCode == nil {
+		return CodeResult{}, nil // a user from before the plugin was added
+	}
+	return CodeResult{Code: *cols.ReferralCode}, nil
+}

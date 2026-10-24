@@ -1,0 +1,8 @@
+func newHandler(app app) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("POST "+codePath, app.dp.CodeHandler())
+	mux.Handle(authPrefix+"/", authhttp.Handler(app.a, authhttp.Prefix(authPrefix)))
+	mux.Handle("/.well-known/", app.op.Handler())
+	mux.Handle(oauthprovider.DefaultBasePath+"/", app.op.Handler())
+	return mux
+}

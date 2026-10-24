@@ -1,0 +1,5 @@
+type ResolvedEvent struct {
+	ProfileEvent
+	Created bool
+	Linked  bool
+}

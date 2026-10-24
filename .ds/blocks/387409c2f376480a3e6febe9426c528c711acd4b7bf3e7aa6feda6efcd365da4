@@ -1,0 +1,15 @@
+func newApp(db *sql.DB, m email.Mailer) (*app, error) {
+	x := &app{db: db, password: password.New()}
+	x.invites = invite.New(
+		invite.Required(),
+		invite.CanCreate(x.canCreate),
+		invite.OnAccepted(x.onAccepted),
+	)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), x.password, x.invites),
+	)
+	x.auth = a
+	return x, err
+}

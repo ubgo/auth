@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: authhttp applies EffectCacheSession as a Set-Auth-Session-Cache header for bearer clients, and clearCache returns early for bearer, so a sign-out can still answer a fresh cache value. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:02.133241000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f679aeb4730d9d7df0062b016f40",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc6907573eb8dc96c900553b30e",
+  "updated_at": "2026-10-05T15:55:02.133241000Z"
+}

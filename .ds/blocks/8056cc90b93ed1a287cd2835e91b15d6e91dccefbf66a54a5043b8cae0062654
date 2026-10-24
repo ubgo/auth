@@ -1,0 +1,7 @@
+func SessionData[T any](ctx context.Context) (v T, ok bool, err error) {
+	s, ok := CurrentSession(ctx)
+	if !ok {
+		return v, false, nil
+	}
+	return DecodeSessionData[T](s.Data)
+}

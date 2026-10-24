@@ -1,0 +1,3 @@
+func Slack(clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("slack", SlackIssuer, clientID, clientSecret), "Slack")
+}

@@ -1,0 +1,22 @@
+const (
+	// DefaultPrefix is where Handler expects to be mounted.
+	DefaultPrefix = "/auth"
+	// DefaultSessionLifetime is the absolute lifetime of a sign-in: a week.
+	// It is never extended; the person signs in again
+	// after it, which is also when an Allow rule change or a changed provider
+	// profile reaches the cookie.
+	DefaultSessionLifetime = 7 * 24 * time.Hour
+	// FlowLifetime bounds the time a person may spend at the provider,
+	// plugin/oauth's DefaultStateTTL.
+	FlowLifetime = oauth.DefaultStateTTL
+	// MaxCookieSize is the largest Set-Cookie value (name, value and
+	// attributes) the gate writes: RFC 6265 section 6.1 asks browsers to
+	// accept at least 4096 bytes per cookie, and most stop there. A session
+	// that would not fit (provider tokens kept with KeepTokens are the usual
+	// cause) is refused with ErrCookieTooLarge rather than written and
+	// silently dropped by the browser.
+	MaxCookieSize = 4096
+	// MaxReturnToLength bounds the returnTo path a start accepts, so the flow
+	// cookie that carries it stays far below MaxCookieSize.
+	MaxReturnToLength = 1024
+)

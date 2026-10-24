@@ -1,0 +1,4 @@
+[
+  {"userId": "clu1ada", "type": "oidc", "provider": "google", "providerAccountId": "102938475665748392012", "access_token": "ya29.redacted", "expires_at": 1700000000},
+  {"userId": "clu2bob", "type": "email", "provider": "nodemailer", "providerAccountId": "bob@example.com"}
+]

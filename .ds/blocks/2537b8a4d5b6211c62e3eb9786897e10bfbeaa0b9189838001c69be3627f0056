@@ -1,0 +1,5 @@
+var sessionConfig = auth.SessionConfig{
+	IdleTimeout:  30 * time.Minute,
+	MaxLifetime:  12 * time.Hour,
+	RefreshAfter: 5 * time.Minute,
+}

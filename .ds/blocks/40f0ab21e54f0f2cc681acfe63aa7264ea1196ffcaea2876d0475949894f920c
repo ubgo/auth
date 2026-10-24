@@ -1,0 +1,17 @@
+func TypeScriptClient(a *auth.Auth) (map[string][]byte, error) {
+	b, byPlugin, err := tsCollect(a)
+	if err != nil {
+		return nil, err
+	}
+	codes := TypeScriptErrorCodes()
+	client, err := renderTSClient(b, byPlugin, tsTakenNames(codes))
+	if err != nil {
+		return nil, err
+	}
+	return map[string][]byte{
+		TSFileClient:     client,
+		TSFileRuntime:    tsRuntime,
+		TSFileErrorCodes: codes,
+		TSFileIndex:      []byte(tsIndex),
+	}, nil
+}

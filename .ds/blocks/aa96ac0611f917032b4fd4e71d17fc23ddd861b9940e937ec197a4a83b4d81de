@@ -1,0 +1,1 @@
+func WithHTTPClient(hc *http.Client) Option { return func(p *Plugin) { p.hc = refuseRedirects(hc) } }

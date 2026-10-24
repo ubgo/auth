@@ -1,0 +1,6 @@
+type Data struct {
+	Number     string
+	NumberRaw  string
+	VerifiedAt *time.Time
+	IsPrimary  bool
+}

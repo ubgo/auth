@@ -1,0 +1,1 @@
+"auth: WithoutCSRFCheck is on: cookie-authenticated mutations are accepted from any origin (CSRF)"

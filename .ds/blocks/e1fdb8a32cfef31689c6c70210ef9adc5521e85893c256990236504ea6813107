@@ -1,0 +1,96 @@
+type OAuth2 struct {
+	ID           string
+	ClientID     string
+	ClientSecret string
+	AuthURL      string
+	TokenURL     string
+	Scopes       []string
+	// FetchProfile reads the profile with the access token.
+	FetchProfile func(ctx context.Context, hc *http.Client, accessToken string) (Profile, error)
+	// FetchProfileFromTokens reads the profile from the whole token set
+	// (TokenSet.Raw included), for a provider whose profile call needs more
+	// than the access token. One profile source is required: this,
+	// FetchProfile, or IDToken.ProfileFromToken; the first set wins in that
+	// order reversed (ProfileFromToken, then this, then FetchProfile).
+	FetchProfileFromTokens func(ctx context.Context, hc *http.Client, tokens TokenSet) (Profile, error)
+	// TokenAuth is how the token endpoint is authenticated to; zero is ClientSecretPost.
+	TokenAuth TokenAuth
+	// AuthParams are added to every authorization URL (prompt, access_type,
+	// hd, …); the protocol's own keys (reservedAuthParams) are ignored, so a
+	// parameter here can never weaken the flow.
+	AuthParams url.Values
+	// TokenParams are added to every token and refresh request; the grant's
+	// own keys (reservedTokenParams) are ignored.
+	TokenParams url.Values
+	// RefreshParams are added to refresh requests only, on top of
+	// TokenParams, for a provider whose refresh grant takes a parameter the
+	// code exchange does not; the grant's own keys are ignored here too.
+	RefreshParams url.Values
+	// AuthorizationIssuer is the iss value the callback must carry (RFC
+	// 9207), for a provider that sends one; a callback without it, or with
+	// another, is refused as ErrStateInvalid, the mix-up attack defence.
+	// Empty means the provider sends none and nothing is checked. An
+	// OIDCProvider fills it from the discovery document when the issuer
+	// publishes authorization_response_iss_parameter_supported.
+	AuthorizationIssuer string
+	// RevokeURL is the provider's token revocation endpoint (RFC 7009); when
+	// set and StoreTokens kept tokens, unlink revokes them there, best
+	// effort. Empty revokes nothing.
+	RevokeURL string
+	// ClientAssertion signs the RFC 7523 client assertion for TokenAuth
+	// PrivateKeyJWT; see the ClientAssertion constructor. Validate requires
+	// it with PrivateKeyJWT and refuses it with any other TokenAuth.
+	ClientAssertion func(ctx context.Context, tokenURL string) (string, error)
+	// OptionalScopes are the scopes a start request may add to Scopes for
+	// incremental authorization; any other is refused with ErrBadScope.
+	OptionalScopes []string
+	// TokenLifetime is the access token's lifetime when the token response
+	// has no expires_in; zero keeps the expiry unknown, which disables refresh.
+	TokenLifetime time.Duration
+	// IDToken makes the provider accept ID tokens (the id-token operation)
+	// and, with ProfileFromToken, read the profile from the token response's
+	// id_token instead of FetchProfile. Zero accepts none.
+	IDToken IDTokenConfig
+	// EndSessionURL is the provider's RP-initiated logout endpoint; empty
+	// means none, and the logout operation answers ErrLogoutUnsupported.
+	EndSessionURL string
+	// ClientSecretFunc computes the client secret per token request, for a
+	// secret that is a signed assertion (Apple; see AppleClientSecret).
+	ClientSecretFunc func(ctx context.Context) (string, error)
+	// Headers are added to every token, refresh and revocation request, for
+	// a provider that requires a User-Agent naming the app (Reddit) or an
+	// API version header. Authorization and Content-Type (reservedHeaders)
+	// are ignored: the credentials and the encoding are the grant's own.
+	Headers http.Header
+	// FormPost asks the provider to answer with response_mode=form_post
+	// (OAuth 2.0 Form Post Response Mode): the callback arrives as a
+	// cross-site POST, which the plugin relays into the GET callback. Apple
+	// requires it whenever a scope is requested; see AppleWithEmail.
+	FormPost bool
+	// PostedUser reads the user field a form-post callback may carry into
+	// the profile after the exchange: Apple sends the person's name there,
+	// once, on first consent, and nowhere else. Nil ignores the field.
+	PostedUser func(raw string, p *Profile)
+	// GetToken, when set, replaces the built-in code exchange: it receives
+	// the callback's code, the flow's PKCE verifier ("" on a
+	// provider-initiated sign-in, which has none) and the redirect URI, and
+	// returns the provider's tokens. For a provider whose token endpoint is
+	// not RFC 6749 (a GET, a JSON body, another parameter name). Everything
+	// else stays the plugin's: the state, PKCE, the profile read from the
+	// returned tokens (FetchProfile, FetchProfileFromTokens or the ID token),
+	// linking and the session. An error it returns comes out of Exchange
+	// unchanged; the callback logs it and answers ErrProviderFailed, as for
+	// every failed exchange. A set without an AccessToken is a failed
+	// exchange, and TokenLifetime fills a zero ExpiresAt. With it, TokenURL
+	// is needed only for Refresh.
+	GetToken func(ctx context.Context, code, verifier, redirectURI string) (TokenSet, error)
+	// DisplayName is the provider's name for people ("Google", "Okta at
+	// Acme"), listed by the providers route for a sign-in page's buttons.
+	// The presets set it; empty falls back to ID.
+	DisplayName string
+
+	// The ID-token verifier is built once (one key cache); now is the test clock.
+	idOnce     sync.Once
+	idVerifier *idTokenVerifier
+	now        func() time.Time
+}

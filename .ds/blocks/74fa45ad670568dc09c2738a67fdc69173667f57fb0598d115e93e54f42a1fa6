@@ -1,0 +1,25 @@
+func (a *Auth) Reauthenticate(ctx context.Context, c *Call, in ReauthAttempt) (Reauthentication, error) {
+	if in.SingleFactor && in.MultiFactor {
+		return Reauthentication{}, errReauthProof
+	}
+	if err := a.reauthAllowed(c); err != nil {
+		return Reauthentication{}, err
+	}
+	if !in.MultiFactor {
+		attempt := a.signInAttempt(ctx, c.Session.UserID, c.Client, in.SingleFactor)
+		attempt.Reauthentication = true
+		due, err := a.secondFactorRequiredFor(ctx, attempt)
+		if err != nil {
+			return Reauthentication{}, err
+		}
+		if due {
+			tok, err := a.IssueVerification(ctx, PurposeReauth, c.Session.ID, a.cfg.PendingSessionTTL, "")
+			if err != nil {
+				return Reauthentication{}, err
+			}
+			a.emitReauth(c, ReauthStepSecondFactor)
+			return Reauthentication{SecondFactorRequired: true, Ticket: tok.Wire()}, nil
+		}
+	}
+	return a.markFresh(ctx, c)
+}

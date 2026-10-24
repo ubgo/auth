@@ -1,0 +1,12 @@
+func Validator() func(normalized string) error {
+	return func(normalized string) error {
+		n, err := phonenumbers.Parse(normalized, "")
+		if err != nil {
+			return fmt.Errorf("%w: %v", ErrNotANumber, err)
+		}
+		if !phonenumbers.IsValidNumber(n) {
+			return fmt.Errorf("%w: %s is not an assigned number", ErrNotANumber, normalized)
+		}
+		return nil
+	}
+}

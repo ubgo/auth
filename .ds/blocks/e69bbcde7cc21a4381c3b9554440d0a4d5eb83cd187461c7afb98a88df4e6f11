@@ -1,0 +1,16 @@
+type Call struct {
+	Auth       *Auth
+	Op         OpInfo
+	Plugin     string
+	Transport  Transport
+	Client     Client
+	Credential Credential
+	// Session and User are nil for a signed-out call.
+	Session *Session
+	User    *User
+	Effects *Effects
+	// Flow is the client's flow binding; see Request.Flow.
+	Flow Token
+
+	header func(name string) string
+}

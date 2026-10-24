@@ -1,0 +1,6 @@
+var DefaultProtected = []auth.EndpointID{
+	"password.sign-up", "password.sign-in", "password.forgot", "password.reset",
+	"email.send-code", "email.sign-in-code",
+	"phone.send-code", "phone.sign-in",
+	"magiclink.send",
+}

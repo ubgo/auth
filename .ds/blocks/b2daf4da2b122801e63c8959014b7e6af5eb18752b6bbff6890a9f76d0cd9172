@@ -1,0 +1,8 @@
+type OutboxResult struct {
+	// Sent is how many messages the deliverers accepted; their rows are gone.
+	Sent int `json:"sent"`
+	// Failed is how many sends failed (the deliverer refused, the payload
+	// no longer opens, the kind has no deliverer); each row waits for its
+	// backoff, or stays for Sweep once its attempts are used up.
+	Failed int `json:"failed"`
+}

@@ -1,0 +1,20 @@
+func main() {
+	db, err := sql.Open("sqlite", "file:"+dbFile+sqlitePragmas)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	a, err := newAuth(db, logMailer{})
+	if err != nil {
+		log.Fatal(err) // a broken plugin combination fails here, not in production
+	}
+	defer a.Close()
+	if _, err := a.Migrate(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("listening on %s", baseURL)
+	srv := &http.Server{Addr: addr, Handler: newHandler(a), ReadHeaderTimeout: readHeaderTimeout}
+	log.Fatal(srv.ListenAndServe())
+}

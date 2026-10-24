@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-07T07:12:39.507051000Z",
+  "created_at": "2026-09-29T07:55:55.434155000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0ec29c4aa726592d9a9f1affa4465",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "low",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-07T07:10:51.227978000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c16f7d569454b9c6793d9792",
+  "title": "Benchmark the composite query against N accessor queries",
+  "updated_at": "2026-10-07T07:12:39.507053000Z"
+}

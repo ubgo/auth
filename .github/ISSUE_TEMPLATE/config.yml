@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & discussions
+    url: https://github.com/ubgo/auth/discussions
+    about: Ask questions, share ideas, and get help here.
+  - name: Security vulnerability
+    url: https://github.com/ubgo/auth/security/advisories/new
+    about: Report security issues privately, not as a public issue.

@@ -1,0 +1,90 @@
+package auth
+
+import (
+	"fmt"
+	"strings"
+	"time"
+)
+
+// Environment variables EnvOptions reads. Durations use Go syntax ("168h",
+// "30m").
+//
+//ds:def id=envbaseurl-k7cmqg4h
+const (
+	//ds:def id=core-envvars-h63nyypk owner=@khanakia stability=stable
+	EnvBaseURL        = "AUTH_BASE_URL"
+	EnvTrustedOrigins = "AUTH_TRUSTED_ORIGINS" // comma-separated
+	EnvFreshWindow    = "AUTH_FRESH_WINDOW"
+	EnvSessionIdle    = "AUTH_SESSION_IDLE"
+	EnvSessionMax     = "AUTH_SESSION_MAX"
+	EnvSessionRefresh = "AUTH_SESSION_REFRESH"
+	// EnvSecret is the WithSecret value, used as its bytes: any string of at
+	// least MinSecretSize characters, such as `openssl rand -base64 32`.
+	EnvSecret = "AUTH_SECRET"
+)
+
+// EnvVars is every variable EnvOptions reads, for a deployment's docs and a
+// startup log.
+//
+//ds:def id=envvars-ehw5naay
+var EnvVars = []string{EnvBaseURL, EnvTrustedOrigins, EnvFreshWindow, EnvSessionIdle, EnvSessionMax, EnvSessionRefresh, EnvSecret}
+
+// EnvOptions builds options from environment variables through lookup —
+// pass os.LookupEnv. The lookup is a parameter, not a hidden read of the
+// process environment, so a test passes a map and nothing depends on the
+// machine it runs on. An unset variable leaves the default; a malformed one
+// is an error naming it, so a typo fails the deploy instead of silently
+// running with the default.
+//
+//ds:def id=core-envoptions-ewjb2mvy owner=@khanakia stability=stable
+func EnvOptions(lookup func(string) (string, bool)) ([]Option, error) {
+	var opts []Option
+	if v, ok := lookup(EnvBaseURL); ok && v != "" {
+		opts = append(opts, WithBaseURL(v))
+	}
+	// A set but short secret is passed on, so New refuses it with
+	// ErrSecretTooShort instead of silently running without one.
+	if v, ok := lookup(EnvSecret); ok {
+		opts = append(opts, WithSecret([]byte(v)))
+	}
+	if v, ok := lookup(EnvTrustedOrigins); ok && v != "" {
+		var origins []string
+		for _, o := range strings.Split(v, ",") {
+			if o = strings.TrimSpace(o); o != "" {
+				origins = append(origins, o)
+			}
+		}
+		opts = append(opts, WithTrustedOrigins(origins...))
+	}
+	dur := func(name string) (time.Duration, bool, error) {
+		v, ok := lookup(name)
+		if !ok || v == "" {
+			return 0, false, nil
+		}
+		d, err := time.ParseDuration(v)
+		if err != nil || d <= 0 {
+			return 0, false, fmt.Errorf("auth: %s=%q is not a positive duration such as 168h", name, v)
+		}
+		return d, true, nil
+	}
+	if d, ok, err := dur(EnvFreshWindow); err != nil {
+		return nil, err
+	} else if ok {
+		opts = append(opts, WithFreshWindow(d))
+	}
+	sc := DefaultSessionConfig
+	changed := false
+	for name, field := range map[string]*time.Duration{EnvSessionIdle: &sc.IdleTimeout, EnvSessionMax: &sc.MaxLifetime, EnvSessionRefresh: &sc.RefreshAfter} {
+		d, ok, err := dur(name)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			*field, changed = d, true
+		}
+	}
+	if changed {
+		opts = append(opts, WithSession(sc))
+	}
+	return opts, nil
+}

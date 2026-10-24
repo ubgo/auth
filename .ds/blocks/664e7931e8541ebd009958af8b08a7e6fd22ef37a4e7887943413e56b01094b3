@@ -1,0 +1,13 @@
+func plugins() []auth.Plugin {
+	human := captcha.VerifierFunc(func(_ context.Context, token, _ string) error {
+		if token == humanToken {
+			return nil
+		}
+		return captcha.ErrFailed
+	})
+	return []auth.Plugin{
+		email.New(email.Login(), email.Recover(), email.WithMailer(email.MailerFunc(logMail))),
+		password.New(),
+		captcha.New(human, captcha.ChallengeOnly()),
+	}
+}

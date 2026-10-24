@@ -1,0 +1,3 @@
+func NewStorageVerificationStore(kv GetAndDeleter) VerificationStore {
+	return storageVerificationStore{kv: kv, longest: new(atomic.Int64)}
+}

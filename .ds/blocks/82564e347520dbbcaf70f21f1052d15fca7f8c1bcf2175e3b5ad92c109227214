@@ -1,0 +1,5 @@
+func Roblox(clientID, clientSecret string) *OIDCProvider {
+	p := withDisplayName(OIDC("roblox", RobloxIssuer, clientID, clientSecret), "Roblox")
+	p.Scopes = []string{"openid", "profile"}
+	return p
+}

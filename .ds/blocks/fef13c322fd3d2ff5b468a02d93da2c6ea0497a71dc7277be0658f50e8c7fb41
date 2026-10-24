@@ -1,0 +1,1 @@
+func WithDeferredSessionRefresh() Option { return func(s *settings) { s.deferRefresh = true } }

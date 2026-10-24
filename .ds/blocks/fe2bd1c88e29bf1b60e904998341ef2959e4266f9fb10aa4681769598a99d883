@@ -1,0 +1,16 @@
+type Reauthentication struct {
+	// Fresh is true when the session is fresh now: FreshSignIn operations
+	// pass until FreshUntil.
+	Fresh bool `json:"fresh"`
+	// FreshUntil is when the session stops being fresh (the
+	// re-authentication time plus WithFreshWindow); nil when not Fresh.
+	FreshUntil *time.Time `json:"freshUntil,omitempty"`
+	// SecondFactorRequired is true when the user's second factor is due
+	// before the session is fresh: the client sends Ticket with the code to
+	// the second factor's re-authentication operation.
+	SecondFactorRequired bool `json:"secondFactorRequired"`
+	// Ticket is the single-use proof of the first step, bound to this
+	// session and valid for PendingSessionTTL; "" unless
+	// SecondFactorRequired.
+	Ticket WireToken `json:"ticket,omitempty"`
+}

@@ -1,0 +1,4 @@
+type HTTPMiddlewarer interface {
+	auth.Plugin
+	HTTPMiddleware() []PluginMiddleware
+}

@@ -1,0 +1,3 @@
+func NewStorageSessionStore(kv SecondaryStorage) SessionStore {
+	return &storageSessionStore{kv: kv}
+}

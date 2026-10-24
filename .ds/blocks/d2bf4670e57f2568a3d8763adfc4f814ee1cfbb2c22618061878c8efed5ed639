@@ -1,0 +1,3 @@
+function tokenFromLink(): string {
+  return new URLSearchParams(location.search).get("token") ?? "";
+}

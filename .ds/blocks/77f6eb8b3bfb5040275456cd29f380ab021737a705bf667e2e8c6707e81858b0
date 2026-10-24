@@ -1,0 +1,8 @@
+func WithCache(c Cache, ttl time.Duration) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("apikey.WithCache", c) {
+			return
+		}
+		p.cache, p.cacheTTL = c, ttl
+	}
+}

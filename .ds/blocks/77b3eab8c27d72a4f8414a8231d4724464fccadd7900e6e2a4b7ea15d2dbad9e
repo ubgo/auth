@@ -1,0 +1,8 @@
+func (e *Env) SignIn(userID string) *Session {
+	e.T.Helper()
+	s, tok, err := e.Auth.CreateSession(context.Background(), userID, client)
+	if err != nil {
+		e.T.Fatalf("authtest: sign in %s: %v", userID, err)
+	}
+	return &Session{env: e, Session: s, Token: tok}
+}

@@ -1,0 +1,30 @@
+func main() {
+	db, err := sql.Open("sqlite", sqliteDSN(dbFile))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	a, err := newAuth(db, logMailer{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer a.Close()
+
+	ctx := context.Background()
+	if code, handled := command(ctx, a, os.Args[1:], os.Stdout, os.Stderr); handled {
+		_ = a.Close() // os.Exit skips the deferred calls
+		os.Exit(code)
+	}
+
+	applied, err := a.Migrate(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, name := range applied {
+		log.Printf("migrated %s", name)
+	}
+	log.Printf("listening on %s", baseURL)
+	srv := &http.Server{Addr: addr, Handler: newHandler(a), ReadHeaderTimeout: readHeaderTimeout}
+	log.Fatal(srv.ListenAndServe())
+}

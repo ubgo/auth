@@ -1,0 +1,9 @@
+func New(opts ...Option) *Plugin {
+	p := &Plugin{ttl: DefaultTTL}
+	for _, o := range opts {
+		o(p)
+	}
+	p.send = auth.Define(auth.OpInfo{ID: EndpointSend, Kind: auth.Mutation, Require: auth.Public, Path: "/send"}, p.doSend)
+	p.signIn = auth.Define(auth.OpInfo{ID: EndpointSignIn, Kind: auth.Mutation, Require: auth.Public, Path: "/sign-in"}, p.doSignIn)
+	return p
+}

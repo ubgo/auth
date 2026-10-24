@@ -1,0 +1,3 @@
+func Bindings(d *Device) []sqlb.Binding {
+	return []sqlb.Binding{sqlb.Bind(ID, &d.ID), sqlb.Bind(Name, &d.Name), sqlb.Bind(CreatedAt, &d.CreatedAt)}
+}

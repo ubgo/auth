@@ -1,0 +1,1 @@
+	DefaultRequestMaxAge = 5 * time.Minute

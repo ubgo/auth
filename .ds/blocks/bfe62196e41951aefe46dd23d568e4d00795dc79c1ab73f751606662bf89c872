@@ -1,0 +1,5 @@
+export async function handleHint(handle: string): Promise<string> {
+  const { data, error } = await auth.username.available({ username: handle });
+  if (error) return error.code === "auth.rate_limited" ? "" : error.message;
+  return data.available ? "Available" : "Taken";
+}

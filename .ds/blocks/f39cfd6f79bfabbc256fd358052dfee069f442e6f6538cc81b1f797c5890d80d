@@ -1,0 +1,3 @@
+func WithIDs(gen func(prefix string) (string, error)) Option {
+	return func(s *settings) { s.ids = gen }
+}

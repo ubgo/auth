@@ -1,0 +1,7 @@
+type ErrorPageData struct {
+	Code        string
+	Message     string
+	Description string
+	// Nonce is ErrorPageOptions.Nonce's value for this request, or empty.
+	Nonce string
+}

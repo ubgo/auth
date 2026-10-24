@@ -1,0 +1,7 @@
+func (p *Plugin) Grant(ctx context.Context, userID string) error {
+	if _, err := p.core.User(ctx, userID); err != nil {
+		return err
+	}
+	now := p.core.Now()
+	return auth.SetUserColumn(ctx, p.core, PluginName, userID, GrantedAt, &now)
+}

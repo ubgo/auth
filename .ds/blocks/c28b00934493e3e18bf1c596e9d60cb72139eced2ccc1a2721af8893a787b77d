@@ -1,0 +1,5 @@
+type SMSBox struct {
+	env  *Env
+	mu   sync.Mutex
+	sent map[string][]string
+}

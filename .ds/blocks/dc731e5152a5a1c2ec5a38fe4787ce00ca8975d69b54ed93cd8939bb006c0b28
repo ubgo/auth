@@ -1,0 +1,3 @@
+func (p *Plugin) ListKeys(ctx context.Context, in ListRequest) (ListResult, error) {
+	return p.list.Call(ctx, in)
+}

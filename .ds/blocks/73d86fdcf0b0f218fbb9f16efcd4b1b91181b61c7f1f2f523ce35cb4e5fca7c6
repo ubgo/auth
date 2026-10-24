@@ -1,0 +1,15 @@
+func (p *Plugin) Migrations(engine string) ([]auth.Migration, error) {
+	if err := auth.CheckEngine(engine); err != nil {
+		return nil, err
+	}
+	t := auth.TypesFor(engine)
+	return []auth.Migration{{Owner: PluginName, Name: "0001_devices", Statements: []string{
+		"CREATE TABLE IF NOT EXISTS " + p.a.TableName(TableDevice) + " (" +
+			ColID + " " + t.Key + " NOT NULL PRIMARY KEY, " +
+			ColUserID + " " + t.Key + " NOT NULL, " +
+			ColName + " " + t.Text + " NOT NULL, " +
+			ColCreatedAt + " " + t.Timestamp + " NOT NULL, " +
+			"UNIQUE (" + ColUserID + ", " + ColName + "), " +
+			p.a.ReferencesUser(ColUserID) + ")" + t.TableSuffix,
+	}}}, nil
+}

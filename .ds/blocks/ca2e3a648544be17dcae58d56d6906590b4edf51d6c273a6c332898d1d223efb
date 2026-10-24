@@ -1,0 +1,4 @@
+func agentPay(ctx context.Context, c *agentclient.Client, a agentclient.Agent, inv invoice) (string, error) {
+	out, err := c.Execute(ctx, a, capPayInvoice, "", map[string]any{argInvoiceID: inv.ID, argAmount: inv.Amount})
+	return string(out), err
+}

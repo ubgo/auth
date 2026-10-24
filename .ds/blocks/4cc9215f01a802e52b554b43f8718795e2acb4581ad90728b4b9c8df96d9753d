@@ -1,0 +1,7 @@
+export async function promote(orgId: string, userId: string): Promise<string> {
+  const { data } = await auth.organization.members({ orgId, limit: "100" });
+  if (!(data?.members ?? []).some((m) => m.user.id === userId)) return "Not a member.";
+  const { error } = await auth.organization.setRole({ orgId, userId, role: "admin" });
+  if (!error) return "Promoted.";
+  return error.code === "organization.forbidden" ? "Only an owner or admin can change roles." : error.message;
+}

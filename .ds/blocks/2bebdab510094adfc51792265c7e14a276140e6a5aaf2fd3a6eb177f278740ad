@@ -1,0 +1,8 @@
+func WithDialect(d sqlb.Dialect) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithDialect", d) {
+			return
+		}
+		s.cfg.Dialect = d
+	}
+}

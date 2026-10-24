@@ -1,0 +1,1 @@
+func WithSQLite(driver, dsn string) Option { return func(s *settings) { s.driver, s.dsn = driver, dsn } }

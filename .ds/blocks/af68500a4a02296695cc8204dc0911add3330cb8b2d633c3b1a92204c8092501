@@ -1,0 +1,9 @@
+func WithTracer(t Tracer) Option {
+	return func(s *settings) {
+		if t == nil {
+			s.refuseNil("WithTracer")
+			return
+		}
+		s.tracer = t
+	}
+}

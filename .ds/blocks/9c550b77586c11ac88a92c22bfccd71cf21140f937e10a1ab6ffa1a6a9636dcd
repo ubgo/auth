@@ -1,0 +1,8 @@
+func PreCheck(fn func(ctx context.Context, key string) bool) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("apikey.PreCheck", fn) {
+			return
+		}
+		p.check = fn
+	}
+}

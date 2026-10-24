@@ -1,0 +1,3 @@
+func Rotating(seed []byte, interval, grace time.Duration) Signer {
+	return &rotatingSigner{seed: seed, interval: interval, grace: grace, now: time.Now}
+}

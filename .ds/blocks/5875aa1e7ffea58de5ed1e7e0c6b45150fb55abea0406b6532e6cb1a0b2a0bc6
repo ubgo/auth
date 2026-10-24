@@ -1,0 +1,13 @@
+type CallbackResult struct {
+	User auth.UserView `json:"user"`
+	// Created is true when the callback created the user.
+	Created bool `json:"created"`
+	// Linked is true when the callback linked the provider to the signed-in
+	// user.
+	Linked     bool   `json:"linked"`
+	RedirectTo string `json:"redirectTo"`
+	// SecondFactorRequired is true when the session is pending a second
+	// factor; the app page at RedirectTo asks for it.
+	SecondFactorRequired bool       `json:"secondFactorRequired"`
+	Token                auth.Token `json:"-"`
+}

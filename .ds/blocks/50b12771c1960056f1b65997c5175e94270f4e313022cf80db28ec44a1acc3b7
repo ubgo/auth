@@ -1,0 +1,4 @@
+export async function canInvite(orgId: string): Promise<boolean> {
+  const { data } = await auth.organization.hasPermission({ orgId, permissions: { invitation: ["create"] } });
+  return data?.success ?? false;
+}

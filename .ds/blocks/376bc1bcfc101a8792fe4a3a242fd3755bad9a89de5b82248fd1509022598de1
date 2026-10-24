@@ -1,0 +1,3 @@
+func WithValidator(fn func(normalized string) error) Option {
+	return func(p *Plugin) { p.kind.Validate = fn }
+}

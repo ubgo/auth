@@ -1,0 +1,5 @@
+func (p *previewOrigins) Trusted(origin string) bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.set[origin]
+}

@@ -1,0 +1,3 @@
+func WithScope(ctx context.Context, tenantID string) context.Context {
+	return context.WithValue(ctx, scopeKey{}, tenantID)
+}

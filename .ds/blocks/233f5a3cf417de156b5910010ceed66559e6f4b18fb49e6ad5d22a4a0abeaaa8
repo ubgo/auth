@@ -1,0 +1,3 @@
+func newVerifier(jw *jwt.Plugin) jwt.Verifier {
+	return jwt.Verifier{Keys: jwt.KeysFromJWKS(jw.PublicKeys()), Issuer: baseURL, Audience: audience}
+}

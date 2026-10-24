@@ -1,0 +1,28 @@
+func (p *Plugin) MarkStep(ctx context.Context, referredUserID, step string, metadata map[string]string) (StepResult, error) {
+	if p.core == nil {
+		return StepResult{}, auth.ErrOperationNotWired
+	}
+	known := false
+	for _, s := range p.Required() {
+		known = known || s == step
+	}
+	if !known {
+		return StepResult{}, ErrUnknownStep
+	}
+	var out StepResult
+	err := p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		var r ref
+		err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ReferralID, &r.id), sqlb.Bind(ReferralReferrer, &r.referrer),
+			sqlb.Bind(ReferralReferred, &r.referred), sqlb.Bind(ReferralStatus, &r.status)).
+			From(TableReferral).Where(sqlb.Eq(ReferralReferred, referredUserID)).Limit(1))
+		if errors.Is(err, sqlb.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		out, err = p.markStep(ctx, r, step, metadata)
+		return err
+	})
+	return out, err
+}

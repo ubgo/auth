@@ -1,0 +1,17 @@
+func (p *Plugin) ResetTwoFactorFor(ctx context.Context, userID string) error {
+	if p.twoFactor == nil {
+		return ErrNoTwoFactorPlugin
+	}
+	return p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		if _, err := p.core.User(ctx, userID); err != nil {
+			return err
+		}
+		if err := p.twoFactor.Reset(ctx, userID); err != nil {
+			return err
+		}
+		if p.recorder == nil {
+			return nil
+		}
+		return p.recorder.Record(ctx, audit.Event{Op: EndpointResetTwoFactor, Plugin: PluginName, OK: true, SubjectID: userID})
+	})
+}

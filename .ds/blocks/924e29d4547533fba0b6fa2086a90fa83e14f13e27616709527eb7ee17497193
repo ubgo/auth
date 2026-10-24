@@ -1,0 +1,3 @@
+func Railway(clientID, clientSecret string) *OIDCProvider {
+	return OIDC("railway", RailwayIssuer, clientID, clientSecret)
+}

@@ -1,0 +1,1 @@
+func WithErrorURL(url string) Option { return func(s *settings) { s.cfg.ErrorURL = url } }

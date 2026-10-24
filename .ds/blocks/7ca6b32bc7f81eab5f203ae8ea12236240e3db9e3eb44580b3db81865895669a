@@ -1,0 +1,3 @@
+func Scopes(scopes ...string) Option {
+	return func(p *Plugin) { p.scopes = append(p.scopes, scopes...) }
+}

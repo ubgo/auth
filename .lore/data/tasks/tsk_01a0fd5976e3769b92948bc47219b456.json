@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-03T03:28:13.668622000Z",
+  "created_at": "2026-10-02T16:01:33.923430000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0fd5976e3769b92948bc47219b456",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Examples build the SQLite DSN as \"file:\"+dbFile+pragmas: a path with # or ? opens the wrong file. Switch every example to an escaped file: URI (net/url) after round 2 settles, then ds refresh the cited blocks",
+  "updated_at": "2026-10-03T03:28:13.668776000Z"
+}

@@ -1,0 +1,17 @@
+func (e *Env) Browser(h http.Handler) *Browser {
+	e.T.Helper()
+	srv := httptest.NewTLSServer(h)
+	e.T.Cleanup(srv.Close)
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		e.T.Fatal(err)
+	}
+	base, err := url.Parse(srv.URL)
+	if err != nil {
+		e.T.Fatal(err)
+	}
+	c := srv.Client()
+	c.Jar = jar
+	c.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	return &Browser{env: e, server: srv, client: c, base: base, Origin: e.BaseURL}
+}

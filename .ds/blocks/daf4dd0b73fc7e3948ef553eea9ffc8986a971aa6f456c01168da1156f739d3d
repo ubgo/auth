@@ -1,0 +1,14 @@
+func (a *Auth) RateHit(ctx context.Context, key string, window time.Duration) (int, error) {
+	if window <= 0 {
+		return 0, ErrRateWindow
+	}
+	if a.limiter == nil {
+		return 0, ErrRatesNotReady
+	}
+	a.limiter.warnPerProcess()
+	n, err := a.limiter.store.Hit(ctx, pluginRateKey(key), window)
+	if err != nil {
+		return 0, fmt.Errorf("auth: rate store: %w", err)
+	}
+	return n, nil
+}

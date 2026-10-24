@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r32-enterprise (2026-10-07): oauthproxy relays a sealed authorization code, not a profile (the preview exchanges it with its own PKCE verifier, so the proxy secret cannot assert an identity); SCIM is its own handler, not auth.Define operations; SCIM emails start unverified unless TrustEmails(); the device code's user_id is accepted from Go only; oauthpopup is a package inside plugin/oauthproxy.",
+  "created_at": "2026-10-07T08:42:57.256926000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a11587b3687e6bbdc0f317b6e0a2cd",
+  "updated_at": "2026-10-07T08:42:57.256926000Z"
+}

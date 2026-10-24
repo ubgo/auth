@@ -1,0 +1,4 @@
+func (p *Plugin) Add(ctx context.Context, address string) error {
+	_, err := p.add.Call(ctx, AddressRequest{Email: address})
+	return err
+}

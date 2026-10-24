@@ -1,0 +1,15 @@
+export function wireSignInForm(form: HTMLFormElement, status: HTMLElement): void {
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const fields = new FormData(form);
+    const { data, error } = await auth.password.signIn({
+      identifier: String(fields.get("email") ?? ""),
+      password: String(fields.get("password") ?? ""),
+    });
+    if (error) {
+      status.textContent = error.code === "password.invalid_credentials" ? "Wrong address or password." : error.message;
+      return;
+    }
+    status.textContent = `Signed in as ${data.user.name}.`;
+  });
+}

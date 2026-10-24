@@ -1,0 +1,14 @@
+func newAuth(db *sql.DB, base string, key crypto.Signer, cert *x509.Certificate, sps ...samlidp.ServiceProvider) (*auth.Auth, *samlidp.Plugin, error) {
+	idp := samlidp.New(
+		samlidp.Issuer(base),
+		samlidp.LoginPage(loginPath),
+		samlidp.SigningKey(key, cert),
+		samlidp.ServiceProviders(sps...),
+	)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(base),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(logMailer{})), password.New(), idp),
+	)
+	return a, idp, err
+}

@@ -1,0 +1,25 @@
+# The auth schema from github.com/ubgo/auth/contrib/gqlgen. Copy it into your
+# schema directory and point your resolvers at the plugins' Go API.
+
+"Resolves the field only for a signed-in request."
+directive @signedIn on FIELD_DEFINITION
+
+type AuthUser {
+  id: ID!
+  name: String!
+  image: String!
+}
+
+type SignInPayload {
+  user: AuthUser!
+}
+
+extend type Query {
+  me: AuthUser @signedIn
+}
+
+extend type Mutation {
+  signUp(identifier: String!, password: String!, name: String): SignInPayload!
+  signIn(identifier: String!, password: String!): SignInPayload!
+  signOut: Boolean! @signedIn
+}

@@ -1,0 +1,6 @@
+export async function signInWithMailedCode(address: string, askForCode: () => Promise<string>): Promise<"signed-in" | "second-factor" | "wrong-code"> {
+  await auth.email.sendCode({ email: address });
+  const { data, error } = await auth.email.signInCode({ email: address, code: await askForCode() });
+  if (error) return "wrong-code"; // auth.code_invalid: wrong, spent or expired, one answer on purpose
+  return data.secondFactorRequired ? "second-factor" : "signed-in";
+}

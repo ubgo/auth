@@ -1,0 +1,10 @@
+type OAuth2 struct {
+	ID           string
+	ClientID     string
+	ClientSecret string
+	AuthURL      string
+	TokenURL     string
+	Scopes       []string
+	// FetchProfile reads the profile with the access token.
+	FetchProfile func(ctx context.Context, hc *http.Client, accessToken string) (Profile, error)
+}

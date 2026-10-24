@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Done: brand kit (shield concept, indigo, proposed not approved), brand.json, LICENSE Apache-2.0 (proposed), NOTICE, SECURITY, CONTRIBUTING, CODE_OF_CONDUCT, AGENTS.md, llms.txt, COVERAGE.md, .github templates, manual-only workflow. Not done: GitHub About/topics and social preview, because github.com/ubgo/auth does not exist yet; needs the owner.",
+  "created_at": "2026-09-29T09:23:46.975508000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec29c31575b1889549bf86e58f5f",
+  "entity_table": "tasks",
+  "id": "cmt_01a0ec7a349f77eb8c4800548d0c3d95",
+  "updated_at": "2026-09-29T09:23:46.975509000Z"
+}

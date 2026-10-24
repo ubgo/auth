@@ -1,0 +1,7 @@
+func newHandler(a *auth.Auth, pp *oauthpopup.Plugin) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", pp.RewriteCallback(authhttp.Handler(a, authhttp.Prefix(authPrefix))))
+	mux.Handle(oauthpopup.DefaultMount+"/", http.StripPrefix(oauthpopup.DefaultMount, pp.Handler()))
+	mux.Handle("GET /api/me", authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(me))))
+	return mux
+}

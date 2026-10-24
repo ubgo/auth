@@ -1,0 +1,4 @@
+func (p *Plugin) Resend(ctx context.Context, number string) error {
+	_, err := p.resend.Call(ctx, NumberRequest{Phone: number})
+	return err
+}

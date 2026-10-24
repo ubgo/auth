@@ -1,0 +1,13 @@
+export async function afterReauthentication(askForCode: () => Promise<string>): Promise<"fresh" | "failed" | null> {
+  const url = new URL(location.href);
+  const outcome = url.searchParams.get("reauth");
+  const ticket = url.searchParams.get("reauthTicket");
+  for (const name of ["reauth", "reauthTicket"]) url.searchParams.delete(name);
+  history.replaceState(history.state, "", url);
+  if (outcome === "fresh") return "fresh";
+  if (outcome === "second_factor" && ticket) {
+    const { data, error } = await auth.twofactor.reauthenticate({ code: await askForCode(), ticket });
+    return error === null && data.fresh ? "fresh" : "failed";
+  }
+  return null;
+}

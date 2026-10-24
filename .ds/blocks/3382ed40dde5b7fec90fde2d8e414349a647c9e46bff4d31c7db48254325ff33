@@ -1,0 +1,4 @@
+export async function referralCode(): Promise<string | null> {
+  const { data } = await auth.referral.dashboard();
+  return data?.code ?? null;
+}

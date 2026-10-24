@@ -1,0 +1,3 @@
+func OnResolved(fn ResolvedHook) Option {
+	return func(p *Plugin) { p.resolved = append(p.resolved, fn) }
+}

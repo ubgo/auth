@@ -1,0 +1,14 @@
+func (p *Plugin) DataHooks() auth.DataHooks {
+	return auth.DataHooks{User: auth.TableHooks[auth.User]{
+		AfterCreate: func(ctx context.Context, _ sqlb.DBTX, u *auth.User) error {
+			code, err := newCode()
+			if err != nil {
+				return err
+			}
+			// ctx carries the sign-up's transaction. SetUserColumn is the one
+			// sanctioned write to a core table, and it refuses a column this
+			// plugin did not add.
+			return auth.SetUserColumn(ctx, p.a, PluginName, u.ID, Code, &code)
+		},
+	}}
+}

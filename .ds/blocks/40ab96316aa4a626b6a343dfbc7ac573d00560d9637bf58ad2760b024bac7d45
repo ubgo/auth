@@ -1,0 +1,4 @@
+export async function passkeyOptions(): Promise<unknown> {
+  const { data } = await auth.passkey.loginBegin();
+  return data?.options ?? null;
+}

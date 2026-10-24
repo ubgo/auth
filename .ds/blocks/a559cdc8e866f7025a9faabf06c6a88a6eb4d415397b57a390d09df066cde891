@@ -1,0 +1,34 @@
+export function SignInPage() {
+  const { custom } = useDemoCustomise()
+  // Passed straight through: the form follows it only when it is a path on
+  // this site, so /sign-in?redirectTo=https://evil.example lands on "/".
+  const redirectTo = new URLSearchParams(window.location.search).get("redirectTo") ?? undefined
+  return (
+    <DemoPage
+      title="Sign in"
+      description="Password, magic link, OAuth and passkey in one card; each method shows only when its plugin is in the client."
+      customCode={CUSTOM_CODE}
+      tryThis={[
+        <>
+          Sign in as <code>{DEMO_USER.email}</code> with <code>{DEMO_USER.password}</code>; the header switches to your name.
+        </>,
+        <>Submit empty, then a wrong password: field errors, then the server's message for <code>password.invalid_credentials</code>.</>,
+        <>
+          Choose <b>Email me a link instead</b>, then open the link from the <RouterLink href="/inbox">Inbox</RouterLink>.
+        </>,
+        <>
+          <b>Continue with Demo provider</b> runs a real OAuth code flow against a pretend provider in the demo server.
+        </>,
+        <>
+          Turn on two-factor in <RouterLink href="/two-factor/setup">Two-factor setup</RouterLink>, sign out, sign in again: the form hands off to the challenge.
+        </>,
+        <>
+          Add a passkey under <RouterLink href="/passkeys">Passkeys</RouterLink>, sign out, then click the Email field: the browser offers the passkey in its autofill list (conditional mediation), and picking it signs in.
+        </>,
+        <>Switch Language to Deutsch and Appearance to Custom in the panel below.</>,
+      ]}
+    >
+      <SignInForm redirectTo={redirectTo} classNames={custom ? CUSTOM : undefined} headingLevel={2} />
+    </DemoPage>
+  )
+}

@@ -1,0 +1,12 @@
+func RFCErrorCode(err error) string {
+	for _, m := range rfcCodes {
+		if errors.Is(err, m.err) {
+			return m.code
+		}
+	}
+	var rc RFCCoder
+	if errors.As(err, &rc) && rc.RFCCode() != "" {
+		return rc.RFCCode()
+	}
+	return RFCServerError
+}

@@ -1,0 +1,3 @@
+func Bindings(c *ReferralColumns) []sqlb.Binding {
+	return []sqlb.Binding{sqlb.Bind(Code, &c.ReferralCode)}
+}

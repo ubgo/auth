@@ -1,0 +1,12 @@
+func (s settings) decommission(w http.ResponseWriter, r *http.Request) {
+	res, err := s.sp.DecommissionConnection(r.Context(), scim.DecommissionRequest{
+		ConnectionID:         r.PathValue(pathConnParam),
+		ProvisioningDomainID: orgInPath(r),
+		ActorID:              authhttp.MustUser(r).ID,
+	})
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, decommissionResponse{Status: res.Status, ReconciledUsers: res.ReconciledUsers})
+}

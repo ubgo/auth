@@ -1,0 +1,19 @@
+func DefaultSeverity(e Event) Severity {
+	if strings.HasPrefix(e.Code, RateCodePrefix) {
+		switch auth.RateOutcome(strings.TrimPrefix(e.Code, RateCodePrefix)) {
+		case auth.RateOutcomeBlocked, auth.RateOutcomeChallenged:
+			return SeverityWarn
+		}
+		return SeverityInfo
+	}
+	if !e.OK {
+		return SeverityWarn
+	}
+	if strings.HasPrefix(string(e.Op), adminOpPrefix) && e.SubjectID != "" && e.SubjectID != e.ActorID {
+		if alertTypes[TypeOf(e.Op)] {
+			return SeverityAlert
+		}
+		return SeverityWarn
+	}
+	return SeverityInfo
+}

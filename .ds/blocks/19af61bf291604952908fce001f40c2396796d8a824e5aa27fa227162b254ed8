@@ -1,0 +1,6 @@
+type SessionRevocations interface {
+	// Revoke ends session id until until.
+	Revoke(ctx context.Context, id string, until time.Time) error
+	// Revoked reports whether session id is on the list at now.
+	Revoked(ctx context.Context, id string, now time.Time) (bool, error)
+}

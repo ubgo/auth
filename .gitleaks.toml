@@ -1,0 +1,28 @@
+# gitleaks configuration: the default rules, plus an allowlist for the
+# fixtures this repo ships on purpose. Every entry names why its values are
+# not live credentials. Anything outside these paths still fails the scan.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented fixtures, not live credentials"
+paths = [
+  # Docs and example READMEs show transcripts of runs against a throwaway
+  # localhost server: session tokens, bearer tokens, API keys (sk_live_/sk_test_
+  # are this library's own key prefixes), JWTs and link tokens all come from an
+  # in-memory database that is gone when the example stops.
+  '''^docs/.*\.md$''',
+  '''^examples/[^/]+/README\.md$''',
+  # Example tests sign with a fixed test-only secret.
+  '''^examples/[^/]+/main_test\.go$''',
+  # Passkey authenticator AAGUIDs: public model identifiers, not secrets.
+  '''^plugin/passkey/passkey\.go$''',
+  '''^plugin/passkey/policy_test\.go$''',
+  # The well-known Hardhat development account keys, published test vectors.
+  '''^plugin/siwe/siwetest/siwetest\.go$''',
+  # A published webhook signature test vector.
+  '''^plugin/webhook/signature/signature_test\.go$''',
+  # Build output of the Next.js example (gitignored, never committed).
+  '''(^|/)\.next/''',
+  '''(^|/)node_modules/''',
+]

@@ -1,0 +1,9 @@
+type RiskPolicy struct {
+	// Action is what a flag does: RateBlock (the default, 403), RateLog
+	// (record only, to measure a detector before enforcing it) or
+	// RateChallenge (the RateChallenger decides). A challenge needs a
+	// challenger, as for a rate rule.
+	Action RateAction
+	// OnError is what a check that returns an error does; see RiskErrorMode.
+	OnError RiskErrorMode
+}

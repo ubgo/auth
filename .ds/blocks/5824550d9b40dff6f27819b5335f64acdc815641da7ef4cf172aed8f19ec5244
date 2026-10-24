@@ -1,0 +1,16 @@
+func (p policyAuthorizer) Authorize(_ context.Context, req admin.AccessRequest) (bool, error) {
+	if len(req.Permissions) == 0 {
+		return false, nil // asking for nothing proves nothing
+	}
+	anyRes := false
+	for res, acts := range req.Permissions {
+		ok := len(acts) > 0 && slices.ContainsFunc(req.Roles, func(role string) bool {
+			return !slices.ContainsFunc(acts, func(act string) bool { return !p.enforce(role, res, act) })
+		})
+		if !ok && req.Connector != admin.Or {
+			return false, nil
+		}
+		anyRes = anyRes || ok
+	}
+	return anyRes, nil
+}

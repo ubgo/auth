@@ -1,0 +1,9 @@
+func (p *Plugin) doList(ctx context.Context, c *auth.Call, _ struct{}) (ListResult, error) {
+	var row Device
+	out := ListResult{Devices: []Device{}}
+	q := p.a.Select().Columns(Bindings(&row)...).From(TableDevice).
+		Where(sqlb.Eq(UserID, c.User.ID)).
+		Order(sqlb.OrderBy(CreatedAt, sqlb.SortAsc), sqlb.OrderBy(ID, sqlb.SortAsc))
+	err := p.a.Each(ctx, q, func() error { out.Devices = append(out.Devices, row); return nil })
+	return out, err
+}

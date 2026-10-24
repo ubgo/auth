@@ -1,0 +1,1 @@
+var keyAccess = access.MustNew(access.Statements{resourceProject: {actionRead, actionDeploy}})

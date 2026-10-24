@@ -1,0 +1,30 @@
+func Handler(a *auth.Auth, opts ...Option) http.Handler {
+	cfg := newConfig(opts)
+	routes := map[string]map[string]http.Handler{}
+	for _, op := range a.Operations() {
+		path := cfg.prefix + op.Route()
+		if routes[path] == nil {
+			routes[path] = map[string]http.Handler{}
+		}
+		routes[path][MethodOf(op.Info().Kind)] = serveOp(a, op, cfg)
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		byMethod, ok := routes[r.URL.Path]
+		if !ok {
+			WriteError(w, auth.ErrUnknownOperation)
+			return
+		}
+		h, ok := byMethod[r.Method]
+		if !ok {
+			allowed := make([]string, 0, len(byMethod))
+			for m := range byMethod {
+				allowed = append(allowed, m)
+			}
+			sort.Strings(allowed)
+			w.Header().Set(headerAllow, strings.Join(allowed, ", "))
+			WriteError(w, ErrMethodNotAllowed)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}

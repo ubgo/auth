@@ -1,0 +1,10 @@
+func ErrorPresenter(ctx context.Context, err error) *gqlerror.Error {
+	gqlErr := graphql.DefaultErrorPresenter(ctx, err)
+	info := auth.ErrorOf(err)
+	gqlErr.Message = info.Message
+	if gqlErr.Extensions == nil {
+		gqlErr.Extensions = map[string]any{}
+	}
+	gqlErr.Extensions[CodeExtension] = info.Code
+	return gqlErr
+}

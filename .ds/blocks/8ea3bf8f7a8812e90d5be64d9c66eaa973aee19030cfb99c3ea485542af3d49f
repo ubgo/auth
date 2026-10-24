@@ -1,0 +1,8 @@
+export async function signInWithSecondFactor(identifier: string, secret: string, askForCode: () => Promise<string>): Promise<boolean> {
+  const first = await auth.password.signIn({ identifier, password: secret });
+  if (first.error) return false;
+  if (!first.data.secondFactorRequired) return true;
+  const code = await askForCode(); // from the authenticator app, or a mailed code after auth.twofactor.send()
+  const second = await auth.twofactor.verify({ code, trustDevice: true });
+  return second.error === null;
+}

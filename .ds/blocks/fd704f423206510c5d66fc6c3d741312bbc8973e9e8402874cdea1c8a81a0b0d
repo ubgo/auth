@@ -1,0 +1,10 @@
+type ErrorInfo struct {
+	Code    string `json:"code"`
+	Status  int    `json:"-"`
+	Message string `json:"message"`
+	// OriginalMessage is the declared English message when Message was
+	// translated by the WithMessages catalogue, so a log or a support screen
+	// can show the text the reference documents; empty (and left out of the
+	// JSON) when Message is the declared one.
+	OriginalMessage string `json:"originalMessage,omitempty"`
+}

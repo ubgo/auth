@@ -1,0 +1,1 @@
+type ServerContextFunc func(ctx context.Context, c *auth.Call, provider string) (map[string]string, error)

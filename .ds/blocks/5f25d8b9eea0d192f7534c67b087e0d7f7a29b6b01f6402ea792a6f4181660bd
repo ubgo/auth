@@ -1,0 +1,1 @@
+func (r Role) AtLeast(need Role) bool { return r.Rank() >= need.Rank() }

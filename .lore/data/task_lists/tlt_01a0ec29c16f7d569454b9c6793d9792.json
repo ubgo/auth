@@ -1,0 +1,11 @@
+{
+  "_table": "task_lists",
+  "_v": 1,
+  "body": "Open product decisions carried over from the old task file; they need the owner.",
+  "created_at": "2026-09-29T07:55:54.607865000Z",
+  "id": "tlt_01a0ec29c16f7d569454b9c6793d9792",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "status_str": "active",
+  "title": "Owner decisions",
+  "updated_at": "2026-09-29T07:55:54.607865000Z"
+}

@@ -1,0 +1,4 @@
+func (p *Plugin) Remove(ctx context.Context, address string) error {
+	_, err := p.remove.Call(ctx, AddressRequest{Email: address})
+	return err
+}

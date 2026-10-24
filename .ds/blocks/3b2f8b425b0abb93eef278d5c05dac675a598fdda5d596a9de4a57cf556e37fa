@@ -1,0 +1,11 @@
+type ImportAccount struct {
+	// UserID is the user here the account belongs to; it must exist.
+	UserID string
+	// Provider is the configured provider's name (ErrProviderUnknown otherwise).
+	Provider string
+	// ProviderAccountID is the provider's stable id for the person, stored as
+	// the subject; "Sign in with <provider>" then lands on UserID.
+	ProviderAccountID string
+	// Email is the address the provider reported there, kept as information.
+	Email string
+}

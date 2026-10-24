@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Owner, 2026-10-02. Auth is about authentication. Grouping users (organization, workspace, team, nested trees like Jira org > workspace > project) and authorization (roles, permissions, ACL) are features of their own, like OAuth provider, SSO and billing. They ship as separate Go modules an app plugs in or leaves out, never inside the core module, even when they need nothing beyond the standard library and sqlb (this extends the module rule, which split modules only on extra dependencies). Apps differ too much for one shape: some need no groups, some nest several levels, some attach plans to a user, an org or a workspace. So the future design is mechanisms the app configures: app-declared group kinds with parents, app-defined roles and permissions per kind, limits and gates as functions the app answers (plans stay in the app), an active group per kind in the session, and an escape hatch of using no plugin at all. Not part of round 2; designed and built after the core authentication gaps are closed.",
+  "confidence": null,
+  "created_at": "2026-10-02T14:03:54.112827000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a0fcedbd807cb5ae459329f5d99c9e",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Organizations, workspaces, permissions and ACL are not core auth: separate modules, built later",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-02T14:03:54.112827000Z"
+}

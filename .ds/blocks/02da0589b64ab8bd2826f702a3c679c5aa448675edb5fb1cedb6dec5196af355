@@ -1,0 +1,18 @@
+func (a *Auth) RatePeek(ctx context.Context, key string, window time.Duration) (int, error) {
+	if window <= 0 {
+		return 0, ErrRateWindow
+	}
+	if a.limiter == nil {
+		return 0, ErrRatesNotReady
+	}
+	p, ok := a.limiter.store.(RatePeeker)
+	if !ok {
+		return 0, ErrRatePeekUnsupported
+	}
+	a.limiter.warnPerProcess()
+	n, err := p.Peek(ctx, pluginRateKey(key), window)
+	if err != nil {
+		return 0, fmt.Errorf("auth: rate store: %w", err)
+	}
+	return n, nil
+}

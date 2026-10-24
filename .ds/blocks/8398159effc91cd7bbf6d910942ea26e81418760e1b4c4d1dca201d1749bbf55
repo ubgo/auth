@@ -1,0 +1,10 @@
+func (a *Auth) Locale(ctx context.Context) string {
+	st := stateFrom(ctx)
+	if l := a.storedLocale(ctx, st); l != "" {
+		return l
+	}
+	if st != nil && st.req.Client.Locale != "" {
+		return st.req.Client.Locale
+	}
+	return a.defaultLocale
+}

@@ -1,0 +1,9 @@
+func importAdminRoles(ctx context.Context, ad *admin.Plugin, grants map[string][]string) []error {
+	var errs []error
+	for userID, roles := range grants {
+		if err := ad.SetRoleFor(ctx, userID, roles...); err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", userID, err))
+		}
+	}
+	return errs
+}

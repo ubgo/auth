@@ -1,0 +1,15 @@
+func AlgorithmKeys(keys ...crypto.Signer) Option {
+	return func(p *Plugin) {
+		if auth.RefuseNilEach(&p.optErrs, "jwt.AlgorithmKeys", keys) {
+			return
+		}
+
+		for _, k := range keys {
+			if ek, ok := k.(ed25519.PrivateKey); ok && len(ek) != ed25519.PrivateKeySize {
+				p.algKeysErr = fmt.Errorf("%w: a short Ed25519 key", ErrAlgorithmKeys)
+				continue
+			}
+			p.algKeys = append(p.algKeys, keySigner{key: k})
+		}
+	}
+}

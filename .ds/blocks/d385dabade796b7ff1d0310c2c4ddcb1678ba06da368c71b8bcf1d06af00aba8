@@ -1,0 +1,4 @@
+func (p *Plugin) PublicOf(ctx context.Context, userID string) (json.RawMessage, error) {
+	m, err := p.Get(ctx, userID)
+	return m.Public, err
+}

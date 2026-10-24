@@ -1,0 +1,1 @@
+"oauth: SkipStateCookieCheck is on: a callback is accepted without the flow cookie that ties it to the browser that started it (login CSRF)"

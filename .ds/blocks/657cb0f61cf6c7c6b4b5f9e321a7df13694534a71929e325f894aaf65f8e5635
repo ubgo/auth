@@ -1,0 +1,23 @@
+`usage: auth sweep [--retention 168h] delete expired sessions, tokens and plugin rows;
+                                     with WithDeliveryOutbox, send the outbox's due messages
+       auth migrate [--dry-run]    apply pending migrations
+       auth migrate sql              print every migration as SQL, change nothing
+       auth migrate status           list migrations and whether each is applied
+       auth migrate orphans          list tables, columns and owners no plugin claims now
+       auth migrate check            fail unless the database holds every table, column and migration the code needs
+       auth info [--json]            print the wiring: version, engine, plugins, routes, lifetimes
+       auth admin grant --email x    make the owner of a verified address an admin
+       auth admin create --email x [--name y] [--password-stdin]
+                                     create a user with a verified address and admin rights
+                                     (--json prints the result as JSON, --dry-run changes nothing)
+
+examples:
+  myapp auth migrate status
+  myapp auth migrate --dry-run
+  myapp auth migrate check && myapp serve
+  myapp auth migrate sql > schema.sql
+  myapp auth info --json
+  myapp auth admin grant --email alice@example.com
+  echo "$ADMIN_PASSWORD" | myapp auth admin create --email root@example.com --name Root --password-stdin
+  myapp auth admin create --email root@example.com --dry-run --json
+`

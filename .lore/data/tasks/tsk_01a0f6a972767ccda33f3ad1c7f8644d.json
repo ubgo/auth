@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": null,
+  "created_at": "2026-10-01T08:51:35.158835000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0f6a972767ccda33f3ad1c7f8644d",
+  "mission_id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "todo",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Feature-by-feature checklist (every feature, our status and gap)",
+  "updated_at": "2026-10-01T08:51:35.158836000Z"
+}

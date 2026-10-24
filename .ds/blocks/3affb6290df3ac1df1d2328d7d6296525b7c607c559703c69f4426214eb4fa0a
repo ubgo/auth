@@ -1,0 +1,10 @@
+func (o orgAdapter) Role(ctx context.Context, orgID, userID string) (string, bool, error) {
+	role, err := o.orgs.RoleOf(ctx, orgID, userID)
+	if errors.Is(err, organization.ErrNotMember) {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	return string(role), true, nil
+}

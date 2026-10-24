@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r31-sso round 2 (2026-10-07): SAML logout requests and responses must be signed by default; gosaml2 needed a workaround for the decryption key; per-provider URLs come from an http middleware, with no core change.",
+  "created_at": "2026-10-07T08:51:30.429661000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1158f87fd7a58a11040afbfe4fd6b",
+  "updated_at": "2026-10-07T08:51:30.429662000Z"
+}

@@ -1,0 +1,4 @@
+export async function acceptTerms(version: string): Promise<boolean> {
+  const { data } = await auth.terms.accept({ version });
+  return data?.ok ?? false;
+}

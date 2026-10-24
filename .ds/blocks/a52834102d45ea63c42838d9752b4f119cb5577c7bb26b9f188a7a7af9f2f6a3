@@ -1,0 +1,3 @@
+func WithAllowedHosts(hosts ...string) Option {
+	return func(s *settings) { s.allowedHosts = append(s.allowedHosts, hosts...) }
+}

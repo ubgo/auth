@@ -1,0 +1,25 @@
+func TestPhoneNumbers_NationalFormatCreatesThenFindsTheAccount(t *testing.T) {
+	a, sms := newTestAuth(t)
+	b := newBrowser(t, newHandler(a))
+
+	post[auth.Done](t, b, "/auth/phone/send-code", fields{"phone": typedNumber}, http.StatusOK)
+	first := post[phone.SignInResult](t, b, "/auth/phone/sign-in", fields{"phone": typedNumber, "code": sms.lastCode(t, a, normalizedNumber)}, http.StatusOK)
+	if !first.Created || first.User.ID == "" {
+		t.Fatalf("first sign-in = %+v, want a created user", first)
+	}
+	if !b.hasCookie(authhttp.CookieName) {
+		t.Fatal("sign-in set no session cookie")
+	}
+	if me := get[meResponse](t, b, "/me", http.StatusOK); me.ID != first.User.ID || me.Phone != normalizedNumber || !me.PhoneVerified {
+		t.Fatalf("/me = %+v", me)
+	}
+
+	post[none](t, b, "/auth/sign-out", none{}, http.StatusOK)
+	get[none](t, b, "/me", http.StatusUnauthorized)
+
+	post[auth.Done](t, b, "/auth/phone/send-code", fields{"phone": normalizedNumber}, http.StatusOK)
+	again := post[phone.SignInResult](t, b, "/auth/phone/sign-in", fields{"phone": normalizedNumber, "code": sms.lastCode(t, a, normalizedNumber)}, http.StatusOK)
+	if again.Created || again.User.ID != first.User.ID {
+		t.Fatalf("second sign-in = %+v, want the same user %s", again, first.User.ID)
+	}
+}

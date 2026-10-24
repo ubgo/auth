@@ -1,0 +1,18 @@
+export async function signInWithEthereum(address: string, chainId: number, sign: PersonalSign): Promise<boolean> {
+  const nonce = await auth.siwe.nonce({ walletAddress: address, chainId });
+  if (nonce.error) return false;
+  const message = [
+    `${location.host} wants you to sign in with your Ethereum account:`,
+    address,
+    "",
+    "Sign in to the example app.",
+    "",
+    `URI: ${location.origin}`,
+    "Version: 1",
+    `Chain ID: ${chainId}`,
+    `Nonce: ${nonce.data.nonce}`,
+    `Issued At: ${new Date().toISOString()}`,
+  ].join("\n");
+  const { error } = await auth.siwe.verify({ message, signature: await sign(message, address) });
+  return error === null; // siwe.signature_invalid, siwe.nonce_invalid, siwe.domain_invalid, ...
+}

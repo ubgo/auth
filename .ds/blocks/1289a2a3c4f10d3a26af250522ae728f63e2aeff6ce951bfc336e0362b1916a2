@@ -1,0 +1,5 @@
+type RatePeeker interface {
+	// Peek returns key's count in the window that contains now, 0 when
+	// there is none, without counting.
+	Peek(ctx context.Context, key string, window time.Duration) (int, error)
+}

@@ -1,0 +1,3 @@
+type TemplateRequest struct {
+	Template string `json:"template"`
+}

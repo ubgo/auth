@@ -1,0 +1,4 @@
+type Sealer interface {
+	Seal(ctx context.Context, plain []byte, aad string) (string, error)
+	Open(ctx context.Context, sealed, aad string) ([]byte, error)
+}

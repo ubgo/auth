@@ -1,0 +1,44 @@
+func TestErrorCodes_ListsEveryPluginAndRenders(t *testing.T) {
+	if _, err := plugins(); err != nil { // imports every plugin, so their declarations ran
+		t.Fatal(err)
+	}
+	codes := errorCodes()
+	byCode := map[string]errorCode{}
+	for i, c := range codes {
+		byCode[c.Code] = c
+		if i > 0 && codes[i-1].Code >= c.Code {
+			t.Fatalf("not sorted at %s", c.Code)
+		}
+	}
+	for code, plugin := range map[string]string{"auth.internal": "core", "auth.signed_out": "core", "auth.rate_limited": "core", "password.invalid_credentials": "password", "captcha.failed": "captcha", "oauth.bad_return_to": "oauth"} {
+		if byCode[code].Plugin != plugin {
+			t.Errorf("%s owner = %q, want %q", code, byCode[code].Plugin, plugin)
+		}
+	}
+	md := string(renderErrorCodesMD(codes))
+	if !strings.Contains(md, "| `auth.signed_out` | 401 | Sign in to continue. | core |") {
+		t.Fatalf("markdown lacks the signed-out row:\n%s", md[:400])
+	}
+	raw, err := renderErrorCodesJSON(codes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var back []errorCode
+	if err := json.Unmarshal(raw, &back); err != nil || len(back) != len(codes) {
+		t.Fatalf("json: %v, %d codes", err, len(back))
+	}
+	ts := string(authhttp.TypeScriptErrorCodes())
+	for _, want := range []string{
+		"export const AUTH_ERROR_CODES = {",
+		`  "auth.signed_out": { status: 401, message: "Sign in to continue.", plugin: "core" },`,
+		"export type AuthErrorCode = keyof typeof AUTH_ERROR_CODES;",
+		"export function isAuthErrorCode(code: string): code is AuthErrorCode {",
+	} {
+		if !strings.Contains(ts, want) {
+			t.Errorf("typescript lacks %q", want)
+		}
+	}
+	if strings.Count(ts, "{ status:") != len(codes) {
+		t.Fatalf("typescript has %d entries for %d codes", strings.Count(ts, "{ status:"), len(codes))
+	}
+}

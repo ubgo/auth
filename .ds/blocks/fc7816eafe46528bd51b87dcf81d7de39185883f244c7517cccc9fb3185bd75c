@@ -1,0 +1,11 @@
+func (a *Auth) Exec(ctx context.Context, s Statement) (int64, error) {
+	c, q, err := a.prepare(ctx, s)
+	if err != nil {
+		return 0, err
+	}
+	res, err := c.ExecContext(ctx, q.SQL, q.Args...)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}

@@ -1,0 +1,29 @@
+func TestGeoRules_ImpossibleTravelIsRefusedAndLeavesNoSession(t *testing.T) {
+	e, b, mem, userID := world(t)
+	signIn(t, b, berlinIP, adaPass).Expect(http.StatusOK)
+	before := sessions(t, e, userID)
+
+	e.Clock.Advance(tooSoon)
+	if code := signIn(t, b, newYorkIP, adaPass).Expect(auth.ErrImpossibleTravel.Status).ErrorCode(); code != auth.ErrImpossibleTravel.Code {
+		t.Fatalf("New York an hour after Berlin: %s", code)
+	}
+	if n := sessions(t, e, userID); n != before {
+		t.Fatalf("%d sessions after the refused sign-in, want %d", n, before)
+	}
+
+	e.Clock.Advance(longEnough - tooSoon)
+	signIn(t, b, newYorkIP, adaPass).Expect(http.StatusOK)
+	if n := sessions(t, e, userID); n != before+1 {
+		t.Fatalf("%d sessions after the later sign-in, want %d", n, before+1)
+	}
+
+	got := events(t, e, mem, auth.SecurityImpossibleTravel)
+	if len(got) != 1 {
+		t.Fatalf("%d impossible_travel events, want 1: %+v", len(got), got)
+	}
+	ev := got[0]
+	if ev.UserID != userID || ev.IP != newYorkIP || ev.Attrs[auth.AttrCountry] != countryUS || ev.Attrs[auth.AttrPreviousCountry] != countryGermany ||
+		ev.Severity != auth.SeverityAlert || ev.Outcome != auth.RateOutcomeBlocked || ev.Attrs[auth.AttrElapsed] != tooSoon.String() {
+		t.Fatalf("event = %+v", ev)
+	}
+}

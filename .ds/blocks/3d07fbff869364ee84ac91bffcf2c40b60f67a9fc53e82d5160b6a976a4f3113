@@ -1,0 +1,17 @@
+func newAuth(db *sql.DB, m email.Mailer, sms phone.SMSSender, joined func(organization.MemberChange)) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			phone.New(phone.WithSMS(sms)),
+			password.New(),
+			organization.New(
+				organization.Teams(organization.TeamsConfig{MaxTeams: maxTeams, MaxMembersPerTeam: maxMembersPerTeam}),
+				organization.DynamicRoles(organization.DynamicRolesConfig{MaxRoles: maxCustomRoles}),
+				organization.InviteBy(email.KindEmail, phone.KindPhone),
+				organization.WithHooks(hooks(joined)),
+			),
+		),
+	)
+}

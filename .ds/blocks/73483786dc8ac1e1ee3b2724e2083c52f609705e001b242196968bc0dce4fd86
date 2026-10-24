@@ -1,0 +1,16 @@
+export async function signIn(address: string, secret: string): Promise<"signed-in" | "second-factor" | string> {
+  const { data, error } = await auth.password.signIn({ identifier: address, password: secret });
+  if (error) {
+    switch (error.code) {
+      case "password.invalid_credentials":
+        return "The sign-in details are not right.";
+      case "auth.not_verified":
+        return "Verify your address first; we can send the link again.";
+      case "auth.rate_limited":
+        return `Too many attempts. Try again in ${error.retryAfter ?? 60} seconds.`;
+      default:
+        return error.message;
+    }
+  }
+  return data.secondFactorRequired ? "second-factor" : "signed-in";
+}

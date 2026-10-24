@@ -1,0 +1,4 @@
+var (
+	deleteAtOnce = auth.AccountDeletion{}
+	deleteByLink = auth.AccountDeletion{ConfirmByLink: true}
+)

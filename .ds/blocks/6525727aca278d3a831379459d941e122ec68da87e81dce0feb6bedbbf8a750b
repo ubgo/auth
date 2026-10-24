@@ -1,0 +1,8 @@
+func WithPlugins(ps ...Plugin) Option {
+	return func(s *settings) {
+		if RefuseNilEach(&s.optErrs, "auth.WithPlugins", ps) {
+			return
+		}
+		s.plugins = append(s.plugins, ps...)
+	}
+}

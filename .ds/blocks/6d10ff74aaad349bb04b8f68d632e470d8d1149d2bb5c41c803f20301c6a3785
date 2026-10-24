@@ -1,0 +1,8 @@
+func (p *Plugin) ActiveUser(ctx context.Context, connectionID, externalID string) (scimUserID, userID string, err error) {
+	err = p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(UserID, &scimUserID), sqlb.Bind(UserUserID, &userID)).From(TableUser).
+		Where(sqlb.Eq(UserConnectionID, connectionID), sqlb.Eq(UserExternalKey, optKey(externalID)), sqlb.Eq(UserActive, true)))
+	if errors.Is(err, sqlb.ErrNoRows) || (err == nil && externalID == "") {
+		return "", "", ErrNoActiveUser
+	}
+	return scimUserID, userID, err
+}

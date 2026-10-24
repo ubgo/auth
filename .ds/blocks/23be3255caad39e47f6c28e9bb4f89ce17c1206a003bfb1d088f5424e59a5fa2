@@ -1,0 +1,11 @@
+export function expoSecureStorage(store: {
+  getItemAsync(key: string): Promise<string | null>;
+  setItemAsync(key: string, value: string): Promise<void>;
+  deleteItemAsync(key: string): Promise<void>;
+}): SecureStorage {
+  return {
+    getItem: (key) => store.getItemAsync(key),
+    setItem: (key, value) => store.setItemAsync(key, value),
+    deleteItem: (key) => store.deleteItemAsync(key),
+  };
+}

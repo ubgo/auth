@@ -1,0 +1,5 @@
+func me(w http.ResponseWriter, r *http.Request) {
+	u := authhttp.MustUser(r)
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(meResponse{ID: u.ID, Hello: u.Name}) // a client that hung up cannot be told
+}

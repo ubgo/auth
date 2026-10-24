@@ -1,0 +1,3 @@
+func (p *Plugin) SignIn(ctx context.Context, t auth.Token) (SignInResult, error) {
+	return p.signIn.Call(ctx, SignInRequest{Token: t})
+}

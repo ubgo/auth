@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Verified 2026-10-10. Already built and marked ✅ (evidence in the org checklist): GeeTest via captcha.VerifierFunc (plugin/captcha/captcha.go), SSO provider management and domain verification (plugin/sso api.go, domain.go), SCIM managed directories (plugin/scim managed.go: ManagedConnections, CreateManagedConnection, RotateCredential, RevokeCredential, ConnectionEvents), events endpoints (plugin/audit my-events and admin/audit), disposable email (email.CheckAddresses, BlockDomains, RequireMX in plugin/email/hygiene.go). Remaining 🟡: audit logs (org.md row the feature checklist-audit-logs) has no severity field and no PII redaction in plugin/audit; security events (Infrastructure: Audit logs) has no bot, suspicious IP, trial abuse, compromised password or stale-account event. Not built, so left 🟡. Totals unchanged: 2,617 rows, 2,099 ✅, 30 🟡, 40 ❌, 448 ➖.",
+  "created_at": "2026-10-10T06:56:27.455945000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11faebb9c7591a5fb207ac891a968",
+  "entity_table": "tasks",
+  "id": "cmt_01a12499473f7ebd9fa290fb987556c0",
+  "updated_at": "2026-10-10T06:56:27.455946000Z"
+}

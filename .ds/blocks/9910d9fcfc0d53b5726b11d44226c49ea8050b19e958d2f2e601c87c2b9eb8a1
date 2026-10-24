@@ -1,0 +1,4 @@
+var appColumns = []auth.ColumnExtension{
+	{Name: colTimezone, Type: auth.ColumnText, Default: "'" + defaultTimezone + "'"},
+	{Name: colPlan, Type: auth.ColumnText, Default: "'" + defaultPlan + "'"},
+}

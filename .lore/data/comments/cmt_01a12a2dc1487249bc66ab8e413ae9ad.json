@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Fixed in ds v0.1.8 (released 2026-10-11, with bug 139). Verified on auth: ds check exit 0, 2138 ok, 191 uncovered info; ds refresh changed nothing. A fresh clone with the default config (no .lore exclude) reports nothing under .lore/**/*.json.",
+  "created_at": "2026-10-11T08:56:44.104128000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5dd64487ea2b7746fa08e644a78",
+  "entity_table": "tasks",
+  "id": "cmt_01a12a2dc1487249bc66ab8e413ae9ad",
+  "updated_at": "2026-10-11T08:56:44.104129000Z"
+}

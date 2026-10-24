@@ -1,0 +1,12 @@
+const config: NextConfig = {
+  turbopack: { root: REPO_ROOT },
+  // Same-origin API: the browser talks to Next only, and Next forwards /auth
+  // to the Go server, so the session cookie is first-party and Origin is the
+  // app's own. /dev is the demo server's in-memory inbox, read by the e2e run.
+  async rewrites() {
+    return [
+      { source: "/auth/:path*", destination: `${AUTH_API_URL}/auth/:path*` },
+      { source: "/dev/:path*", destination: `${AUTH_API_URL}/dev/:path*` },
+    ]
+  },
+}

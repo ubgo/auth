@@ -1,0 +1,4 @@
+export async function inviteLink(address: string): Promise<string | null> {
+  const { data } = await auth.invite.create({ email: address, role: "member" });
+  return data?.url ?? null;
+}

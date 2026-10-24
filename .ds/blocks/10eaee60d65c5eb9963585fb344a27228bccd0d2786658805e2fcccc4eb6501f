@@ -1,0 +1,14 @@
+export type SessionActions = {
+  /**
+   * Marks the session stale and waits for the new one. Call it after any
+   * call that changed who is signed in (a sign-in, a second factor, an
+   * account switch); the components in the registry already do.
+   */
+  readonly refreshSession: () => Promise<void>;
+  /**
+   * Ends the session on the server, forgets every cached auth entry, and
+   * navigates to paths.afterSignOut unless `redirectTo` says otherwise
+   * (null stays on the page). Resolves to the server's error, or null.
+   */
+  readonly signOut: (options?: { readonly everywhere?: boolean; readonly redirectTo?: string | null }) => Promise<AuthError | null>;
+};

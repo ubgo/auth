@@ -1,0 +1,6 @@
+type Faults struct {
+	mu    sync.Mutex
+	armed bool
+	n, at int
+	hit   bool
+}

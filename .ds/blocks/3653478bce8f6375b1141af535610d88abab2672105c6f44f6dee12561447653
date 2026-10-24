@@ -1,0 +1,3 @@
+func dashboard(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, dashboardResponse{Hello: authhttp.MustUser(r).Name})
+}

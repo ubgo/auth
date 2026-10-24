@@ -1,0 +1,6 @@
+func Reference(opts ReferenceOptions) Option {
+	if opts.Theme != "" && !slices.Contains(ReferenceThemeValues, opts.Theme) {
+		panic("authhttp: Reference: " + strconv.Quote(string(opts.Theme)) + " is not a ReferenceTheme")
+	}
+	return func(c *config) { c.reference = &opts }
+}

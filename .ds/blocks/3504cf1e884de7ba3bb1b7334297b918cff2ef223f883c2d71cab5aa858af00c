@@ -1,0 +1,12 @@
+func ApplePostedUser(raw string, p *Profile) {
+	var u appleUser
+	if json.Unmarshal([]byte(raw), &u) != nil {
+		return
+	}
+	if p.Name == "" {
+		p.Name = strings.TrimSpace(u.Name.FirstName + " " + u.Name.LastName)
+	}
+	if p.Email == "" {
+		p.Email = u.Email
+	}
+}

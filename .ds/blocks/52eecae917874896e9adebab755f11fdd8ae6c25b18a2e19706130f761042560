@@ -1,0 +1,28 @@
+func (p *Plugin) Reset(ctx context.Context, userID string) error {
+	if p.core == nil {
+		return auth.ErrOperationNotWired
+	}
+	var removed int64
+	err := p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		d := p.core.Dialect()
+		n, err := p.core.Exec(ctx, sqlb.NewDelete(d).From(TableFactor).Where(sqlb.Eq(FactorUserID, userID)))
+		if err != nil {
+			return err
+		}
+		removed = n
+		if _, err := p.core.Exec(ctx, sqlb.NewDelete(d).From(TableRecovery).Where(sqlb.Eq(RecoveryUser, userID))); err != nil {
+			return err
+		}
+		if err := p.forgetDevices(ctx, userID); err != nil {
+			return err
+		}
+		return auth.SetUserColumn(ctx, p.core, PluginName, userID, Enabled, false)
+	})
+	if err != nil {
+		return err
+	}
+	if removed == 0 {
+		return ErrNotEnrolled
+	}
+	return nil
+}

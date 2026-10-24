@@ -1,0 +1,1 @@
+func WithMetadata(m MetadataProvider) Option { return func(p *Plugin) { p.mds = m } }

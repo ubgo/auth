@@ -1,0 +1,6 @@
+func (p *Plugin) RateLimits() []auth.RateRule {
+	return []auth.RateRule{{
+		Match: EndpointMint, Key: auth.ByFunc, Limit: MintLimit, Window: MintWindow,
+		KeyFunc: func(_ context.Context, c *auth.Call) (string, error) { return c.User.ID, nil },
+	}}
+}

@@ -1,0 +1,1 @@
+func PassProfile() Option { return func(p *Plugin) { p.passProfile = true } }

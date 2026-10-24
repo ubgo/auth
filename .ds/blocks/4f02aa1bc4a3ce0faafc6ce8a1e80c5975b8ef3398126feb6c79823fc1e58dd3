@@ -1,0 +1,5 @@
+type flakyMailer struct {
+	next email.Mailer
+	// left is how many sends still fail; it goes negative once they are used.
+	left atomic.Int64
+}

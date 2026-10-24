@@ -1,0 +1,7 @@
+export function RouterLink({ href, className, children }: AuthLinkProps) {
+  return (
+    <RRLink to={href} className={className}>
+      {children}
+    </RRLink>
+  )
+}

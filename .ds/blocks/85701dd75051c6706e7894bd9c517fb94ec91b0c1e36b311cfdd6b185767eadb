@@ -1,0 +1,9 @@
+func WithBackground(run BackgroundFunc) Option {
+	return func(s *settings) {
+		if run == nil {
+			s.refuseNil("WithBackground")
+			return
+		}
+		s.background = run
+	}
+}

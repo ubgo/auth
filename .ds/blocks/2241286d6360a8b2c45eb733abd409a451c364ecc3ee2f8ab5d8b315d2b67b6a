@@ -1,0 +1,5 @@
+type meResponse struct {
+	ID        string  `json:"id"`
+	Workspace string  `json:"workspace"`
+	Device    *device `json:"device"`
+}

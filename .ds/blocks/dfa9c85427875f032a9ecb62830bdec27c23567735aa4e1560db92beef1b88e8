@@ -1,0 +1,9 @@
+export type PasskeyFailure =
+  /** The browser has no WebAuthn. */
+  | "unsupported"
+  /** The person closed the prompt, or no passkey matched (WebAuthn does not tell the two apart, on purpose). */
+  | "cancelled"
+  /** The server's options were not WebAuthn request or creation options. */
+  | "invalid_options"
+  /** Registration only: this authenticator already holds a passkey for the account (InvalidStateError). */
+  | "already_registered";

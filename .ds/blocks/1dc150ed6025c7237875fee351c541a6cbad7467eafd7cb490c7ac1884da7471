@@ -1,0 +1,9 @@
+func ForgetRejectedToken(w http.ResponseWriter, r *http.Request) {
+	if r == nil || !BearerMode(r) || !auth.RequestTokenRejected(r.Context()) {
+		return
+	}
+	if _, set := w.Header()[SetTokenHeader]; set {
+		return
+	}
+	w.Header().Set(SetTokenHeader, "")
+}

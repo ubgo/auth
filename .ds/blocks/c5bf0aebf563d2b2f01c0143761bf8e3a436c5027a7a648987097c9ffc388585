@@ -1,0 +1,7 @@
+type IDTokenRequest struct {
+	// IDToken is the provider's ID token, a compact JWS.
+	IDToken string `json:"idToken"`
+	// Nonce is the value the app sent to the provider, when it sent one;
+	// the token's nonce claim must be it or its SHA-256 hex.
+	Nonce string `json:"nonce"`
+}

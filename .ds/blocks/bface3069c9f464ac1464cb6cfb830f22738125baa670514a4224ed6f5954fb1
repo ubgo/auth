@@ -1,0 +1,5 @@
+type OperationHook struct {
+	Match  []EndpointID
+	Before func(ctx context.Context, c *Call) error
+	After  func(ctx context.Context, c *Call, result any) error
+}

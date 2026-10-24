@@ -1,0 +1,3 @@
+func newTracerProvider(p sdktrace.SpanProcessor) *sdktrace.TracerProvider {
+	return sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(p))
+}

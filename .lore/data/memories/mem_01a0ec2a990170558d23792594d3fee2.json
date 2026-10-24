@@ -1,0 +1,23 @@
+{
+  "_table": "memories",
+  "_v": 1,
+  "archived_at": null,
+  "body": "docsync (github.com/ubgo/docsync, CLI 'ds', installed at ~/.local/bin/ds) is the owner's docs-drift tool: mark code with ds:def, cite it from docs, and 'ds check' reports sentences whose code changed. The owner wants it used on ubgo/auth docs.",
+  "confidence": null,
+  "created_at": "2026-09-29T07:56:49.793020000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "mem_01a0ec2a990170558d23792594d3fee2",
+  "kind": "retrieved",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "superseded_by_id": null,
+  "trust_score": 0.5,
+  "tx_at": "2026-09-29T07:56:49.793020000Z",
+  "updated_at": "2026-09-29T07:56:49.793020000Z",
+  "valid_at": null,
+  "valid_until": null,
+  "validated_by_actor_id": null
+}

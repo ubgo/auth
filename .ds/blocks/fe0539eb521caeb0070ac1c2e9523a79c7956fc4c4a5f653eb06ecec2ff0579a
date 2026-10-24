@@ -1,0 +1,6 @@
+type FinishRequest struct {
+	Ceremony   string          `json:"ceremony"`
+	Credential json.RawMessage `json:"credential"`
+	// Name labels a new passkey in the list, such as "MacBook". Register only.
+	Name string `json:"name,omitempty"`
+}

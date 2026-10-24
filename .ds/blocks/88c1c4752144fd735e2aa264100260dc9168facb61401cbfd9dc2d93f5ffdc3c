@@ -1,0 +1,11 @@
+type OpenAPIInfo struct {
+	// Title and Version are required by the specification; empty values are
+	// written as empty strings rather than invented.
+	Title       string
+	Version     string
+	Description string
+	// Servers are the base URLs the routes are reachable at, without the
+	// prefix (the paths carry it). Empty means the document names none, and
+	// a client uses the URL it fetched the document from.
+	Servers []string
+}

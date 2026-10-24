@@ -1,0 +1,3 @@
+func (p *Plugin) TemplateToken(ctx context.Context, name string) (TokenResult, error) {
+	return p.template.Call(ctx, TemplateRequest{Template: name})
+}

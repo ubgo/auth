@@ -1,0 +1,3 @@
+func (p *Plugin) Verify(ctx context.Context, secret string, scopes ...string) (Verification, error) {
+	return p.verify(ctx, "", secret, scopes)
+}

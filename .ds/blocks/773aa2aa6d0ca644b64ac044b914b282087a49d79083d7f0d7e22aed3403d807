@@ -1,0 +1,7 @@
+func TrustedProxies(networks ...string) Option {
+	nets := make([]*net.IPNet, 0, len(networks))
+	for _, n := range networks {
+		nets = append(nets, parseNetwork(n))
+	}
+	return func(c *config) { c.proxies = append(c.proxies, nets...) }
+}

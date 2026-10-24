@@ -1,0 +1,15 @@
+func setWorkspace(a *auth.Auth) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var in workspaceRequest
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes)).Decode(&in); err != nil || in.Workspace == "" {
+			http.Error(w, "workspace required", http.StatusBadRequest)
+			return
+		}
+		if err := auth.SetSessionData(r.Context(), a, prefs(in)); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(auth.Done{OK: true}) // a client that hung up cannot be told
+	}
+}

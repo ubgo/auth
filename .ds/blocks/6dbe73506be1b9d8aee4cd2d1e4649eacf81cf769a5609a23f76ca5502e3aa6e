@@ -1,0 +1,3 @@
+type RateEventListener interface {
+	RateEvent(ctx context.Context, c *Call, e RateEvent)
+}

@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Second intermittent test seen 2026-10-06: TestIdentResendOnSignIn failed once with auth.code_invalid in a cover run and passed 5/5 rerun. Same family as TestPhone_ChangeEdgeCases (background delivery timing); fix both deterministically, never retry or skip.",
+  "created_at": "2026-10-06T05:54:41.257612000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a10f4eceba7904807b16e3552f13d2",
+  "entity_table": "tasks",
+  "id": "cmt_01a10fc749e97b10af551d8fe2662aaa",
+  "updated_at": "2026-10-06T05:54:41.257612000Z"
+}

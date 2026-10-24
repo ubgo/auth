@@ -1,0 +1,4 @@
+var locator = auth.GeoLocatorFunc(func(_ context.Context, ip netip.Addr) (auth.GeoLocation, bool, error) {
+	loc, found := geoTable[ip]
+	return loc, found, nil
+})

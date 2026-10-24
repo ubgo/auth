@@ -1,0 +1,9 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *terms.Plugin, error) {
+	tm := terms.New(terms.Current(currentTerms))
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), password.New(), tm),
+	)
+	return a, tm, err
+}

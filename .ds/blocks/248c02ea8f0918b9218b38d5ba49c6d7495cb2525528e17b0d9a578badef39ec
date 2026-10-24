@@ -1,0 +1,4 @@
+export async function textSignInCode(number: string): Promise<boolean> {
+  const { error } = await auth.phone.sendCode({ phone: number });
+  return error === null;
+}

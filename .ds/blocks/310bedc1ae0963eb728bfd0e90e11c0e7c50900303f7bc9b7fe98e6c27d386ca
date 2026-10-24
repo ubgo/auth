@@ -1,0 +1,1 @@
+	DefaultVerifyTTL = 24 * time.Hour

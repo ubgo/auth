@@ -1,0 +1,4 @@
+func (p *Plugin) Revoke(ctx context.Context, id string) error {
+	_, err := p.revoke.Call(ctx, RevokeRequest{ID: id})
+	return err
+}

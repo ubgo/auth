@@ -1,0 +1,7 @@
+func CurrentSession(ctx context.Context) (Session, bool) {
+	st := stateFrom(ctx)
+	if st == nil || st.session == nil || st.session.SecondFactorPending {
+		return Session{}, false
+	}
+	return *st.session, true
+}

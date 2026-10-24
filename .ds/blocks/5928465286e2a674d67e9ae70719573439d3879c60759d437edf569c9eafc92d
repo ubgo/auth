@@ -1,0 +1,7 @@
+func cibaNotifier(notify notifyFunc) agentauth.EventFunc {
+	return func(ctx context.Context, e agentauth.Event) {
+		if e.Type == agentauth.EventApprovalCreated && e.Method == agentauth.MethodCIBA && e.UserID != nil {
+			notify(ctx, *e.UserID, e.ApprovalID, e.BindingMessage)
+		}
+	}
+}

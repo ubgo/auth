@@ -1,0 +1,22 @@
+func TestLDAP_FirstSignInCreatesThenSignsIn(t *testing.T) {
+	e, b := newWorld(t, demoDirectory())
+	var first ldap.SignInResult
+	signIn(b, adaUser, adaPass).Expect(http.StatusOK).Decode(&first)
+	if !first.Created || first.User.Name != "Ada Lovelace" {
+		t.Fatalf("first sign-in = %+v", first)
+	}
+	var who meResponse
+	b.Get("/me").Expect(http.StatusOK).Decode(&who)
+	if who.ID != first.User.ID {
+		t.Fatalf("/me = %+v", who)
+	}
+	owner, err := e.Auth.FindIdentity(t.Context(), email.KindEmail, adaMail, true)
+	if err != nil || owner.UserID != first.User.ID {
+		t.Fatalf("the directory's address must be the new user's, verified: %+v %v", owner, err)
+	}
+	var again ldap.SignInResult
+	signIn(b, adaUser, adaPass).Expect(http.StatusOK).Decode(&again)
+	if again.Created || again.User.ID != first.User.ID {
+		t.Fatalf("second sign-in = %+v", again)
+	}
+}

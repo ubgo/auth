@@ -1,0 +1,15 @@
+func (k *fakeKMS) Seal(_ context.Context, plain []byte, aad string) (string, error) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if k.down {
+		return "", errKMSUnavailable
+	}
+	k.seals++
+	gcm := k.versions[len(k.versions)-1]
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := rand.Read(nonce); err != nil {
+		return "", err
+	}
+	out := gcm.Seal(nonce, nonce, plain, []byte(aad))
+	return kmsPrefix + strconv.Itoa(len(k.versions)) + ":" + base64.RawURLEncoding.EncodeToString(out), nil
+}

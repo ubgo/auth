@@ -1,0 +1,4 @@
+type Orphan struct {
+	Kind OrphanKind
+	Name string
+}

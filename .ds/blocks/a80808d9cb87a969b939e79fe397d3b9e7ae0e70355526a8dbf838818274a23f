@@ -1,0 +1,14 @@
+func newAuth(db *sql.DB, m email.Mailer, tu tuning) (*auth.Auth, error) {
+	return auth.New(append([]auth.Option{
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+		),
+		auth.WithSession(sessionConfig),
+		auth.WithSessionExtras(sessionExtras),
+		auth.WithMultiSession(maxDeviceAccounts),
+		auth.WithDeviceSessionExtras(),
+	}, switches(tu)...)...)
+}

@@ -1,0 +1,6 @@
+export async function teamWith(orgId: string, name: string, userId: string): Promise<string | null> {
+  const team = await auth.organization.createTeam({ orgId, name });
+  if (team.error) return null;
+  const added = await auth.organization.addTeamMember({ teamId: team.data.id, userId });
+  return added.error ? null : team.data.id;
+}

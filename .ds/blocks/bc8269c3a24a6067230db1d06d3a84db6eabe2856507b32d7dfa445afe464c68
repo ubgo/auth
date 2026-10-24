@@ -1,0 +1,9 @@
+func sessionOptions(key []byte, list auth.SessionRevocations) []auth.Option {
+	opts := []auth.Option{auth.WithStatelessSessions(key)}
+	if list != nil {
+		// Sign-out, revoke and the second-factor promotion add the
+		// session's id; every stateless lookup checks it.
+		opts = append(opts, auth.WithSessionRevocations(list))
+	}
+	return opts
+}

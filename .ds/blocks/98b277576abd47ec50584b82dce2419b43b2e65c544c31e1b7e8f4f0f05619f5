@@ -1,0 +1,12 @@
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Root />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "sign-in", element: <SignInPage /> },
+      { path: "account", element: <RequireUser><AccountPage /></RequireUser> },
+      { path: "magic-link", element: <MagicLinkPage /> },
+    ],
+  },
+])

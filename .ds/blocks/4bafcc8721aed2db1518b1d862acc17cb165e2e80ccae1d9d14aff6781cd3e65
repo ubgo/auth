@@ -1,0 +1,11 @@
+func ExampleWithRoles() {
+	s := access.Statements{"project": {"create", "share"}}
+	for k, v := range organization.DefaultStatements {
+		s[k] = v
+	}
+	ac := access.MustNew(s)
+	billing := ac.MustRole(access.Permissions{"project": {"create"}, organization.ResourceInvitation: {organization.ActionCreate}})
+	org := organization.New(organization.WithAccessControl(ac), organization.WithRoles(map[organization.Role]access.Role{"billing": billing}))
+	fmt.Println(org.Name(), billing.Allows(access.Request{"project": access.All("create")}))
+	// Output: organization true
+}

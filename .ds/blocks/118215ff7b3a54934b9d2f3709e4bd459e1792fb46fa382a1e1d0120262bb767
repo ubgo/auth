@@ -1,0 +1,3 @@
+type MessageCatalog interface {
+	Message(locale, code string) (string, bool)
+}

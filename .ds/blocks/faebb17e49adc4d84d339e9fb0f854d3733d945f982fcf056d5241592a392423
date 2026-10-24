@@ -1,0 +1,15 @@
+func sessionKey(hexKey string) ([]byte, error) {
+	if hexKey == "" {
+		key := make([]byte, auth.SealKeySize)
+		if _, err := rand.Read(key); err != nil {
+			return nil, err
+		}
+		log.Printf("WARN %s is not set: using a random key for this run, so every session ends when the process does", envSessionKey)
+		return key, nil
+	}
+	key, err := hex.DecodeString(hexKey)
+	if err != nil || len(key) != auth.SealKeySize {
+		return nil, errBadKey
+	}
+	return key, nil
+}

@@ -1,0 +1,6 @@
+func New() *Plugin {
+	p := &Plugin{}
+	p.set = auth.Define(auth.OpInfo{ID: EndpointSet, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/set"}, p.doSet)
+	p.get = auth.Define(auth.OpInfo{ID: EndpointGet, Kind: auth.Query, Require: auth.SignedIn, Path: "/get"}, p.doGet)
+	return p
+}

@@ -1,0 +1,12 @@
+func NewKeyRing(current []byte, previous ...[]byte) (*KeyRing, error) {
+	keys := append([][]byte{current}, previous...)
+	r := &KeyRing{gcms: make([]cipher.AEAD, 0, len(keys))}
+	for i, k := range keys {
+		gcm, err := newGCM(k)
+		if err != nil {
+			return nil, fmt.Errorf("auth: key ring: key %d: %w", i, err)
+		}
+		r.gcms = append(r.gcms, gcm)
+	}
+	return r, nil
+}

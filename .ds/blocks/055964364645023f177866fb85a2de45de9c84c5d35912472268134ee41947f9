@@ -1,0 +1,9 @@
+func WithPlugins(ps ...Plugin) Option {
+	return func(s *settings) {
+		if slices.Contains(ps, nil) {
+			s.refuseNil("WithPlugins")
+			return
+		}
+		s.plugins = append(s.plugins, ps...)
+	}
+}

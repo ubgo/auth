@@ -1,0 +1,1 @@
+func WithBackground(run BackgroundFunc) Option { return func(s *settings) { s.background = run } }

@@ -1,0 +1,6 @@
+func Twitch(clientID, clientSecret string) *OIDCProvider {
+	p := OIDC("twitch", TwitchIssuer, clientID, clientSecret)
+	p.Scopes = []string{"openid", twitchEmailScope}
+	p.AuthParams = url.Values{paramClaims: {twitchClaims}}
+	return p
+}

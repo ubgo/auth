@@ -1,0 +1,16 @@
+type GeoRules struct {
+	// Allow, when not empty, lists the only countries that may sign in (ISO
+	// 3166-1 alpha-2, any case). Deny lists countries that may not; a country
+	// in both is denied.
+	Allow, Deny []string
+	// DenyUnknown applies Action to an address the locator does not know
+	// (found false). Off by default: private networks, a development machine
+	// and gaps in the database would otherwise lock people out. A locator
+	// that returns an error is never denied for it: the check fails open and
+	// logs, because a GeoIP outage must not be a sign-in outage.
+	DenyUnknown bool
+	// Action is what a violation does: RateBlock (the default, 403
+	// auth.geo_blocked), RateLog (record only) or RateChallenge (the
+	// RateChallenger decides, as for a rate rule).
+	Action RateAction
+}

@@ -1,0 +1,8 @@
+func (s settings) rotate(w http.ResponseWriter, r *http.Request) {
+	out, err := s.sp.RotateCredential(r.Context(), r.PathValue(pathConnParam), orgInPath(r), authhttp.MustUser(r).ID, nil, nil)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, issued(out))
+}

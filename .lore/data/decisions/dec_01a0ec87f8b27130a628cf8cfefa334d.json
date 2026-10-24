@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Owner confirmed on 2026-09-29, matching ubgo/sqlb. LICENSE and NOTICE are in the repo root.",
+  "confidence": null,
+  "created_at": "2026-09-29T09:38:49.138074000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a0ec87f8b27130a628cf8cfefa334d",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "ubgo/auth is licensed Apache-2.0",
+  "trust_score": 0.5,
+  "updated_at": "2026-09-29T09:38:49.138075000Z"
+}

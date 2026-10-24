@@ -1,0 +1,11 @@
+func registerWebApp(ctx context.Context, op *oauthprovider.Plugin) (oauthprovider.Registration, error) {
+	return op.CreateClient(ctx, oauthprovider.ClientSpec{
+		ClientMetadata: oauthprovider.ClientMetadata{
+			Name:                   webAppName,
+			RedirectURIs:           []string{webAppRedirect},
+			PostLogoutRedirectURIs: []string{webAppSignedOut},
+			AuthMethod:             oauthprovider.AuthMethodNone,
+		},
+		EnableEndSession: true,
+	})
+}

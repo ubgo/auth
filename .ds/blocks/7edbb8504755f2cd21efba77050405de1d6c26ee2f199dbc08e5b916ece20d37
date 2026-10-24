@@ -1,0 +1,43 @@
+func Handler(a *auth.Auth, opts ...Option) http.Handler {
+	h := &handler{a: a, cfg: config{appName: defaultAppName, afterSignIn: defaultAfterSignIn}, pages: map[string]*template.Template{}}
+	for _, o := range opts {
+		o(&h.cfg)
+	}
+	h.pw, _ = auth.PluginOf[*password.Plugin](a)
+	h.em, _ = auth.PluginOf[*email.Plugin](a)
+	h.ml, _ = auth.PluginOf[*magiclink.Plugin](a)
+	h.tf, _ = auth.PluginOf[*twofactor.Plugin](a)
+	h.tm, _ = auth.PluginOf[*terms.Plugin](a)
+	cfg := a.Config()
+	h.signUp, h.forgot = inputFor(cfg.LoginKinds()), inputFor(cfg.RecoveryKinds())
+	h.signIn = h.signUp
+	h.signIn.Autocomplete = autocompleteAccount
+	for _, name := range pageNames {
+		h.pages[name] = template.Must(template.ParseFS(files, "templates/layout.html", "templates/"+name+".html"))
+	}
+	mux := http.NewServeMux()
+	p := h.cfg.prefix
+	mux.HandleFunc("GET "+p+PathLogin, h.getLogin)
+	mux.HandleFunc("POST "+p+PathLogin, h.post(h.postLogin))
+	mux.HandleFunc("GET "+p+PathSignup, h.getSignup)
+	mux.HandleFunc("POST "+p+PathSignup, h.post(h.postSignup))
+	mux.HandleFunc("GET "+p+PathForgot, h.getForgot)
+	mux.HandleFunc("POST "+p+PathForgot, h.post(h.postForgot))
+	mux.HandleFunc("GET "+p+PathReset, h.getReset)
+	mux.HandleFunc("POST "+p+PathReset, h.post(h.postReset))
+	mux.HandleFunc("GET "+p+PathVerify, h.getToken(h.verifyPage))
+	mux.HandleFunc("POST "+p+PathVerify, h.post(h.postVerify))
+	mux.HandleFunc("GET "+p+PathMagic, h.getToken(h.magicPage))
+	mux.HandleFunc("POST "+p+PathMagic, h.post(h.postMagic))
+	mux.HandleFunc("POST "+p+PathMagicSend, h.post(h.postMagicSend))
+	mux.HandleFunc("GET "+p+PathTwoFactor, h.getToken(h.twoFactorPage))
+	mux.HandleFunc("POST "+p+PathTwoFactor, h.post(h.postTwoFactor))
+	mux.HandleFunc("GET "+p+PathSettings, h.getSettings)
+	mux.HandleFunc("POST "+p+pathProfile, h.post(h.postProfile))
+	mux.HandleFunc("POST "+p+pathPassword, h.post(h.postPassword))
+	mux.HandleFunc("POST "+p+pathRevoke, h.post(h.postRevoke))
+	mux.HandleFunc("POST "+p+PathLogout, h.post(h.postLogout))
+	mux.HandleFunc("POST "+p+PathLogoutAll, h.post(h.postLogoutAll))
+	mux.Handle("GET "+p+pathAssets, http.StripPrefix(p+pathAssets, http.HandlerFunc(serveAsset)))
+	return mux
+}

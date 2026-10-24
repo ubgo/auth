@@ -1,0 +1,4 @@
+func HasScope(ctx context.Context, scope string) bool {
+	scopes, ok := CurrentScopes(ctx)
+	return ok && slices.Contains(scopes, scope)
+}

@@ -1,0 +1,8 @@
+func WithTravelHistory(h SignInHistory) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithTravelHistory", h) {
+			return
+		}
+		s.travelHistory = h
+	}
+}

@@ -1,0 +1,4 @@
+export async function powPuzzle(): Promise<string | null> {
+  const { data } = await auth.pow.challenge();
+  return data ? `${data.algorithm} difficulty ${data.difficulty}` : null;
+}

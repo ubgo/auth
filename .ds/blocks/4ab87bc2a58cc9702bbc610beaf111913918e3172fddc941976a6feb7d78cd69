@@ -1,0 +1,10 @@
+export async function signInByApproval(address: string): Promise<"completed" | "expired"> {
+  const started = await auth.emailchallenge.start({ identifier: address });
+  if (started.error) return "expired";
+  for (;;) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const { data, error } = await auth.emailchallenge.poll({});
+    if (error || data.state === "expired") return "expired";
+    if (data.state === "completed") return "completed";
+  }
+}

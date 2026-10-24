@@ -1,0 +1,8 @@
+type IDTokenVerifier interface {
+	Provider
+	// VerifyIDToken checks the token's signature, issuer, audience and
+	// lifetime, and its nonce against nonce when the token carries one. A
+	// token that must not be trusted is ErrIDTokenInvalid; a provider not
+	// configured for ID tokens is ErrIDTokenUnsupported.
+	VerifyIDToken(ctx context.Context, hc *http.Client, token, nonce string) (Profile, error)
+}

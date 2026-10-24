@@ -1,0 +1,10 @@
+func (x *app) handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(x.auth, authhttp.Prefix(authPrefix)))
+	signedIn := func(h http.HandlerFunc) http.Handler {
+		return authhttp.Middleware(x.auth)(authhttp.RequireUser(h))
+	}
+	mux.Handle("POST /purchase", signedIn(x.purchase))
+	mux.Handle("GET /credit", signedIn(x.credit))
+	return mux
+}

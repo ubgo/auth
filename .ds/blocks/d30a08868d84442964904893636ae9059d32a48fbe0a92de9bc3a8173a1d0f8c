@@ -1,0 +1,28 @@
+function Shell() {
+  const router = useRouter()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const { language } = useDemoCustomise()
+  const navigate = useCallback((href: string) => void router.navigate({ href }), [router])
+  return (
+    <AuthProvider client={auth} navigate={navigate} Link={RouterLink} localization={language === "de" ? GERMAN : undefined}>
+      <div className="flex h-svh flex-col bg-background text-[13px] text-foreground">
+        <header className="flex h-11 shrink-0 items-center justify-between gap-2 border-b px-4">
+          <RouterLink href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+            Acme
+            <span className="rounded-md border px-1.5 text-[11px] font-normal text-muted-foreground">ubgo/auth React demo</span>
+          </RouterLink>
+          <UserButton showName />
+        </header>
+        <ImpersonationBanner adminHref="/admin" />
+        <SessionTaskRedirect />
+        <MobileNav pathname={pathname} />
+        <div className="flex min-h-0 flex-1">
+          <Sidebar pathname={pathname} />
+          <main className="min-w-0 flex-1 overflow-y-auto">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </AuthProvider>
+  )
+}

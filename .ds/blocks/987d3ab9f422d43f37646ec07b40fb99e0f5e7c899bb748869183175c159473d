@@ -1,0 +1,13 @@
+func sealKey(hexKey string) ([]byte, error) {
+	if hexKey == "" {
+		log.Printf("WARN %s is not set: using a random key, so factors enrolled now stop working at the next start", envKey)
+		key := make([]byte, auth.SealKeySize)
+		_, err := rand.Read(key)
+		return key, err
+	}
+	key, err := hex.DecodeString(hexKey)
+	if err != nil || len(key) != auth.SealKeySize {
+		return nil, fmt.Errorf("%s must be %d hex characters", envKey, 2*auth.SealKeySize)
+	}
+	return key, nil
+}

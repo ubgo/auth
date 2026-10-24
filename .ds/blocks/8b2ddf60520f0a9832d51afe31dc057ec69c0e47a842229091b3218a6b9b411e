@@ -1,0 +1,3 @@
+func (p *Plugin) Generate(ctx context.Context) (GenerateResult, error) {
+	return p.generate.Call(context.WithValue(ctx, fromGoKey{}, true), struct{}{})
+}

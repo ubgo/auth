@@ -1,0 +1,7 @@
+func (p *Plugin) doSetPIN(ctx context.Context, c *auth.Call, in PINRequest) (auth.Done, error) {
+	if !validPIN(in.PIN) {
+		return auth.Done{}, ErrPINInvalid
+	}
+	h := hashPIN(c.User.ID, in.PIN)
+	return auth.Done{OK: true}, auth.SetUserColumn(ctx, p.a, PluginName, c.User.ID, PINHash, &h)
+}

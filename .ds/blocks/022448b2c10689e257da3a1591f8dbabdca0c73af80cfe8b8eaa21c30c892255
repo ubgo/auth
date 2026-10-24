@@ -1,0 +1,9 @@
+func mcpServer(w http.ResponseWriter, r *http.Request) {
+	at, ok := oauthprovider.TokenFrom(r.Context())
+	if !ok {
+		http.Error(w, "no token", http.StatusUnauthorized) // unreachable behind RequireToken
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(mcpAnswer{UserID: at.UserID, ClientID: at.ClientID, Scopes: at.Scopes}) // a client that hung up cannot be told
+}

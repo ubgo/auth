@@ -1,0 +1,11 @@
+export async function onApprovalPage(confirm: (who: string) => Promise<boolean>): Promise<string> {
+  const token = new URLSearchParams(location.search).get("token") ?? "";
+  const { data, error } = await auth.emailchallenge.context({ token });
+  if (error) return error.message;
+  if (data.state === "approved") return "Approved. Go back to the tab where you started.";
+  if (data.state === "wrong-browser") return "Open this link in the browser where you started.";
+  if (data.state !== "needs-confirmation") return "This sign-in request is not valid any more.";
+  if (!(await confirm(`${data.identifier ?? ""} from ${data.userAgent ?? "an unknown browser"} (${data.ipAddress ?? ""})`))) return "Ignored.";
+  const approved = await auth.emailchallenge.approve({ token });
+  return approved.error ? approved.error.message : "Approved. Go back to the tab where you started.";
+}

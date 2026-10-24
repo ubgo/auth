@@ -1,0 +1,9 @@
+func frenchTemplates(m auth.Message) (subject, text string) {
+	switch {
+	case m.Purpose == auth.PurposeVerify && m.Link != "":
+		return "Vérifiez votre adresse", "Ouvrez ce lien pour vérifier votre adresse :\n\n" + m.Link + "\n\nSi vous n'avez rien demandé, ignorez ce message."
+	case m.Purpose == auth.PurposeWelcome:
+		return "Bienvenue chez " + appName, "Votre adresse est vérifiée et votre compte " + appName + " est prêt."
+	}
+	return brandTemplates(m)
+}

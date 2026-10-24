@@ -1,0 +1,1 @@
+func Audience(aud string) Option { return func(p *Plugin) { p.audience = aud } }

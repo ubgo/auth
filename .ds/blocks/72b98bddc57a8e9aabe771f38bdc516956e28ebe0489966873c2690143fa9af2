@@ -1,0 +1,10 @@
+func (a *Auth) Each(ctx context.Context, s Statement, fn func() error) error {
+	c, q, err := a.prepare(ctx, s)
+	if err != nil {
+		return err
+	}
+	ctx, end := a.dbSpan(ctx, q.SQL)
+	err = sqlb.Each(ctx, c, q, fn)
+	end(err)
+	return err
+}

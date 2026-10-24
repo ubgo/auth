@@ -1,0 +1,7 @@
+func keepLogin(ctx context.Context, c *auth.Call, ev oauth.ResolvedEvent) error {
+	login := claimString(ev.Profile.Claims, claimLogin)
+	if login == "" {
+		return nil
+	}
+	return auth.SetUserColumn(ctx, c.Auth, auth.AppName, ev.UserID, Login, login)
+}

@@ -1,0 +1,17 @@
+func (b *Browser) Post(path string, body any) *Response {
+	b.env.T.Helper()
+	raw := []byte("{}")
+	if body != nil {
+		var err error
+		if raw, err = json.Marshal(body); err != nil {
+			b.env.T.Fatalf("authtest: encode body for %s: %v", path, err)
+		}
+	}
+	req, err := http.NewRequest(http.MethodPost, b.server.URL+path, bytes.NewReader(raw))
+	if err != nil {
+		b.env.T.Fatal(err)
+	}
+	req.Header.Set("Content-Type", contentTypeJSON)
+	req.Header.Set(headerOrigin, b.Origin)
+	return b.Do(req)
+}

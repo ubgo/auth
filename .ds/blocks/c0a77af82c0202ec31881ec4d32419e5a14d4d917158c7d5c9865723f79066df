@@ -1,0 +1,4 @@
+export async function passwordSignIn(identifier: string, secret: string): Promise<boolean> {
+  const { error } = await auth.password.signIn({ identifier, password: secret });
+  return error === null;
+}

@@ -1,0 +1,40 @@
+type Request struct {
+	Transport  Transport
+	Client     Client
+	Credential Credential
+	// Delivery is how the client asked to receive a token issued during this
+	// request (HTTP: the Auth-Token-Mode header). Empty means DeliveryCookie.
+	Delivery TokenDelivery
+	// Token is the raw session token, empty when Credential is CredentialNone.
+	Token Token
+	// Flow is the value the client holds from an earlier BindFlow effect, or
+	// empty. HTTP transports keep it in a cookie of its own.
+	Flow Token
+	// CachedSession is the value the client holds from an earlier
+	// EffectCacheSession, or empty. Only the snapshot cache uses one; a
+	// transport passes whatever the client sent, and the cache decides.
+	CachedSession string
+	// Host is the host the request came to, as the transport determined it
+	// (behind its trusted-proxy rule when it has one), such as
+	// "preview-42.example.com" or "app.example.com:8443"; empty for a
+	// transport without one. BaseURL(ctx) uses it only when WithAllowedHosts
+	// allows it, so a made-up Host header changes nothing.
+	Host string
+	// Device is the token the client holds from an earlier
+	// EffectRememberDevice, or empty (HTTP: a cookie of its own). A
+	// second-factor plugin reads it through RequestDevice to skip the second
+	// step on a remembered browser.
+	Device Token
+	// DeviceTokens are the other session tokens the device holds under
+	// WithMultiSession (authhttp: one cookie per account), without Token.
+	// The core lists and switches between them; a transport without the
+	// feature leaves it empty.
+	DeviceTokens []Token
+	// Header reads a request header. Nil for transports without headers.
+	Header func(name string) string
+	// Cookie reads a plugin cookie (Call.Cookie) by the name the plugin
+	// gave it, under whatever the transport names it on the wire; it
+	// reports whether the client sent one. Nil for transports without
+	// cookies.
+	Cookie func(name string) (string, bool)
+}

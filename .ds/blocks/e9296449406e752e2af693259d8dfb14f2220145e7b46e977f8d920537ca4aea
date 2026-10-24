@@ -1,0 +1,19 @@
+func transportOptions(secret string) []authhttp.Option {
+	return []authhttp.Option{
+		authhttp.Prefix(authPrefix),
+		// The client address: a signed edge header first, else the load
+		// balancer's forwarded headers, else the connection's address.
+		authhttp.ClientIPFunc(edgeClientIP(secret)),
+		authhttp.TrustedProxies(proxyNetwork),
+		authhttp.ClientIPHeaders(authhttp.HeaderForwarded, forwardedForHeader),
+		// Errors in the API's own contract.
+		authhttp.EncodeErrors(writeProblem),
+		// For the platform: GET /auth/ok and GET /auth/openapi.json.
+		authhttp.Health(),
+		authhttp.OpenAPI(authhttp.OpenAPIInfo{Title: apiTitle, Version: apiVersion, Servers: []string{baseURL}}),
+		// For plain HTML forms and the language picker.
+		authhttp.AcceptForms(),
+		authhttp.SkipTrailingSlash(),
+		authhttp.LocaleCookie(""),
+	}
+}

@@ -1,0 +1,14 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *lastlogin.Plugin, error) {
+	ll := lastlogin.New()
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			magiclink.New(),
+			ll,
+		),
+	)
+	return a, ll, err
+}

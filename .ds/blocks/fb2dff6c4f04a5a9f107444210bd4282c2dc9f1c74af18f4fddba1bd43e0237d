@@ -1,0 +1,3 @@
+func nameClaim(_ context.Context, u auth.User) map[string]any {
+	return map[string]any{claimName: u.Name}
+}

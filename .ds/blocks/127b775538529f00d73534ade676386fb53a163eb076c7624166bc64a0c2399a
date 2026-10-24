@@ -1,0 +1,1 @@
+func CallbackURL(fn func(provider string) string) Option { return func(p *Plugin) { p.callback = fn } }

@@ -1,0 +1,15 @@
+func ParseAppleKey(p8 []byte) (*ecdsa.PrivateKey, error) {
+	block, _ := pem.Decode(p8)
+	if block == nil || block.Type != pemTypePKCS8 {
+		return nil, ErrAppleKey
+	}
+	k, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrAppleKey, err)
+	}
+	ec, ok := k.(*ecdsa.PrivateKey)
+	if !ok || ec.Curve != elliptic.P256() {
+		return nil, ErrAppleKey
+	}
+	return ec, nil
+}

@@ -1,0 +1,11 @@
+export async function renameAndPrune(keepId: string, newName: string): Promise<number> {
+  const { data } = await auth.passkey.list();
+  await auth.passkey.rename({ id: keepId, name: newName });
+  let removed = 0;
+  for (const key of data?.passkeys ?? []) {
+    if (key.id === keepId) continue;
+    const { error } = await auth.passkey.remove({ id: key.id });
+    if (!error) removed++;
+  }
+  return removed;
+}

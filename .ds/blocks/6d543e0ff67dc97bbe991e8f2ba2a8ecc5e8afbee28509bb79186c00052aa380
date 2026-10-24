@@ -1,0 +1,10 @@
+type SendRequest struct {
+	Identifier string `json:"identifier"`
+	// Name is the display name for the account the link creates (SignUp);
+	// it travels in the token and is ignored when the identifier has an owner.
+	Name string `json:"name,omitempty"`
+	// Metadata travels to the delivering plugin's sender with the link (an
+	// invite id, a page to return to) and is not stored. At most
+	// email.MaxMetadataEntries entries of email.MaxMetadataLength bytes.
+	Metadata map[string]string `json:"metadata,omitempty"`
+}

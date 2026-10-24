@@ -1,0 +1,3 @@
+func sqliteDSN(path string) string {
+	return "file:" + (&url.URL{Path: path}).EscapedPath() + "?" + sqlitePragmas
+}

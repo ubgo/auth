@@ -1,0 +1,9 @@
+func WithSessionExtras(fn SessionExtras) Option {
+	return func(s *settings) {
+		if fn == nil {
+			s.refuseNil("WithSessionExtras")
+			return
+		}
+		s.sessionExtras = fn
+	}
+}

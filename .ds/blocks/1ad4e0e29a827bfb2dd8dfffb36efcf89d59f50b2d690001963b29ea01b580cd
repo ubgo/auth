@@ -1,0 +1,13 @@
+func adminAuthorizer(ad *admin.Plugin) metadata.Authorizer {
+	return metadata.AuthorizerFunc(func(ctx context.Context, req metadata.AccessRequest) (bool, error) {
+		roles, err := ad.RolesOf(ctx, req.CallerID)
+		if err != nil {
+			return false, err
+		}
+		action := admin.ActionGet
+		if req.Action == metadata.ActionWrite {
+			action = admin.ActionUpdate
+		}
+		return ad.CheckRolePermission(ctx, strings.Join(roles, ","), admin.Permissions{admin.ResourceUser: {action}}), nil
+	})
+}

@@ -1,0 +1,3 @@
+func DenyAuthenticators(aaguids ...string) Option {
+	return func(p *Plugin) { p.denyAAGUIDs = append(p.denyAAGUIDs, aaguids...) }
+}

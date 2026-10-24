@@ -1,0 +1,3 @@
+func WithProfileFields(cols ...string) Option {
+	return func(s *settings) { s.profileFields = append(s.profileFields, cols...) }
+}

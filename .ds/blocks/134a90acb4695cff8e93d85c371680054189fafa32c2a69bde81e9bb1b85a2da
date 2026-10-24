@@ -1,0 +1,6 @@
+func noCompanyName(pw string) error {
+	if strings.Contains(strings.ToLower(pw), forbidden) {
+		return ErrCompanyName
+	}
+	return nil
+}

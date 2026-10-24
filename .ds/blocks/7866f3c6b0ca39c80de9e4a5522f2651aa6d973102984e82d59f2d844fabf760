@@ -1,0 +1,12 @@
+export async function signInWithDirectory(user: string, secret: string): Promise<string> {
+  const { data, error } = await auth.ldap.signIn({ username: user, password: secret });
+  if (!error) return data.secondFactorRequired ? "second-factor" : `Signed in as ${data.user.name}`;
+  switch (error.code) {
+    case "ldap.credentials_invalid":
+      return "The user name or password is not right.";
+    case "ldap.directory_unavailable":
+      return "The directory cannot be reached. Try again later.";
+    default:
+      return error.message;
+  }
+}

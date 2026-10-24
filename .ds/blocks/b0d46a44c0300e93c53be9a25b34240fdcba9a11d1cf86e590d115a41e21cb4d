@@ -1,0 +1,34 @@
+export type AdminActions = {
+  /** Bans a user and ends every session of theirs (`admin.ban`). */
+  readonly ban: (input: AdminBanInput) => Promise<AuthError | null>;
+  /** Lifts a ban (`admin.unban`). */
+  readonly unban: (userId: string) => Promise<AuthError | null>;
+  /** Ends one of a user's sessions (`admin.revoke-session`). */
+  readonly revokeSession: (userId: string, sessionId: string) => Promise<AuthError | null>;
+  /** Ends every session of a user without banning them (`admin.revoke-sessions`). */
+  readonly revokeSessions: (userId: string) => Promise<AuthError | null>;
+  /** Replaces a user's roles (`admin.set-role`); the server refuses a role it does not define. */
+  readonly setRole: (userId: string, roles: readonly string[]) => Promise<AuthError | null>;
+  /** Sets a user's password under the password plugin's rules; their sessions end (`admin.set-password`). */
+  readonly setPassword: (userId: string, password: string) => Promise<AuthError | null>;
+  /** Deletes a user and everything that references them (`admin.remove-user`). */
+  readonly removeUser: (userId: string) => Promise<AuthError | null>;
+  /** Removes a user's second factor and recovery codes, so they enrol again (`admin.reset-two-factor`). */
+  readonly resetTwoFactor: (userId: string) => Promise<AuthError | null>;
+  /** Pauses a user's second factor: sign-in stops asking for it (`admin.disable-two-factor`). */
+  readonly disableTwoFactor: (userId: string) => Promise<AuthError | null>;
+  /** Switches a paused second factor back on and ends the user's sessions (`admin.enable-two-factor`). */
+  readonly enableTwoFactor: (userId: string) => Promise<AuthError | null>;
+  /**
+   * Signs this browser in as the user (`admin.impersonate`), for up to
+   * `minutes` (the server caps it at an hour). The admin's own session is
+   * kept for stopImpersonating; every cached auth entry is re-read as the user.
+   */
+  readonly impersonate: (userId: string, minutes?: number) => Promise<{ readonly result: AdminImpersonateResult | null; readonly error: AuthError | null }>;
+  /**
+   * Ends an impersonation (`admin.stop-impersonating`). `restored` is true
+   * when the admin's own session came back, false when the browser is now
+   * signed out (the flow cookie was gone).
+   */
+  readonly stopImpersonating: () => Promise<{ readonly restored: boolean; readonly error: AuthError | null }>;
+};

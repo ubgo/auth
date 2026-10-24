@@ -1,0 +1,13 @@
+export async function signInWithPopup(auth: ReturnType<typeof clientFor>, provider: string): Promise<string> {
+  const { data, error } = await auth.oauthPopup.signIn({ provider, timeoutMs: 120_000 });
+  if (data) return `Signed in as ${data.session.user.name}`;
+  switch (error.code) {
+    case "popup.blocked":
+      return "Allow popups for this site, then try again.";
+    case "popup.closed":
+    case "popup.timeout":
+      return "The sign-in window closed before you finished.";
+    default:
+      return `Sign-in failed (${error.rawCode || error.code}).`;
+  }
+}

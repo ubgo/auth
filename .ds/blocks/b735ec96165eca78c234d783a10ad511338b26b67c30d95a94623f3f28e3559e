@@ -1,0 +1,3 @@
+func WithTablePrefix(prefix string) Option {
+	return func(s *settings) { s.tablePrefix = prefix }
+}

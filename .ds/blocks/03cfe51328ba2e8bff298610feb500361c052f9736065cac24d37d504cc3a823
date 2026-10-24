@@ -1,0 +1,21 @@
+func TestGeoRules_DeniedCountryIsRefusedBeforeThePassword(t *testing.T) {
+	e, b, mem, _ := world(t)
+	for _, pass := range []string{adaPass, wrongPass} {
+		if code := signIn(t, b, moscowIP, pass).Expect(auth.ErrGeoBlocked.Status).ErrorCode(); code != auth.ErrGeoBlocked.Code {
+			t.Fatalf("denied country, password %q: %s", pass, code)
+		}
+	}
+	if code := signIn(t, b, berlinIP, wrongPass).Expect(password.ErrInvalidCredentials.Status).ErrorCode(); code != password.ErrInvalidCredentials.Code {
+		t.Fatalf("allowed country, wrong password: %s", code)
+	}
+	signIn(t, b, berlinIP, adaPass).Expect(http.StatusOK)
+	got := events(t, e, mem, auth.SecurityGeoCountry)
+	if len(got) != 2 {
+		t.Fatalf("%d geo.country events, want 2: %+v", len(got), got)
+	}
+	for _, ev := range got {
+		if ev.Attrs[auth.AttrCountry] != countryRussia || ev.Outcome != auth.RateOutcomeBlocked || ev.IP != moscowIP || ev.Op != password.EndpointSignIn {
+			t.Fatalf("event = %+v", ev)
+		}
+	}
+}

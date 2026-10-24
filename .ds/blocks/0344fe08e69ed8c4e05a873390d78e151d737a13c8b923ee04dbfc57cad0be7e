@@ -1,0 +1,9 @@
+func (p *Plugin) PublicKeys() JWKS {
+	keys := append([]ed25519.PublicKey{}, p.signer.PublicKeys()...)
+	keys = append(keys, p.previous...)
+	out := JWKS{Keys: make([]JWK, 0, len(keys))}
+	for _, k := range keys {
+		out.Keys = append(out.Keys, JWK{KeyType: KeyTypeOKP, Curve: CurveEd25519, X: base64.RawURLEncoding.EncodeToString(k), KeyID: KeyID(k), Use: KeyUseSignature, Alg: Algorithm})
+	}
+	return out
+}

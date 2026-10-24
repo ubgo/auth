@@ -1,0 +1,8 @@
+func Links(fn func(t auth.Token) string) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("magiclink.Links", fn) {
+			return
+		}
+		p.links, p.customLinks = fn, true
+	}
+}

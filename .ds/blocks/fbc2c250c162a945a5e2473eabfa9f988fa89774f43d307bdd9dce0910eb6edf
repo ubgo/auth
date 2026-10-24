@@ -1,0 +1,3 @@
+func (o orgAdapter) AddMember(ctx context.Context, orgID, userID, role string) error {
+	return o.orgs.AddMember(ctx, orgID, userID, organization.Role(role))
+}

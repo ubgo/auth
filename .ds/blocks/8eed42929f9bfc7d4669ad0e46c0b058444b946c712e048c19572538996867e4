@@ -1,0 +1,11 @@
+type SessionConfig struct {
+	IdleTimeout time.Duration
+	MaxLifetime time.Duration
+	// RefreshAfter limits how often an active session's expiry is written, so
+	// the middleware does not write to the database on every request.
+	RefreshAfter time.Duration
+	// TransientIdleTimeout replaces IdleTimeout for a session made without
+	// "remember me" (SessionOptions.Transient). Zero means
+	// DefaultTransientIdleTimeout.
+	TransientIdleTimeout time.Duration
+}

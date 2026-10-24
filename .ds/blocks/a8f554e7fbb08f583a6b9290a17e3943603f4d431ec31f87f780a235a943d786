@@ -1,0 +1,34 @@
+function MagicLink() {
+  const hasMagicLink = usePlugin("magiclink")
+  const magic = usePluginClient("magiclink")
+  const message = useErrorMessage()
+  const [address, setAddress] = useState("")
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState<AuthError | null>(null)
+  if (!hasMagicLink || magic === null) return null
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const { error } = await magic.send({ identifier: address })
+    setError(error)
+    setSent(error === null)
+  }
+
+  return (
+    <section aria-labelledby="magic-link">
+      <h2 id="magic-link">Email me a link</h2>
+      {sent ? (
+        <p role="status">Check your email for a sign-in link.</p>
+      ) : (
+        <form onSubmit={submit}>
+          <label>
+            Email for the link
+            <input name="magic-identifier" type="email" value={address} onChange={(e) => setAddress(e.target.value)} required />
+          </label>
+          <button type="submit">Send the link</button>
+          {error && <p role="alert">{message(error)}</p>}
+        </form>
+      )}
+    </section>
+  )
+}

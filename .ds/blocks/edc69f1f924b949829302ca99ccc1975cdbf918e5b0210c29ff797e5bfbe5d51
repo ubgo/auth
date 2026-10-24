@@ -1,0 +1,13 @@
+export function RouterLink({ href, className, children }: AuthLinkProps) {
+  const router = useRouter()
+  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    void router.navigate({ href })
+  }
+  return (
+    <a href={href} className={className} onClick={onClick}>
+      {children}
+    </a>
+  )
+}

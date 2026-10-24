@@ -1,0 +1,3 @@
+type RateStore interface {
+	Hit(ctx context.Context, key string, window time.Duration) (int, error)
+}

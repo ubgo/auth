@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Done: stopping an impersonation restores the admin's own session through a rotated token in the flow cookie; admin.StopImpersonating returns StopResult{Restored} (plugin/admin/admin.go), round 2, tagged [security]; covered by integration/admin_round2_test.go and examples/admin-ops. Verified by r10-lore audit 2026-10-05.",
+  "created_at": "2026-10-05T15:54:32.496619000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f67900ac76fd86215f0c8fb0941a",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc61cb079999ae268aacc5c35f2",
+  "updated_at": "2026-10-05T15:54:32.496620000Z"
+}

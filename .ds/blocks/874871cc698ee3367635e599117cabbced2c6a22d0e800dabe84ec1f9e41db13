@@ -1,0 +1,8 @@
+func Claims(fn func(ctx context.Context, u auth.User) map[string]any) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("jwt.Claims", fn) {
+			return
+		}
+		p.claims = fn
+	}
+}

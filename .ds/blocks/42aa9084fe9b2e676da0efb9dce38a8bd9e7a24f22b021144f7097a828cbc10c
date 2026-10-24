@@ -1,0 +1,1 @@
+func WithoutOriginCheck() Option { return func(s *settings) { s.noOriginCheck = true } }

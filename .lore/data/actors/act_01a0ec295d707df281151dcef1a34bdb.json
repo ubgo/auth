@@ -1,0 +1,10 @@
+{
+  "_table": "actors",
+  "_v": 1,
+  "created_at": "2026-09-29T07:55:29.008889000Z",
+  "display_name": "khanakia",
+  "id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "kind": "human",
+  "stable_key": "human:khanakia@gmail.com",
+  "updated_at": "2026-09-29T07:55:29.008889000Z"
+}

@@ -1,0 +1,6 @@
+export const remote = createAuthClient({
+  baseURL: "https://api.example.com/auth",
+  tokenMode: "bearer",
+  tokenStore: localStorageTokenStore(),
+  plugins: [password()],
+});

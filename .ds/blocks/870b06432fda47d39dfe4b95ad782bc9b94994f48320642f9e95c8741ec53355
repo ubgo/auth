@@ -1,0 +1,11 @@
+type ImportUser struct {
+	// ID keeps the other system's id when it fits (opaque text, unique);
+	// empty makes a new one. Keeping ids lets the app's own rows keep their
+	// foreign keys.
+	ID    string
+	Name  string
+	Image string
+	// CreatedAt keeps the original sign-up time; zero means now.
+	CreatedAt  time.Time
+	Identities []ImportIdentity
+}

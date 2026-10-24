@@ -1,0 +1,1 @@
+func OrganizationOwned() Option { return func(p *Plugin) { p.orgOwned = true } }

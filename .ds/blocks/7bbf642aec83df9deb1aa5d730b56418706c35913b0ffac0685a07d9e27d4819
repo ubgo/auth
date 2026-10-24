@@ -1,0 +1,17 @@
+func New(sender Sender, opts ...Option) *Plugin {
+	p := &Plugin{
+		kind: auth.IdentifierKind{
+			Name: KindChat, Verifiable: true, UniqueOnlyVerified: true,
+			Normalize: Normalize, Validate: Validate,
+		},
+		sender:   sender,
+		template: DefaultTemplate,
+		codeTTL:  DefaultCodeTTL,
+	}
+	for _, o := range opts {
+		o(p)
+	}
+	p.add = auth.Define(auth.OpInfo{ID: EndpointAdd, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/add"}, p.doAdd)
+	p.verify = auth.Define(auth.OpInfo{ID: EndpointVerify, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/verify"}, p.doVerify)
+	return p
+}

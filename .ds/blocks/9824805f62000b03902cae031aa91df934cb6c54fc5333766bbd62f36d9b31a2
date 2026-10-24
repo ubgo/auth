@@ -1,0 +1,1 @@
+func AllowIDTokenReplay() Option { return func(p *Plugin) { p.allowReplay = true } }

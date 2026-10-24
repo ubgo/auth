@@ -1,0 +1,4 @@
+type MetadataSender interface {
+	SMSSender
+	SendWithMetadata(ctx context.Context, to, text string, metadata map[string]string) error
+}

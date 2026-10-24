@@ -1,0 +1,4 @@
+func moveCart(ctx context.Context, tx sqlb.DBTX, guest, user auth.User) error {
+	_, err := tx.ExecContext(ctx, "UPDATE app_cart_item SET user_id = ? WHERE user_id = ?", user.ID, guest.ID)
+	return err
+}

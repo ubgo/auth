@@ -1,0 +1,3 @@
+func (p *Plugin) RateLimits() []auth.RateRule {
+	return []auth.RateRule{{Match: EndpointAdd, Key: auth.ByIP, Limit: addLimit, Window: addWindow}}
+}

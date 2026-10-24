@@ -1,0 +1,3 @@
+func WithImpossibleTravel(r ImpossibleTravelRule) Option {
+	return func(s *settings) { s.travelRule = &r }
+}

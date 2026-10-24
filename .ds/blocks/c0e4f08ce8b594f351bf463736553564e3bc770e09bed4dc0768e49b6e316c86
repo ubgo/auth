@@ -1,0 +1,6 @@
+func (p *Plugin) DisableFor(ctx context.Context, userID string) error {
+	if err := p.requireConfirmed(ctx, userID); err != nil {
+		return err
+	}
+	return auth.SetUserColumn(ctx, p.core, PluginName, userID, Enabled, false)
+}

@@ -1,0 +1,6 @@
+type CacheKey struct {
+	// TokenHash is the hash of the request's session token.
+	TokenHash []byte
+	// Client is what the client sent back from an earlier Put, or "".
+	Client string
+}

@@ -1,0 +1,20 @@
+func (a *Auth) IssueVerificationToken(ctx context.Context, purpose Purpose, identifier string, tok Token, ttl time.Duration, meta string) error {
+	if tok == "" {
+		return errEmptyToken
+	}
+	id, err := a.ids(IDPrefixVerification)
+	if err != nil {
+		return err
+	}
+	now := a.now()
+	v := Verification{ID: id, Identifier: identifier, Purpose: purpose, ExpiresAt: now.Add(ttl), Meta: meta, CreatedAt: now}
+	return a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+		if err := runHooks(ctx, a, tx, pickVerification, stageBeforeCreate, nil, &v); err != nil {
+			return err
+		}
+		if err := a.verifications.Insert(ctx, v, HashToken(tok)); err != nil {
+			return err
+		}
+		return runHooks(ctx, a, tx, pickVerification, stageAfterCreate, nil, &v)
+	})
+}

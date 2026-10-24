@@ -1,0 +1,8 @@
+func WithDB(db *sql.DB, d sqlb.Dialect) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithDB", d) {
+			return
+		}
+		s.db, s.cfg.Dialect = db, d
+	}
+}

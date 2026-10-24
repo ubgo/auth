@@ -1,0 +1,34 @@
+func New(t testing.TB, opts ...Option) *Env {
+	t.Helper()
+	s := settings{driver: SQLiteDriver, baseURL: BaseURL}
+	for _, o := range opts {
+		o(&s)
+	}
+	if s.plugins == nil {
+		t.Fatal("authtest.New: WithPlugins is required; the library has no sign-in method of its own")
+	}
+	e := &Env{T: t, Clock: NewClock(), Mail: &Mailbox{}, SMS: &SMSBox{}, BaseURL: s.baseURL, Faults: s.faults}
+	e.Mail.env, e.SMS.env = e, e
+	if s.db != nil {
+		e.DB, e.Dialect = s.db, s.dialect
+	} else {
+		e.DB, e.Dialect = openSQLite(t, s.driver, s.dsn, s.faults)
+	}
+	all := append([]auth.Option{
+		auth.WithDB(e.DB, e.Dialect), auth.WithBaseURL(e.BaseURL), auth.WithClock(e.Clock.Now),
+		// An explicit rate store on the test clock, so a window moves with
+		// Advance and the one-process warning does not fire per test.
+		auth.WithRateStore(auth.NewMemoryRateStore(e.Clock.Now)),
+		auth.WithPlugins(s.plugins(e)...),
+	}, s.opts...)
+	a, err := auth.New(all...)
+	if err != nil {
+		t.Fatalf("authtest.New: auth.New: %v", err)
+	}
+	t.Cleanup(func() { _ = a.Close() })
+	if _, err := a.Migrate(context.Background()); err != nil {
+		t.Fatalf("authtest.New: migrate: %v", err)
+	}
+	e.Auth = a
+	return e
+}

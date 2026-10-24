@@ -1,0 +1,11 @@
+type BotSignals struct {
+	// Op is the operation being called.
+	Op OpInfo
+	// Transport is how it arrived.
+	Transport Transport
+	// Client is the caller's address, user agent, origin and fetch site; IP
+	// is "" when the transport did not supply one.
+	Client Client
+
+	header func(name string) string
+}

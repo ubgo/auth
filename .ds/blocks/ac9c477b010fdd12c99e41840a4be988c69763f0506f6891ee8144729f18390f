@@ -1,0 +1,27 @@
+func TestSignUpVerifyAndProtectedPage(t *testing.T) {
+	e := newEnv(t)
+	b := e.Browser(newHandler(e.Auth))
+
+	var up password.SignInResult
+	b.Post("/auth/password/sign-up", map[string]string{"identifier": alice, "password": passcode, "name": "Alice"}).Expect(http.StatusOK).Decode(&up)
+	if b.Cookie(authhttp.CookieName) == nil {
+		t.Fatal("sign-up set no session cookie")
+	}
+	var me meResponse
+	b.Get("/me").Expect(http.StatusOK).Decode(&me)
+	if me.ID != up.User.ID || me.Name != "Alice" {
+		t.Fatalf("/me = %+v", me)
+	}
+
+	tok := e.Mail.LastToken(alice)
+	b.Post("/auth/email/verify", map[string]string{"token": tok.Reveal()}).Expect(http.StatusOK)
+
+	b.Post("/auth/sign-out", nil).Expect(http.StatusOK)
+	if code := b.Get("/me").Expect(http.StatusUnauthorized).ErrorCode(); code != auth.ErrSignedOut.Code {
+		t.Fatalf("/me after sign-out: %q", code)
+	}
+	wrong := b.Post("/auth/password/sign-in", map[string]string{"identifier": alice, "password": "wrong"}).Expect(http.StatusUnauthorized)
+	if wrong.ErrorCode() != password.ErrInvalidCredentials.Code {
+		t.Fatalf("wrong password: %q", wrong.ErrorCode())
+	}
+}

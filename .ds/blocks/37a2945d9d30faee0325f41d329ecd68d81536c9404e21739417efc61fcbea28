@@ -1,0 +1,18 @@
+export type SessionState = {
+  /** The session, or null when signed out (including a pending second factor, which signs nobody in). */
+  readonly session: AuthSessionResult | null;
+  /** The signed-in user, or null. */
+  readonly user: AuthUserView | null;
+  /** True until the first answer arrives. Render neither signed-in nor signed-out UI while it is true. */
+  readonly isPending: boolean;
+  /**
+   * True while a later read is in flight (a refetchInterval tick, a window
+   * focus, refetch()), with the last session still shown. False during the
+   * first read, which is isPending.
+   */
+  readonly isRefetching: boolean;
+  /** The failure of the last read, when it was not a plain "signed out". */
+  readonly error: AuthError | null;
+  /** Asks the server again now. */
+  readonly refetch: () => Promise<void>;
+};

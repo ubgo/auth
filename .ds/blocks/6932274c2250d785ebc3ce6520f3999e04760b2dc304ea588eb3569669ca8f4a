@@ -1,0 +1,3 @@
+func Okta(issuer, clientID, clientSecret string) *OIDCProvider {
+	return OIDC("okta", issuer, clientID, clientSecret)
+}

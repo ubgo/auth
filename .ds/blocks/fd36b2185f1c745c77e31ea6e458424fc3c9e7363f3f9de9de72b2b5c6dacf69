@@ -1,0 +1,3 @@
+func LinkedIn(clientID, clientSecret string) *OIDCProvider {
+	return OIDC("linkedin", LinkedInIssuer, clientID, clientSecret)
+}

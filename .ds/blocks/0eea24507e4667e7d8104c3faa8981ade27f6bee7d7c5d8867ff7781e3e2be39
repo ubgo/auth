@@ -1,0 +1,3 @@
+func (p *Plugin) Get(ctx context.Context, id string) (Key, error) {
+	return p.get.Call(ctx, GetRequest{ID: id})
+}

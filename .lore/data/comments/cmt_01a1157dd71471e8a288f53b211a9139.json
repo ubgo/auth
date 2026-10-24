@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r30-org (2026-10-07): admins can now change member roles; the active organization lives in auth_org_active keyed by session id, not on the session row; re-inviting still deletes the old invite instead of cancelling it; inviting an existing member is allowed unless RejectExistingMembers. plugin/access is stdlib only.",
+  "created_at": "2026-10-07T08:32:11.028111000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1157dd71471e8a288f53b211a9139",
+  "updated_at": "2026-10-07T08:32:11.028112000Z"
+}

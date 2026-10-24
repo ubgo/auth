@@ -1,0 +1,10 @@
+type Verifier struct {
+	// Keys maps key ids to public keys; build it with KeysFromJWKS or add
+	// keys with KeyID.
+	Keys     map[string]ed25519.PublicKey
+	Issuer   string
+	Audience string
+	Leeway   time.Duration
+	// Now is the clock; nil means time.Now.
+	Now func() time.Time
+}

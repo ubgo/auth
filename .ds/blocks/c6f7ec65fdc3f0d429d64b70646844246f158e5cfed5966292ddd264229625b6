@@ -1,0 +1,9 @@
+export async function linkedProviders(): Promise<{ id: string; name: string; linked: OauthAccount[] }[]> {
+  const [providers, accounts] = await Promise.all([auth.oauth.providers(), auth.oauth.accounts()]);
+  if (providers.error || accounts.error) return [];
+  return (providers.data.providers ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    linked: (accounts.data.accounts ?? []).filter((a) => a.provider === p.id),
+  }));
+}

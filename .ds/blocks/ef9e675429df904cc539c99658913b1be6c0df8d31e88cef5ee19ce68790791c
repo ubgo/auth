@@ -1,0 +1,47 @@
+func TestMobile_BearerSignInEndToEnd(t *testing.T) {
+	a := newTestAuth(t)
+	srv := httptest.NewServer(newHandler(a))
+	defer srv.Close()
+
+	res := send(t, srv, http.MethodPost, "/auth/password/sign-up", map[string]string{"identifier": testEmail, "password": testPassword}, map[string]string{authhttp.TokenModeHeader: authhttp.TokenModeBearer})
+	tok := res.Header.Get(authhttp.SetTokenHeader)
+	if res.StatusCode != http.StatusOK || tok == "" || len(res.Cookies()) != 0 {
+		t.Fatalf("bearer sign-up: %d token=%q cookies=%v", res.StatusCode, tok, res.Cookies())
+	}
+	if strings.Contains(body(t, res), tok) {
+		t.Fatal("the token reached the JSON body")
+	}
+	expires, err := time.Parse(time.RFC3339, res.Header.Get(authhttp.SetTokenExpiresHeader))
+	if err != nil || expires.Before(time.Now().Add(appLifetime.Idle-time.Minute)) {
+		t.Fatalf("%s = %q, want about %v ahead", authhttp.SetTokenExpiresHeader, res.Header.Get(authhttp.SetTokenExpiresHeader), appLifetime.Idle)
+	}
+
+	// The first request looks the session up and hands back a sealed copy.
+	bearer := map[string]string{"Authorization": "Bearer " + tok}
+	res = send(t, srv, http.MethodGet, "/me", nil, bearer)
+	var me meResponse
+	decode(t, res, http.StatusOK, &me)
+	snapshot := res.Header.Get(authhttp.SetSessionCacheHeader)
+	if me.Credential != auth.CredentialBearer || snapshot == "" || len(res.Cookies()) != 0 {
+		t.Fatalf("/me = %+v, %s=%q, cookies=%v", me, authhttp.SetSessionCacheHeader, snapshot, res.Cookies())
+	}
+	// Sent back, the copy answers without a new one being issued.
+	res = send(t, srv, http.MethodGet, "/me", nil, map[string]string{"Authorization": "Bearer " + tok, authhttp.SessionCacheHeader: snapshot})
+	decode(t, res, http.StatusOK, &me)
+	if res.Header.Get(authhttp.SetSessionCacheHeader) != "" {
+		t.Fatal("a valid copy was replaced")
+	}
+	// A copy made for another token is worthless with this one.
+	res = send(t, srv, http.MethodGet, "/me", nil, map[string]string{"Authorization": "Bearer not-the-token", authhttp.SessionCacheHeader: snapshot})
+	if res.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("/me with a stolen copy and the wrong token: %d", res.StatusCode)
+	}
+
+	// Sign out needs no Origin in bearer mode, and the token dies.
+	if res := send(t, srv, http.MethodPost, "/auth/sign-out", nil, bearer); res.StatusCode != http.StatusOK {
+		t.Fatalf("bearer sign-out: %d %s", res.StatusCode, body(t, res))
+	}
+	if res := send(t, srv, http.MethodGet, "/me", nil, bearer); res.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("/me after sign-out: %d", res.StatusCode)
+	}
+}

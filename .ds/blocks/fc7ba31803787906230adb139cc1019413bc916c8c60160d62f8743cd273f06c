@@ -1,0 +1,54 @@
+func MainWithStdin(ctx context.Context, a *auth.Auth, args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) > 0 {
+		switch args[0] {
+		case CmdSweep:
+			return sweep(ctx, a, args[1:], stdout, stderr)
+		case CmdAdmin:
+			return admin(ctx, a, args[1:], stdin, stdout, stderr)
+		case CmdInfo:
+			return info(a, args[1:], stdout, stderr)
+		case CmdSecret:
+			return secret(args[1:], rand.Reader, stdout, stderr)
+		case CmdGenerate:
+			args = append([]string{CmdMigrate, CmdSQL}, args[1:]...)
+		}
+	}
+	if len(args) == 0 || args[0] != CmdMigrate {
+		fmt.Fprint(stderr, usage)
+		return ExitUsage
+	}
+	fs := newFlags(CmdMigrate, stderr)
+	dry := fs.Bool("dry-run", false, "list what would be applied and change nothing")
+	rest := args[1:]
+	sub := ""
+	if len(rest) > 0 && (rest[0] == CmdSQL || rest[0] == CmdStatus || rest[0] == CmdOrphans || rest[0] == CmdCheck) {
+		sub, rest = rest[0], rest[1:]
+	}
+	if code, stop := parse(fs, rest); stop {
+		return code
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintf(stderr, "unexpected argument %q\n%s", fs.Arg(0), usage)
+		return ExitUsage
+	}
+	var err error
+	switch {
+	case sub == CmdSQL:
+		err = printSQL(a, stdout)
+	case sub == CmdStatus:
+		err = status(ctx, a, stdout, false)
+	case sub == CmdOrphans:
+		err = orphans(ctx, a, stdout)
+	case sub == CmdCheck:
+		err = check(ctx, a, stdout)
+	case *dry:
+		err = status(ctx, a, stdout, true)
+	default:
+		err = migrate(ctx, a, stdout)
+	}
+	if err != nil {
+		fmt.Fprintln(stderr, "auth migrate:", err)
+		return ExitFailed
+	}
+	return ExitOK
+}

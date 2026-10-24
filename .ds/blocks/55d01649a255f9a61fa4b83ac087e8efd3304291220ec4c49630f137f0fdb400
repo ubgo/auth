@@ -1,0 +1,38 @@
+func (p *Plugin) ImportTOTP(ctx context.Context, userID string, secret string) error {
+	if !p.totp {
+		return ErrMethodInvalid
+	}
+	raw, err := decodeSecret(secret)
+	if err != nil {
+		return err
+	}
+	return p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		if _, err := p.core.User(ctx, userID); err != nil {
+			return err
+		}
+		row, err := p.load(ctx, userID)
+		switch {
+		case err == nil && row.confirmedAt != nil:
+			return ErrAlreadyEnabled
+		case err != nil && !errors.Is(err, ErrNotEnrolled):
+			return err
+		}
+		sealed, err := p.ring.Seal(ctx, raw, userID)
+		if err != nil {
+			return err
+		}
+		d := p.core.Dialect()
+		now := p.core.Now()
+		if _, err := p.core.Exec(ctx, sqlb.NewDelete(d).From(TableFactor).Where(sqlb.Eq(FactorUserID, userID))); err != nil {
+			return err
+		}
+		ins := sqlb.NewInsert(d).Into(TableFactor).Row(
+			sqlb.Set(FactorUserID, userID), sqlb.Set(FactorSecret, sealed), sqlb.Set(FactorLastStep, int64(0)),
+			sqlb.Set(FactorFailures, 0), sqlb.Set(FactorCreatedAt, now), sqlb.Set(FactorConfirmedAt, &now), sqlb.Set(FactorMethod, string(MethodTOTP)),
+		)
+		if _, err := p.core.Exec(ctx, ins); err != nil {
+			return err
+		}
+		return auth.SetUserColumn(ctx, p.core, PluginName, userID, Enabled, true)
+	})
+}

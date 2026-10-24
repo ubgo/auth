@@ -1,0 +1,15 @@
+export function report(error: AuthError): void {
+  switch (error.code) {
+    case "client.network_error":
+      console.warn("no answer", error.cause); // offline, DNS, CORS refused, or aborted
+      break;
+    case "client.invalid_response":
+      console.error("not the library's JSON", error.status); // a proxy's error page, an app's own error body
+      break;
+    case "client.unknown_code":
+      console.error("regenerate the client: unknown code", error.rawCode);
+      break;
+    default:
+      console.info(error.code, error.status, AUTH_ERROR_CODES[error.code].plugin);
+  }
+}

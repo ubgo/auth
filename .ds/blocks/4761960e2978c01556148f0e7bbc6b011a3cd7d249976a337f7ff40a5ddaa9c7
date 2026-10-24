@@ -1,0 +1,19 @@
+func (p *Plugin) RewriteCallback(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := r.Cookie(MarkerCookie); err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		rec := &captured{header: http.Header{}, status: http.StatusOK}
+		next.ServeHTTP(rec, r)
+		target, ok := p.completionTarget(rec, r)
+		if !ok {
+			rec.flush(w)
+			return
+		}
+		for _, c := range rec.header.Values("Set-Cookie") {
+			w.Header().Add("Set-Cookie", c)
+		}
+		p.complete(w, afterCookies(r, target, rec))
+	})
+}

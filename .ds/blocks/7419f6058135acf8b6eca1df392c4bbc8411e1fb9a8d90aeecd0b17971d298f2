@@ -1,0 +1,14 @@
+func (a *Auth) TrustsOrigin(origin string) bool {
+	if origin == "" {
+		return false
+	}
+	if _, ok := a.trustedOrigins[origin]; ok {
+		return true
+	}
+	for _, p := range a.originPatterns {
+		if p.matches(origin) {
+			return true
+		}
+	}
+	return a.originFunc != nil && a.originFunc(origin)
+}

@@ -1,0 +1,8 @@
+func CallbackURL(fn func(provider string) string) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauth.CallbackURL", fn) {
+			return
+		}
+		p.callback = fn
+	}
+}

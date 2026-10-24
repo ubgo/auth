@@ -1,0 +1,8 @@
+func WithSealer(s auth.Sealer) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("twofactor.WithSealer", s) {
+			return
+		}
+		p.sealer = s
+	}
+}

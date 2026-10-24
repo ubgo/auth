@@ -1,0 +1,6 @@
+github.com/ubgo/auth v0.1.0 h1:eFuoVMSz8EBeHahUBIoOOOZ+mJsKshFiUuzOVXqum/o=
+github.com/ubgo/auth v0.1.0/go.mod h1:orlEofooy4uqEEJT8iCpHiCyErZYQeCxj0K876bmUWE=
+github.com/ubgo/auth/plugin/access v0.1.0 h1:I6DrAIJIWLGkNkJw+QGBIgdk7IKatMzJQJmNVnZZqZA=
+github.com/ubgo/auth/plugin/access v0.1.0/go.mod h1:2eN24q2z2CkVewVIZPaOxVTxaKDRUdSAe9gOCgZ7deg=
+github.com/ubgo/sqlb v0.1.1 h1:/D1jcjUIjv5HaZuHRVwfyo5OYIbGkmvLe3vISIX2ta8=
+github.com/ubgo/sqlb v0.1.1/go.mod h1:OD0l9pgY+j8GjpFMHcN364SKaFnNXIuZk3FAzJHG71U=

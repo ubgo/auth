@@ -1,0 +1,16 @@
+const auth = createAuthClient({
+  baseURL: "https://api.example.com/auth",
+  tokenMode: "bearer",
+  tokenStore: store,
+  plugins: [password()],
+  headers: { "X-Request-Id": "demo-1" },
+  fetch: stubFetch(
+    {
+      "/auth/password/sign-in": () =>
+        json(200, { user: USER, verificationRequired: false, secondFactorRequired: false }, { "Set-Auth-Token": "tok_1" }),
+      "/auth/session": () => json(401, { error: { code: "auth.signed_out", message: "Melde dich an, um fortzufahren.", originalMessage: "Sign in to continue." } }),
+      "/auth/sign-out": () => json(401, { error: { code: "auth.signed_out", message: "Sign in to continue." } }),
+    },
+    seen,
+  ),
+});

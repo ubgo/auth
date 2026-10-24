@@ -1,0 +1,16 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.Multiple(), email.WithMailer(m),
+				email.TemplatesByLocale(map[string]email.TemplateFunc{localeGerman: germanMail})),
+			password.New(),
+			magiclink.New(magiclink.VerifyByGET()),
+		),
+		auth.WithMessages(messages()),
+		auth.WithUserColumns(localeColumn),
+		auth.WithUserLocale(colLocale),
+		auth.WithErrorURL(authPrefix+authhttp.ErrorPagePath),
+	)
+}

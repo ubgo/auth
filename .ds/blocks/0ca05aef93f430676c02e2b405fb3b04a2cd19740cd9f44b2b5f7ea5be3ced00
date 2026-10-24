@@ -1,0 +1,1 @@
+func History(n int) Option { return func(p *Plugin) { p.history = n } }

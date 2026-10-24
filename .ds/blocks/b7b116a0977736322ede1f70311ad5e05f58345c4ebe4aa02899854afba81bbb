@@ -1,0 +1,7 @@
+func options(secret []byte, hooks *webhook.Plugin) []auth.Option {
+	return []auth.Option{
+		auth.WithSecret(secret),
+		auth.WithPlugins(plugins(hooks)...),
+		auth.WithSecuritySink(hooks.SecuritySink(), auth.SecurityQueue{Name: "webhook"}),
+	}
+}

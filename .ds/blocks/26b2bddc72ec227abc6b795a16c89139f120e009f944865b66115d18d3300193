@@ -1,0 +1,7 @@
+export async function guestThenAccount(address: string, secret: string): Promise<string | null> {
+  const guest = await auth.anonymous.signIn();
+  if (guest.error && guest.error.code !== "anonymous.already") return null;
+  // ... the guest fills a cart ...
+  const account = await auth.password.signUp({ identifier: address, password: secret });
+  return account.data?.user.id ?? null;
+}

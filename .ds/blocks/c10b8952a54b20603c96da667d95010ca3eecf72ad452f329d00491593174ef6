@@ -1,0 +1,6 @@
+type CreateRequest struct {
+	Name   string   `json:"name"`
+	Scopes []string `json:"scopes"`
+	// ExpiresInDays is optional; 0 means the key never expires.
+	ExpiresInDays int `json:"expiresInDays"`
+}

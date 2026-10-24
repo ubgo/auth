@@ -1,0 +1,9 @@
+type SpanInfo struct {
+	Kind      SpanKind
+	Name      string
+	Op        OpInfo
+	Plugin    string
+	Transport Transport
+	Stage     HookStage
+	Source    string
+}

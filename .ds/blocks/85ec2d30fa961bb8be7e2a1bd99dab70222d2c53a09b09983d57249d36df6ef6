@@ -1,0 +1,18 @@
+func newAuth(db *sql.DB, secret []byte, m email.Mailer, resolver sso.TXTResolver) (*auth.Auth, error) {
+	orgs := organization.New()
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSecret(secret),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			orgs,
+			sso.New(
+				sso.WithDomainVerification(sso.DomainVerification{Resolver: resolver}),
+				sso.WithOrganizations(orgAdapter{orgs: orgs, db: db}, sso.OrganizationProvisioning{}),
+				sso.WithSAMLOptions(sso.SAMLOptions{EnableSingleLogout: true}),
+			),
+		),
+	)
+}

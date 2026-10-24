@@ -1,0 +1,1 @@
+	DefaultTokenRotationGrace = time.Minute

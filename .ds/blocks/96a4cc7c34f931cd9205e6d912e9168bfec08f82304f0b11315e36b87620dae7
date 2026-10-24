@@ -1,0 +1,5 @@
+type SessionCacheUserDropper interface {
+	// DropUser forgets every entry whose session belongs to userID. A user
+	// with no entry is not an error.
+	DropUser(ctx context.Context, userID string) error
+}

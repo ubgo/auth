@@ -1,0 +1,5 @@
+function PasskeySupport() {
+  const hasPasskey = usePlugin("passkey")
+  if (!hasPasskey) return null
+  return <p className="muted">{supportsPasskeys() ? "This browser can sign in with a passkey." : "This browser cannot use passkeys."}</p>
+}

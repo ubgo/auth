@@ -1,0 +1,10 @@
+type ReauthAttempt struct {
+	// SingleFactor is set by a method that can prove two factors but proved
+	// one this time (a passkey whose authenticator did not verify the user),
+	// as SessionOptions.SingleFactor is at sign-in.
+	SingleFactor bool
+	// MultiFactor is set by a method that proved two factors on its own (a
+	// user-verified passkey), as CreateMultiFactorSession is at sign-in: no
+	// second factor is asked. Exclusive with SingleFactor.
+	MultiFactor bool
+}

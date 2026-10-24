@@ -1,0 +1,21 @@
+func readClerk(in input) ([]record, error) {
+	rd := csv.NewReader(in.Main)
+	rd.FieldsPerRecord = -1 // a short row reads as empty cells rather than an error
+	header, err := rd.Read()
+	if err != nil {
+		return nil, fmt.Errorf("clerk: header: %w", err)
+	}
+	col := indexColumns(header)
+	var out []record
+	for line := 2; ; line++ {
+		row, err := rd.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("clerk line %d: %w", line, err)
+		}
+		out = append(out, clerkRecord(cell(col, row)))
+	}
+	return out, nil
+}

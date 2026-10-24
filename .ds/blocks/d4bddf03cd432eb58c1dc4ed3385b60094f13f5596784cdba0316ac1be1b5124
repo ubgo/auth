@@ -1,0 +1,10 @@
+func (a *Auth) RequireSchema(ctx context.Context) error {
+	r, err := a.CheckSchema(ctx)
+	if err != nil {
+		return err
+	}
+	if r.OK() {
+		return nil
+	}
+	return fmt.Errorf("%w: %s", ErrSchemaBehind, strings.TrimPrefix(r.Error(), ErrSchemaBehind.Error()+": "))
+}

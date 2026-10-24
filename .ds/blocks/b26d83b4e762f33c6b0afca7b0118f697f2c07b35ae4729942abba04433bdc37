@@ -1,0 +1,1 @@
+func Reference(opts ReferenceOptions) Option { return func(c *config) { c.reference = &opts } }

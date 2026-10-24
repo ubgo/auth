@@ -1,0 +1,1 @@
+func WithTTL(d time.Duration) Option { return func(p *Plugin) { p.ttl = d } }

@@ -1,0 +1,6 @@
+func (a *Auth) BaseURL(ctx context.Context) string {
+	if st := stateFrom(ctx); st != nil && st.req.Host != "" && a.hostAllowed(st.req.Host) {
+		return a.baseScheme() + "://" + strings.ToLower(st.req.Host)
+	}
+	return strings.TrimSuffix(a.cfg.BaseURL, "/")
+}

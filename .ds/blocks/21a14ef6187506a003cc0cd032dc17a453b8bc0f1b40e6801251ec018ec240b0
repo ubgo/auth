@@ -1,0 +1,24 @@
+type ProfileEvent struct {
+	Provider string
+	Profile  Profile
+	Action   ProfileAction
+	// UserID is the user the flow resolves to; "" for ActionSignUp, where
+	// the user does not exist yet.
+	UserID string
+	// Data is what the start request carried (StartRequest.Data); "" for an
+	// id-token sign-in.
+	Data string
+	// ProviderInitiated is true for a sign-in the provider started
+	// (AllowProviderInitiated), which no request of this app began: a hook
+	// may hold such a sign-in to a stricter rule.
+	ProviderInitiated bool
+	// ServerContext is what the WithServerContext functions returned at
+	// the start of this flow, or at the id-token call: trusted, because no
+	// client can set it. Nil when none ran or none returned anything.
+	ServerContext map[string]string
+	// Reauthentication is true when a signed-in user is confirming who they
+	// are with a linked account (EndpointReauthenticate). Action is then
+	// ActionSignIn, so a hook that holds sign-ins to a rule holds this to
+	// it too; refusing it leaves the session as it was.
+	Reauthentication bool
+}

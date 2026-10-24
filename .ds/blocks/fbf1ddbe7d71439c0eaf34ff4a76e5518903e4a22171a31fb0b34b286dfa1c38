@@ -1,0 +1,7 @@
+type UserFixture struct {
+	ID         string
+	Name       string
+	Image      string
+	CreatedAt  time.Time
+	Identities []Identity
+}

@@ -1,0 +1,3 @@
+func (p *Plugin) Start(ctx context.Context, provider string, in StartRequest) (StartResult, error) {
+	return callProvider[StartRequest, StartResult](ctx, p, p.starts, provider, in)
+}

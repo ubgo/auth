@@ -1,0 +1,1 @@
+type AccountNameFunc func(ctx context.Context, a *auth.Auth, u auth.User) string

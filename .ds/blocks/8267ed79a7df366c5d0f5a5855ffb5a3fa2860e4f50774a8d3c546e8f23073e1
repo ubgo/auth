@@ -1,0 +1,16 @@
+const linkPageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Sign in</title>
+<button id="go">Sign in</button>
+<pre id="out"></pre>
+<script>
+document.getElementById("go").onclick = async () => {
+  const token = new URLSearchParams(location.search).get("token");
+  const res = await fetch("` + authPrefix + `/magiclink/sign-in", {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({token}),
+  });
+  if (res.ok) { location.href = "/me"; return; }
+  document.getElementById("out").textContent = (await res.json()).error.message;
+};
+</script>
+`

@@ -1,0 +1,3 @@
+func (a *Auth) DeleteUserSessions(ctx context.Context, userID, exceptID string) error {
+	return a.EndUserSessions(ctx, userID, exceptID, SessionEndUnspecified)
+}

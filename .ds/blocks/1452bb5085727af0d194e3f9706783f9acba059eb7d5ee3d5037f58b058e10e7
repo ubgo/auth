@@ -1,0 +1,3 @@
+func DeviceKey(userAgent string) string {
+	return strings.Join(strings.Fields(deviceVersion.ReplaceAllString(userAgent, "")), " ")
+}

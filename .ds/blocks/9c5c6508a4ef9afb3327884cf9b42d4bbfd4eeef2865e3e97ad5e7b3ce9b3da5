@@ -1,0 +1,1 @@
+func (p *Plugin) SecurityKeys() twofactor.SecurityKeyStore { return securityKeys{p: p} }

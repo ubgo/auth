@@ -1,0 +1,9 @@
+func WithSessionPolicy(p SessionPolicy) Option {
+	return func(s *settings) {
+		if p == nil {
+			s.refuseNil("WithSessionPolicy")
+			return
+		}
+		s.policy = p
+	}
+}

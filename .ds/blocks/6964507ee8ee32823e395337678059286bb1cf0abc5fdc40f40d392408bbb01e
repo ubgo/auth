@@ -1,0 +1,10 @@
+func ErrorCodeConflicts() []string {
+	registry.mu.Lock()
+	defer registry.mu.Unlock()
+	out := make([]string, 0, len(registry.conflicts))
+	for code := range registry.conflicts {
+		out = append(out, code)
+	}
+	slices.Sort(out)
+	return out
+}

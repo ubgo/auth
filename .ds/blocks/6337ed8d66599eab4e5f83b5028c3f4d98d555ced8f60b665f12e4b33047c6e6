@@ -1,0 +1,8 @@
+func provisionKey(ctx context.Context, ak *apikey.Plugin, userID string, quota int) (apikey.CreateResult, error) {
+	return ak.CreateFor(ctx, userID, apikey.CreateRequest{
+		Config:      configLive,
+		Name:        "billing sync",
+		Scopes:      []string{scopeOrdersRead},
+		Permissions: apikey.Permissions{resourceOrders: {actionRead, actionRefund}},
+	}, apikey.Limits{Remaining: &quota, RefillAmount: quota, RefillInterval: quotaPeriod})
+}

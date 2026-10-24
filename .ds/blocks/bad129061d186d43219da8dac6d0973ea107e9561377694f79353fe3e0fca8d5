@@ -1,0 +1,7 @@
+func CacheResources(ttl time.Duration) Option {
+	return func(p *Plugin) {
+		// The store's own expiry runs on the core's clock, the one every
+		// entry is judged by; p.core exists by the time anything is stored.
+		p.resourceCache = &resourceCache{store: auth.NewMemoryStorage(func() time.Time { return p.core.Now() }), ttl: ttl}
+	}
+}

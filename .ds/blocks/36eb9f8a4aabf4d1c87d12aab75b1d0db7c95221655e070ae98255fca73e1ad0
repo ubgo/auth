@@ -1,0 +1,12 @@
+function messageFor(error: AuthError): string {
+  switch (error.code) {
+    case "password.invalid_credentials":
+      return "Wrong address or password.";
+    case "auth.rate_limited":
+      return error.retryAfter === undefined ? "Too many attempts; try again shortly." : `Too many attempts; try again in ${error.retryAfter}s.`;
+    case "client.network_error":
+      return "You are offline.";
+    default:
+      return error.message;
+  }
+}

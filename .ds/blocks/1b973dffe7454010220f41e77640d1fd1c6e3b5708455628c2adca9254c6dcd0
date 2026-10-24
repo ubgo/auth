@@ -1,0 +1,12 @@
+type SessionPolicyInput struct {
+	UserID string
+	// Credential is how the client presents its token: CredentialCookie for
+	// a browser, CredentialBearer for an app, CredentialNone for a Go call
+	// with no request in ctx. A request that asked for bearer delivery
+	// (Request.Delivery) reports CredentialBearer here too: at sign-in the
+	// app has no token yet, and it is the app's lifetime it needs.
+	Credential Credential
+	Client     Client
+	// Transient is "remember me" unticked.
+	Transient bool
+}

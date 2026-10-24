@@ -1,0 +1,3 @@
+export async function unlink(account: OauthAccount): Promise<AuthResult<unknown>> {
+  return auth.oauth.unlink({ provider: account.provider, accountId: account.id });
+}

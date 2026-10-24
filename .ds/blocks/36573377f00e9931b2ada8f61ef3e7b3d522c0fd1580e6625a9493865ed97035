@@ -1,0 +1,1 @@
+func AfterSignIn(path string) Option { return func(c *config) { c.afterSignIn = path } }

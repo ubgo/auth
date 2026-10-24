@@ -1,0 +1,19 @@
+type RateRule struct {
+	Match  EndpointID
+	Key    RateKey
+	Limit  int
+	Window time.Duration
+	// Derive, when set, maps the key's value before counting, so a rule can
+	// count a group rather than one value: the first digits of a phone number
+	// count every number in a range, the domain of an address counts a whole
+	// provider. Optional; a rule without it counts the value itself.
+	Derive func(value string) string
+	// KeyFunc is what a ByFunc rule counts by, and is required by one; any
+	// other key must leave it nil, or New refuses the rule.
+	KeyFunc RateKeyFunc
+	// Action is what the rule does with a call over Limit: RateBlock (the
+	// default, also for ""), RateLog or RateChallenge. New refuses an
+	// unknown action, and a RateChallenge rule when no RateChallenger is
+	// registered.
+	Action RateAction
+}

@@ -1,0 +1,10 @@
+export async function signInWithin(ms: number, identifier: string, secret: string): Promise<AuthError | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error(`no answer within ${ms}ms`)), ms);
+  try {
+    const { error } = await auth.password.signIn({ identifier, password: secret }, { signal: controller.signal });
+    return error;
+  } finally {
+    clearTimeout(timer);
+  }
+}

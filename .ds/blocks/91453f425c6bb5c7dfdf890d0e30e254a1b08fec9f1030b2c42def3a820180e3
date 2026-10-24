@@ -1,0 +1,4 @@
+func me(c *gin.Context) {
+	u := authgin.MustUser(c)
+	c.JSON(http.StatusOK, meResponse{ID: u.ID, Hello: u.Name})
+}

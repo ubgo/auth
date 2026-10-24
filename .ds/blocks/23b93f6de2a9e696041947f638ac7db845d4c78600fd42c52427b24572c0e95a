@@ -1,0 +1,11 @@
+func (m *Mailbox) LastLink(addr string) *url.URL {
+	m.env.T.Helper()
+	list := m.To(addr)
+	for i := len(list) - 1; i >= 0; i-- {
+		if u := linkWithToken(list[i].Text); u != nil {
+			return u
+		}
+	}
+	m.env.T.Fatalf("authtest: no link mailed to %s (%d mails)", addr, len(list))
+	return nil
+}

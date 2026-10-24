@@ -1,0 +1,9 @@
+export async function acceptAllInvitations(): Promise<string[]> {
+  const { data } = await auth.organization.invites();
+  const joined: string[] = [];
+  for (const invitation of data?.invites ?? []) {
+    const { data: org, error } = await auth.organization.accept({ inviteId: invitation.id });
+    if (!error) joined.push(`${org.name} as ${invitation.role}`);
+  }
+  return joined;
+}

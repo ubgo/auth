@@ -1,0 +1,26 @@
+func Middleware(a *auth.Auth, opts ...Option) func(http.Handler) http.Handler {
+	cfg := newConfig(opts)
+	cfg.warnWeakened()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r, err := begin(a, r, cfg)
+			if err != nil {
+				// A coded refusal (a disabled or rate-limited API key) is
+				// answered as itself; anything else is a 500 with no detail
+				// (WriteError's rule), logged because the log is its only
+				// record.
+				if auth.ErrorOf(err).Code == auth.ErrInternal.Code {
+					cfg.logger.Error("auth session lookup failed", "error", err)
+				}
+				cfg.writeError(w, r, err, auth.ErrorOf(err))
+				return
+			}
+			ew, finish := wrapWriter(w, r, cfg)
+			next.ServeHTTP(ew, r)
+			if late := finish(); late > 0 {
+				cfg.logger.Warn("auth effects recorded after the response started were not applied",
+					"count", late, "path", r.URL.Path)
+			}
+		})
+	}
+}

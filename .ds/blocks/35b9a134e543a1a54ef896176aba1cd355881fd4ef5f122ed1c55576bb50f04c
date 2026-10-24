@@ -1,0 +1,6 @@
+func newHandler(a *auth.Auth) *fiber.App {
+	app := fiber.New(fiber.Config{ReadTimeout: readTimeout})
+	authfiber.Mount(app.Group(authPrefix), a)
+	app.Get("/me", authfiber.Middleware(a), authfiber.RequireUser(), me)
+	return app
+}

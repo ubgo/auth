@@ -1,0 +1,4 @@
+func (p *Plugin) doSuspend(ctx context.Context, c *auth.Call, _ struct{}) (auth.Done, error) {
+	now := p.a.Now()
+	return auth.Done{OK: true}, auth.SetUserColumn(ctx, p.a, PluginName, c.User.ID, SuspendedAt, &now)
+}

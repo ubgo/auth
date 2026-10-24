@@ -1,0 +1,1 @@
+func Issuer(iss string) Option { return func(p *Plugin) { p.issuer = iss } }

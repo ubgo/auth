@@ -1,0 +1,13 @@
+func (c *Call) Annotate(key, value string) {
+	if c.annotations == nil {
+		// A Call the pipeline did not build (a test's literal): no other
+		// goroutine can hold it yet.
+		c.annotations = &annotationSet{}
+	}
+	c.annotations.mu.Lock()
+	defer c.annotations.mu.Unlock()
+	if c.annotations.m == nil {
+		c.annotations.m = map[string]string{}
+	}
+	c.annotations.m[key] = value
+}

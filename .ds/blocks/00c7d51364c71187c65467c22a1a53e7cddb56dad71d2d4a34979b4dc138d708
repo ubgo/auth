@@ -1,0 +1,6 @@
+const (
+	CookieSession CookieRole = suffixSession
+	CookieFlow    CookieRole = suffixFlow
+	CookieCache   CookieRole = suffixCache
+	CookieDevice  CookieRole = suffixDevice
+)

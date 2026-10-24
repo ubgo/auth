@@ -1,0 +1,3 @@
+func WithPendingSessionTTL(d time.Duration) Option {
+	return func(s *settings) { s.cfg.PendingSessionTTL = d }
+}

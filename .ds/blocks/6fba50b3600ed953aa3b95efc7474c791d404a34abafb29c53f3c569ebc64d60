@@ -1,0 +1,7 @@
+func demoSP(base string) samlidp.ServiceProvider {
+	return samlidp.ServiceProvider{
+		EntityID:   base + spMetadataPath,
+		ACSURLs:    []string{base + spACSPath},
+		Attributes: samlidp.DefaultAttributes,
+	}
+}

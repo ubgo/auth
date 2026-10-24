@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "Team lead asked: build the missing part of each partial row in the core checklist, providers.md (OAuth concepts, VK), the Generic OAuth row of tokens.md and transport.md (Expo, 1.7 upgrade guide, contributing) so it becomes done with a link; n/a with the Go equivalent where it cannot exist in Go; owner decisions stay partial (see tsk_01a11a3432c67dbbabc7914a5a69d756). Acceptance: tests per new function, three-engine integration tests, docs, CHANGELOG under Unreleased (2026-10-08), task check.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-08T06:37:41.737177000Z",
+  "created_at": "2026-10-08T06:29:58.307475000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a11a344fa3774fbbb48d8f3774c97e",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-08T06:30:06.293136000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "p2-core: finish the partial checklist rows in core, OAuth concepts and transport",
+  "updated_at": "2026-10-08T06:37:41.737191000Z"
+}

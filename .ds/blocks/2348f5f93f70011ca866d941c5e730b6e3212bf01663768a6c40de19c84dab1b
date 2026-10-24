@@ -1,0 +1,12 @@
+func phoneOptions(m mode, sms phone.SMSSender) ([]phone.Option, error) {
+	switch m {
+	case modeSingle:
+		return nil, nil
+	case modeMultiple:
+		return []phone.Option{phone.Multiple()}, nil
+	case modeProvider:
+		return []phone.Option{phone.WithVerifier(newFakeVerify(sms))}, nil
+	default:
+		return nil, fmt.Errorf("%w: %q", errUnknownMode, m)
+	}
+}

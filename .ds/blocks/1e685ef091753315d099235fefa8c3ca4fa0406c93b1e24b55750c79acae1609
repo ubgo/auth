@@ -1,0 +1,79 @@
+func (a *Auth) Sweep(ctx context.Context, retention time.Duration) (SweepResult, error) {
+	if a.db == nil {
+		return nil, ErrNoDatabase
+	}
+	now := a.now()
+	cutoff := now.Add(-retention)
+	out := SweepResult{}
+	d := a.cfg.Dialect
+	run := func(name string, q Statement) error {
+		n, err := a.Exec(ctx, q)
+		if err != nil {
+			return fmt.Errorf("auth: sweep %s: %w", name, err)
+		}
+		out[name] = n
+		return nil
+	}
+	// Sessions: the store's own sweep, reported under the core table's name
+	// whatever the store; stateless mode has nothing to delete.
+	if a.sessions != nil {
+		n, err := a.sessions.Sweep(ctx, now)
+		if err != nil {
+			return out, fmt.Errorf("auth: sweep %s: %w", sweepKey(CorePluginName, TableNameSession), err)
+		}
+		out[sweepKey(CorePluginName, TableNameSession)] = n
+	}
+	// Revoked rows kept by WithSessionArchive go after the retention, like
+	// spent tokens; the statement is harmless without the option, where no
+	// row is ever marked.
+	if a.sessions != nil {
+		n, err := a.Exec(ctx, sqlb.NewDelete(d).From(TableSession).Where(sqlb.Less(SessionRevokedAt, &cutoff)))
+		if err != nil {
+			return out, fmt.Errorf("auth: sweep %s: %w", sweepKey(CorePluginName, TableNameSession), err)
+		}
+		out[sweepKey(CorePluginName, TableNameSession)] += n
+	}
+	// Verification tokens: the store's own sweep, under the core table's
+	// name whatever the store.
+	n, err := a.verifications.Sweep(ctx, cutoff)
+	if err != nil {
+		return out, fmt.Errorf("auth: sweep %s: %w", sweepKey(CorePluginName, TableNameVerification), err)
+	}
+	out[sweepKey(CorePluginName, TableNameVerification)] = n
+	if err := run(sweepKey(CorePluginName, TableNameCode), sqlb.NewDelete(d).From(TableCode).Where(sqlb.Less(codeExpiresAt, cutoff))); err != nil {
+		return out, err
+	}
+	rates := a.dbRates
+	if !rates {
+		var err error
+		if rates, err = a.rateTableMigrated(ctx); err != nil {
+			return out, err
+		}
+	}
+	if rates {
+		n, err := (&dbRateStore{a: a}).Sweep(ctx)
+		if err != nil {
+			return out, fmt.Errorf("auth: sweep %s: %w", sweepKey(CorePluginName, TableNameRateLimit), err)
+		}
+		out[sweepKey(CorePluginName, TableNameRateLimit)] = n
+	}
+	// The delivery outbox, whenever the ledger records it: rows past the
+	// retention were sent long ago or will never be.
+	n, err = a.sweepOutbox(ctx, cutoff)
+	if err != nil {
+		return out, fmt.Errorf("auth: sweep %s: %w", sweepKey(CorePluginName, TableNameDeliveryOutbox), err)
+	}
+	if n >= 0 {
+		out[sweepKey(CorePluginName, TableNameDeliveryOutbox)] = n
+	}
+	for _, p := range a.plugins {
+		if sw, ok := p.(Sweeper); ok {
+			n, err := sw.Sweep(ctx, cutoff)
+			if err != nil {
+				return out, fmt.Errorf("auth: sweep %s: %w", p.Name(), err)
+			}
+			out[p.Name()] = n
+		}
+	}
+	return out, nil
+}

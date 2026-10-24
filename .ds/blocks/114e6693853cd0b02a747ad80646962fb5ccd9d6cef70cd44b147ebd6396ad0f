@@ -1,0 +1,4 @@
+type RequestAuthURLer interface {
+	Provider
+	AuthCodeURLForRequest(ctx context.Context, state, codeChallenge, redirectURI string, rp RequestParams) string
+}

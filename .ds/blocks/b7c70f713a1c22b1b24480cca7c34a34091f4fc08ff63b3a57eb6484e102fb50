@@ -1,0 +1,1 @@
+func WithLoopbackReturn() Option { return func(s *settings) { s.loopbackReturn = true } }

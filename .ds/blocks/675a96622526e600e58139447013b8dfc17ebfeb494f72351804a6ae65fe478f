@@ -1,0 +1,14 @@
+func RenameCookie(role CookieRole, name string) Option {
+	if !slices.Contains(CookieRoleValues, role) {
+		panic("authhttp: RenameCookie: " + strconv.Quote(string(role)) + " is not a CookieRole")
+	}
+	if !cookieToken(name) {
+		panic("authhttp: RenameCookie: " + strconv.Quote(name) + " is not a cookie-name token")
+	}
+	return func(c *config) {
+		if c.cookieNames == nil {
+			c.cookieNames = map[CookieRole]string{}
+		}
+		c.cookieNames[role] = name
+	}
+}

@@ -1,0 +1,6 @@
+var Presets = []string{
+	"google", "github", "apple", "microsoft", "discord", "facebook", "slack", "linkedin", "gitlab", "twitch", "line",
+	"huggingface", "roblox", "salesforce", "auth0", "okta", "keycloak", "zitadel", "cognito", "spotify", "dropbox",
+	"x", "reddit", "atlassian", "zoom", "figma", "kakao", "naver", "kick", "linear", "cloudflare", "paypal", "polar",
+	"vercel", "patreon", "gumroad", "hubspot", "yandex", "paybin", "railway", "tiktok", "notion", "vk", "wechat",
+}

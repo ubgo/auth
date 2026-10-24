@@ -1,0 +1,17 @@
+func TestSPA_BearerModeNeedsNoCookie(t *testing.T) {
+	a := newTestAuth(t)
+	srv := httptest.NewServer(newHandler(a))
+	defer srv.Close()
+	res := do(t, srv.Client(), http.MethodPost, srv.URL+"/auth/password/sign-up", map[string]string{"identifier": testEmail, "password": testPassword}, map[string]string{"Origin": spaOrigin, authhttp.TokenModeHeader: authhttp.TokenModeBearer})
+	tok := res.Header.Get(authhttp.SetTokenHeader)
+	if res.StatusCode != http.StatusOK || tok == "" || len(res.Cookies()) != 0 {
+		t.Fatalf("bearer sign-up: %d token=%q cookies=%v", res.StatusCode, tok, res.Cookies())
+	}
+	if exposed := res.Header.Get("Access-Control-Expose-Headers"); !contains(exposed, authhttp.SetTokenHeader) {
+		t.Fatalf("Access-Control-Expose-Headers = %q lacks %s; the script could not read the token", exposed, authhttp.SetTokenHeader)
+	}
+	me := do(t, srv.Client(), http.MethodGet, srv.URL+"/me", nil, map[string]string{"Origin": spaOrigin, "Authorization": "Bearer " + tok})
+	if me.StatusCode != http.StatusOK {
+		t.Fatalf("/me with the bearer token: %d", me.StatusCode)
+	}
+}

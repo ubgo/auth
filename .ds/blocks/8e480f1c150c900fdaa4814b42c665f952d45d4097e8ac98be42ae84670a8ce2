@@ -1,0 +1,15 @@
+type ProfileEvent struct {
+	Provider string
+	Profile  Profile
+	Action   ProfileAction
+	// UserID is the user the flow resolves to; "" for ActionSignUp, where
+	// the user does not exist yet.
+	UserID string
+	// Data is what the start request carried (StartRequest.Data); "" for an
+	// id-token sign-in.
+	Data string
+	// ProviderInitiated is true for a sign-in the provider started
+	// (AllowProviderInitiated), which no request of this app began: a hook
+	// may hold such a sign-in to a stricter rule.
+	ProviderInitiated bool
+}

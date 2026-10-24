@@ -1,0 +1,3 @@
+func signInPolicy(ctx context.Context, in twofactor.PolicyRequest) (bool, error) {
+	return twofactor.AskEverySignIn(ctx, in)
+}

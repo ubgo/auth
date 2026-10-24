@@ -1,0 +1,3 @@
+func NewError(code string, status int, message string) *Error {
+	return &Error{Code: code, Status: status, Message: message}
+}

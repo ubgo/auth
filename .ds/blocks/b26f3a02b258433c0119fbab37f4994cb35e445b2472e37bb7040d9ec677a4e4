@@ -1,0 +1,8 @@
+func TestConformance_OIDCFallback(t *testing.T) {
+	oauthtest.Run(t, func(u string) oauth.Provider {
+		o := oauth.OIDC("corp", u+"/no-discovery", oauthtest.ClientID, oauthtest.ClientSecret)
+		o.Fallback = oauth.Endpoints{AuthURL: u + oauthtest.AuthorizePath, TokenURL: u + oauthtest.TokenPath, UserInfoURL: u + oauthtest.UserInfoPath}
+		o.Logger = slog.New(slog.NewTextHandler(io.Discard, nil))
+		return o
+	}, oauthtest.WantScopes("openid", "email", "profile"))
+}

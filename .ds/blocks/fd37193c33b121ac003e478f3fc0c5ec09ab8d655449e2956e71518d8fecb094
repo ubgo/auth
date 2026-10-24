@@ -1,0 +1,16 @@
+type ListRequest struct {
+	// Config keeps the keys of one configuration; "" lists them all.
+	Config string `json:"configId,omitempty"`
+	// OrganizationID lists that organization's keys instead of the
+	// caller's own; the caller needs the apiKey "read" permission in it.
+	OrganizationID string `json:"organizationId,omitempty"`
+	// Limit is the page size; "" or "0" is no limit.
+	Limit string `json:"limit,omitempty"`
+	// Offset is how many keys to skip; "" is none.
+	Offset string `json:"offset,omitempty"`
+	// SortBy is one of SortByValues; "" is SortByCreatedAt.
+	SortBy string `json:"sortBy,omitempty"`
+	// Sort is SortAsc or SortDesc; "" is SortAsc. A sort on a nullable field
+	// (lastUsedAt, expiresAt) puts the NULL rows where the engine puts them.
+	Sort string `json:"sort,omitempty"`
+}

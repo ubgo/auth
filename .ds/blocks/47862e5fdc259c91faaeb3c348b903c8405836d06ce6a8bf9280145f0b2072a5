@@ -1,0 +1,9 @@
+export async function reauthenticateWithPasskey(get: Ceremony): Promise<"fresh" | "second-factor" | "failed"> {
+  const begun = await auth.passkey.reauthenticateBegin();
+  if (begun.error) return "failed";
+  const credential = await get(begun.data.options);
+  if (credential === null) return "failed";
+  const { data, error } = await auth.passkey.reauthenticateFinish({ ceremony: begun.data.ceremony, credential });
+  if (error) return "failed";
+  return data.fresh ? "fresh" : "second-factor"; // second-factor: finish with twofactor.reauthenticate and data.ticket
+}

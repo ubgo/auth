@@ -1,0 +1,4 @@
+func (s logSpans) OnEnd(sp sdktrace.ReadOnlySpan) {
+	s.logger.Info("span", "name", sp.Name(), "status", sp.Status().Code.String(),
+		"description", sp.Status().Description, "duration", sp.EndTime().Sub(sp.StartTime()).String())
+}

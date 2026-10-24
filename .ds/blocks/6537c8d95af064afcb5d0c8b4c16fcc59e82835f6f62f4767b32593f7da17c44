@@ -1,0 +1,1 @@
+func LinkUnverifiedLocalEmail() Option { return func(p *Plugin) { p.linkUnverifiedLocal = true } }

@@ -1,0 +1,4 @@
+func RequestTokenRejected(ctx context.Context) bool {
+	st := stateFrom(ctx)
+	return st != nil && st.rejected
+}

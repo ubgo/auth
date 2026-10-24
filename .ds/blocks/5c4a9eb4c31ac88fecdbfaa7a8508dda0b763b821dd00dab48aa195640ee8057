@@ -1,0 +1,17 @@
+func newAuth(db *sql.DB, m email.Mailer, key ed25519.PrivateKey) (app, error) {
+	dev := oauthdevice.New(baseURL + codePath)
+	dp := deviceauth.New(deviceauth.WithGrant(dev))
+	jw := jwt.New(jwt.WithSigningKey(key), jwt.Issuer(baseURL))
+	op := oauthprovider.New(jw,
+		oauthprovider.Issuer(baseURL),
+		oauthprovider.LoginPage(loginPath),
+		oauthprovider.WithGrant(dev.ExtensionGrant()),
+		oauthprovider.DeviceAuthorizationEndpoint(dev.Endpoint()),
+	)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), password.New(), jw, op, dp, dev),
+	)
+	return app{a: a, op: op, dp: dp}, err
+}

@@ -1,0 +1,21 @@
+func newApp(db *sql.DB, m email.Mailer, sink audit.Sink) (*app, error) {
+	opts := []audit.Option{
+		audit.Types(map[auth.EndpointID]audit.EventType{EndpointExport: TypeDataExportRequested}),
+	}
+	if sink != nil {
+		opts = append(opts, audit.To(sink))
+	}
+	x := &app{audit: audit.New(opts...)}
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			newExports(),
+			x.audit,
+		),
+	)
+	x.auth = a
+	return x, err
+}

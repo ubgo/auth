@@ -1,0 +1,7 @@
+const (
+	// SessionCookieName holds the sealed profile.
+	SessionCookieName = "__Host-authgate_session"
+	// FlowCookieName holds the sealed state, PKCE verifier and return path
+	// of one sign-in between start and callback.
+	FlowCookieName = "__Host-authgate_flow"
+)

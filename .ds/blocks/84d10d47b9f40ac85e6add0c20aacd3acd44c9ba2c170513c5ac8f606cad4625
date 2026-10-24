@@ -1,0 +1,1 @@
+func WithSessionStore(s SessionStore) Option { return func(st *settings) { st.sessions = s } }

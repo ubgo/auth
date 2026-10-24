@@ -1,0 +1,8 @@
+func WithIDTokenReplayGuard(g IDTokenReplayGuard) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauth.WithIDTokenReplayGuard", g) {
+			return
+		}
+		p.replayGuard = g
+	}
+}

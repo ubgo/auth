@@ -1,0 +1,11 @@
+func UserJoin() sqlb.Join {
+	return sqlb.Join{
+		Type:  sqlb.JoinLeft,
+		Table: TableIdentity,
+		On: []sqlb.Predicate{
+			sqlb.EqExpr(IdentityUserID, auth.UserID),
+			sqlb.Eq(IdentityKind, KindPhone),
+			sqlb.Eq(IdentityIsPrimary, true),
+		},
+	}
+}

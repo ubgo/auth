@@ -1,0 +1,12 @@
+func WeakenCookie(role CookieRole, a CookieAttributes) Option {
+	if !slices.Contains(CookieRoleValues, role) {
+		panic("authhttp: WeakenCookie: " + strconv.Quote(string(role)) + " is not a CookieRole")
+	}
+	a.validate("WeakenCookie")
+	return func(c *config) {
+		if c.weak == nil {
+			c.weak = map[CookieRole]CookieAttributes{}
+		}
+		c.weak[role] = a
+	}
+}

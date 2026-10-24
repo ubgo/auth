@@ -1,0 +1,16 @@
+func newAgentAuth(base string, client *http.Client) (*agentauth.Plugin, error) {
+	opts, err := agentauth.FromOpenAPISpec(openAPISpec(), agentauth.OpenAPIOptions{
+		OpenAPIHandlerOptions: agentauth.OpenAPIHandlerOptions{
+			BaseURL: base,
+			Client:  client,
+			Headers: func(_ context.Context, _ string, s agentauth.AgentSession) (http.Header, error) {
+				return http.Header{headerActingUser: {s.User.ID}}, nil
+			},
+		},
+		HostCapabilities: agentauth.OperationsWithMethod(http.MethodGet),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return agentauth.New(opts...), nil
+}

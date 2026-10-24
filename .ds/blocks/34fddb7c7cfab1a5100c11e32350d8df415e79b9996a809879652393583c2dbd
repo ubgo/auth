@@ -1,0 +1,7 @@
+func WithSigningKey(k ed25519.PrivateKey) Option {
+	return func(p *Plugin) {
+		if len(k) == ed25519.PrivateKeySize {
+			p.signer = keySigner{key: k}
+		}
+	}
+}

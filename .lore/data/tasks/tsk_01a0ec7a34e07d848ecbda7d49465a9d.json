@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": null,
+  "created_at": "2026-09-29T09:23:47.040884000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0ec7a34e07d848ecbda7d49465a9d",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "cancelled",
+  "tasklist_id": "tlt_01a0ec29c16f7d569454b9c6793d9792",
+  "title": "Create github.com/ubgo/auth and set About, topics and social preview from brand/brand.json",
+  "updated_at": "2026-09-29T09:38:49.407501000Z"
+}

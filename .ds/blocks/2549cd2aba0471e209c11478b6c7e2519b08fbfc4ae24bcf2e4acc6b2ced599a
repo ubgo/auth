@@ -1,0 +1,38 @@
+type OpInfo struct {
+	ID      EndpointID
+	Kind    OpKind
+	Require Requirement
+	// Path is relative to the plugin, such as "/sign-in". The core serves it at
+	// "/<plugin>/sign-in"; a core operation's path has no plugin segment.
+	Path string
+	// CrossSiteForm marks a Mutation that another site posts to as a plain
+	// HTML form: an OAuth provider's response_mode=form_post answer, which
+	// arrives without a trusted Origin and without the flow cookie (SameSite
+	// Lax keeps it off a cross-site POST). Such an operation only relays its
+	// fields into a redirect, so the pipeline skips the origin check for it
+	// and resolves no session: its Credential is CredentialNone whatever the
+	// request carried, and nothing a stray cookie held is visible to it. It
+	// must be Public and a Mutation; auth.New refuses anything else
+	// (ErrBadOperation), because a credential-bearing or session-reading
+	// operation without the origin check would be the login CSRF the check
+	// exists to refuse. authhttp decodes a form body for it without
+	// AcceptForms, and documents the form media type. The relay's own
+	// protection is the OAuth state it carries and the flow cookie the GET
+	// callback it redirects to still checks; the flag removes nothing from
+	// that step.
+	//
+	//ds:def id=core-opinfo-crosssiteform-7qn3kx8m owner=@khanakia stability=stable
+	CrossSiteForm bool
+	// SelfServed marks an operation whose HTTP wire format a standard fixes,
+	// such as an OAuth 2.1 token endpoint (RFC 6749: form-encoded body,
+	// HTTP Basic client authentication, {"error": "invalid_grant"} answers).
+	// The plugin serves it over HTTP from its own handler, which calls the
+	// typed Op.Call; Auth.Operations leaves it out, so no transport mounts a
+	// second, JSON-shaped copy of it. It is still wired: Auth.Operation finds
+	// it, hooks and WithDisabledOperations may name it, and every call runs
+	// the whole pipeline (rate limits, origin check, requirement, hooks), so
+	// the plugin's handler cannot skip a step.
+	//
+	//ds:def id=core-opinfo-selfserved-m4q8xk2w owner=@khanakia stability=stable
+	SelfServed bool
+}

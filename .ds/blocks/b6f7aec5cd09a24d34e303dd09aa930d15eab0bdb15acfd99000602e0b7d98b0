@@ -1,0 +1,8 @@
+func Templates(fn func(m auth.Message) string) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("phone.Templates", fn) {
+			return
+		}
+		p.templates = fn
+	}
+}

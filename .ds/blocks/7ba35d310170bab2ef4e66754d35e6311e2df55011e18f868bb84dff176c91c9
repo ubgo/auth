@@ -1,0 +1,17 @@
+func createUserWithNote(ctx context.Context, a *auth.Auth, name, body string, fail bool) (auth.User, error) {
+	var u auth.User
+	err := a.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		if u, err = a.CreateUser(ctx, auth.NewUser{Name: name}); err != nil {
+			return err
+		}
+		if _, err = txClient(tx).Note.Create().SetUserID(u.ID).SetBody(body).Save(ctx); err != nil {
+			return err
+		}
+		if fail {
+			return errRollback
+		}
+		return nil
+	})
+	return u, err
+}

@@ -1,0 +1,44 @@
+# The throwaway services this repository's engine tests run against. They are
+# the project's own, never the shared local dev stack (Postgres is the host's
+# Postgres.app, Redis the shared stack's): `task test:engines` starts the
+# mysql profile, runs, and removes the container and its data with
+# `docker compose down -v`, pass or fail, through a Taskfile defer registered
+# before the start. No volume is named, and the port binds to 127.0.0.1 on
+# 33070, a number neither the shared stack nor ubgo/filesystem (33071) uses.
+# The project name and port are fixed, so run one engine suite at a time per
+# machine (the tasks take the machine-wide `testlock`).
+name: ubgo-auth
+
+services:
+  mysql:
+    profiles: [mysql]
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: auth
+      MYSQL_DATABASE: auth
+    ports: ["127.0.0.1:33070:3306"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pauth"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+  # plugin/ldap's real-directory test (`task test:ldap`, opt-in): lldap with
+  # LDAPS on a certificate the task makes for the run in
+  # AUTH_TEST_LDAP_CERTS and removes after. Ports 33890 (LDAP) and 36360
+  # (LDAPS) on 127.0.0.1 only. The fallback path only keeps other profiles'
+  # commands from failing on an unset variable; this service never starts
+  # without the task.
+  lldap:
+    profiles: [ldap]
+    image: lldap/lldap:v0.6.3
+    environment:
+      LLDAP_JWT_SECRET: throwaway-test-jwt-secret-for-a-container-that-lives-one-run
+      LLDAP_KEY_SEED: throwaway-test-key-seed-for-a-container-that-lives-one-run
+      LLDAP_LDAP_BASE_DN: dc=example,dc=com
+      LLDAP_LDAP_USER_PASS: test-admin-password
+      LLDAP_LDAPS_OPTIONS__ENABLED: "true"
+      LLDAP_LDAPS_OPTIONS__CERT_FILE: /certs/cert.pem
+      LLDAP_LDAPS_OPTIONS__KEY_FILE: /certs/key.pem
+    volumes: ["${AUTH_TEST_LDAP_CERTS:-/tmp/ubgo-auth-ldap-certs}:/certs:ro"]
+    ports: ["127.0.0.1:33890:3890", "127.0.0.1:36360:6360"]

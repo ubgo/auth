@@ -1,0 +1,8 @@
+func ProtectPaths(patterns ...string) Option {
+	return func(p *Plugin) {
+		if !p.explicit {
+			p.protect = nil
+		}
+		p.patterns, p.explicit = append(p.patterns, patterns...), true
+	}
+}

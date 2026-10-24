@@ -1,0 +1,10 @@
+export type ActiveOrganizationState = {
+  /** The session's active organization, or null when none is set (or signed out). */
+  readonly organization: OrganizationOrg | null;
+  /** Its id, or null. */
+  readonly activeOrganizationId: string | null;
+  /** The session's active team, when the plugin has teams on. */
+  readonly activeTeamId: string | null;
+  readonly isPending: boolean;
+  readonly error: AuthError | null;
+};

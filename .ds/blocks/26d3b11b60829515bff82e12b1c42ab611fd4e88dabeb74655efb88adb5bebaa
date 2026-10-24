@@ -1,0 +1,13 @@
+func TestConformance_GitHub(t *testing.T) {
+	oauthtest.Run(t, func(u string) oauth.Provider {
+		g := pointAt(oauth.GitHub(oauthtest.ClientID, oauthtest.ClientSecret), u)
+		g.FetchProfile = oauth.GitHubProfile(u + "/github")
+		return g
+	}, oauthtest.WantScopes("user:email"),
+		oauthtest.Route("/github/user", func(p oauthtest.Person) any {
+			return numericID(map[string]any{"login": "octo", "name": p.Name}, p.Subject)
+		}),
+		oauthtest.Route("/github/user/emails", func(p oauthtest.Person) any {
+			return []map[string]any{{"email": "old@example.com", "primary": false, "verified": true}, {"email": p.Email, "primary": true, "verified": p.EmailVerified}}
+		}))
+}

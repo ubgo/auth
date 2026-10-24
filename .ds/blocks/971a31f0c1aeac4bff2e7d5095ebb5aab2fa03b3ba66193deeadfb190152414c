@@ -1,0 +1,37 @@
+func New(opts ...Option) *Plugin {
+	p := &Plugin{
+		kind: auth.IdentifierKind{
+			Name: KindPhone, Unique: true, UniqueOnlyVerified: true, Verifiable: true,
+			Normalize: Normalize, Validate: Validate,
+		},
+		codeTTL: DefaultCodeTTL, maxTries: DefaultMaxAttempts,
+	}
+	for _, o := range opts {
+		o(p)
+	}
+	if p.templates == nil {
+		// Built after the options so the text states the configured TTL.
+		p.templates = defaultTemplate(p.codeTTL)
+	}
+	if len(p.prefixes) > 0 {
+		allowed, base := p.prefixes, p.kind.Validate
+		p.kind.Validate = func(v string) error {
+			if err := base(v); err != nil {
+				return err
+			}
+			for _, pre := range allowed {
+				if strings.HasPrefix(v, pre) {
+					return nil
+				}
+			}
+			return errors.New("phone: number outside the allowed prefixes")
+		}
+	}
+	p.add = auth.Define(auth.OpInfo{ID: EndpointAdd, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/add"}, p.doAdd)
+	p.verify = auth.Define(auth.OpInfo{ID: EndpointVerify, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/verify"}, p.doVerify)
+	p.resend = auth.Define(auth.OpInfo{ID: EndpointResend, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/resend"}, p.doResend)
+	p.remove = auth.Define(auth.OpInfo{ID: EndpointRemove, Kind: auth.Mutation, Require: auth.FreshSignIn, Path: "/remove"}, p.doRemove)
+	p.sendCode = auth.Define(auth.OpInfo{ID: EndpointSendCode, Kind: auth.Mutation, Require: auth.Public, Path: "/send-code"}, p.doSendCode)
+	p.signIn = auth.Define(auth.OpInfo{ID: EndpointSignIn, Kind: auth.Mutation, Require: auth.Public, Path: "/sign-in"}, p.doSignIn)
+	return p
+}

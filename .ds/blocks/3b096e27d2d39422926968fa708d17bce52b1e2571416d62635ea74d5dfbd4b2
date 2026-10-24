@@ -1,0 +1,1 @@
+	RemoteMaxAge = 24 * time.Hour

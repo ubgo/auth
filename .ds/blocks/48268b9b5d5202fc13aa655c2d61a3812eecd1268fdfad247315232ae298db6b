@@ -1,0 +1,7 @@
+type StartRequest struct {
+	// ReturnTo is a path on this site to land on after sign-in.
+	ReturnTo string `json:"returnTo"`
+	// Link, when LinkFlag, links the provider to the signed-in user instead
+	// of signing in. A string because it arrives in a URL query.
+	Link string `json:"link"`
+}

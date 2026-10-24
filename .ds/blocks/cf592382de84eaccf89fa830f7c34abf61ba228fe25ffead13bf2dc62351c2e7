@@ -1,0 +1,23 @@
+func (p *Plugin) SetPermissions(ctx context.Context, id string, perms access.Permissions) error {
+	r, err := p.keyByID(ctx, id)
+	if errors.Is(err, sqlb.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	s, ok := p.config(r.configID)
+	if !ok {
+		return ErrUnknownConfig
+	}
+	col, err := s.encodePermissions(perms)
+	if err != nil {
+		return err
+	}
+	now := p.core.Now()
+	if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableKey).
+		Set(sqlb.Set(KeyPermissions, col), sqlb.Set(KeyUpdated, &now)).Where(sqlb.Eq(KeyID, id))); err != nil {
+		return err
+	}
+	return p.cacheDrop(ctx, r.hash)
+}

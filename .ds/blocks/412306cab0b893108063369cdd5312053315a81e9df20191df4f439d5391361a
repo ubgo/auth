@@ -1,0 +1,1 @@
+"oauthproxy: PassProfile is on: production exchanges the code and relays a sealed profile, so whoever holds the proxy secret can sign in as anyone on a deployment that accepts it"

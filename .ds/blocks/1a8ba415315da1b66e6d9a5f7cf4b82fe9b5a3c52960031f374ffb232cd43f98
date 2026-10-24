@@ -1,0 +1,1 @@
+func Scrypt(params ScryptParams) Verifier { return scryptVerifier{params: params} }

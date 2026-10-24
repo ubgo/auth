@@ -1,0 +1,3 @@
+type Sink interface {
+	Record(ctx context.Context, e Event) error
+}

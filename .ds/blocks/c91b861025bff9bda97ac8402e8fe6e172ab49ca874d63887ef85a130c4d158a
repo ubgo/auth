@@ -1,0 +1,1 @@
+type SessionExtras func(ctx context.Context, c *Call) (any, error)

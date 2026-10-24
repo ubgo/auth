@@ -1,0 +1,1 @@
+var CredentialSignIns = []auth.EndpointID{"password.sign-in", "password.change-expired", "password.reauthenticate"}

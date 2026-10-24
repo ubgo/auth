@@ -1,0 +1,1 @@
+var ErrTooLong = auth.NewError("nickname.too_long", http.StatusBadRequest, fmt.Sprintf("A nickname is at most %d characters.", MaxLength))

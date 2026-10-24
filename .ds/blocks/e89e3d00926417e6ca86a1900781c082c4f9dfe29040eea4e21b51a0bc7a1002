@@ -1,0 +1,7 @@
+func Patreon(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "patreon", DisplayName: "Patreon", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: PatreonAuthURL, TokenURL: PatreonTokenURL, Scopes: []string{"identity", "identity[email]"},
+		FetchProfile: PatreonProfile(PatreonProfileURL),
+	}
+}

@@ -1,0 +1,9 @@
+func WithSealer(s Sealer) Option {
+	return func(st *settings) {
+		if s == nil {
+			st.refuseNil("WithSealer")
+			return
+		}
+		st.cfg.sealer = s
+	}
+}

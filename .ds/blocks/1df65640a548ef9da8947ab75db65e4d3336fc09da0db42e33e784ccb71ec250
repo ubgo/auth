@@ -1,0 +1,10 @@
+type Provider interface {
+	// Name is the route segment and the stored provider name, such as
+	// "google". It must match auth.KindNamePattern and never change.
+	Name() string
+	// AuthCodeURL is where the browser goes to sign in. PKCE is not
+	// optional: every URL carries the S256 challenge.
+	AuthCodeURL(state, codeChallenge, redirectURI string) string
+	// Exchange turns the callback's code into the person's profile.
+	Exchange(ctx context.Context, hc *http.Client, code, codeVerifier, redirectURI string) (Profile, error)
+}

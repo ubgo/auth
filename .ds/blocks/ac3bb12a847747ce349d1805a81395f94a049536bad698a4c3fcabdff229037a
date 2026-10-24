@@ -1,0 +1,4 @@
+export async function mailSignInLink(address: string): Promise<boolean> {
+  const { error } = await auth.magiclink.send({ identifier: address });
+  return error === null;
+}

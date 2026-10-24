@@ -1,0 +1,7 @@
+func ErrorOf(err error) ErrorInfo {
+	var e *Error
+	if errors.As(err, &e) {
+		return ErrorInfo{Code: e.Code, Status: e.Status, Message: e.Message}
+	}
+	return ErrorInfo{Code: ErrInternal.Code, Status: ErrInternal.Status, Message: ErrInternal.Message}
+}

@@ -1,0 +1,17 @@
+func newAuth(db *sql.DB, secret []byte, m email.Mailer, now func() time.Time) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSecret(secret),
+		auth.WithClock(now),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(
+				password.ResetByCode(),
+				password.History(historySize),
+				password.ExpireAfter(maxPasswordAge),
+				password.GuardCredentialStuffing(password.StuffingPolicy{PasswordFailures: sprayFailures}),
+			),
+		),
+	)
+}

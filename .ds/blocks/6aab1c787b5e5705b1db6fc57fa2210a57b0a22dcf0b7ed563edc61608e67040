@@ -1,0 +1,1 @@
+func SkipBrokenProviders() Option { return func(p *Plugin) { p.skipBroken = true } }

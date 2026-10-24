@@ -1,0 +1,1 @@
+func SignInWithCode() Option { return func(p *Plugin) { p.codes = true } }

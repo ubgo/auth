@@ -1,0 +1,5 @@
+type Redemption struct {
+	UserID   string
+	Scope    string
+	Resource string
+}

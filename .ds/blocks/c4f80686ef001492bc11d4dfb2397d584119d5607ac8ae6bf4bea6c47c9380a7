@@ -1,0 +1,4 @@
+export async function addresses(): Promise<string[]> {
+  const { data } = await auth.email.list();
+  return (data?.addresses ?? []).map((a) => `${a.email}${a.primary ? " (primary)" : ""}${a.verified ? "" : " (unverified)"}`);
+}

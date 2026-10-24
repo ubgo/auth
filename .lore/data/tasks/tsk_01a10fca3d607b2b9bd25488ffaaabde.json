@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim, via the lead):\n  You are r18-ident in round 6. Read and follow the round 6 brief exactly. Your sections: every remaining ❌ row in the identifier checklist (Magic link, Email & Password, Username, Email OTP, Phone number, Last login method, One-time token) and in the factor checklist except the Two-factor section (Email and password, Passkeys, Have I Been Pwned, Captcha).\n\nContext:\n  Files: plugin/email, plugin/phone, plugin/username, plugin/magiclink, plugin/lastlogin, plugin/handoff, plugin/anonymous, plugin/password, plugin/passkey, plugin/captcha and their docs.\n  Owner direction: complete the feature checklist wherever possible.\n\nAcceptance:\n  Every row ends ✅, 🟡 with the exact gap, ➖ with the Go equivalent, or ❌ with a precise reason; gates green; report to main.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-07T06:25:19.445190000Z",
+  "created_at": "2026-10-06T05:57:54.656730000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a10fca3d607b2b9bd25488ffaaabde",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-06T05:57:57.253333000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Round 6 feature: identifier and factor plugins (the identifier checklist, the factor checklist except two-factor)",
+  "updated_at": "2026-10-07T06:25:19.445378000Z"
+}

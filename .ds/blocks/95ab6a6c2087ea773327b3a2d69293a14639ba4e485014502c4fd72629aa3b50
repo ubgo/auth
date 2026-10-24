@@ -1,0 +1,6 @@
+func newSCIM(groups scim.GroupMapper) *scim.Plugin {
+	return scim.New(
+		scim.ManagedConnections(),
+		scim.WithGroupMapper(groups),
+	)
+}

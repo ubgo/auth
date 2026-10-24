@@ -1,0 +1,45 @@
+func (p *Plugin) Events(ctx context.Context, q Query) (Page, error) {
+	limit := q.Limit
+	if limit <= 0 {
+		limit = DefaultPageSize
+	}
+	if limit > MaxPageSize {
+		limit = MaxPageSize
+	}
+	page := max(q.Page, 1)
+	out := Page{Events: []Event{}, Page: page, Limit: limit}
+	if p.sink != nil {
+		return out, nil
+	}
+	var where []sqlb.Predicate
+	if q.UserID != "" {
+		where = append(where, sqlb.Or(sqlb.Eq(EventActorID, q.UserID), sqlb.Eq(EventSubjectID, q.UserID)))
+	}
+	if q.Op != "" {
+		where = append(where, sqlb.Eq(EventOp, string(q.Op)))
+	}
+	var e Event
+	var op, transport string
+	sel := p.core.Select().Columns(
+		sqlb.Bind(EventID, &e.ID), sqlb.Bind(EventAt, &e.At), sqlb.Bind(EventOp, &op), sqlb.Bind(EventPlugin, &e.Plugin),
+		sqlb.Bind(EventTransport, &transport), sqlb.Bind(EventOK, &e.OK), sqlb.Bind(EventCode, &e.Code),
+		sqlb.Bind(EventActorID, &e.ActorID), sqlb.Bind(EventSessionID, &e.SessionID), sqlb.Bind(EventSubjectID, &e.SubjectID),
+		sqlb.Bind(EventImpersonatorID, &e.ImpersonatorID), sqlb.Bind(EventIdentifier, &e.Identifier),
+		sqlb.Bind(EventIP, &e.IP), sqlb.Bind(EventUserAgent, &e.UserAgent),
+	).From(TableEvent)
+	count := p.core.Select().Columns(sqlb.Bind(sqlb.Count(), &out.Total)).From(TableEvent)
+	if len(where) > 0 {
+		sel, count = sel.Where(where...), count.Where(where...)
+	}
+	// Newest first; the id breaks ties so pages are stable when two events
+	// share an instant.
+	sel = sel.Order(sqlb.OrderBy(EventAt, sqlb.SortDesc), sqlb.OrderBy(EventID, sqlb.SortDesc)).Limit(limit).Offset((page - 1) * limit)
+	if err := p.core.Each(ctx, sel, func() error {
+		e.Op, e.Transport = auth.EndpointID(op), auth.Transport(transport)
+		out.Events = append(out.Events, e)
+		return nil
+	}); err != nil {
+		return Page{}, err
+	}
+	return out, p.core.One(ctx, count)
+}

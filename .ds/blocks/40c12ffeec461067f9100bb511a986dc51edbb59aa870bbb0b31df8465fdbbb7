@@ -1,0 +1,8 @@
+export async function addPasskey(create: Ceremony, name: string): Promise<string | null> {
+  const begun = await auth.passkey.registerBegin({});
+  if (begun.error) return null; // auth.fresh_session_required: re-authenticate, then retry
+  const credential = await create(begun.data.options);
+  if (credential === null) return null;
+  const { data } = await auth.passkey.registerFinish({ ceremony: begun.data.ceremony, credential, name });
+  return data?.id ?? null;
+}

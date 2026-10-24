@@ -1,0 +1,7 @@
+func agentAskToPay(ctx context.Context, c *agentclient.Client, a agentclient.Agent, limit float64) (agentauth.RequestCapabilityResult, error) {
+	caps := []agentauth.CapabilityRequest{{
+		Name:        capPayInvoice,
+		Constraints: agentauth.Constraints{argAmount: {Max: &limit}},
+	}}
+	return c.RequestCapability(ctx, a, caps, "pay small invoices for you", agentauth.ApprovalHints{})
+}

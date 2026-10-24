@@ -1,0 +1,28 @@
+func TestSecurityEvents_OneRateEventPerWindow(t *testing.T) {
+	e, b, buf := world(t, true)
+	const refusedPerWindow = 3
+	overTheLimit(t, b, 0, refusedPerWindow)
+	got := ofKind(drain(t, e, buf), auth.SecurityRateLimit)
+	if len(got) != 1 {
+		t.Fatalf("%d rate.limit events for one window, want 1: %+v", len(got), got)
+	}
+	ev := got[0]
+	want := map[string]string{
+		auth.AttrRuleKey: string(auth.ByIP), auth.AttrLimit: strconv.Itoa(signInsPerMinute),
+		auth.AttrWindow: time.Minute.String(), auth.AttrCount: strconv.Itoa(signInsPerMinute + 1),
+	}
+	for k, v := range want {
+		if ev.Attrs[k] != v {
+			t.Errorf("Attrs[%s] = %q, want %q", k, ev.Attrs[k], v)
+		}
+	}
+	if ev.Outcome != auth.RateOutcomeBlocked || ev.Severity != auth.SeverityWarn || ev.Op != password.EndpointSignIn || ev.IP == "" || ev.ID == "" {
+		t.Fatalf("event = %+v", ev)
+	}
+
+	e.Clock.Advance(time.Minute)
+	overTheLimit(t, b, signInsPerMinute+refusedPerWindow, refusedPerWindow)
+	if got := ofKind(drain(t, e, buf), auth.SecurityRateLimit); len(got) != 2 || got[1].ID == got[0].ID {
+		t.Fatalf("after a second window: %d rate.limit events, want 2: %+v", len(got), got)
+	}
+}

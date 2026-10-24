@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: stability_test.go still pins only auth_user, auth_identity and auth_session. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:02.427646000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec57708f76319e5f6e8159fea8c7",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc6919b7a0ea09b47c797cbf3b8",
+  "updated_at": "2026-10-05T15:55:02.427647000Z"
+}

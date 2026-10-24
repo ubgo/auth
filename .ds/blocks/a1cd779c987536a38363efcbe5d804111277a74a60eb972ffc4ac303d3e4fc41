@@ -1,0 +1,3 @@
+func ClientIPFunc(fn func(r *http.Request) string) Option {
+	return func(c *config) { c.clientIPFunc = fn }
+}

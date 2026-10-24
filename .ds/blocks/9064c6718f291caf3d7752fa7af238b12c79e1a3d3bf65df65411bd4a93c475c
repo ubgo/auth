@@ -1,0 +1,12 @@
+func (a *Auth) RevokedSessions(ctx context.Context, userID string) ([]Session, error) {
+	if a.db == nil {
+		return nil, ErrNoDatabase
+	}
+	var row Session
+	q := a.Select().Columns(SessionBindings(&row)...).From(TableSession).
+		Where(sqlb.Eq(SessionUserID, userID), sqlb.IsNotNull(SessionRevokedAt)).
+		Order(sqlb.OrderBy(SessionRevokedAt, sqlb.SortDesc), sqlb.OrderBy(SessionID, sqlb.SortDesc))
+	var out []Session
+	err := a.Each(ctx, q, func() error { out = append(out, row); return nil })
+	return out, err
+}

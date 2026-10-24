@@ -1,0 +1,3 @@
+func WithSecret(secret []byte) Option {
+	return func(s *settings) { s.cfg.secret, s.secretSet = secret, true }
+}

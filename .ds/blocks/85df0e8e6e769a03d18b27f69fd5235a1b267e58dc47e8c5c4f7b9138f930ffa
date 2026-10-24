@@ -1,0 +1,10 @@
+type Mail struct {
+	To      string
+	Subject string
+	Text    string
+	// Metadata is what the sending operation attached (auth.Message.Metadata):
+	// an invite id, a campaign, a page the client was on. Nil for most mail.
+	// The Mailer may use it for its own routing or templates; the library
+	// never reads it.
+	Metadata map[string]string
+}

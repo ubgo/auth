@@ -1,0 +1,7 @@
+func Reserved(names ...string) Option {
+	return func(p *Plugin) {
+		for _, n := range names {
+			p.reserved[fold(n)] = struct{}{}
+		}
+	}
+}

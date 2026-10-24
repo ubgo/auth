@@ -1,0 +1,1 @@
+func CookieDomainFromBaseURL() Option { return func(c *config) { c.domainFromBase = true } }

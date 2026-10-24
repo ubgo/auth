@@ -1,0 +1,18 @@
+export async function deviceSignIn(show: (url: string, code: string) => void): Promise<string | null> {
+  const cli = createAuthClient({ baseURL: "https://app.example.com/auth", tokenMode: "bearer", tokenStore: memoryTokenStore(), plugins: [device()] });
+  const started = await cli.device.code({ client_id: "my-cli" });
+  if (started.error) return null;
+  show(started.data.verification_uri, started.data.user_code);
+  let wait = started.data.interval;
+  for (;;) {
+    await new Promise((resolve) => setTimeout(resolve, wait * 1000));
+    const { data, error } = await cli.device.token({
+      grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+      device_code: started.data.device_code,
+      client_id: "my-cli",
+    });
+    if (data) return data.access_token;
+    if (error.code === "device.polling_too_frequently") wait += 5;
+    else if (error.code !== "device.authorization_pending") return null; // denied, expired, ...
+  }
+}

@@ -1,0 +1,13 @@
+func (f *faults) step() error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if !f.armed {
+		return nil
+	}
+	f.n++
+	if f.n == f.at {
+		f.hit = true
+		return errFault
+	}
+	return nil
+}

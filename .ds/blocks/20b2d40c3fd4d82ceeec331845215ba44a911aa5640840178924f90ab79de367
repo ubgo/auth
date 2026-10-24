@@ -1,0 +1,10 @@
+type StaleAccountData struct {
+	// LastActive is the time of the user's last activity as the plugin
+	// judged it.
+	LastActive time.Time `json:"lastActive"`
+	// InactiveDays is whole days since LastActive.
+	InactiveDays int `json:"inactiveDays"`
+	// DeleteAt is when the account will be deleted unless the user signs in;
+	// nil when deletion is off.
+	DeleteAt *time.Time `json:"deleteAt,omitempty"`
+}

@@ -1,0 +1,26 @@
+func (p *Plugin) SignInMethods() []authhttp.SignInMethod {
+	if p.core == nil {
+		return nil
+	}
+	byName := make(map[string]Provider, len(p.providers))
+	for _, prov := range p.providers {
+		byName[prov.Name()] = prov
+	}
+	var out []authhttp.SignInMethod
+	for _, po := range p.starts {
+		if _, gone := p.skipped[po.provider]; gone {
+			continue
+		}
+		op, wired := p.core.Operation(po.op.Info().ID)
+		if !wired {
+			continue
+		}
+		out = append(out, authhttp.SignInMethod{
+			ID:    PluginName + "." + po.provider,
+			Kind:  UIMethodKind,
+			Label: uiMethodLabel + labelOf(byName[po.provider]),
+			Route: op.Route(),
+		})
+	}
+	return out
+}

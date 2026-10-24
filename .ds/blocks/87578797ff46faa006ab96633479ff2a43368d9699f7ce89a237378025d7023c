@@ -1,0 +1,26 @@
+func TestChat_AddSurfacesEveryDatabaseFailure(t *testing.T) {
+	sweepFaults(t, func(t *testing.T, db *sql.DB) func(context.Context) error {
+		bot := &botbox{}
+		a, err := newAuth(db, discard{}, bot, time.Now)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = a.Close() })
+		if _, err := a.Migrate(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+		pw, err := auth.PluginOf[*password.Plugin](a)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ch, err := auth.PluginOf[*chat.Plugin](a)
+		if err != nil {
+			t.Fatal(err)
+		}
+		up, err := pw.SignUp(anon(a), password.SignUpRequest{Identifier: testEmail, Password: testPassword})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return func(context.Context) error { return ch.Add(signedIn(a, up.Token), testHandle) }
+	})
+}

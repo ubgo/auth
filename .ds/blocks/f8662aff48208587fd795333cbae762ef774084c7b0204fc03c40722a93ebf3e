@@ -1,0 +1,1 @@
+func APIKeyHeader(name string) Option { return func(c *config) { c.apiKeyHeader = name } }

@@ -1,0 +1,7 @@
+func (m logMailer) Send(ctx context.Context, mail email.Mail) error {
+	if strings.HasSuffix(mail.To, bounceDomain) {
+		return errBounced
+	}
+	m.logger.InfoContext(ctx, "mail", "to", mail.To, "subject", mail.Subject)
+	return nil
+}

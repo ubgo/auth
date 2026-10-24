@@ -1,0 +1,10 @@
+export const DEFAULT_AUTH_PATHS: AuthPaths = {
+  signIn: "/sign-in",
+  signUp: "/sign-up",
+  forgotPassword: "/forgot-password",
+  twoFactor: "/two-factor",
+  setupTwoFactor: "/setup-two-factor",
+  account: "/account",
+  afterSignIn: "/",
+  afterSignOut: "/sign-in",
+};

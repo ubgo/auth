@@ -1,0 +1,11 @@
+func EncodeSessionData(v any) (AppData, error) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrSessionDataInvalid, err)
+	}
+	d := AppData(b)
+	if err := d.validate(); err != nil {
+		return nil, err
+	}
+	return d, nil
+}

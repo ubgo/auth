@@ -1,0 +1,35 @@
+func (a *Auth) SchemaMigration(engine, owner, name string, s TableSchema) (Migration, error) {
+	if err := CheckEngine(engine); err != nil {
+		return Migration{}, err
+	}
+	if err := s.validate(); err != nil {
+		return Migration{}, err
+	}
+	t := a.typesFor(engine)
+	table := a.TableName(s.Table)
+	defs := []string{s.ID + " " + t.ID + " PRIMARY KEY"}
+	for _, c := range s.Columns {
+		defs = append(defs, c.Name+" "+schemaType(t, c.Type)+nullClause(c.Nullable)+defaultClause(c.Default))
+	}
+	indexes := s.allIndexes()
+	var after []string
+	for _, i := range indexes {
+		idx := table + "_" + i.Name
+		cols := strings.Join(i.Columns, ", ")
+		if engine == EngineMySQL {
+			kind := "INDEX "
+			if i.Unique {
+				kind = "UNIQUE INDEX "
+			}
+			defs = append(defs, kind+idx+" ("+cols+")")
+			continue
+		}
+		kind := "CREATE INDEX IF NOT EXISTS "
+		if i.Unique {
+			kind = "CREATE UNIQUE INDEX IF NOT EXISTS "
+		}
+		after = append(after, kind+idx+" ON "+table+" ("+cols+")")
+	}
+	st := append([]string{"CREATE TABLE IF NOT EXISTS " + table + " (" + strings.Join(defs, ", ") + ")" + t.TableSuffix}, after...)
+	return Migration{Owner: owner, Name: name, Statements: st}, nil
+}

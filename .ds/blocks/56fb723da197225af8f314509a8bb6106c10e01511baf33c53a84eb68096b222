@@ -1,0 +1,10 @@
+func (a *Auth) AfterCommit(ctx context.Context, fn func(context.Context)) {
+	st := txFrom(ctx)
+	if st == nil {
+		fn(ctx)
+		return
+	}
+	st.mu.Lock()
+	st.afterCommit = append(st.afterCommit, fn)
+	st.mu.Unlock()
+}

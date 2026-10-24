@@ -1,0 +1,12 @@
+func newProvider(jw *jwt.Plugin) *oauthprovider.Plugin {
+	return oauthprovider.New(jw,
+		oauthprovider.Issuer(baseURL),
+		oauthprovider.LoginPage(loginPath),
+		oauthprovider.ConsentPage(consentPath),
+		oauthprovider.Scopes(append(slices.Clone(oauthprovider.DefaultScopes), scopeMCPTools)...),
+		oauthprovider.ProtectedResource(mcpURL, scopeMCPTools),
+		oauthprovider.RegistrationDefaultResources(mcpURL),
+		oauthprovider.MCP(),
+		oauthprovider.CacheResources(0),
+	)
+}

@@ -1,0 +1,1 @@
+func Login() Option { return func(p *Plugin) { p.kind = auth.ApplyKind(p.kind, auth.Login()) } }

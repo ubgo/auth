@@ -1,0 +1,9 @@
+type Signer interface {
+	// Sign returns the signature of the JWS signing input (header dot
+	// payload) and the id of the key that made it, which the token's kid
+	// header carries. The key must be one PublicKeys lists.
+	Sign(ctx context.Context, signingInput []byte) (signature []byte, kid string, err error)
+	// PublicKeys returns every key a token in flight may carry, the signing
+	// key first, so the JWKS can publish them in that order.
+	PublicKeys() []ed25519.PublicKey
+}

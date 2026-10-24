@@ -1,0 +1,11 @@
+func newAuth(db *sql.DB, provider oauth.Provider, secret []byte, embedders ...string) (*auth.Auth, *oauthpopup.Plugin, error) {
+	pp := oauthpopup.New()
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSecret(secret),
+		auth.WithTrustedOrigins(embedders...),
+		auth.WithPlugins(oauth.New(oauth.WithProviders(provider)), pp),
+	)
+	return a, pp, err
+}

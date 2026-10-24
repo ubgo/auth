@@ -1,0 +1,6 @@
+func (c *Call) RedirectOnError(url string) {
+	if url == "" {
+		url = c.Auth.cfg.ErrorURL
+	}
+	c.redirectOnError = url
+}

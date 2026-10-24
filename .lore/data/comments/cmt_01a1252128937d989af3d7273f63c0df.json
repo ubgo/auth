@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Closed 2026-10-10 as obsolete: the question was which providers to build first; since then Google, GitHub, Apple, any OIDC issuer, ~60 presets and contrib/goth (every goth provider) are built.",
+  "created_at": "2026-10-10T09:24:52.499877000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec29c42473fbac025621dcd5aace",
+  "entity_table": "tasks",
+  "id": "cmt_01a1252128937d989af3d7273f63c0df",
+  "updated_at": "2026-10-10T09:24:52.499878000Z"
+}

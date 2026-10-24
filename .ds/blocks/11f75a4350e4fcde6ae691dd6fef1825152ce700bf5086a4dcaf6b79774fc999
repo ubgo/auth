@@ -1,0 +1,7 @@
+func Reddit(clientID, clientSecret, userAgent string) *OAuth2 {
+	return &OAuth2{
+		ID: "reddit", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		AuthURL: RedditAuthURL, TokenURL: RedditTokenURL, Scopes: []string{"identity"},
+		FetchProfile: RedditProfile(RedditProfileURL, userAgent),
+	}
+}

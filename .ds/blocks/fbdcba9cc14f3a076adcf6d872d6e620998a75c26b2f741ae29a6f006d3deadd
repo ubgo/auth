@@ -1,0 +1,12 @@
+func meHandler(a *auth.Auth) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u := authhttp.MustUser(r)
+		var cols twofactor.TwoFactorColumns
+		if err := a.LoadUserColumns(r.Context(), u.ID, twofactor.Bindings(&cols)...); err != nil {
+			authhttp.WriteError(w, err)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(meResponse{ID: u.ID, TwoFactorEnabled: cols.TwoFactorEnabled}) // a client that hung up cannot be told
+	})
+}

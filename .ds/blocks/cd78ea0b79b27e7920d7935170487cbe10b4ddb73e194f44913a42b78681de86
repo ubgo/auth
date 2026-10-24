@@ -1,0 +1,9 @@
+func WithVerificationStore(s VerificationStore) Option {
+	return func(st *settings) {
+		if s == nil {
+			st.refuseNil("WithVerificationStore")
+			return
+		}
+		st.verifications = s
+	}
+}

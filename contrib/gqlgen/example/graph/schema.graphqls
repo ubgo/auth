@@ -1,0 +1,9 @@
+# The app's own schema. The auth types and operations come from
+# auth.graphqls, a copy of authgql.Schema.
+type Query {
+  health: String!
+}
+
+type Mutation {
+  _empty: Boolean
+}

@@ -1,0 +1,1 @@
+	ErrChecksumMismatch   = errors.New("auth: a migration changed after it was applied")

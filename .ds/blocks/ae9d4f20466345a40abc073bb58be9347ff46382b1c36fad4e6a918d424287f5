@@ -1,0 +1,1 @@
+func WithMaxAttempts(n int) Option { return func(p *Plugin) { p.maxTries = n } }

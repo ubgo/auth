@@ -1,0 +1,7 @@
+type workerPool struct {
+	tasks chan poolTask
+	wg    sync.WaitGroup
+	// ran counts tasks a worker ran; overflow counts tasks that found the
+	// queue full and got a goroutine of their own.
+	ran, overflow atomic.Int64
+}

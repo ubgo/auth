@@ -1,0 +1,3 @@
+func Bindings(c *EmailColumns) []sqlb.Binding {
+	return []sqlb.Binding{sqlb.Bind(PrimaryEmail, &c.PrimaryEmail), sqlb.Bind(EmailVerifiedAt, &c.EmailVerifiedAt)}
+}

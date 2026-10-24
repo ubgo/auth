@@ -1,0 +1,1 @@
+var postgresTypes = auth.SQLTypes{ID: "UUID"}

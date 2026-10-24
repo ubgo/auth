@@ -1,0 +1,3 @@
+id,first_name,last_name,username,image_url,created_at,primary_email_address,primary_phone_number,verified_email_addresses,unverified_email_addresses,verified_phone_numbers,unverified_phone_numbers,totp_secret,password_digest,password_hasher
+user_2abc,Ada,Lovelace,ada,https://img.clerk.com/ada,2021-03-04T05:06:07Z,ada@example.com,+15555550101,"ada@example.com,ada.lovelace@work.example",ada@old.example,+15555550101,,JBSWY3DPEHPK3PXP,$2a$10$yWKqzAZp.mB10gk2hVmz8O07tlzY1ZIRdwOMU5PUXrszSgF5O5UbC,bcrypt
+user_2def,Bob,,,,2022-07-08T09:10:11Z,bob@example.com,,bob@example.com,,,,,fe3b7c...firebase,scrypt_firebase

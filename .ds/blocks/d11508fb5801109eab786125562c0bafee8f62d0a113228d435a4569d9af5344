@@ -1,0 +1,4 @@
+export async function usernameFree(name: string): Promise<boolean> {
+  const { data } = await auth.username.available({ username: name });
+  return data?.available ?? false;
+}

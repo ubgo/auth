@@ -1,0 +1,7 @@
+func Yandex(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "yandex", DisplayName: "Yandex", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: YandexAuthURL, TokenURL: YandexTokenURL, Scopes: []string{"login:info", "login:email", "login:avatar"},
+		FetchProfile: YandexProfile(YandexProfileURL),
+	}
+}

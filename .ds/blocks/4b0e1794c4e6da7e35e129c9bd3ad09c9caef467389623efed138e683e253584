@@ -1,0 +1,3 @@
+type RateDecider interface {
+	Allow(ctx context.Context, key string, rule RateRule) (ok bool, retryAfter time.Duration, err error)
+}

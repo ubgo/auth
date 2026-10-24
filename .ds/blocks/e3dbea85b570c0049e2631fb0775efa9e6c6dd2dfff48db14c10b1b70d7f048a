@@ -1,0 +1,4 @@
+func (p *Plugin) IsReserved(handle string) bool {
+	_, found := p.reserved[fold(handle)]
+	return found
+}

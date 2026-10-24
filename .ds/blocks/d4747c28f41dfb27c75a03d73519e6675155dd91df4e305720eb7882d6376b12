@@ -1,0 +1,11 @@
+func newHandler(a *auth.Auth) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	signedIn := func(h func(*auth.Auth, http.ResponseWriter, *http.Request)) http.Handler {
+		return authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { h(a, w, r) })))
+	}
+	mux.Handle("GET "+mePath, signedIn(me))
+	mux.Handle("GET "+signedOutPath, signedIn(signedOut))
+	mux.HandleFunc("GET "+auth.DefaultDeleteAccountPage, deletePage)
+	return mux
+}

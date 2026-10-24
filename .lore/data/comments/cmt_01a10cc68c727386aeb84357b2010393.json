@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Partly built: rename (POST /passkey/rename, Plugin.Rename, round 1), AAGUID stored and named (AuthenticatorName). Conditional UI is client-side (the page passes mediation conditional; checklist row in factors marks it n/a). Missing: an attestation or AAGUID allow-list policy (only attestation none today), and a relying-party id migration path. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:01.106215000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5dcf0eb772bb8bc3afa1def7a27",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68c727386aeb84357b2010393",
+  "updated_at": "2026-10-05T15:55:01.106215000Z"
+}

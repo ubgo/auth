@@ -1,0 +1,11 @@
+type SignInResult struct {
+	User auth.UserView `json:"user"`
+	// VerificationRequired is true when sign-up created the account but the
+	// identifier must be verified before the first sign-in; no session was
+	// issued.
+	VerificationRequired bool `json:"verificationRequired"`
+	// SecondFactorRequired is true when the session is pending: the client
+	// must pass the user's second factor before it signs anyone in.
+	SecondFactorRequired bool       `json:"secondFactorRequired"`
+	Token                auth.Token `json:"-"`
+}

@@ -1,0 +1,1 @@
+func KeepSessionsOnChange() Option { return func(p *Plugin) { p.keepOnChange = true } }

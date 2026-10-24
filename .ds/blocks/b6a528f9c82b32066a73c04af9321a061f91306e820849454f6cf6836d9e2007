@@ -1,0 +1,14 @@
+type SessionTokenRotator interface {
+	// RotateToken moves session id from oldHash to newHash, only while
+	// oldHash is still its current token hash and it is not ended: of
+	// concurrent rotations the first wins and the rest report false. It
+	// records oldHash as the previous hash, accepted until graceUntil
+	// (forgetting any earlier previous hash), and sets the expiry and
+	// last-seen as Touch would. Every other field stays as it is.
+	RotateToken(ctx context.Context, id string, oldHash, newHash []byte, graceUntil, expiresAt, lastSeenAt time.Time) (bool, error)
+	// FindRotated returns the live session (ExpiresAt after now, not ended)
+	// whose previous hash is tokenHash, with the time until which that
+	// token is accepted, or ErrSessionNotFound. The grace is not checked:
+	// a token found after it is the one the core treats as stolen.
+	FindRotated(ctx context.Context, tokenHash []byte, now time.Time) (Session, time.Time, error)
+}

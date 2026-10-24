@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Partly built: regenerate recovery codes (POST /twofactor/recovery-codes, RegenerateRecoveryCodes, round 1) and remember this browser (TrustDevices, devices.go, round 2) are done. Missing: an admin reset of another user's factor (nothing in plugin/admin or twofactor), and lifting a Lockout early (locked_until is only cleared by time). Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:00.905060000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5dcf0a472afa2174506374c3302",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68ba9711db20f95a8401a0f94",
+  "updated_at": "2026-10-05T15:55:00.905060000Z"
+}

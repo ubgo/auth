@@ -1,0 +1,4 @@
+type ParamRefresher interface {
+	Refresher
+	RefreshWithParams(ctx context.Context, hc *http.Client, refreshToken auth.Token, params url.Values) (TokenSet, error)
+}

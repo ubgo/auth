@@ -1,0 +1,21 @@
+func me(sd *sessiondata.Plugin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := authhttp.MustUser(r)
+		p, _, err := auth.SessionData[prefs](r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		d, ok, err := sessiondata.Get[device](r.Context(), sd)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		out := meResponse{ID: u.ID, Workspace: p.Workspace}
+		if ok {
+			out.Device = &d
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(out) // a client that hung up cannot be told
+	}
+}

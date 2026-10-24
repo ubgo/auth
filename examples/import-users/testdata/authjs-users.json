@@ -1,0 +1,4 @@
+[
+  {"id": "clu1ada", "name": "Ada Lovelace", "email": "ada@example.com", "emailVerified": "2021-03-04T05:06:07.000Z", "image": "https://lh3.example/ada"},
+  {"id": "clu2bob", "name": "Bob", "email": "bob@example.com", "emailVerified": null, "image": null}
+]

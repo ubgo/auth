@@ -1,0 +1,10 @@
+type Challenge struct {
+	// Challenge is the random value to hash, hex text.
+	Challenge string `json:"challenge"`
+	// Difficulty is the number of leading zero bits the hash must have.
+	Difficulty int `json:"difficulty"`
+	// Algorithm is AlgorithmSHA256.
+	Algorithm string `json:"algorithm"`
+	// ExpiresAt is when the challenge stops working.
+	ExpiresAt time.Time `json:"expiresAt"`
+}

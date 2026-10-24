@@ -1,0 +1,7 @@
+export async function signUpAcceptingTerms(address: string, secret: string, shownVersion: string): Promise<boolean> {
+  const { error } = await auth.password.signUp(
+    { identifier: address, password: secret },
+    { headers: { "Terms-Version": shownVersion } },
+  );
+  return error === null;
+}

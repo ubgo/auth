@@ -1,0 +1,1 @@
+func RateLimitedFor(retry time.Duration) error { return rateLimited{retry: retry} }

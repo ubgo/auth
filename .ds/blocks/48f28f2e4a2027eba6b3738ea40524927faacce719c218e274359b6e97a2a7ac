@@ -1,0 +1,1 @@
+func ClientIPHeaders(names ...string) Option { return func(c *config) { c.ipHeaders = names } }

@@ -1,0 +1,11 @@
+func newOAuth(issuer string, linking ...oauth.Option) *oauth.Plugin {
+	corp := oauth.OIDC(providerName, issuer, issuerClientID, issuerClientSecret)
+	return oauth.New(append([]oauth.Option{
+		oauth.WithProviders(corp),
+		oauth.ValidateProfile(onlyOurDomain),
+		oauth.OnResolved(keepLogin),
+		// A tile's code arrives with no state: drop it and start a flow
+		// bound to this browser instead of answering 400.
+		oauth.RestartProviderInitiated(providerName),
+	}, linking...)...)
+}

@@ -1,0 +1,4 @@
+type meResponse struct {
+	ID    string `json:"id"`
+	Hello string `json:"hello"`
+}

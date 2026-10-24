@@ -1,0 +1,1 @@
+func (p *Plugin) Operations() []auth.Operation { return []auth.Operation{p.add, p.list, p.remove} }

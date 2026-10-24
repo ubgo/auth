@@ -1,0 +1,1 @@
+type ProfileHook func(ctx context.Context, c *auth.Call, ev ProfileEvent) error

@@ -1,0 +1,8 @@
+func ValidateProfile(fn ProfileHook) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauth.ValidateProfile", fn) {
+			return
+		}
+		p.validate = append(p.validate, fn)
+	}
+}

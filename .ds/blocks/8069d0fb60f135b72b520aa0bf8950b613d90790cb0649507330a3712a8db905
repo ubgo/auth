@@ -1,0 +1,3 @@
+type IPReputation interface {
+	CheckIP(ctx context.Context, ip netip.Addr) (RiskVerdict, error)
+}

@@ -1,0 +1,16 @@
+func Instagram(appID, appSecret string) *OAuth2 {
+	o := &OAuth2{
+		ID: "instagram", DisplayName: "Instagram", ClientID: appID, ClientSecret: appSecret,
+		NoPKCE: true, ScopeSeparator: commaScopes, TokenLifetime: InstagramTokenLifetime,
+		AuthURL: InstagramAuthURL, TokenURL: InstagramTokenURL, Scopes: []string{"instagram_business_basic"},
+		OptionalParams: []string{instagramForceReauth},
+		FetchProfile:   InstagramProfile(InstagramMeURL),
+	}
+	o.exchange = func(ctx context.Context, hc *http.Client, code, redirectURI string) (TokenSet, error) {
+		return o.instagramGrant(ctx, hc, code, redirectURI)
+	}
+	o.renew = func(context.Context, *http.Client, auth.Token) (TokenSet, error) {
+		return TokenSet{}, fmt.Errorf("%w: instagram: a short-lived token cannot be refreshed", ErrExchange)
+	}
+	return o
+}

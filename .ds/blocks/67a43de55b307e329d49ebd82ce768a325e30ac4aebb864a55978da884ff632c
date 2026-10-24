@@ -1,0 +1,5 @@
+func newVerifier(jwksURL, issuer string, hc *http.Client, now func() time.Time) (jwt.Verifier, *jwt.RemoteKeys) {
+	remote := jwt.NewRemoteKeys(jwksURL, hc)
+	remote.Now = now
+	return jwt.Verifier{Lookup: remote.Lookup, Issuer: issuer, Audience: audience, Now: now}, remote
+}

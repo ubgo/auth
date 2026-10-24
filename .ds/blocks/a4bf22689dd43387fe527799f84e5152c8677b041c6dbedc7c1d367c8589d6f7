@@ -1,0 +1,27 @@
+export type AuthComponentProps<Slot extends string, Key extends keyof ComponentLocalizations, Result> = {
+  /** Classes for the root element, merged after the defaults. Same as classNames.root. */
+  readonly className?: string;
+  /** Classes per named part. */
+  readonly classNames?: SlotClassNames<Slot>;
+  /** Text overrides for this one use, over the provider's and the English defaults. */
+  readonly localization?: Partial<ComponentLocalizations[Key]>;
+  /**
+   * Called after the action succeeds, instead of navigating. Return nothing;
+   * navigate yourself if you want to go somewhere.
+   */
+  readonly onSuccess?: (result: Result) => void;
+  /**
+   * Where to go after success when there is no onSuccess. Defaults to the
+   * provider's path for the flow. Only a path on this site (or an origin in
+   * AuthProvider's allowedRedirectOrigins) is followed; anything else is
+   * ignored and the default applies, so passing the address bar's
+   * ?redirectTo= straight through is safe (useSafeRedirect).
+   */
+  readonly redirectTo?: string;
+  /**
+   * The heading level of the component's title. 1 by default, because on a
+   * page of its own (/sign-in) the card is the main heading; pass 2 when the
+   * page has its own h1, so the outline has one top heading.
+   */
+  readonly headingLevel?: HeadingLevel;
+};

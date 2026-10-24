@@ -1,0 +1,1 @@
+	ErrDomainBlocked = auth.NewError("guard.domain_blocked", http.StatusBadRequest, "Sign up with a work or personal address, not a disposable one.")

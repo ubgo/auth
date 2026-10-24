@@ -1,0 +1,9 @@
+func WithDialect(d sqlb.Dialect) Option {
+	return func(s *settings) {
+		if d == nil {
+			s.refuseNil("WithDialect")
+			return
+		}
+		s.cfg.Dialect = d
+	}
+}

@@ -1,0 +1,3 @@
+func WithUserColumns(cols ...ColumnExtension) Option {
+	return func(s *settings) { s.userColumns = append(s.userColumns, cols...) }
+}

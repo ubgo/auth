@@ -1,0 +1,4 @@
+func (a *Auth) CheckFields(f Fields) error {
+	_, err := a.decodeFields(f)
+	return err
+}

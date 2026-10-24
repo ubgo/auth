@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Deferred 2026-10-02 by the owner: roles, permissions and ACL are not core auth. They will be designed with nested groups as separate modules after round 2 (decision dec_01a0fcedbd807cb5ae459329f5d99c9e).",
+  "created_at": "2026-10-02T14:07:55.783663000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f8673677714ca95b198eacc2995a",
+  "entity_table": "tasks",
+  "id": "cmt_01a0fcf16d877a6ba4924c8be313eea6",
+  "updated_at": "2026-10-02T14:07:55.783663000Z"
+}

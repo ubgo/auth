@@ -1,0 +1,7 @@
+export async function signUpReferred(address: string, secret: string, code: string): Promise<boolean> {
+  const { error } = await auth.password.signUp(
+    { identifier: address, password: secret },
+    { headers: { "Referral-Code": code } },
+  );
+  return error === null;
+}

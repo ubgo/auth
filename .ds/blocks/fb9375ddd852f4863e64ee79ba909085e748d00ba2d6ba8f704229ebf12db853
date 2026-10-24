@@ -1,0 +1,3 @@
+type IDTokenReplayGuard interface {
+	Claim(ctx context.Context, claim IDTokenClaim) error
+}

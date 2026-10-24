@@ -1,0 +1,1 @@
+func WithDefaultLocale(tag string) Option { return func(s *settings) { s.defaultLocale = tag } }

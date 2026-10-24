@@ -1,0 +1,18 @@
+type Env struct {
+	T testing.TB
+	// Auth is wired, migrated and closed when the test ends.
+	Auth *auth.Auth
+	// DB and Dialect are what Auth runs on.
+	DB      *sql.DB
+	Dialect sqlb.Dialect
+	// Clock is the clock Auth measures every expiry by; Advance it to expire
+	// sessions, codes and links without sleeping.
+	Clock *Clock
+	// Mail records every mail the email plugin sends when the plugin is built
+	// with email.WithMailer(env.Mail); SMS does the same for the phone plugin
+	// with phone.WithSMS(env.SMS).
+	Mail *Mailbox
+	SMS  *SMSBox
+	// BaseURL is the app's public URL as Auth knows it.
+	BaseURL string
+}

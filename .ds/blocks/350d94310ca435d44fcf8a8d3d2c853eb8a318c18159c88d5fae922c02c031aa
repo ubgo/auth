@@ -1,0 +1,3 @@
+func ValidateProfile(fn ProfileHook) Option {
+	return func(p *Plugin) { p.validate = append(p.validate, fn) }
+}

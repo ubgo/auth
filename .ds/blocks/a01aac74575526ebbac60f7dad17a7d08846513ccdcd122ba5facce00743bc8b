@@ -1,0 +1,7 @@
+func Options(opts ...Option) Option {
+	return func(s *settings) {
+		for _, o := range opts {
+			o(s)
+		}
+	}
+}

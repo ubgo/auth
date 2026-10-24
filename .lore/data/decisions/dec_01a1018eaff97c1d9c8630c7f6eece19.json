@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Owner, 2026-10-03. Sessions carry an app data field stored as JSON bytes by every session store (SQL, Redis, memory, custom; the sessiontest suite enforces it), read and written through typed generic accessors on the app's own Go struct. A plugin also offers the separate-table approach. Session stores stay fully pluggable.",
+  "confidence": null,
+  "created_at": "2026-10-03T11:38:10.809789000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a1018eaff97c1d9c8630c7f6eece19",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Per-session app data: a typed JSON data field on every session, plus a plugin, both offered",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-03T11:38:10.809789000Z"
+}

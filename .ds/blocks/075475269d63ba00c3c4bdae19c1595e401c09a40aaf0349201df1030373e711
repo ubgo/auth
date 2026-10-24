@@ -1,0 +1,5 @@
+func (a *Auth) UserTables() []UserTable {
+	out := make([]UserTable, 0, len(a.userTables)+len(coreUserTables))
+	out = append(out, a.userTables...)
+	return append(out, coreUserTables...)
+}

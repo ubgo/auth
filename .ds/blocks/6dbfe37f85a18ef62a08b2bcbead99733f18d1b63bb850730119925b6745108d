@@ -1,0 +1,8 @@
+export async function serverUser(): Promise<ServerUser | null> {
+  const cookie = (await headers()).get("cookie")
+  if (cookie === null) return null
+  const res = await fetch(`${AUTH_API_URL}/auth/session`, { headers: { cookie }, cache: "no-store" })
+  if (!res.ok) return null
+  const body: unknown = await res.json()
+  return userOf(body)
+}

@@ -1,0 +1,17 @@
+func (s settings) create(w http.ResponseWriter, r *http.Request) {
+	var in createRequest
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		authhttp.WriteError(w, auth.ErrBadRequest)
+		return
+	}
+	out, err := s.sp.CreateManagedConnection(r.Context(), scim.CreateManagedRequest{
+		CreationRequestID:    in.RequestID,
+		ProvisioningDomainID: orgInPath(r),
+		ActorID:              authhttp.MustUser(r).ID,
+	})
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, issued(out))
+}

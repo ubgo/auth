@@ -1,0 +1,14 @@
+func linkingRules(mode linkingMode) ([]oauth.Option, error) {
+	switch mode {
+	case linkDefault:
+		// Both sides verified links; anything less is 409 oauth.account_exists.
+		return nil, nil
+	case linkStrict:
+		// Every link is deliberate: even a verified match is refused.
+		return []oauth.Option{oauth.NoImplicitLinking()}, nil
+	case linkTrusted:
+		// corp's addresses count as verified even without email_verified.
+		return []oauth.Option{oauth.TrustedProviders(providerName)}, nil
+	}
+	return nil, fmt.Errorf("%s=%q: want %q, %q or unset", envLinking, mode, linkStrict, linkTrusted)
+}

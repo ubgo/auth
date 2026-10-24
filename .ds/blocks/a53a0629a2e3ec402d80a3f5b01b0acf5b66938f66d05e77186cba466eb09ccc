@@ -1,0 +1,12 @@
+func newDirectory() (ldap.Directory, error) {
+	if os.Getenv("LDAP_URL") == "" {
+		return demoDirectory(), nil
+	}
+	return ldap.NewClient(ldap.Config{
+		URL:          os.Getenv("LDAP_URL"),
+		StartTLS:     os.Getenv("LDAP_START_TLS") == "true",
+		BindDN:       os.Getenv("LDAP_BIND_DN"),
+		BindPassword: os.Getenv("LDAP_BIND_PASSWORD"),
+		BaseDN:       os.Getenv("LDAP_BASE_DN"),
+	})
+}

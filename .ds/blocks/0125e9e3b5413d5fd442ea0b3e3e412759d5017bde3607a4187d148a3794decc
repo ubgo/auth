@@ -1,0 +1,7 @@
+func (a *Auth) ResolveSession(ctx context.Context, t Token) (sess *Session, user *User, refreshed bool, err error) {
+	s, u, reissue, err := a.resolveSessionFor(ctx, t, true)
+	if err == nil && s.SecondFactorPending {
+		return nil, nil, false, ErrSignedOut
+	}
+	return s, u, reissue != "", err
+}

@@ -1,0 +1,4 @@
+func (a *Auth) PeekCode(ctx context.Context, purpose Purpose, subject, code string, maxAttempts int) error {
+	_, err := a.matchCode(ctx, purpose, subject, code, maxAttempts)
+	return err
+}

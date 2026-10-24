@@ -1,0 +1,11 @@
+func (p *Plugin) VerifyPermissions(ctx context.Context, secret string, want Permissions) (Verification, error) {
+	v, err := p.verify(ctx, "", secret, nil)
+	if err != nil || !v.Valid {
+		return v, err
+	}
+	s, _ := p.config(v.Key.Config)
+	if !s.grants(v.Key.Permissions, want) {
+		return Verification{Reason: ErrPermissionDenied}, nil
+	}
+	return v, nil
+}

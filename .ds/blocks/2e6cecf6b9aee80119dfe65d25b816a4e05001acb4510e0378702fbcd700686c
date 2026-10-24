@@ -1,0 +1,5 @@
+type meResponse struct {
+	ID         string     `json:"id"`
+	LastMethod string     `json:"lastMethod"`
+	LastAt     *time.Time `json:"lastAt"`
+}

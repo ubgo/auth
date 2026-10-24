@@ -1,0 +1,1 @@
+func (c *Call) RedirectOnError(url string) { c.redirectOnError = url }

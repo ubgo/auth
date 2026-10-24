@@ -1,0 +1,1 @@
+type Fields map[string]json.RawMessage

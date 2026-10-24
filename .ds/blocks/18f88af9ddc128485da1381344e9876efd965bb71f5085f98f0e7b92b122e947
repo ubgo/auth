@@ -1,0 +1,17 @@
+func (a *Auth) FindIdentity(ctx context.Context, kind IdentifierKindName, raw string, verifiedOnly bool) (Identity, error) {
+	value, err := a.Normalize(kind, raw)
+	if err != nil {
+		return Identity{}, err
+	}
+	where := []sqlb.Predicate{sqlb.Eq(IdentityKind, kind), sqlb.Eq(IdentityValue, value)}
+	if p, ok, err := a.scopePredicate(ctx, kind); err != nil {
+		return Identity{}, err
+	} else if ok {
+		where = append(where, p)
+	}
+	idn, err := a.oneIdentity(ctx, append(where, VerifiedIdentity())...)
+	if err == nil || verifiedOnly || !errors.Is(err, ErrIdentityNotFound) {
+		return idn, err
+	}
+	return a.oneIdentity(ctx, append(where, sqlb.IsNull(IdentityVerifiedAt))...)
+}

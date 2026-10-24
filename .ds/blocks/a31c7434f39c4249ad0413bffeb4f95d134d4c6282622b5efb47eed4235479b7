@@ -1,0 +1,5 @@
+func TestCustomStore(t *testing.T) {
+	sessiontest.Run(t, func(*testing.T) auth.SessionStore {
+		return newLoggingStore(auth.NewMemorySessionStore(), nil)
+	})
+}

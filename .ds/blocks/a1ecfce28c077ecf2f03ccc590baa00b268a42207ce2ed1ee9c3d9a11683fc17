@@ -1,0 +1,1 @@
+func WithRateStore(r RateStore) Option { return func(s *settings) { s.rateStore = r } }

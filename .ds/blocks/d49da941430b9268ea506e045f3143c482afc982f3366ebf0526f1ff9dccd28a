@@ -1,0 +1,40 @@
+func SetSessionData(ctx context.Context, a *Auth, v any) error {
+	st := stateFrom(ctx)
+	if st == nil || st.session == nil || st.session.SecondFactorPending {
+		return ErrSignedOut
+	}
+	if st.session.APIKeyID != "" {
+		return ErrSessionDataUnavailable
+	}
+	d, err := EncodeSessionData(v)
+	if err != nil {
+		return err
+	}
+	old := *st.session
+	s := old
+	s.Data = d
+	if a.stateless != nil {
+		// The token is the session: the new data exists once the client
+		// holds the new token, which the transport issues with the response.
+		tok, err := a.stateless.seal(s)
+		if err != nil {
+			return err
+		}
+		st.effects.IssueSessionOf(s, tok)
+	} else {
+		err = a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+			if err := runHooks(ctx, a, tx, pickSession, stageBeforeUpdate, &old, &s); err != nil {
+				return err
+			}
+			if err := a.sessions.SetData(ctx, s.ID, s.Data); err != nil {
+				return fmt.Errorf("auth: set session data: %w", err)
+			}
+			return runHooks(ctx, a, tx, pickSession, stageAfterUpdate, &old, &s)
+		})
+		if err != nil {
+			return err
+		}
+	}
+	*st.session = s
+	return a.dropCached(ctx, st)
+}

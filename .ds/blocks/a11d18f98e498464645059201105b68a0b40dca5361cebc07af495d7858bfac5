@@ -1,0 +1,15 @@
+const (
+	ThemeDefault    ReferenceTheme = "default"
+	ThemeAlternate  ReferenceTheme = "alternate"
+	ThemeMoon       ReferenceTheme = "moon"
+	ThemePurple     ReferenceTheme = "purple"
+	ThemeSolarized  ReferenceTheme = "solarized"
+	ThemeBluePlanet ReferenceTheme = "bluePlanet"
+	ThemeSaturn     ReferenceTheme = "saturn"
+	ThemeKepler     ReferenceTheme = "kepler"
+	ThemeMars       ReferenceTheme = "mars"
+	ThemeDeepSpace  ReferenceTheme = "deepSpace"
+	ThemeLaserwave  ReferenceTheme = "laserwave"
+	// ThemeNone loads no theme stylesheet, for a page the app styles.
+	ThemeNone ReferenceTheme = "none"
+)

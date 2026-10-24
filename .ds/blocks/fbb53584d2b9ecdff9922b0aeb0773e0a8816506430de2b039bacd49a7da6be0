@@ -1,0 +1,26 @@
+func New(opts ...Option) *Plugin {
+	p := &Plugin{
+		kind: auth.IdentifierKind{
+			Name: KindEmail, Unique: true, UniqueOnlyVerified: true, Verifiable: true,
+			Normalize: Normalize, Validate: Validate,
+		},
+		verifyTTL: DefaultVerifyTTL,
+		undoTTL:   DefaultUndoTTL,
+		templates: DefaultTemplates,
+	}
+	for _, o := range opts {
+		o(p)
+	}
+	p.verify = auth.Define(auth.OpInfo{ID: EndpointVerify, Kind: auth.Mutation, Require: auth.Public, Path: "/verify"}, p.doVerify)
+	p.resend = auth.Define(auth.OpInfo{ID: EndpointResend, Kind: auth.Mutation, Require: auth.Public, Path: "/resend"}, p.doResend)
+	p.list = auth.Define(auth.OpInfo{ID: EndpointList, Kind: auth.Query, Require: auth.SignedIn, Path: "/list"}, p.doList)
+	p.add = auth.Define(auth.OpInfo{ID: EndpointAdd, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/add"}, p.doAdd)
+	p.makePrimary = auth.Define(auth.OpInfo{ID: EndpointMakePrimary, Kind: auth.Mutation, Require: auth.FreshSignIn, Path: "/make-primary"}, p.doMakePrimary)
+	p.remove = auth.Define(auth.OpInfo{ID: EndpointRemove, Kind: auth.Mutation, Require: auth.FreshSignIn, Path: "/remove"}, p.doRemove)
+	p.change = auth.Define(auth.OpInfo{ID: EndpointChange, Kind: auth.Mutation, Require: auth.FreshSignIn, Path: "/change"}, p.doChange)
+	p.confirmChange = auth.Define(auth.OpInfo{ID: EndpointConfirmChange, Kind: auth.Mutation, Require: auth.Public, Path: "/confirm-change"}, p.doConfirmChange)
+	p.sendCode = auth.Define(auth.OpInfo{ID: EndpointSendCode, Kind: auth.Mutation, Require: auth.Public, Path: "/send-code"}, p.doSendCode)
+	p.signInCode = auth.Define(auth.OpInfo{ID: EndpointSignInCode, Kind: auth.Mutation, Require: auth.Public, Path: "/sign-in-code"}, p.doSignInCode)
+	p.undoChange = auth.Define(auth.OpInfo{ID: EndpointUndoChange, Kind: auth.Mutation, Require: auth.Public, Path: "/undo-change"}, p.doUndoChange)
+	return p
+}

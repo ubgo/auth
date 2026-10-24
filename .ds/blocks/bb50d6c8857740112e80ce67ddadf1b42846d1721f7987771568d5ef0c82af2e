@@ -1,0 +1,3 @@
+func WithSignUpFields(cols ...string) Option {
+	return func(s *settings) { s.signUpFields = append(s.signUpFields, cols...) }
+}

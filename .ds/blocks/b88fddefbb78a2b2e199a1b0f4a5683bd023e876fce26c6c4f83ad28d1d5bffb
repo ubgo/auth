@@ -1,0 +1,23 @@
+func deploymentFromEnv(getenv func(string) string) (deployment, error) {
+	d := deployment{
+		BaseURL:       oauthproxy.DeploymentURL(getenv, cmp.Or(getenv(envBaseURL), localURL)),
+		ProductionURL: getenv(envProductionURL),
+		ProxySecret:   []byte(getenv(envProxySecret)),
+	}
+	for _, o := range strings.Split(getenv(envPreviewOrigins), ",") {
+		if o = strings.TrimSpace(o); o != "" {
+			d.PreviewOrigins = append(d.PreviewOrigins, o)
+		}
+	}
+	iss, id, secret := getenv(envOIDCIssuer), getenv(envOIDCID), getenv(envOIDCSecret)
+	switch {
+	case d.ProductionURL == "":
+		return d, fmt.Errorf("%w: set %s", errConfig, envProductionURL)
+	case len(d.ProxySecret) < minProxySecret:
+		return d, fmt.Errorf("%w: %s must be at least %d bytes", errConfig, envProxySecret, minProxySecret)
+	case iss == "" || id == "" || secret == "":
+		return d, fmt.Errorf("%w: set %s, %s and %s", errConfig, envOIDCIssuer, envOIDCID, envOIDCSecret)
+	}
+	d.Provider = oauth.OIDC(providerName, iss, id, secret)
+	return d, nil
+}

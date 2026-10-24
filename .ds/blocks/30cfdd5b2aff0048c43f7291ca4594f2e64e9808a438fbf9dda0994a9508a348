@@ -1,0 +1,7 @@
+var (
+	//ds:def id=guard-errors-hbqmarqv owner=@khanakia stability=stable
+	ErrDomainBlocked = auth.NewError("guard.domain_blocked", http.StatusBadRequest, "Sign up with a work or personal address, not a disposable one.")
+	ErrSignInsPaused = auth.NewError("guard.sign_ins_paused", http.StatusServiceUnavailable, "Signing in is paused for maintenance. Try again in a few minutes.")
+	ErrPINInvalid    = auth.NewError("guard.pin_invalid", http.StatusBadRequest, "Use 4 to 12 digits.")
+	ErrPINWrong      = auth.NewError("guard.pin_wrong", http.StatusBadRequest, "That PIN is not right.")
+)

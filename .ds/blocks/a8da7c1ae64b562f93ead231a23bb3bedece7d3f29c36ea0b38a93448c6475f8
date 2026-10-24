@@ -1,0 +1,10 @@
+export async function signInOnce(identifier: string, secret: string): Promise<boolean> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { error } = await auth.password.signIn({ identifier, password: secret });
+    if (!error) return true;
+    const wait = error.code === "auth.rate_limited" ? error.retryAfter : undefined;
+    if (wait === undefined) return false;
+    await new Promise((resolve) => setTimeout(resolve, wait * 1000));
+  }
+  return false;
+}

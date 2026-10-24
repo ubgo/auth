@@ -1,0 +1,7 @@
+export async function disconnectApp(clientName: string): Promise<boolean> {
+  const { data } = await auth.oauthprovider.listConsents();
+  const consent = (data?.consents ?? []).find((c) => c.client_name === clientName);
+  if (!consent) return false;
+  const { error } = await auth.oauthprovider.revokeConsent({ client_id: consent.client_id });
+  return error === null;
+}

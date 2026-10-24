@@ -1,0 +1,20 @@
+func (p *Plugin) SetLimits(ctx context.Context, id string, l Limits) error {
+	if err := l.validate(); err != nil {
+		return err
+	}
+	r, err := p.keyByID(ctx, id)
+	if errors.Is(err, sqlb.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	now := p.core.Now()
+	set := append(limitAssignments(l.withDefaults()), sqlb.Set(KeyRateCount, int64(0)), sqlb.Set(KeyRateWindowStart, (*time.Time)(nil)), sqlb.Set(KeyLastRefillAt, (*time.Time)(nil)), sqlb.Set(KeyUpdated, &now))
+	// The row was just read, so an update that changes nothing means a
+	// concurrent revoke, after which there is nothing left to limit.
+	if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableKey).Set(set...).Where(sqlb.Eq(KeyID, id))); err != nil {
+		return err
+	}
+	return p.cacheDrop(ctx, r.hash)
+}

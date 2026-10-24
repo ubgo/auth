@@ -1,0 +1,39 @@
+export function OrganizationsPage() {
+  const { custom } = useDemoCustomise()
+  return (
+    <DemoPage
+      title="Organizations"
+      description="The active organization lives on the session: the switcher sets it, and the member list, its invitations and the invite form follow it."
+      customCode={CUSTOM_CODE}
+      tryThis={[
+        <>
+          <RouterLink href="/sign-in?redirectTo=/organizations">Sign in</RouterLink> as <code>{DEMO_USER.email}</code>, open the switcher and choose <b>Create organization</b>.
+        </>,
+        <>The new organization becomes active, and you are its owner in the member list.</>,
+        <>
+          Invite <code>grace@demo.test</code> as an admin: the invitation is listed as pending and its mail is in the <RouterLink href="/inbox">Inbox</RouterLink>.
+        </>,
+        <>Create a second organization, then switch between the two and back to your personal account.</>,
+        <>
+          Once Grace has accepted, open the <b>…</b> menu on her row to change her role or remove her; on your own row, try making yourself an admin or leaving: the last owner is refused.
+        </>,
+        <>Switch Language to Deutsch and Appearance to Custom in the panel below.</>,
+      ]}
+    >
+      <SignedIn>
+        <div className="flex w-full max-w-xl flex-col items-start gap-3">
+          <OrganizationSwitcher classNames={custom ? CUSTOM_SWITCHER : undefined} />
+          <OrganizationMembers classNames={custom ? CUSTOM_MEMBERS : undefined} headingLevel={2} />
+        </div>
+      </SignedIn>
+      <SignedOut>
+        <p className="text-[13px] text-muted-foreground">
+          <RouterLink href="/sign-in?redirectTo=/organizations" className="text-foreground underline underline-offset-3">
+            Sign in
+          </RouterLink>{" "}
+          to manage organizations.
+        </p>
+      </SignedOut>
+    </DemoPage>
+  )
+}

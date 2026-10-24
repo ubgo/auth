@@ -1,0 +1,9 @@
+type ReferenceOptions struct {
+	// ScriptURL is the viewer script; empty means DefaultReferenceScript.
+	ScriptURL string
+	// Nonce, when set, is called per request and its answer becomes the
+	// nonce attribute of both script tags, for an app whose
+	// Content-Security-Policy allows scripts by nonce. The app's own
+	// middleware sets the policy header; the page only carries the nonce.
+	Nonce func(r *http.Request) string
+}

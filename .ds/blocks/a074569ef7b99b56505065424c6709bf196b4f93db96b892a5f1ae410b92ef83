@@ -1,0 +1,14 @@
+const (
+	// TSFileClient is the generated part: one TypeScript type per Go input
+	// and output type, one operation table and plugin factory per plugin,
+	// and createAuthClient typed with the core's operations.
+	TSFileClient = "client.ts"
+	// TSFileRuntime is the hand-written fetch runtime, the same for every
+	// app: request encoding, token modes, error decoding.
+	TSFileRuntime = "runtime.ts"
+	// TSFileErrorCodes is every error code the linked packages declare
+	// (auth.Errors), the same module docs/reference/error-codes.ts is.
+	TSFileErrorCodes = "error-codes.ts"
+	// TSFileIndex re-exports the three, the module an app imports.
+	TSFileIndex = "index.ts"
+)

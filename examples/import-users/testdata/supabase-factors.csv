@@ -1,0 +1,3 @@
+user_id,factor_type,status,secret
+0b1f1c1e-0000-4000-8000-000000000001,totp,verified,JBSWY3DPEHPK3PXP
+0b1f1c1e-0000-4000-8000-000000000004,totp,unverified,KRSXG5CTMVRXEZLU

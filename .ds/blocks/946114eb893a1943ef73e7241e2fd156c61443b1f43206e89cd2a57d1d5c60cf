@@ -1,0 +1,19 @@
+type User struct {
+	// ID is the stable public identifier, and the foreign-key target for plugin
+	// tables and app tables alike. It is opaque: nothing may parse it.
+	ID string
+
+	// Name and Image are display fields, set at sign-up or imported from a
+	// social provider. Both may be empty.
+	Name  string
+	Image string
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	// SessionsValidAfter is set by DeleteUserSessions with no exception
+	// ("sign out everywhere"): a session created before it is refused in
+	// every session mode, which is what revokes stateless sessions, whose
+	// tokens the server never stored. Nil until the first such call.
+	SessionsValidAfter *time.Time
+}

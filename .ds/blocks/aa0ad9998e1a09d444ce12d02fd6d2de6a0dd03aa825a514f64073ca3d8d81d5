@@ -1,0 +1,13 @@
+func (p *Plugin) doVerify(ctx context.Context, c *auth.Call, in PINRequest) (auth.Done, error) {
+	var hash *string
+	if err := p.a.LoadUserColumns(ctx, c.Session.UserID, sqlb.Bind(PINHash, &hash)); err != nil {
+		return auth.Done{}, err
+	}
+	if hash == nil || subtle.ConstantTimeCompare([]byte(*hash), []byte(hashPIN(c.Session.UserID, in.PIN))) != 1 {
+		return auth.Done{}, ErrPINWrong
+	}
+	if _, err := p.a.PromoteSession(ctx, c); err != nil {
+		return auth.Done{}, err
+	}
+	return auth.Done{OK: true}, nil
+}

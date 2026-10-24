@@ -1,0 +1,1 @@
+func Attestation(c Conveyance) Option { return func(p *Plugin) { p.conveyance = c } }

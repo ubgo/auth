@@ -1,0 +1,8 @@
+func GenerateCode(fn CodeGenerator) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("phone.GenerateCode", fn) {
+			return
+		}
+		p.genCode = fn
+	}
+}

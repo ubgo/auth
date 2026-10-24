@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Done: Call.Input carries the decoded input to operation hooks (call.go, set in pipeline.go before Before hooks run), round 1 configuration switches (CHANGELOG 2026-10-01). Verified by r10-lore audit 2026-10-05.",
+  "created_at": "2026-10-05T15:54:31.660964000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5b9ff9f7d5282c4152a1468454a",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc6196c7ed88c68e82014291c77",
+  "updated_at": "2026-10-05T15:54:31.660964000Z"
+}

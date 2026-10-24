@@ -1,0 +1,3 @@
+func DefaultScopes(scopes ...string) Option {
+	return func(p *Plugin) { p.defaultScopes = append(p.defaultScopes, scopes...) }
+}

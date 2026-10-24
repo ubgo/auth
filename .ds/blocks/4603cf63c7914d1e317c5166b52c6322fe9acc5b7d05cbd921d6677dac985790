@@ -1,0 +1,1 @@
+func (a *Auth) TableName(t sqlb.Table) string { return a.realTableName(t.Name) }

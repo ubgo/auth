@@ -1,0 +1,12 @@
+func Microsoft(tenant, clientID, clientSecret string) *OAuth2 {
+	o := &OAuth2{
+		ID: "microsoft", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: fmt.Sprintf(MicrosoftAuthURLFormat, tenant), TokenURL: fmt.Sprintf(MicrosoftTokenURLFormat, tenant),
+		Scopes:       openIDScopes(),
+		FetchProfile: UserInfoProfile(MicrosoftUserInfoURL, microsoftSubjectClaim),
+	}
+	if !containsFold(microsoftMultiTenant, tenant) {
+		o.IDToken = IDTokenConfig{JWKSURL: fmt.Sprintf(MicrosoftJWKSURLFormat, tenant), Issuers: []string{fmt.Sprintf(MicrosoftIssuerFormat, tenant)}}
+	}
+	return o
+}

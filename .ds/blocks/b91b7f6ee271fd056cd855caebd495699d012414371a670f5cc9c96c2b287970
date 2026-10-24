@@ -1,0 +1,23 @@
+func sweepFaults(t *testing.T, setup func(t *testing.T, db *sql.DB) func(ctx context.Context) error) {
+	t.Helper()
+	for k := 1; k <= maxFaultSteps; k++ {
+		db, f := openFaultDB(t)
+		op := setup(t, db)
+		f.arm(k)
+		err := op(context.Background())
+		if !f.disarm() {
+			if err != nil {
+				t.Fatalf("run with no fault reached (step %d) failed: %v", k, err)
+			}
+			if k == 1 {
+				t.Fatal("the operation made no database call; the sweep proves nothing")
+			}
+			t.Logf("swept %d database calls", k-1)
+			return
+		}
+		if err == nil {
+			t.Errorf("fault at database call %d was swallowed: the operation returned no error", k)
+		}
+	}
+	t.Fatalf("no run finished within %d database calls", maxFaultSteps)
+}

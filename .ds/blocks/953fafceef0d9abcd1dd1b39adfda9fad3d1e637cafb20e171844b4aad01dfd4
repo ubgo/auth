@@ -1,0 +1,8 @@
+type Browser struct {
+	env    *Env
+	server *httptest.Server
+	client *http.Client
+	// Origin is what the browser sends as the Origin header on a mutation;
+	// change it to play a cross-site page.
+	Origin string
+}

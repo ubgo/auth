@@ -1,0 +1,3 @@
+func Keycloak(issuer, clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("keycloak", issuer, clientID, clientSecret), "Keycloak")
+}

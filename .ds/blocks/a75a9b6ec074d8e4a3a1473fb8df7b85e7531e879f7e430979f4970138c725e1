@@ -1,0 +1,3 @@
+func NewMemoryRateStore(now func() time.Time) RateStore {
+	return &memoryStore{now: now, m: map[string]*memoryWindow{}}
+}

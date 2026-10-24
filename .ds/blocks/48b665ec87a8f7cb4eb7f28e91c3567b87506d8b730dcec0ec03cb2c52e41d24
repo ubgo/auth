@@ -1,0 +1,11 @@
+export async function addNumber(number: string, askForCode: () => Promise<string>): Promise<string> {
+  const added = await auth.phone.add({ phone: number });
+  if (added.error) {
+    if (added.error.code === "auth.identifier_invalid") return "Type the number with + and the country code.";
+    if (added.error.code === "phone.has_number") return "Remove the number you have first, or change it.";
+    return added.error.message;
+  }
+  const verified = await auth.phone.verify({ phone: number, code: await askForCode() });
+  if (verified.error?.code === "auth.code_invalid") return "That code is not right; we can text a new one (phone.resend).";
+  return verified.error ? verified.error.message : "Your number is verified.";
+}

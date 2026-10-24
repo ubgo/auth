@@ -1,0 +1,1 @@
+var ErrInvalid = errors.New("jwt: token is not valid")

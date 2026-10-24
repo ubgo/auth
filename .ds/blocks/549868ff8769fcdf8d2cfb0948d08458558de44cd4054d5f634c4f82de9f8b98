@@ -1,0 +1,6 @@
+func mailTemplates(m auth.Message) (subject, text string) {
+	if m.Purpose == organization.PurposeInvite {
+		return inviteSubject, inviteText + m.Link
+	}
+	return email.DefaultTemplates(m)
+}

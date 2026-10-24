@@ -1,0 +1,3 @@
+func WriteErrorFor(w http.ResponseWriter, r *http.Request, err error) {
+	encodeError(w, r, encoderOf(r.Context()), err, auth.ErrorInfoFor(r.Context(), err))
+}

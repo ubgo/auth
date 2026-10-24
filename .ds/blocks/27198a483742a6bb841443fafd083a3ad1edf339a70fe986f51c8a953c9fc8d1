@@ -1,0 +1,1 @@
+func WithCodeTTL(d time.Duration) Option { return func(p *Plugin) { p.codeTTL = d } }

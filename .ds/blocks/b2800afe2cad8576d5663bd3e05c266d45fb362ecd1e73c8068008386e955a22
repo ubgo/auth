@@ -1,0 +1,6 @@
+var homePage = template.Must(template.New("home").Parse(`<!doctype html>
+<title>OAuth: native sign-in and provider logout</title>
+{{if .User}}<p>Signed in as {{.User}}.</p>
+<form method="post" action="/auth/oauth/corp/logout"><button>Sign out here and at corp</button></form>
+{{else}}<p><a href="/auth/oauth/corp/start?returnTo=/me&data=ref%3Dfriend-42">Sign in with corp</a></p>
+{{end}}`))

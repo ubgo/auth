@@ -1,0 +1,8 @@
+func newHandler(a *auth.Auth, oa *oauth.Plugin) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle("/me", authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(me))))
+	mux.Handle("/tokens", authhttp.Middleware(a)(authhttp.RequireUser(tokens(oa))))
+	mux.Handle("/{$}", authhttp.Middleware(a)(home()))
+	return mux
+}

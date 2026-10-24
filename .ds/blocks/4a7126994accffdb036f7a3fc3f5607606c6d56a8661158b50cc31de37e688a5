@@ -1,0 +1,1 @@
+func WithDefaultPageSize(n int) Option { return func(s *settings) { s.cfg.DefaultPageSize = n } }

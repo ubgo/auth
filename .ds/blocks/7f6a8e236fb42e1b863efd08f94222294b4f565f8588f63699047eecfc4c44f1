@@ -1,0 +1,13 @@
+func corpProvider(base, clientID, clientSecret string) *oauth.OAuth2 {
+	return &oauth.OAuth2{
+		ID:           corpName,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		AuthURL:      base + corpAuthorizePath,
+		TokenURL:     base + corpTokenPath,
+		Scopes:       corpScopes,
+		FetchProfile: func(ctx context.Context, hc *http.Client, accessToken string) (oauth.Profile, error) {
+			return fetchCorpProfile(ctx, hc, base+corpProfilePath, accessToken)
+		},
+	}
+}

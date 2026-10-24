@@ -1,0 +1,1 @@
+var Code = sqlb.Col[*string](auth.TableUser, ColCode)

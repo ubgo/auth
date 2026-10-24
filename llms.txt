@@ -1,0 +1,87 @@
+# auth
+
+> Embeddable authentication library for every kind of Go app: email, password, phone, username, OAuth/OIDC and ID-token sign-in, magic links, passkeys, TOTP two-factor, API keys, JWT, guest sessions, session hand-off to native apps, captcha, proof-of-work challenges, stale-account mail, audit log, admin, organizations, roles and permissions, enterprise SSO (OIDC and SAML), SCIM provisioning, device codes, an OAuth 2.1 / OpenID Connect provider and agent authentication as plugins; sessions, rate limits, a security event stream, country rules and impossible-travel detection, and migrations in your own Postgres, MySQL or SQLite; adapters for net/http, chi, gin, echo, fiber and gqlgen; bulk import from Auth0, Clerk, Supabase, Auth.js and WorkOS.
+
+auth is an open-source Go library (github.com/ubgo/auth), licensed Apache-2.0. It is imported into the application, not run as a service: its tables live in the application's database, where the application may read and join them with typed sqlb columns but never writes them directly. Every sign-in method and identifier kind is a plugin, including passwords and email addresses. Every feature is one typed operation, run through one pipeline (rate limit, origin check, session requirement, hooks, one transaction) whether it is called from Go, HTTP or GraphQL.
+
+The core module depends only on the Go standard library and github.com/ubgo/sqlb, and a test fails the build if that changes. Packages that need another module (the password plugin's argon2, passkeys, the pages, each framework adapter) are separate modules.
+
+Every page below is plain Markdown in the repository. Code blocks in the guides are copies of example programs the test suite compiles and runs (docsync repo mode), and HTTP transcripts come from real runs.
+
+## Start
+- [Install](https://github.com/ubgo/auth/blob/main/docs/start/install.md): the modules to go get, a database driver, auth.New
+- [Your first app](https://github.com/ubgo/auth/blob/main/docs/start/first-app.md): sign-up, verification, sign-in, a protected page, sign-out
+- [Production](https://github.com/ubgo/auth/blob/main/docs/start/production.md): keys, environment, migrations, sweeping, cookies and HTTPS, several instances, checklist
+- [Testing your app](https://github.com/ubgo/auth/blob/main/docs/start/testing.md): the authtest package
+
+## Concepts
+- [Plugins and the pipeline](https://github.com/ubgo/auth/blob/main/docs/concepts/plugins-and-pipeline.md)
+- [Sessions](https://github.com/ubgo/auth/blob/main/docs/concepts/sessions.md): tokens, lifetimes, stores, caches, stateless sessions, multi-session
+- [Identifiers and verification](https://github.com/ubgo/auth/blob/main/docs/concepts/identifiers-and-verification.md)
+- [Errors](https://github.com/ubgo/auth/blob/main/docs/concepts/errors.md): every code, status and when
+- [Rate limits](https://github.com/ubgo/auth/blob/main/docs/concepts/rate-limits.md)
+- [Security events](https://github.com/ubgo/auth/blob/main/docs/concepts/security-events.md): the stream of rate-limit, credential-stuffing, lockout and geo events to the app's own sinks
+- [Risk signals](https://github.com/ubgo/auth/blob/main/docs/concepts/risk-signals.md): your own IP reputation, bot and trial-abuse checks, each blocking, logging or challenging, with an explicit fail-open or fail-closed choice
+- [Geo rules](https://github.com/ubgo/auth/blob/main/docs/concepts/geo-rules.md): country allow and deny rules and impossible travel at sign-in, over an app-supplied GeoLocator
+- [Security](https://github.com/ubgo/auth/blob/main/docs/concepts/security.md)
+- [Transactions](https://github.com/ubgo/auth/blob/main/docs/concepts/transactions.md)
+- [Configuration](https://github.com/ubgo/auth/blob/main/docs/concepts/configuration.md): every auth.With option and environment variable
+- [Databases](https://github.com/ubgo/auth/blob/main/docs/concepts/databases.md): drivers, dialects, the tables and how to join them
+- [Migrations and maintenance](https://github.com/ubgo/auth/blob/main/docs/concepts/migrations-and-maintenance.md): the ledger, the CLI, sweeping, maintenance jobs (auth maintain), bulk import
+- [Multi-tenancy](https://github.com/ubgo/auth/blob/main/docs/concepts/multi-tenancy.md)
+
+## Plugins
+- [email](https://github.com/ubgo/auth/blob/main/docs/plugins/email.md), [password](https://github.com/ubgo/auth/blob/main/docs/plugins/password.md), [phone](https://github.com/ubgo/auth/blob/main/docs/plugins/phone.md), [username](https://github.com/ubgo/auth/blob/main/docs/plugins/username.md), [ldap](https://github.com/ubgo/auth/blob/main/docs/plugins/ldap.md), [siwe](https://github.com/ubgo/auth/blob/main/docs/plugins/siwe.md)
+- [magiclink](https://github.com/ubgo/auth/blob/main/docs/plugins/magiclink.md), [oauth](https://github.com/ubgo/auth/blob/main/docs/plugins/oauth.md), [passkey](https://github.com/ubgo/auth/blob/main/docs/plugins/passkey.md), [twofactor](https://github.com/ubgo/auth/blob/main/docs/plugins/twofactor.md)
+- [apikey](https://github.com/ubgo/auth/blob/main/docs/plugins/apikey.md), [jwt](https://github.com/ubgo/auth/blob/main/docs/plugins/jwt.md), [handoff](https://github.com/ubgo/auth/blob/main/docs/plugins/handoff.md), [anonymous](https://github.com/ubgo/auth/blob/main/docs/plugins/anonymous.md), [lastlogin](https://github.com/ubgo/auth/blob/main/docs/plugins/lastlogin.md), [sessiondata](https://github.com/ubgo/auth/blob/main/docs/plugins/sessiondata.md)
+- [admin](https://github.com/ubgo/auth/blob/main/docs/plugins/admin.md), [audit](https://github.com/ubgo/auth/blob/main/docs/plugins/audit.md), [captcha](https://github.com/ubgo/auth/blob/main/docs/plugins/captcha.md), [pow](https://github.com/ubgo/auth/blob/main/docs/plugins/pow.md), [stale](https://github.com/ubgo/auth/blob/main/docs/plugins/stale.md), [terms](https://github.com/ubgo/auth/blob/main/docs/plugins/terms.md), [organization](https://github.com/ubgo/auth/blob/main/docs/plugins/organization.md)
+- [access](https://github.com/ubgo/auth/blob/main/docs/plugins/access.md), [sso](https://github.com/ubgo/auth/blob/main/docs/plugins/sso.md), [scim](https://github.com/ubgo/auth/blob/main/docs/plugins/scim.md), [deviceauth](https://github.com/ubgo/auth/blob/main/docs/plugins/deviceauth.md), [oauthproxy](https://github.com/ubgo/auth/blob/main/docs/plugins/oauthproxy.md), [oauthpopup](https://github.com/ubgo/auth/blob/main/docs/plugins/oauthpopup.md), [oauthprovider](https://github.com/ubgo/auth/blob/main/docs/plugins/oauthprovider.md), [agentauth](https://github.com/ubgo/auth/blob/main/docs/plugins/agentauth.md)
+- Each plugin's package README under plugin/<name>/ is the reference: options, routes, tables, errors, security notes
+
+## Integrations
+- [net/http, chi, gorilla](https://github.com/ubgo/auth/blob/main/docs/integrations/net-http.md), [gin](https://github.com/ubgo/auth/blob/main/docs/integrations/gin.md), [echo](https://github.com/ubgo/auth/blob/main/docs/integrations/echo.md), [fiber](https://github.com/ubgo/auth/blob/main/docs/integrations/fiber.md), [GraphQL with gqlgen](https://github.com/ubgo/auth/blob/main/docs/integrations/graphql.md)
+- [Ready-made pages](https://github.com/ubgo/auth/blob/main/docs/integrations/ready-made-pages.md), [SPA frontends](https://github.com/ubgo/auth/blob/main/docs/integrations/spa-frontends.md), [TypeScript client](https://github.com/ubgo/auth/blob/main/docs/client/README.md) (with [your own plugins](https://github.com/ubgo/auth/blob/main/docs/client/custom-plugins.md)), [mobile apps](https://github.com/ubgo/auth/blob/main/docs/integrations/mobile-apps.md), [desktop apps and CLIs](https://github.com/ubgo/auth/blob/main/docs/integrations/desktop-apps.md)
+- [Redis](https://github.com/ubgo/auth/blob/main/docs/integrations/redis.md), [phone numbers](https://github.com/ubgo/auth/blob/main/docs/integrations/phone-numbers.md), [CLI](https://github.com/ubgo/auth/blob/main/docs/integrations/cli.md), [other services](https://github.com/ubgo/auth/blob/main/docs/integrations/other-services.md), [login gate with no database](https://github.com/ubgo/auth/blob/main/docs/integrations/login-gate.md)
+
+## Migrating from another system
+- [Overview](https://github.com/ubgo/auth/blob/main/docs/migrating/README.md), [Auth0](https://github.com/ubgo/auth/blob/main/docs/migrating/auth0.md), [Clerk](https://github.com/ubgo/auth/blob/main/docs/migrating/clerk.md), [Supabase](https://github.com/ubgo/auth/blob/main/docs/migrating/supabase.md), [Auth.js / NextAuth](https://github.com/ubgo/auth/blob/main/docs/migrating/authjs.md), [WorkOS](https://github.com/ubgo/auth/blob/main/docs/migrating/workos.md)
+
+## Extending
+- [Extending auth](https://github.com/ubgo/auth/blob/main/docs/extending/README.md): eleven guides from plugin anatomy to tables, hooks, identifier kinds, session rules, custom session stores, testing and shipping a plugin, and bringing your own authorization
+
+## Reference
+- [HTTP API](https://github.com/ubgo/auth/blob/main/docs/reference/http-api.md): every route, generated from the code
+- [openapi.json](https://github.com/ubgo/auth/blob/main/docs/reference/openapi.json): OpenAPI 3.1 with every request and response schema
+- [TypeScript client methods](https://github.com/ubgo/auth/blob/main/docs/reference/ts-client.md): every method of the prebuilt client, generated
+- [Error codes](https://github.com/ubgo/auth/blob/main/docs/reference/error-codes.md), also as [JSON](https://github.com/ubgo/auth/blob/main/docs/reference/error-codes.json) and [TypeScript](https://github.com/ubgo/auth/blob/main/docs/reference/error-codes.ts)
+- [Troubleshooting](https://github.com/ubgo/auth/blob/main/docs/reference/troubleshooting.md)
+- [examples](https://github.com/ubgo/auth/tree/main/examples): runnable recipes, each with a README and a test
+- [Agent skill](https://github.com/ubgo/auth/blob/main/skills/ubgo-auth/SKILL.md): a skill for coding agents that add auth to an app (`npx skills add ubgo/auth`), pointing at these pages
+- [README](https://github.com/ubgo/auth/blob/main/README.md), [CHANGELOG](https://github.com/ubgo/auth/blob/main/CHANGELOG.md), [SECURITY](https://github.com/ubgo/auth/blob/main/SECURITY.md), [CONTRIBUTING](https://github.com/ubgo/auth/blob/main/CONTRIBUTING.md), [AGENTS](https://github.com/ubgo/auth/blob/main/AGENTS.md): instructions for coding agents working in the repository
+
+## Modules
+- `github.com/ubgo/auth`: the core, `authhttp` (net/http), `authgate` (a login gate with no database), `authcli`, `authtest`, and the plugins email, phone, username, oauth, twofactor, magiclink, admin, audit, apikey, jwt, terms, captcha, pow, stale, anonymous, handoff, lastlogin, sessiondata, invite, emailchallenge. Depends only on the standard library and sqlb.
+- `github.com/ubgo/auth/plugin/password`: argon2id passwords, sign-up, sign-in, reset, change, legacy bcrypt/scrypt/PBKDF2 verifiers for imports; `password/hibp` breach check.
+- `github.com/ubgo/auth/plugin/passkey`: passkeys (WebAuthn) through go-webauthn.
+- `github.com/ubgo/auth/plugin/organization`: organizations, teams, invitations, roles and permissions (its own module because grouping users is not authentication).
+- `github.com/ubgo/auth/plugin/access`: permission statements and roles, with the `accessadmin` and `accessapikey` adapters (authorization, not authentication).
+- `github.com/ubgo/auth/plugin/referral`: user-to-user referrals (not authentication).
+- `github.com/ubgo/auth/plugin/sso`: enterprise single sign-on, OIDC and SAML 2.0 identity providers registered at run time (SAML through gosaml2).
+- `github.com/ubgo/auth/plugin/scim`: a SCIM 2.0 server for user and group provisioning.
+- `github.com/ubgo/auth/plugin/deviceauth`: the device authorization grant (RFC 8628); `plugin/deviceauth/oauthdevice` issues OAuth tokens through oauthprovider.
+- `github.com/ubgo/auth/plugin/oauthproxy`: provider sign-in on preview deployments; its package `oauthpopup` signs in from a popup.
+- `github.com/ubgo/auth/plugin/oauthprovider`: the app as an OAuth 2.1 authorization server and OpenID Connect provider.
+- `github.com/ubgo/auth/plugin/ldap`: sign-in with a username and password checked against an LDAP directory, through a replaceable `Directory` (go-ldap by default, TLS required).
+- `github.com/ubgo/auth/plugin/siwe`: Sign-In with Ethereum (ERC-4361) with several wallets per user and a replaceable signature `Verifier`.
+- `github.com/ubgo/auth/plugin/agentauth`: AI agents with their own keys acting under capabilities a user granted (Agent Auth Protocol), with the `agentclient` Go client.
+- `github.com/ubgo/auth/authui`: optional server-rendered sign-in, sign-up, reset, verification, two-factor and settings pages.
+- `github.com/ubgo/auth/contrib/gin`, `contrib/echo`, `contrib/fiber`, `contrib/gqlgen`: framework adapters.
+- `github.com/ubgo/auth/contrib/redis`: rate store, session store and session cache shared by several instances; `contrib/phonenumbers`: national phone numbers through libphonenumber. `contrib/goth`: any goth provider as an `oauth.Provider` (no PKCE). `plugin/oauth/oauthtest`: a conformance kit that proves an `oauth.Provider` against a fake authorization server.
+
+## Install
+- `go get github.com/ubgo/auth`
+- `go get github.com/ubgo/auth/plugin/password`
+
+## Links
+- Repository: https://github.com/ubgo/auth
+- Go reference: https://pkg.go.dev/github.com/ubgo/auth

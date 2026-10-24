@@ -1,0 +1,5 @@
+export async function shareableInvite(): Promise<string | null> {
+  const { data, error } = await auth.invite.create({ maxUses: 5, expiresIn: 7 * 24 * 3600 });
+  if (error) return null; // invite.forbidden when the server's CanCreate refuses
+  return data.url ?? null;
+}

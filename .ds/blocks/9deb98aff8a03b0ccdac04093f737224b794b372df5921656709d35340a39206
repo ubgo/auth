@@ -1,0 +1,36 @@
+func TypeScriptMethods(a *auth.Auth) ([]TSMethod, error) {
+	b, byPlugin, err := tsCollect(a)
+	if err != nil {
+		return nil, err
+	}
+	// Render once for its refusals (keywords, names taken by the runtime);
+	// it also sorts each plugin's operations by method name.
+	if _, err := renderTSClient(b, byPlugin, tsTakenNames(TypeScriptErrorCodes())); err != nil {
+		return nil, err
+	}
+	plugins := make([]string, 0, len(byPlugin))
+	for p := range byPlugin {
+		plugins = append(plugins, p)
+	}
+	sort.Slice(plugins, func(i, j int) bool {
+		// The core first: its methods are the client's root.
+		if (plugins[i] == auth.CorePluginName) != (plugins[j] == auth.CorePluginName) {
+			return plugins[i] == auth.CorePluginName
+		}
+		return plugins[i] < plugins[j]
+	})
+	var out []TSMethod
+	for _, p := range plugins {
+		ns := ""
+		if p != auth.CorePluginName {
+			ns = tsCamel(p)
+		}
+		for _, op := range byPlugin[p] {
+			out = append(out, TSMethod{
+				Namespace: ns, Plugin: p, Name: op.name, ID: auth.EndpointID(op.id),
+				HTTPMethod: op.method, Path: op.path, Require: auth.Requirement(op.require), Input: op.in, Output: op.out,
+			})
+		}
+	}
+	return out, nil
+}

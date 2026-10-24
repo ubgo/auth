@@ -1,0 +1,1 @@
+func ErrorPage(opts ErrorPageOptions) Option { return func(c *config) { c.errorPage = &opts } }

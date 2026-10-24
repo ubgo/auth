@@ -1,0 +1,1 @@
+const DetectTimeout = 5 * time.Second

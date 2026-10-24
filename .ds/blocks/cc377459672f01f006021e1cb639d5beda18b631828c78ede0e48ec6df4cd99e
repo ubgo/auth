@@ -1,0 +1,8 @@
+func WithBotCheck(c BotChecker, p RiskPolicy) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithBotCheck", c) {
+			return
+		}
+		s.riskBot = &riskCheck[BotChecker]{checker: c, policy: p}
+	}
+}

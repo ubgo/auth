@@ -1,0 +1,1 @@
+type ResolvedHook func(ctx context.Context, c *auth.Call, ev ResolvedEvent) error

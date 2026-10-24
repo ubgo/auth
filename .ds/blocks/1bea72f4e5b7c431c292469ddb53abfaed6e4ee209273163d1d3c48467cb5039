@@ -1,0 +1,8 @@
+type Limits struct {
+	RateMax    int
+	RateWindow time.Duration
+	// Remaining uses; nil means unlimited. In a Key it is the live count.
+	Remaining      *int
+	RefillAmount   int
+	RefillInterval time.Duration
+}

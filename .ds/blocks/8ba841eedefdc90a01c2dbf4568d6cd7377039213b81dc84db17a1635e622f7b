@@ -1,0 +1,7 @@
+func (r *Response) ErrorCode() string {
+	var e errorBody
+	if json.Unmarshal(r.Body, &e) != nil {
+		return ""
+	}
+	return e.Error.Code
+}

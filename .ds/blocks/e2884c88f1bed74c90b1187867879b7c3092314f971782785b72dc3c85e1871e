@@ -1,0 +1,1 @@
+func NewCompactSessionCache(keys ...[]byte) SessionCache { return &compactCache{keys: keys} }

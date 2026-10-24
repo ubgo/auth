@@ -1,0 +1,1 @@
+func Prefix(prefix string) Option { return func(p *Plugin) { p.prefix = prefix } }

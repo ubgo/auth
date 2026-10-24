@@ -1,0 +1,6 @@
+func NewRemoteKeys(url string, hc *http.Client) *RemoteKeys {
+	if hc == nil {
+		hc = &http.Client{Timeout: DefaultRemoteTimeout}
+	}
+	return &RemoteKeys{url: url, hc: hc}
+}

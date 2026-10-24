@@ -1,0 +1,12 @@
+func fetchJWKS(c *http.Client, u string) (jwt.JWKS, error) {
+	var set jwt.JWKS
+	res, err := c.Get(u)
+	if err != nil {
+		return set, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return set, fmt.Errorf("%w: %d", errJWKSStatus, res.StatusCode)
+	}
+	return set, json.NewDecoder(res.Body).Decode(&set)
+}

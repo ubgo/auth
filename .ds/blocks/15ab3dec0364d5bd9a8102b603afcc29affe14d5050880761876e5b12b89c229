@@ -1,0 +1,66 @@
+func (p *Plugin) resolve(ctx context.Context, c *auth.Call, pr Provider, proto Protocol, issuer string, info UserInfo, meta flowMeta) (resolved, error) {
+	acc, err := p.accountBySubject(ctx, pr.ProviderID, info.Subject)
+	switch {
+	case err == nil:
+		u, err := p.userAfter(ctx, c, acc.UserID, pr, info, false)
+		return resolved{user: u}, err
+	case !errors.Is(err, sqlb.ErrNoRows):
+		return resolved{}, err
+	}
+	if p.resolveUser != nil {
+		d, err := p.resolveUser(ctx, c, ResolveInput{Protocol: proto, Provider: pr, Issuer: issuer, Subject: info.Subject, Info: info})
+		if err != nil {
+			return resolved{}, p.refusal(c, pr, err)
+		}
+		if d.Action == ResolveLink {
+			if _, err := c.Auth.User(ctx, d.UserID); err != nil {
+				return resolved{}, err
+			}
+			if err := p.createAccount(ctx, d.UserID, pr, issuer, info); err != nil {
+				return resolved{}, err
+			}
+			u, err := p.userAfter(ctx, c, d.UserID, pr, info, d.UpdateProfile)
+			return resolved{user: u}, err
+		}
+	}
+	domainOK := info.Email != "" && DomainMatches(pr.Domains(), emailDomain(info.Email))
+	// The IdP of a trusted provider is authoritative for addresses in its
+	// domains; otherwise the address counts as verified only under
+	// TrustEmailVerified with the IdP's claim.
+	verified := (p.trustedForLink(pr) && domainOK) || (p.trustEmailVerified && info.EmailVerified)
+	hasEmail := info.Email != "" && c.Auth.Config().HasIdentifier(email.KindEmail)
+	if hasEmail {
+		idn, err := c.Auth.FindIdentity(ctx, email.KindEmail, info.Email, false)
+		switch {
+		case err == nil:
+			if !p.trustedForLink(pr) || !domainOK || idn.VerifiedAt == nil {
+				return resolved{}, ErrAccountExists
+			}
+			if err := p.createAccount(ctx, idn.UserID, pr, issuer, info); err != nil {
+				return resolved{}, err
+			}
+			u, err := p.userAfter(ctx, c, idn.UserID, pr, info, false)
+			return resolved{user: u}, err
+		case errors.Is(err, auth.ErrIdentifierInvalid):
+			hasEmail = false
+		case !errors.Is(err, auth.ErrIdentityNotFound):
+			return resolved{}, err
+		}
+	}
+	if p.noImplicitSignUp && !meta.SignUp {
+		return resolved{}, ErrSignUpDisabled
+	}
+	u, err := c.Auth.CreateUser(ctx, auth.NewUser{Name: auth.TruncateRunes(info.Name, auth.MaxNameLength), Image: safeImage(info.Image)})
+	if err != nil {
+		return resolved{}, err
+	}
+	if hasEmail {
+		if _, err := c.Auth.CreateIdentity(ctx, auth.NewIdentity{UserID: u.ID, Kind: email.KindEmail, Raw: info.Email, Verified: verified, Primary: verified}); err != nil {
+			return resolved{}, err
+		}
+	}
+	if err := p.createAccount(ctx, u.ID, pr, issuer, info); err != nil {
+		return resolved{}, err
+	}
+	return resolved{user: u, created: true}, nil
+}

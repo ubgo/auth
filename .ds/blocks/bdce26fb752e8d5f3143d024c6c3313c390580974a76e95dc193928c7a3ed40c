@@ -1,0 +1,3 @@
+func callbackURL(provider string) string {
+	return baseURL + authPrefix + "/" + oauth.PluginName + "/" + provider + "/callback"
+}

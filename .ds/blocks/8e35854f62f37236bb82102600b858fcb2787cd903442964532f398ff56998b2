@@ -1,0 +1,16 @@
+func newHandler(a *auth.Auth) http.Handler {
+	inner := http.NewServeMux()
+	inner.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	inner.Handle("/me", authhttp.Middleware(a)(authhttp.RequireUser(meHandler(a))))
+
+	mux := http.NewServeMux()
+	mux.Handle(tenantPrefix+"{tenant}/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tenant := r.PathValue("tenant")
+		r = r.WithContext(auth.WithScope(r.Context(), tenant))
+		http.StripPrefix(tenantPrefix+tenant, inner).ServeHTTP(w, r)
+	}))
+	// Without a tenant the library refuses every scoped lookup with
+	// auth.ErrNoScope, which the route below shows rather than hides.
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	return mux
+}

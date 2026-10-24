@@ -1,0 +1,33 @@
+func runApp(ctx context.Context, out io.Writer, server, loopback string, open browserOpener) error {
+	ln, err := net.Listen("tcp", loopback)
+	if err != nil {
+		return err
+	}
+	callback := "http://" + ln.Addr().String() + callbackPath
+	tokens := make(chan string, 1)
+	srv := &http.Server{Handler: callbackHandler(tokens), ReadHeaderTimeout: readHeaderTimeout}
+	go func() { _ = srv.Serve(ln) }()                         // ends with Shutdown below
+	defer func() { _ = srv.Shutdown(context.Background()) }() // the token has arrived or the wait is over; the listener's end has nothing to tell
+
+	if err := open(server + openInAppPath + "?" + url.Values{returnToParam: {callback}}.Encode()); err != nil {
+		return err
+	}
+	var token string
+	select {
+	case token = <-tokens:
+	case <-time.After(appWait):
+		return errTimeout
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	bearer, user, err := exchange(ctx, http.DefaultClient, server, token)
+	if err != nil {
+		return err
+	}
+	var me meResponse
+	if err := call(ctx, http.DefaultClient, server+"/me", bearer, &me); err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(out, "signed in as %s (%s), /me answered %s with credential %q\n", user.User.ID, user.User.Name, me.ID, me.Credential)
+	return err
+}

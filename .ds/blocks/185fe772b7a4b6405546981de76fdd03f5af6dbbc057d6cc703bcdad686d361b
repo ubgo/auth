@@ -1,0 +1,4 @@
+export async function signOut(everywhere: boolean): Promise<void> {
+  if (everywhere) await auth.signOutAll();
+  else await auth.signOut();
+}

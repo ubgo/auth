@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-03T06:56:02.733671000Z",
+  "created_at": "2026-10-03T04:42:55.925752000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a1001284357b90bbae848fddea20cf",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-03T04:42:56.072128000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Close feature gaps, round 3: every remaining ❌/🟡 row in core authentication ends ✅, 🟡 with the exact gap, or won't-do with a reason (core options/db/sessions/OpenTelemetry seam/i18n; API key, JWT, OAuth rows; 2FA, passkey, admin, identifier rows; migration guides from Auth0, Clerk, Supabase, Auth.js, WorkOS)",
+  "updated_at": "2026-10-03T06:56:02.733861000Z"
+}

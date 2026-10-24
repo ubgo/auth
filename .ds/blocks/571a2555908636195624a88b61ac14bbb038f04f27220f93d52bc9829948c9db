@@ -1,0 +1,14 @@
+type Selection struct {
+	// ResidentKey asks for a discoverable credential, the kind a sign-in
+	// with no identifier can find. Below required, a passkey may be
+	// non-discoverable and then signs in only under
+	// AllowCredentialsForSession, which names it to the browser.
+	ResidentKey Requirement
+	// UserVerification asks for a PIN or a biometric. Below required, a
+	// sign-in whose authenticator did not verify the user is one factor:
+	// it goes through the second-factor step like a password.
+	UserVerification Requirement
+	// Attachment is AttachmentPlatform or AttachmentCrossPlatform, or ""
+	// for either.
+	Attachment string
+}

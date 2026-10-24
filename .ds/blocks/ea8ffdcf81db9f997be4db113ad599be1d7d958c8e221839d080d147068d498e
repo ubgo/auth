@@ -1,0 +1,5 @@
+var DefaultRateLimits = map[auth.EndpointID]int{
+	EndpointSSO:      30,
+	EndpointContinue: 60,
+	EndpointInitiate: 30,
+}

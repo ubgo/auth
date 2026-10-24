@@ -1,0 +1,35 @@
+func newGate(getenv func(string) string) (*authgate.Gate, error) {
+	var providers []oauth.Provider
+	if id, secret := getenv(envGoogleID), getenv(envGoogleSecret); id != "" && secret != "" {
+		providers = append(providers, oauth.Google(id, secret))
+	}
+	if iss, id, secret := getenv(envOIDCIssuer), getenv(envOIDCID), getenv(envOIDCSecret); iss != "" && id != "" && secret != "" {
+		providers = append(providers, oauth.OIDC(oidcProviderName, iss, id, secret))
+	}
+	if len(providers) == 0 {
+		return nil, errNoProvider
+	}
+	domain := getenv(envAllowedDomain)
+	if domain == "" {
+		return nil, errNoDomain
+	}
+	version := uint64(0)
+	if v := getenv(envSessionVersion); v != "" {
+		n, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", envSessionVersion, err)
+		}
+		version = n
+	}
+	g, err := authgate.New(
+		authgate.WithProviders(providers...),
+		authgate.WithSecret([]byte(getenv(envSecret))),
+		authgate.WithBaseURL(baseURL),
+		authgate.AllowEmailDomain(domain),
+		authgate.SessionVersion(version),
+	)
+	if errors.Is(err, auth.ErrSecretTooShort) {
+		return nil, fmt.Errorf("set %s to at least %d bytes, such as the output of openssl rand -base64 32: %w", envSecret, auth.MinSecretSize, err)
+	}
+	return g, err
+}

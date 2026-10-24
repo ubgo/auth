@@ -1,0 +1,5 @@
+export async function currentUser(): Promise<{ id: string; name: string } | null> {
+  const { data, error } = await auth.session();
+  if (error) return null;
+  return { id: data.user.id, name: data.user.name };
+}

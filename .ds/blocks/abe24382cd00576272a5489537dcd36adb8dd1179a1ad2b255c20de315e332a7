@@ -1,0 +1,3 @@
+func (p *Plugin) Claim(ctx context.Context, userID, handle string) error {
+	return p.ClaimWithDisplay(ctx, userID, handle, "")
+}

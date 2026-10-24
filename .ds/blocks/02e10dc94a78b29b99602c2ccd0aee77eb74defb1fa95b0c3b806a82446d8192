@@ -1,0 +1,4 @@
+export async function sessionInGerman(): Promise<AuthError | null> {
+  const { error } = await auth.session(undefined, { headers: { "Accept-Language": "de" } });
+  return error;
+}

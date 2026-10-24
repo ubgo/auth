@@ -1,0 +1,15 @@
+func Notion(clientID, clientSecret string) *OAuth2 {
+	o := &OAuth2{
+		ID: "notion", DisplayName: "Notion", ClientID: clientID, ClientSecret: clientSecret, TokenAuth: ClientSecretBasic,
+		NoPKCE: true, AuthURL: NotionAuthURL, TokenURL: NotionTokenURL,
+		AuthParams:   url.Values{notionOwnerParam: {notionOwnerUser}},
+		FetchProfile: NotionProfile(NotionMeURL),
+	}
+	o.exchange = func(ctx context.Context, hc *http.Client, code, redirectURI string) (TokenSet, error) {
+		return o.jsonGrant(ctx, hc, map[string]string{paramGrantType: grantAuthorizationCode, paramCode: code, paramRedirectURI: redirectURI})
+	}
+	o.renew = func(ctx context.Context, hc *http.Client, rt auth.Token) (TokenSet, error) {
+		return o.jsonGrant(ctx, hc, map[string]string{paramGrantType: grantRefreshToken, paramRefreshToken: rt.Reveal()})
+	}
+	return o
+}

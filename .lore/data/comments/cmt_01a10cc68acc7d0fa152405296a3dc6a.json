@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Partly built: the authtest package (round 2, in the core module) gives an SQLite-in-memory harness, captured mail and SMS, a clock and signed-in requests, but it is aimed at apps, not plugin authors. Missing: the fault-injecting driver. sweepFaults still lives only in the integration test package, so docs and examples/plugin-delivery copy the pattern. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:00.684840000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5b9ffe3792f8fd8d8b55c1037d4",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68acc7d0fa152405296a3dc6a",
+  "updated_at": "2026-10-05T15:55:00.684840000Z"
+}

@@ -1,0 +1,13 @@
+type SinkStats struct {
+	Name string
+	// Queued counts events accepted into the queue.
+	Queued uint64
+	// Delivered counts events WriteSecurity accepted (returned nil for).
+	Delivered uint64
+	// Dropped counts events refused because the queue was full or the stream
+	// was closed.
+	Dropped uint64
+	// Failed counts events in batches WriteSecurity failed or panicked on;
+	// they are not offered again.
+	Failed uint64
+}

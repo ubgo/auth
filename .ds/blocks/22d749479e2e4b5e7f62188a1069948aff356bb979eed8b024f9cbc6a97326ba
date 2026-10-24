@@ -1,0 +1,6 @@
+func ErrorInfoFor(ctx context.Context, err error) ErrorInfo {
+	if st := stateFrom(ctx); st != nil && st.a != nil {
+		return st.a.ErrorInfo(ctx, err)
+	}
+	return ErrorOf(err)
+}

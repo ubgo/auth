@@ -1,0 +1,8 @@
+type Response struct {
+	env    *Env
+	Method string
+	Path   string
+	Status int
+	Header http.Header
+	Body   []byte
+}

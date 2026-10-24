@@ -1,0 +1,4 @@
+func OpenAPIDocument(a *auth.Auth, info OpenAPIInfo, opts ...Option) ([]byte, error) {
+	cfg := newConfig(opts)
+	return json.MarshalIndent(buildOpenAPI(a, info, cfg), "", "  ")
+}

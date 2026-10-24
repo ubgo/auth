@@ -1,0 +1,18 @@
+func (a *Auth) EmitSecurity(e SecurityEvent) {
+	if a.security == nil {
+		return
+	}
+	if e.At.IsZero() {
+		e.At = a.now()
+	}
+	if e.ID == "" {
+		e.ID = newSecurityEventID()
+	}
+	if e.Severity == "" {
+		e.Severity = SeverityInfo
+	}
+	if !a.trackIP {
+		e.IP = ""
+	}
+	a.security.emit(e)
+}

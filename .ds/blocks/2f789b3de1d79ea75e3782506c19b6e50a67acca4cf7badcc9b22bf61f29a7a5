@@ -1,0 +1,13 @@
+func (x *app) signIns(w http.ResponseWriter, r *http.Request) {
+	page, err := x.audit.Events(r.Context(), audit.Query{
+		UserID: authhttp.MustUser(r).ID,
+		Type:   audit.TypeUserSignedIn,
+		Limit:  signInsLimit,
+	})
+	if err != nil {
+		authhttp.WriteErrorFor(w, r, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(page) // a client that hung up cannot be told
+}

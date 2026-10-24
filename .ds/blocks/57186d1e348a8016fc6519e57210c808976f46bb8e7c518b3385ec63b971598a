@@ -1,0 +1,5 @@
+type Address struct {
+	Email    string `json:"email"`
+	Verified bool   `json:"verified"`
+	Primary  bool   `json:"primary"`
+}

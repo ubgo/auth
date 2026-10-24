@@ -1,0 +1,6 @@
+func (p *Plugin) Validate(*auth.Config) error {
+	if p.sender == nil {
+		return ErrNoSender
+	}
+	return nil
+}

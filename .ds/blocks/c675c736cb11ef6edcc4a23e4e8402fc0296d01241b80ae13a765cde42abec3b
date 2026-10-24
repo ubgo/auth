@@ -1,0 +1,1 @@
+type ExemptFunc func(ctx context.Context, userID string) (bool, error)

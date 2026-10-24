@@ -1,0 +1,25 @@
+func (p *Plugin) doContext(ctx context.Context, c *auth.Call, in TokenRequest) (ContextResult, error) {
+	r, ok, err := p.live(ctx, c, in.Token.Token())
+	if err != nil {
+		return ContextResult{}, err
+	}
+	if !ok {
+		return ContextResult{State: StateInvalid}, nil
+	}
+	_, value, _ := strings.Cut(r.identifier, identifierSeparator)
+	out := ContextResult{Identifier: value, IP: r.ip, UserAgent: r.userAgent, ExpiresAt: &r.expiresAt}
+	switch {
+	case sameBrowser(c, r, in.PollToken.Token()):
+		if err := p.approveRow(ctx, c, r); err != nil {
+			return ContextResult{}, err
+		}
+		out.State = StateApproved
+	case r.status == StatusApproved:
+		out.State = StateApproved
+	case p.mode == SameDevice:
+		out.State = StateWrongBrowser
+	default:
+		out.State = StateNeedsConfirmation
+	}
+	return out, nil
+}

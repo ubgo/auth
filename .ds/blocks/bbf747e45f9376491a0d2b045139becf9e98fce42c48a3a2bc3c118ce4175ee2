@@ -1,0 +1,3 @@
+func AllowProviderInitiated(provider string, more ...string) Option {
+	return func(p *Plugin) { p.initiated = append(append(p.initiated, provider), more...) }
+}

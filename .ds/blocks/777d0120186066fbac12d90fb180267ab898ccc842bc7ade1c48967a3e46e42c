@@ -1,0 +1,7 @@
+type Connection struct {
+	ID          string
+	Credentials []Credential
+	// ProvisioningDomainID groups connections of one tenant; it defaults to
+	// ID and cannot change once the connection has been used.
+	ProvisioningDomainID string
+}

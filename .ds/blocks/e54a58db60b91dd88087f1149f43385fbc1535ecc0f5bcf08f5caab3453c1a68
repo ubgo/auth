@@ -1,0 +1,1 @@
+func Prefix(p string) Option { return func(c *config) { c.prefix = strings.TrimSuffix(p, "/") } }

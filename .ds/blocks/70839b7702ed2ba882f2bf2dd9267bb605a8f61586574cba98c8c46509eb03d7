@@ -1,0 +1,3 @@
+func GoogleIDTokensFor(hostedDomain string, audiences ...string) IDTokenConfig {
+	return IDTokenConfig{JWKSURL: GoogleJWKSURL, Issuers: googleIssuers(), Audiences: audiences, HostedDomain: hostedDomain}
+}

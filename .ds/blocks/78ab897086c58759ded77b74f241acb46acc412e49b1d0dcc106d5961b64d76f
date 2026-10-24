@@ -1,0 +1,4 @@
+export async function startEmailChallenge(address: string): Promise<string | null> {
+  const { data } = await auth.emailchallenge.start({ identifier: address });
+  return data?.pollToken ?? null;
+}

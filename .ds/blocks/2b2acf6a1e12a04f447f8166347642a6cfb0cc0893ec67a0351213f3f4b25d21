@@ -1,0 +1,1 @@
+func WithoutServerCallRateLimits() Option { return func(s *settings) { s.noServerCallLimits = true } }

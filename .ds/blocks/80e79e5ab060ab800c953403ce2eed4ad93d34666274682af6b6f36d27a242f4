@@ -1,0 +1,1 @@
+func MatchPath(pattern, route string) bool { return patternRegexp(pattern).MatchString(route) }

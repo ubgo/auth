@@ -1,0 +1,11 @@
+func newAuth(db *sql.DB, m email.Mailer, providers []oauth.Provider) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			oauth.New(oauth.WithProviders(providers...)),
+		),
+	)
+}

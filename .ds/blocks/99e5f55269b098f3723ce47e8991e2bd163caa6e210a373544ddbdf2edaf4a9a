@@ -1,0 +1,8 @@
+func WithDeviceRecognizer(r DeviceRecognizer) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithDeviceRecognizer", r) {
+			return
+		}
+		s.deviceRecognizer = r
+	}
+}

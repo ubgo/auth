@@ -1,0 +1,6 @@
+func WithSecondaryStorage(kv SecondaryStorage) Option {
+	return func(s *settings) {
+		s.sessions = NewStorageSessionStore(kv)
+		s.rateStore = NewStorageRateStore(kv)
+	}
+}

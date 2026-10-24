@@ -1,0 +1,5 @@
+func messages() auth.Messages {
+	m := i18n.Messages()
+	m[localeGerman][password.ErrInvalidCredentials.Code] = ourWrongPasswordDE
+	return m
+}

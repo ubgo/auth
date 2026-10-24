@@ -1,0 +1,3 @@
+type Observer interface {
+	Operation(ctx context.Context, e OperationEvent)
+}

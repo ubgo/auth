@@ -1,0 +1,8 @@
+func (p *Plugin) Providers() []ProviderInfo {
+	live := p.live()
+	out := make([]ProviderInfo, 0, len(live))
+	for _, prov := range live {
+		out = append(out, ProviderInfo{ID: prov.Name(), Name: labelOf(prov)})
+	}
+	return out
+}

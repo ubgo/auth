@@ -1,0 +1,6 @@
+type TokenRotation struct {
+	// Grace is how long the token a rotation replaced is still accepted;
+	// 0 means DefaultTokenRotationGrace, and more than
+	// MaxTokenRotationGrace or a negative value is refused by New.
+	Grace time.Duration
+}

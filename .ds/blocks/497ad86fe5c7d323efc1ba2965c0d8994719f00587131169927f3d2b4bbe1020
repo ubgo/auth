@@ -1,0 +1,15 @@
+export async function withFreshSession<T>(
+  action: () => Promise<AuthResult<T>>,
+  askForPassword: () => Promise<string>,
+  askForCode: () => Promise<string>,
+): Promise<AuthResult<T>> {
+  const first = await action();
+  if (first.error?.code !== "auth.fresh_session_required") return first;
+  const proof = await auth.password.reauthenticate({ password: await askForPassword() });
+  if (proof.error) return { data: null, error: proof.error };
+  if (proof.data.secondFactorRequired) {
+    const second = await auth.twofactor.reauthenticate({ code: await askForCode(), ticket: proof.data.ticket ?? "" });
+    if (second.error) return { data: null, error: second.error };
+  }
+  return action();
+}

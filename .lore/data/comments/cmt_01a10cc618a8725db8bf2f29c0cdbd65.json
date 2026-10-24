@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Done: decided by the owner (recorded in the task body): redaction protects logs; a Go client uses the Go API or its own wire types. auth.Token.MarshalJSON still writes [redacted] (token.go), and authtest.Browser.Post documents passing a map for a body that carries a secret. Verified by r10-lore audit 2026-10-05.",
+  "created_at": "2026-10-05T15:54:31.464145000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec4bf64d78509c05c49bfd0e2761",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc618a8725db8bf2f29c0cdbd65",
+  "updated_at": "2026-10-05T15:54:31.464145000Z"
+}

@@ -1,0 +1,8 @@
+type PluginMiddleware struct {
+	// Paths are the routes it runs on, after the Handler prefix: an exact
+	// path ("/email/sign-in") or a prefix ending in "*" ("/email/*").
+	// Empty means every request Handler receives, including one for an
+	// unknown route.
+	Paths []string
+	Wrap  func(next http.Handler) http.Handler
+}

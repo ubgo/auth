@@ -1,0 +1,13 @@
+func tokens(oa *oauth.Plugin) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ts, err := oa.Tokens(r.Context(), authhttp.MustUser(r).ID, providerName)
+		if err != nil {
+			if !errors.Is(err, oauth.ErrNoTokens) {
+				log.Printf("tokens: %v", err)
+			}
+			authhttp.WriteError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, tokensResponse{AccessToken: ts.AccessToken.Reveal(), RefreshToken: ts.RefreshToken.Reveal(), ExpiresAt: ts.ExpiresAt})
+	})
+}

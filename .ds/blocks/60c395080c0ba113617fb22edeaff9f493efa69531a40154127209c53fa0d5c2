@@ -1,0 +1,6 @@
+func (p *Plugin) Wrap(prov oauth.Provider) *Proxied {
+	p.wrapped = append(p.wrapped, prov.Name())
+	x := &Proxied{inner: prov, p: p}
+	p.providers[prov.Name()] = x
+	return x
+}

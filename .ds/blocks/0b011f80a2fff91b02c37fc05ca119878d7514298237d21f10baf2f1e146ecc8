@@ -1,0 +1,4 @@
+export async function currentNickname(client: AppClient): Promise<string | null> {
+  const { data } = await client.nickname.get();
+  return data?.nickname ?? null;
+}

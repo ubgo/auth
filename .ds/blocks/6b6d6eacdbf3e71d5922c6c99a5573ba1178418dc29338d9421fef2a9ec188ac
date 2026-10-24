@@ -1,0 +1,22 @@
+func readAuth0(in input) ([]record, error) {
+	var out []record
+	sc := bufio.NewScanner(in.Main)
+	sc.Buffer(make([]byte, 0, scanBufferSize), scanBufferSize)
+	line := 0
+	for sc.Scan() {
+		line++
+		raw := strings.TrimSpace(sc.Text())
+		if raw == "" {
+			continue
+		}
+		var u auth0User
+		if err := json.Unmarshal([]byte(raw), &u); err != nil {
+			return nil, fmt.Errorf("auth0 line %d: %w", line, err)
+		}
+		out = append(out, auth0Record(u))
+	}
+	if err := sc.Err(); err != nil {
+		return nil, fmt.Errorf("auth0: %w", err)
+	}
+	return out, nil
+}

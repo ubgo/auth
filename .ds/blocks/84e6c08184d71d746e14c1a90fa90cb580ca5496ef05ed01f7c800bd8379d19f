@@ -1,0 +1,1 @@
+func WithUserLocale(column string) Option { return func(s *settings) { s.userLocale = column } }

@@ -1,0 +1,25 @@
+const pageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Sign in with Ethereum</title>
+<button id="go">Sign in with Ethereum</button>
+<pre id="out"></pre>
+<script>
+const post = (path, body) => fetch("` + authPrefix + `/siwe" + path, {
+  method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body),
+}).then(r => r.json());
+document.getElementById("go").onclick = async () => {
+  const [address] = await ethereum.request({method: "eth_requestAccounts"});
+  const chainId = parseInt(await ethereum.request({method: "eth_chainId"}), 16);
+  const {nonce} = await post("/nonce", {walletAddress: address, chainId});
+  // ERC-4361 asks for the EIP-55 checksummed address (viem's getAddress);
+  // the server also accepts the lower-case form wallets return.
+  const message = location.host + " wants you to sign in with your Ethereum account:\n" +
+    address + "\n\nSign in to the example app.\n\nURI: " + location.origin +
+    "\nVersion: 1\nChain ID: " + chainId + "\nNonce: " + nonce +
+    "\nIssued At: " + new Date().toISOString();
+  const signature = await ethereum.request({method: "personal_sign", params: [message, address]});
+  const res = await post("/verify", {message, signature});
+  document.getElementById("out").textContent = JSON.stringify(res, null, 2);
+};
+</script>
+`

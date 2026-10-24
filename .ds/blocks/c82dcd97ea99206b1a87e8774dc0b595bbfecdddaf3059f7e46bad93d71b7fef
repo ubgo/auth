@@ -1,0 +1,11 @@
+func (l *callLog) Operation(ctx context.Context, e auth.OperationEvent) {
+	rec := callRecord{Op: e.Op.ID, Plugin: e.Plugin, Outcome: authotel.OutcomeOK}
+	if e.Err != nil {
+		rec.Outcome = auth.ErrorOf(e.Err).Code
+	}
+	l.mu.Lock()
+	l.calls = append(l.calls, rec)
+	l.mu.Unlock()
+	l.logger.InfoContext(ctx, "auth call", "op", string(rec.Op), "plugin", rec.Plugin,
+		"transport", string(e.Transport), "outcome", rec.Outcome, "duration", e.Duration.String())
+}

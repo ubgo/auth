@@ -1,0 +1,6 @@
+func command(ctx context.Context, a *auth.Auth, args []string, stdout, stderr io.Writer) (code int, handled bool) {
+	if len(args) == 0 || args[0] != authCommand {
+		return authcli.ExitOK, false
+	}
+	return authcli.Main(ctx, a, args[1:], stdout, stderr), true
+}

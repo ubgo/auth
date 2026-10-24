@@ -1,0 +1,3 @@
+func (a *Auth) CreateSession(ctx context.Context, userID string, client Client) (Session, Token, error) {
+	return a.CreateSessionWithOptions(ctx, userID, client, SessionOptions{})
+}

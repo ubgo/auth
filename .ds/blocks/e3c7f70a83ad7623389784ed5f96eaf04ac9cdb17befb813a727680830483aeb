@@ -1,0 +1,13 @@
+export type PasskeyAutofill = {
+  readonly status: PasskeyAutofillStatus;
+  /**
+   * Aborts the pending request now, synchronously, and keeps it stopped.
+   * Call it first thing when the person picks another way in (the passkey
+   * button, a password submit, an OAuth button): a browser runs one
+   * credential request at a time, so the passkey dialog fails while an
+   * autofill request is pending.
+   */
+  readonly pause: () => void;
+  /** Starts it again after pause, for when the other way in failed and the form is back. */
+  readonly resume: () => void;
+};

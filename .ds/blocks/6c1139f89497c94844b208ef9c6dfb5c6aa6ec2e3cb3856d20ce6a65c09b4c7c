@@ -1,0 +1,26 @@
+func TestSPA_OtherOriginsGetNothing(t *testing.T) {
+	a := newTestAuth(t)
+	srv := httptest.NewTLSServer(newHandler(a))
+	defer srv.Close()
+	jar, _ := cookiejar.New(nil)
+	client := srv.Client()
+	client.Jar = jar
+	do(t, client, http.MethodPost, srv.URL+"/auth/password/sign-up", map[string]string{"identifier": testEmail, "password": testPassword}, map[string]string{"Origin": spaOrigin})
+
+	evil := map[string]string{"Origin": "https://evil.example"}
+	pre := do(t, client, http.MethodOptions, srv.URL+"/auth/sign-out", nil, evil)
+	if pre.Header.Get("Access-Control-Allow-Origin") != "" {
+		t.Fatalf("preflight for an untrusted origin was allowed: %v", pre.Header)
+	}
+	res := do(t, client, http.MethodPost, srv.URL+"/auth/sign-out", nil, evil)
+	var answer struct {
+		Error auth.ErrorInfo `json:"error"`
+	}
+	_ = json.NewDecoder(res.Body).Decode(&answer)
+	if res.StatusCode != http.StatusForbidden || answer.Error.Code != auth.ErrOriginNotTrusted.Code || res.Header.Get("Access-Control-Allow-Origin") != "" {
+		t.Fatalf("cross-site sign-out: %d %+v %v", res.StatusCode, answer, res.Header)
+	}
+	if me := do(t, client, http.MethodGet, srv.URL+"/me", nil, map[string]string{"Origin": spaOrigin}); me.StatusCode != http.StatusOK {
+		t.Fatal("the refused sign-out signed the user out")
+	}
+}

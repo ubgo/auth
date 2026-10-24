@@ -1,0 +1,4 @@
+export async function newRecoveryCodes(code: string): Promise<string[]> {
+  const { data } = await auth.twofactor.recoveryCodes({ code });
+  return data?.codes ?? [];
+}

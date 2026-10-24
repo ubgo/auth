@@ -1,0 +1,24 @@
+func openInApp(a *auth.Auth, hp *handoff.Plugin) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		returnTo := r.FormValue(returnToParam)
+		if returnTo != "" && !a.TrustsReturnURL(returnTo) {
+			http.Error(w, "the return address is not trusted", http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if r.Method != http.MethodPost {
+			_ = confirmTemplate.Execute(w, confirmData{ReturnTo: returnTo, User: authhttp.MustUser(r)}) // a client that hung up cannot be told
+			return
+		}
+		res, err := hp.Generate(r.Context())
+		if err != nil {
+			authhttp.WriteError(w, err)
+			return
+		}
+		if returnTo == "" {
+			_ = pasteTemplate.Execute(w, res) // a client that hung up cannot be told
+			return
+		}
+		http.Redirect(w, r, withToken(returnTo, res.Token), http.StatusFound)
+	})
+}

@@ -1,0 +1,10 @@
+type ScryptParams struct {
+	// N is the CPU and memory cost, a power of two.
+	N int
+	// R is the block size.
+	R int
+	// P is the parallelization factor.
+	P int
+	// KeyLen is the derived key length in bytes.
+	KeyLen int
+}

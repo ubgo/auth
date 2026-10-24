@@ -1,0 +1,14 @@
+func (e *Env) CreateUser(name string, ids ...Identity) auth.User {
+	e.T.Helper()
+	ctx := context.Background()
+	u, err := e.Auth.CreateUser(ctx, auth.NewUser{Name: name})
+	if err != nil {
+		e.T.Fatalf("authtest: create user: %v", err)
+	}
+	for _, id := range ids {
+		if _, err := e.Auth.CreateIdentity(ctx, auth.NewIdentity{UserID: u.ID, Kind: id.Kind, Raw: id.Value, Verified: true, Primary: true}); err != nil {
+			e.T.Fatalf("authtest: create %s identity %q: %v", id.Kind, id.Value, err)
+		}
+	}
+	return u
+}

@@ -1,0 +1,16 @@
+func (x *app) seedOwner(ctx context.Context) error {
+	return x.auth.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		u, err := x.auth.CreateUser(ctx, auth.NewUser{Name: ownerName})
+		if err != nil {
+			return err
+		}
+		if _, err := x.auth.CreateIdentity(ctx, auth.NewIdentity{UserID: u.ID, Kind: email.KindEmail, Raw: ownerEmail, Verified: true, Primary: true}); err != nil {
+			return err
+		}
+		if err := x.password.SetPassword(ctx, u.ID, password.Secret(ownerPassword)); err != nil {
+			return err
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO app_member (user_id, role) VALUES (?, ?)`, u.ID, string(RoleOwner))
+		return err
+	})
+}

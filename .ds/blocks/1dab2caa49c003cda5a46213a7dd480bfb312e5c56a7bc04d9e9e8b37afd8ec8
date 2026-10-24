@@ -1,0 +1,18 @@
+type IDTokenClaim struct {
+	// Key identifies the token's issuance: the hex SHA-256 of its signed
+	// part (the JWS header and payload, without the signature), or of the
+	// whole token when it is not a compact JWS. Not the raw token, because
+	// an ES256 signature has a second valid form (s and n-s), so one
+	// issuance has two spellings; and not issuer, subject, audience and jti,
+	// because jti is optional (Apple's tokens carry none) and two tokens
+	// issued in one second would share the rest. Every claim the provider
+	// signed is in the key, so two different issuances never share it.
+	Key string
+	// Provider is the provider that verified the token.
+	Provider string
+	// Until is when the claim may be forgotten: the token's exp plus the
+	// verifier's clock leeway, after which the token is refused as expired
+	// anyway. A verifier whose profile carries no exp claim gets
+	// idTokenClaimFallback from now.
+	Until time.Time
+}

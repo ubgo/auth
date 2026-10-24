@@ -1,0 +1,8 @@
+func WithSQLTypes(engine string, t SQLTypes) Option {
+	return func(s *settings) {
+		if s.sqlTypes == nil {
+			s.sqlTypes = map[string]SQLTypes{}
+		}
+		s.sqlTypes[engine] = t.over(s.sqlTypes[engine])
+	}
+}

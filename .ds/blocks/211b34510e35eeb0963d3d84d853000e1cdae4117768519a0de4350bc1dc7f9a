@@ -1,0 +1,3 @@
+func (p *Plugin) Code(ctx context.Context, in CodeRequest) (CodeResult, error) {
+	return p.code.Call(context.WithValue(ctx, fromGoKey{}, true), in)
+}

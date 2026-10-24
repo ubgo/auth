@@ -1,0 +1,23 @@
+{
+  "_table": "memories",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Owner 2026-10-05: ubgo/auth's target is the universal auth library for Go (every kind of Go app: SaaS, internal tools, APIs, CLIs, desktop, serverless), never just 'Go SaaS apps'. Do not reject a feature because it only fits non-SaaS apps; offer different modes opt-in with their drawbacks documented.",
+  "confidence": null,
+  "created_at": "2026-10-05T14:54:26.602752000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "mem_01a10c8f172a7b8dbd5f6da963a6e8e5",
+  "kind": "retrieved",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "superseded_by_id": null,
+  "trust_score": 0.5,
+  "tx_at": "2026-10-05T14:54:26.602936000Z",
+  "updated_at": "2026-10-05T14:54:26.602752000Z",
+  "valid_at": null,
+  "valid_until": null,
+  "validated_by_actor_id": null
+}

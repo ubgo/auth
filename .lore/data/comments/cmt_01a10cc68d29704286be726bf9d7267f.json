@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Partly built: form errors follow auth.WithMessages in the request's locale (round 4, authui.go). Missing: the page text itself (labels, headings, buttons in templates/) is English only, and there is no option to supply translated strings or override templates. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:01.289004000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f679af7a74dab5f961b2dd3fd5a6",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68d29704286be726bf9d7267f",
+  "updated_at": "2026-10-05T15:55:01.289005000Z"
+}

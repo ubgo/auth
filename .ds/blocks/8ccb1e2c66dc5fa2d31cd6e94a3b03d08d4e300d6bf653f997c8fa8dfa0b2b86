@@ -1,0 +1,6 @@
+type Verification struct {
+	Valid  bool
+	Reason error
+	Key    *Key
+	UserID string
+}

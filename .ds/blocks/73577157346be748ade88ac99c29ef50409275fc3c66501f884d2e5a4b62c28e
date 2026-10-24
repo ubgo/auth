@@ -1,0 +1,15 @@
+func (p *Plugin) DataHooks() auth.DataHooks {
+	return auth.DataHooks{Identity: auth.TableHooks[auth.Identity]{
+		BeforeCreate: func(_ context.Context, _ sqlb.DBTX, idn *auth.Identity) error {
+			if idn.Kind != email.KindEmail {
+				return nil
+			}
+			for _, d := range p.blocked {
+				if strings.HasSuffix(idn.Value, "@"+d) {
+					return ErrDomainBlocked
+				}
+			}
+			return nil
+		},
+	}}
+}

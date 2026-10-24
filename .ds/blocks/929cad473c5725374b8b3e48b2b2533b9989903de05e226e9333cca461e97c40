@@ -1,0 +1,1 @@
+var DefaultScopes = []string{ScopeOpenID, ScopeProfile, ScopeEmail, ScopeOfflineAccess}

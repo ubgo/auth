@@ -1,0 +1,10 @@
+export async function extensionMistakes(): Promise<void> {
+  // The session extras have the decoder's type: a member it lacks is an error.
+  const s = await typed.session();
+  console.log(s.data?.extras?.seats); // expect TS2339
+  // A popup error code is a closed union too.
+  const p = await typed.oauthPopup.signIn({ provider: "google" });
+  if (p.error?.code === "popup.closd") return; // expect TS2367
+  // oauth_query is filled by the client, but the answer itself is still required.
+  await typed.oauthprovider.consent({ scope: "openid" }); // expect TS2345
+}

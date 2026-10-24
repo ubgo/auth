@@ -1,0 +1,4 @@
+export async function sessionCount(): Promise<number> {
+  const { data } = await auth.sessions();
+  return data?.sessions?.length ?? 0;
+}

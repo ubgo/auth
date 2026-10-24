@@ -1,0 +1,7 @@
+func Kick(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "kick", DisplayName: "Kick", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: KickAuthURL, TokenURL: KickTokenURL, Scopes: []string{"user:read"},
+		FetchProfile: KickProfile(KickProfileURL),
+	}
+}

@@ -1,0 +1,15 @@
+func (p *Plugin) Merge(ctx context.Context, userID string, kind Kind, patch json.RawMessage) (json.RawMessage, error) {
+	var out json.RawMessage
+	err := p.write(ctx, userID, func(m *Metadata) error {
+		cur, err := m.doc(kind)
+		if err != nil {
+			return err
+		}
+		if err := mergeInto(cur, patch); err != nil {
+			return err
+		}
+		out = *cur
+		return nil
+	})
+	return out, err
+}

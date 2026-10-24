@@ -1,0 +1,7 @@
+func CurrentSessionTasks(ctx context.Context) SessionTasks {
+	st := stateFrom(ctx)
+	if st == nil || st.session == nil || st.session.SecondFactorPending {
+		return nil
+	}
+	return slices.Clone(st.session.Tasks)
+}

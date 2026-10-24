@@ -1,0 +1,14 @@
+func newTestAuth(t *testing.T, clock *clock) (*auth.Auth, *botbox, *mailbox) {
+	t.Helper()
+	db := openDB(t)
+	box, bot := &mailbox{}, &botbox{}
+	a, err := newAuth(db, box, bot, clock.Now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = a.Close() })
+	if _, err := a.Migrate(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	return a, bot, box
+}

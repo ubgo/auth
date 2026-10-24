@@ -1,0 +1,8 @@
+type Effect struct {
+	Kind      EffectKind
+	Token     Token
+	ExpiresAt time.Time
+	URL       string
+	Transient bool
+	Value     string
+}

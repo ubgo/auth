@@ -1,0 +1,4 @@
+var clerkOrgRoles = map[string]organization.Role{
+	"org:admin":  organization.RoleAdmin,
+	"org:member": organization.RoleMember,
+}

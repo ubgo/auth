@@ -1,0 +1,35 @@
+func importCredentials(ctx context.Context, d deps, id string, r record) ([]string, error) {
+	var notes []string
+	switch {
+	case r.PasswordHash != "" && d.Password == nil:
+		return nil, errNoHasher
+	case r.PasswordHash != "":
+		if err := d.Password.ImportHash(ctx, id, r.PasswordHash); err != nil {
+			return nil, fmt.Errorf("password: %w", err)
+		}
+	case r.PasswordNote != "":
+		notes = append(notes, "password not imported: "+r.PasswordNote)
+	}
+	for _, acc := range r.Accounts {
+		if d.OAuth == nil {
+			notes = append(notes, "account "+acc.Provider+" not imported: no oauth plugin wired")
+			continue
+		}
+		err := d.OAuth.ImportAccount(ctx, oauth.ImportAccount{UserID: id, Provider: acc.Provider, ProviderAccountID: acc.AccountID, Email: acc.Email})
+		if errors.Is(err, oauth.ErrProviderUnknown) {
+			notes = append(notes, "account "+acc.Provider+" not imported: provider not configured")
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("account %s: %w", acc.Provider, err)
+		}
+	}
+	if r.TOTPSecret != "" {
+		if d.TwoFactor == nil {
+			notes = append(notes, "two-factor not imported: no twofactor plugin wired")
+		} else if err := d.TwoFactor.ImportTOTP(ctx, id, r.TOTPSecret); err != nil {
+			return nil, fmt.Errorf("two-factor: %w", err)
+		}
+	}
+	return notes, nil
+}

@@ -1,0 +1,8 @@
+type RiskVerdict struct {
+	// Flagged is true when the check wants the policy's action applied.
+	Flagged bool
+	// Reason is a short machine-readable cause ("tor-exit", "datacenter",
+	// "headless-ua") recorded on the event as AttrReason. It is cut to
+	// MaxRiskReasonLen bytes, and must carry nothing secret or personal.
+	Reason string
+}

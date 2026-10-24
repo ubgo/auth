@@ -1,0 +1,17 @@
+func WeChat(appID, appSecret, lang string) *OAuth2 {
+	o := &OAuth2{
+		ID: "wechat", DisplayName: "WeChat", ClientID: appID, ClientSecret: appSecret,
+		ClientIDParam: wechatAppIDParam, ClientSecretParam: wechatSecretParam, ScopeSeparator: commaScopes,
+		NoPKCE: true, AuthURLFragment: wechatFragment,
+		AuthURL: WeChatAuthURL, TokenURL: WeChatTokenURL, Scopes: []string{"snsapi_login"},
+		AuthParams:             url.Values{wechatLangParam: {firstOf(lang, WeChatLangCN)}},
+		FetchProfileFromTokens: WeChatProfile(WeChatUserInfoURL),
+	}
+	o.exchange = func(ctx context.Context, hc *http.Client, code, _ string) (TokenSet, error) {
+		return o.wechatGrant(ctx, hc, o.TokenURL, url.Values{paramGrantType: {grantAuthorizationCode}, paramCode: {code}, wechatSecretParam: {o.ClientSecret}})
+	}
+	o.renew = func(ctx context.Context, hc *http.Client, rt auth.Token) (TokenSet, error) {
+		return o.wechatGrant(ctx, hc, WeChatRefreshURL, url.Values{paramGrantType: {grantRefreshToken}, paramRefreshToken: {rt.Reveal()}})
+	}
+	return o
+}

@@ -1,0 +1,36 @@
+func (a *Auth) Migrate(ctx context.Context) ([]string, error) {
+	ms, conn, err := a.migrationConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	engine := a.Engine()
+	unlock, err := lockMigrations(ctx, conn, engine)
+	if err != nil {
+		return nil, err
+	}
+	defer unlock()
+
+	ledger := a.TableName(TableMigrations)
+	applied, err := readLedger(ctx, conn, engine, ledger)
+	if err != nil {
+		return nil, err
+	}
+
+	var done []string
+	for _, m := range ms {
+		key := m.Owner + "/" + m.Name
+		if sum, ok := applied[key]; ok {
+			if sum != m.Checksum() {
+				return done, fmt.Errorf("%w: %s", ErrChecksumMismatch, key)
+			}
+			continue
+		}
+		if err := applyOne(ctx, conn, engine, ledger, m, a.now().Format(ledgerTimeLayout)); err != nil {
+			return done, fmt.Errorf("auth: migration %s: %w", key, err)
+		}
+		done = append(done, key)
+	}
+	return done, nil
+}

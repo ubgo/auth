@@ -1,0 +1,3 @@
+func (p *Plugin) ConfirmChangeCode(ctx context.Context, address, code string) (VerifyResult, error) {
+	return p.confirmCode.Call(ctx, AddressCodeRequest{Email: address, Code: code})
+}

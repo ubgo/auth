@@ -1,0 +1,4 @@
+func HTTPRequest(ctx context.Context) (*http.Request, bool) {
+	r, ok := ctx.Value(httpRequestKey{}).(*http.Request)
+	return r, ok
+}

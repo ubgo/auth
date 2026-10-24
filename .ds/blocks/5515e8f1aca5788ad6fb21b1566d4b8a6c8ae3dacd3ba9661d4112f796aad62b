@@ -1,0 +1,9 @@
+func openDB(t *testing.T) *sql.DB {
+	t.Helper()
+	db, err := sql.Open("sqlite", "file:"+filepath.Join(t.TempDir(), dbFile)+sqlitePragmas)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	return db
+}

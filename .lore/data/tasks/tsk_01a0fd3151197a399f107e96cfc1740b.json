@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-03T03:32:47.724459000Z",
+  "created_at": "2026-10-02T15:17:42.809665000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0fd3151197a399f107e96cfc1740b",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-02T15:17:45.173996000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Close feature gaps, round 2: features (account self-service, authtest, multi-session, password import, trusted devices, OTP factor, captcha, anonymous, email codes, ID-token sign-in, API key and JWT features, admin user management, audit log). No orgs, roles or permissions.",
+  "updated_at": "2026-10-03T03:32:47.724612000Z"
+}

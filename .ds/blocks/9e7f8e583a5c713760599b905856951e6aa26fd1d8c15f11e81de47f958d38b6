@@ -1,0 +1,15 @@
+type TwoFactorManager interface {
+	auth.Plugin
+	// FactorOf is userID's confirmed factor's method ("" for none, which
+	// includes an enrolment still waiting for its first code) and whether
+	// sign-in asks for it.
+	FactorOf(ctx context.Context, userID string) (method string, enabled bool, err error)
+	// DisableFor pauses the factor: sign-in stops asking, the factor and
+	// its recovery codes stay.
+	DisableFor(ctx context.Context, userID string) error
+	// EnableFor switches a paused factor back on.
+	EnableFor(ctx context.Context, userID string) error
+	// Reset removes the factor, its recovery codes and its trusted devices,
+	// so the user enrols again.
+	Reset(ctx context.Context, userID string) error
+}

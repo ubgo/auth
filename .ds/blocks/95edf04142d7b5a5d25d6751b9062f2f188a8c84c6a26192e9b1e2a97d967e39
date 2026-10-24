@@ -1,0 +1,8 @@
+func WithSessionRevocations(r SessionRevocations) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithSessionRevocations", r) {
+			return
+		}
+		s.revocations = r
+	}
+}

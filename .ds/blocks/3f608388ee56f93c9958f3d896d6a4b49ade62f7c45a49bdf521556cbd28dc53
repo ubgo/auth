@@ -1,0 +1,23 @@
+type IDTokenConfig struct {
+	// JWKSURL is where the provider publishes its signing keys. Required.
+	JWKSURL string
+	// Issuers are the iss values accepted; Google uses two spellings. At
+	// least one is required.
+	Issuers []string
+	// Audiences are accepted aud values besides ClientID: an iOS bundle id,
+	// an Android client id. The web ClientID is always accepted.
+	Audiences []string
+	// ProfileFromToken makes Exchange read the profile from the id_token in
+	// the token response instead of calling FetchProfile, for a provider that
+	// has no userinfo endpoint. The token's nonce is the flow's PKCE
+	// challenge, which AuthCodeURL sends as the nonce parameter.
+	ProfileFromToken bool
+	// RequireNonce refuses an ID token that carries no nonce claim
+	// (ErrNonceRequired), for an app whose clients always send one: a token
+	// replayed from another app's sign-in then has no way in.
+	RequireNonce bool
+	// HostedDomain refuses a token whose hd claim is not this Google
+	// Workspace domain (ErrIDTokenInvalid), the native counterpart of
+	// GoogleProfileFor; empty accepts every account. Only Google sets hd.
+	HostedDomain string
+}

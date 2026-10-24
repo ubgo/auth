@@ -1,0 +1,13 @@
+type AccountDeletion struct {
+	// ConfirmByLink makes /account/delete send a confirmation link rather
+	// than delete; /account/delete/confirm then deletes. The user needs a
+	// verified recovery identity, or the call answers ErrNoRecoveryChannel.
+	ConfirmByLink bool
+	// LinkTTL is how long the link works; zero means DefaultDeleteAccountTTL.
+	LinkTTL time.Duration
+	// Link builds the URL the message carries from the token. Nil means
+	// BaseURL + DefaultDeleteAccountPage + "?token=…"; New refuses
+	// ConfirmByLink with neither a Link nor a BaseURL, since no link could
+	// be built.
+	Link func(t Token) string
+}

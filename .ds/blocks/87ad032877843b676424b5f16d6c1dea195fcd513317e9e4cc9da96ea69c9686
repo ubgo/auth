@@ -1,0 +1,25 @@
+func (a *Auth) IssueVerification(ctx context.Context, purpose Purpose, identifier string, ttl time.Duration, meta string) (Token, error) {
+	tok := NewToken()
+	id, err := a.ids(IDPrefixVerification)
+	if err != nil {
+		return "", err
+	}
+	now := a.now()
+	v := Verification{ID: id, Identifier: identifier, Purpose: purpose, ExpiresAt: now.Add(ttl), Meta: meta, CreatedAt: now}
+	err = a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+		if err := runHooks(ctx, a, tx, pickVerification, stageBeforeCreate, nil, &v); err != nil {
+			return err
+		}
+		q := sqlb.NewInsert(a.cfg.Dialect).Into(TableVerification).Row(
+			sqlb.Set(VerificationID, v.ID), sqlb.Set(VerificationIdentifier, v.Identifier),
+			sqlb.Set(VerificationPurpose, v.Purpose), sqlb.Set(VerificationTokenHash, HashToken(tok)),
+			sqlb.Set(VerificationExpiresAt, v.ExpiresAt), sqlb.Set(VerificationMeta, v.Meta),
+			sqlb.Set(VerificationCreatedAt, v.CreatedAt),
+		)
+		if _, err := a.Exec(ctx, q); err != nil {
+			return fmt.Errorf("auth: insert verification: %w", err)
+		}
+		return runHooks(ctx, a, tx, pickVerification, stageAfterCreate, nil, &v)
+	})
+	return tok, err
+}

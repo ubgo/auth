@@ -1,0 +1,20 @@
+func supportHandler(staff staffList, act func(ctx context.Context, userID string) error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !staff[authhttp.MustUser(r).ID] {
+			authhttp.WriteError(w, errNotStaff)
+			return
+		}
+		var in supportRequest
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil || in.UserID == "" {
+			authhttp.WriteError(w, auth.ErrBadRequest)
+			return
+		}
+		if err := act(r.Context(), in.UserID); err != nil {
+			// twofactor.not_enrolled for a user with no factor, so a
+			// mistyped id shows up instead of passing silently.
+			authhttp.WriteError(w, err)
+			return
+		}
+		writeJSON(w, auth.Done{OK: true})
+	})
+}

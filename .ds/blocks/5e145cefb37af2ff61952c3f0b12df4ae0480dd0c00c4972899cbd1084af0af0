@@ -1,0 +1,8 @@
+func newHandler(a *auth.Auth) *gin.Engine {
+	r := gin.New()
+	r.HandleMethodNotAllowed = true // 405 with an Allow header, not gin's default 404
+	r.Use(gin.Recovery())
+	authgin.Mount(r.Group(authPrefix), a)
+	r.GET("/me", authgin.Middleware(a), authgin.RequireUser(), me)
+	return r
+}

@@ -1,0 +1,24 @@
+func (p *Plugin) DataHooks() auth.DataHooks {
+	return auth.DataHooks{
+		User: auth.TableHooks[auth.User]{AfterCreate: func(ctx context.Context, _ sqlb.DBTX, u *auth.User) error {
+			tok := requestToken(ctx)
+			if tok == "" {
+				if p.required && clientSignUp(ctx) {
+					return ErrRequired
+				}
+				return nil
+			}
+			return p.use(ctx, tok, u.ID, true)
+		}},
+		Session: auth.TableHooks[auth.Session]{AfterCreate: func(ctx context.Context, _ sqlb.DBTX, s *auth.Session) error {
+			tok := requestToken(ctx)
+			if tok == "" {
+				return nil
+			}
+			if err := p.use(ctx, tok, s.UserID, false); err != nil && !errors.Is(err, ErrInvalid) {
+				return err
+			}
+			return nil
+		}},
+	}
+}

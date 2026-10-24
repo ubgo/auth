@@ -1,0 +1,1 @@
+func WithFreshWindow(d time.Duration) Option { return func(s *settings) { s.cfg.FreshWindow = d } }

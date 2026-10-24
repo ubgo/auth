@@ -1,0 +1,9 @@
+type Verification struct {
+	Valid  bool
+	Reason error
+	Key    *Key
+	UserID string
+	// OrganizationID is the owner of an organization-owned key, whose
+	// UserID is "".
+	OrganizationID string
+}

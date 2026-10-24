@@ -1,0 +1,8 @@
+func WithGeoLocator(l GeoLocator) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithGeoLocator", l) {
+			return
+		}
+		s.geoLocator = l
+	}
+}

@@ -1,0 +1,17 @@
+func (cfg config) cookie(name, value string, expiresAt time.Time) *http.Cookie {
+	c := &http.Cookie{
+		Name:     name,
+		Domain:   cfg.cookieDomain,
+		Value:    value,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	if expiresAt.IsZero() {
+		c.MaxAge = -1
+	} else {
+		c.Expires = expiresAt
+	}
+	return c
+}

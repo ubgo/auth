@@ -1,0 +1,29 @@
+func readWorkOS(in input) ([]record, error) {
+	var raw json.RawMessage
+	if err := json.NewDecoder(in.Main).Decode(&raw); err != nil {
+		return nil, fmt.Errorf("workos: %w", err)
+	}
+	var users []workosUser
+	if err := json.Unmarshal(raw, &users); err != nil {
+		var page workosPage
+		if err := json.Unmarshal(raw, &page); err != nil {
+			return nil, fmt.Errorf("workos: neither an array nor a {\"data\": [...]} page: %w", err)
+		}
+		users = page.Data
+	}
+	out := make([]record, 0, len(users))
+	for _, u := range users {
+		r := record{
+			ID:           u.ID,
+			Name:         strings.TrimSpace(u.FirstName + " " + u.LastName),
+			Image:        u.ProfilePictureURL,
+			CreatedAt:    parseTime(u.CreatedAt),
+			PasswordNote: workosNoPassword,
+		}
+		if u.Email != "" {
+			r.Emails = []identifier{{Value: u.Email, Verified: u.EmailVerified, Primary: true}}
+		}
+		out = append(out, r)
+	}
+	return out, nil
+}

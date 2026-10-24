@@ -1,0 +1,29 @@
+func SweepFaults[E any](t SweepT, fresh func() (E, *Faults), setup func(e E) func(ctx context.Context) error, swallowOK ...int) {
+	t.Helper()
+	allowed := map[int]bool{}
+	for _, s := range swallowOK {
+		allowed[s] = true
+	}
+	for k := 1; k <= MaxFaultSteps; k++ {
+		e, f := fresh()
+		op := setup(e)
+		f.Arm(k)
+		err := op(context.Background())
+		if !f.Disarm() {
+			if err != nil {
+				t.Fatalf("run with no fault reached (step %d) failed: %v", k, err)
+				return
+			}
+			if k == 1 {
+				t.Fatalf("the operation made no database call; the sweep proves nothing")
+				return
+			}
+			t.Logf("swept %d database calls", k-1)
+			return
+		}
+		if err == nil && !allowed[k] {
+			t.Errorf("fault at database call %d was swallowed: the operation returned no error", k)
+		}
+	}
+	t.Fatalf("no run finished within %d database calls", MaxFaultSteps)
+}

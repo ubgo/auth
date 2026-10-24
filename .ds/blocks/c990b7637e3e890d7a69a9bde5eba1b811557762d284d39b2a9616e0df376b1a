@@ -1,0 +1,10 @@
+var (
+	//ds:def id=devices-errors-kuzsg4ug owner=@khanakia stability=stable
+	ErrNameInvalid = auth.NewError("devices.name_invalid", http.StatusBadRequest, "Give the device a name of up to 40 characters.")
+	ErrNameTaken   = auth.NewError("devices.name_taken", http.StatusConflict, "You already have a device with that name.")
+	ErrTooMany     = auth.NewError("devices.too_many", http.StatusConflict, "Remove a device before adding another.")
+	ErrNotFound    = auth.NewError("devices.not_found", http.StatusNotFound, "No such device.")
+	// ErrBadMax is a configuration error: auth.New reports it, so a wrong
+	// option fails the start instead of refusing every add.
+	ErrBadMax = errors.New("devices: the device limit must be at least 1")
+)

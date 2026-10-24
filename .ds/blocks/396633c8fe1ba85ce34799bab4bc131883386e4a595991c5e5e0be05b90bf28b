@@ -1,0 +1,3 @@
+func WithTrustedOrigins(origins ...string) Option {
+	return func(s *settings) { s.cfg.TrustedOrigins = append(s.cfg.TrustedOrigins, origins...) }
+}

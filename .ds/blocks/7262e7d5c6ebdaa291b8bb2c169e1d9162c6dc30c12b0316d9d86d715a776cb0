@@ -1,0 +1,9 @@
+func WithTrustedOriginFunc(fn OriginFunc) Option {
+	return func(s *settings) {
+		if fn == nil {
+			s.refuseNil("WithTrustedOriginFunc")
+			return
+		}
+		s.originFunc = fn
+	}
+}

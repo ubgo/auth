@@ -1,0 +1,6 @@
+type PostedProfile interface {
+	Provider
+	// ApplyPosted reads raw, the callback's user field, into p; "" is a
+	// callback that carried none.
+	ApplyPosted(raw string, p *Profile)
+}

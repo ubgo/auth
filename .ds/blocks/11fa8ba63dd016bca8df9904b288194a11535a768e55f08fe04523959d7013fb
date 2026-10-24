@@ -1,0 +1,8 @@
+var orgPolicy = []policyLine{
+	{organization.RoleOwner, wildcard, wildcard},
+	{organization.RoleAdmin, organization.ResourceMember, wildcard},
+	{organization.RoleAdmin, organization.ResourceInvitation, wildcard},
+	{organization.RoleAdmin, organization.ResourceOrganization, organization.ActionUpdate},
+	{organization.RoleMember, organization.ResourceInvitation, organization.ActionCreate},
+	{organization.RoleMember, organization.ResourceAC, organization.ActionRead},
+}

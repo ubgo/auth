@@ -1,0 +1,1 @@
+	LockDuration = 15 * time.Minute

@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: no outbox; delivery runs after commit in the background, and examples/saas-workspace/README.md documents the gap. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:02.333815000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5d75ed57bcf948bef7c9da23cca",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc6913d7cae9a017ff30d8ac375",
+  "updated_at": "2026-10-05T15:55:02.333816000Z"
+}

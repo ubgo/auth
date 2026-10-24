@@ -1,0 +1,13 @@
+func NewError(code string, status int, message string) *Error {
+	e := &Error{Code: code, Status: status, Message: message}
+	registry.mu.Lock()
+	defer registry.mu.Unlock()
+	if prev, dup := registry.byCode[code]; dup {
+		if prev.Status != status || prev.Message != message {
+			registry.conflicts[code] = append(registry.conflicts[code], e)
+		}
+		return e
+	}
+	registry.byCode[code] = e
+	return e
+}

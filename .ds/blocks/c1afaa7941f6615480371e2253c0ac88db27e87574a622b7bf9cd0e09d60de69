@@ -1,0 +1,3 @@
+func TemplatesByLocale(byLocale map[string]func(m auth.Message) string) Option {
+	return func(p *Plugin) { p.localized = byLocale }
+}

@@ -1,0 +1,11 @@
+func (s *SMSBox) LastCode(number string) string {
+	s.env.T.Helper()
+	list := s.To(number)
+	for i := len(list) - 1; i >= 0; i-- {
+		if c := codeIn(list[i]); c != "" {
+			return c
+		}
+	}
+	s.env.T.Fatalf("authtest: no code texted to %s (%d texts)", number, len(list))
+	return ""
+}

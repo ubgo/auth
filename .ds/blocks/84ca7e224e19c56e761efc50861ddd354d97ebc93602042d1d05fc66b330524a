@@ -1,0 +1,1 @@
+func WithSessionExtras(fn SessionExtras) Option { return func(s *settings) { s.sessionExtras = fn } }

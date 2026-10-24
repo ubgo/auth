@@ -1,0 +1,4 @@
+func (p *Plugin) UnlinkAccount(ctx context.Context, provider, accountID string) error {
+	_, err := p.unlink.Call(ctx, UnlinkRequest{Provider: provider, AccountID: accountID})
+	return err
+}

@@ -1,0 +1,11 @@
+func ClientAssertion(clientID, kid string, key crypto.Signer) (func(ctx context.Context, tokenURL string) (string, error), error) {
+	alg, err := assertionAlg(key)
+	if err != nil {
+		return nil, err
+	}
+	if clientID == "" {
+		return nil, ErrAssertionConfig
+	}
+	s := &assertionSigner{clientID: clientID, kid: kid, key: key, alg: alg, now: time.Now}
+	return s.assertion, nil
+}

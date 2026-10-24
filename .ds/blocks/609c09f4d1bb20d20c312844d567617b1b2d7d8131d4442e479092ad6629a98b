@@ -1,0 +1,35 @@
+type SQLTypes struct {
+	// ID is a column that holds a generated row id (Auth.NewID, or the
+	// app's WithIDs generator) or refers to one: every primary key the
+	// library generates, user_id, session_id, an organization's or a team's
+	// id. Override it to give ids a native type (UUID on Postgres). A column
+	// that may hold "" or a value the library did not generate (a provider's
+	// client id, a JWT id, a connection name) is a Key instead, because a
+	// native id type refuses those.
+	ID string
+	// Key is a short indexed text that is not a generated id: a kind, a
+	// purpose, a status, an operation id, a slug, a provider's subject.
+	Key string
+	// Text is a short display string.
+	Text string
+	// Value is an identifier value or an address.
+	Value string
+	// Long is a URL, a user agent or free text up to a few kilobytes.
+	Long string
+	// Timestamp holds a UTC instant with at least microsecond precision.
+	Timestamp string
+	// Bool is a flag; MySQL spells it BOOLEAN, which is TINYINT(1).
+	Bool string
+	// Hash is a 32-byte digest.
+	Hash string
+	// Bytes is a short binary value such as a WebAuthn credential id, at most
+	// 1024 bytes, and indexable on every engine.
+	Bytes string
+	// Doc is a large text value such as a JSON document, unindexed.
+	Doc string
+	// Int is a 64-bit integer: a counter or a numeric setting.
+	Int string
+	// TableSuffix ends every CREATE TABLE. On MySQL it sets the byte-exact
+	// collation.
+	TableSuffix string
+}

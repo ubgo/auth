@@ -1,0 +1,14 @@
+export async function banForAWeek(userId: string, reason: string): Promise<string> {
+  const { error } = await auth.admin.ban({ userId, reason, minutes: 7 * 24 * 60 });
+  if (!error) return "banned";
+  switch (error.code) {
+    case "admin.self_target":
+      return "You cannot ban yourself.";
+    case "admin.admin_target":
+      return "Remove this user's admin rights first.";
+    case "auth.fresh_session_required":
+      return "Confirm it is you, then try again.";
+    default:
+      return error.message;
+  }
+}

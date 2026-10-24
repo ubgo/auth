@@ -1,0 +1,7 @@
+var (
+	_ auth.IdentifierProvider = (*Plugin)(nil)
+	_ auth.Deliverer          = (*Plugin)(nil)
+	_ auth.Initializer        = (*Plugin)(nil)
+	_ auth.Validator          = (*Plugin)(nil)
+	_ auth.OperationProvider  = (*Plugin)(nil)
+)

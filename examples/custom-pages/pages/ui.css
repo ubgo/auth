@@ -1,0 +1,20 @@
+:root{--fg:#1b1b1f;--muted:#5f6068;--line:#d9d6ce;--bg:#f4f1ea;--card:#fffdf8;--accent:#b4441e;--err:#b42318;--ok:#2f7a3b}
+@media (prefers-color-scheme:dark){:root{--fg:#ece9e1;--muted:#9a978f;--line:#3a3833;--bg:#151412;--card:#1d1c19;--accent:#ef8a5e;--err:#f97066;--ok:#6cc47a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 Georgia,"Times New Roman",serif}
+.brand{max-width:26rem;margin:2rem auto 0;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.brand-footer{max-width:26rem;margin:1rem auto;color:var(--muted);font-size:.8rem}
+.card{max-width:26rem;margin:.5rem auto;padding:1.5rem;background:var(--card);border:1px solid var(--line);border-radius:4px}
+h1{font-size:1.4rem;margin:0 0 1rem}h2{font-size:1rem;margin:1.5rem 0 .5rem}
+label{display:block;margin:.75rem 0;font-weight:600;font-size:.9rem}
+label.check{display:flex;gap:.5rem;align-items:center;font-weight:400}
+input:not([type=checkbox]){display:block;width:100%;margin-top:.3rem;padding:.6rem .7rem;font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:4px}
+button{width:100%;margin-top:.5rem;padding:.65rem;font:inherit;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:4px;cursor:pointer}
+button.secondary{background:transparent;color:var(--fg);border:1px solid var(--line)}
+button.danger{background:transparent;color:var(--err);border:1px solid var(--err)}
+button.small{width:auto;padding:.3rem .7rem;margin:0}
+.reveal{width:auto;margin:.3rem 0 0;padding:.2rem .6rem;font-size:.8rem;font-weight:400;background:transparent;color:var(--muted);border:1px solid var(--line)}
+.error{color:var(--err)}.notice{color:var(--ok)}a{color:var(--accent)}
+.sessions{list-style:none;padding:0}.sessions li{display:flex;justify-content:space-between;gap:1rem;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--line)}
+small{color:var(--muted)}
+.methods{margin-top:1rem}.methods a.method{display:block;margin-top:.5rem;padding:.65rem;text-align:center;font-weight:600;color:var(--fg);text-decoration:none;border:1px solid var(--line);border-radius:4px}

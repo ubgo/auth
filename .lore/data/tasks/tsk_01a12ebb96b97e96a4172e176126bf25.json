@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "docs/client: how it works (generator vs client, the two ways, mermaid diagrams), quickstart, plugins, custom-plugins, bearer-and-mobile, errors, flows, reference. docs/integrations/typescript-client.md is a pointer. authhttp.TypeScriptMethods feeds the generated docs/reference/ts-client.md (checked by docs:api:check). examples/ts-client-custom: nickname plugin, auth client ts output committed in web/src/auth, freshness test TestClient_GeneratedCopyIsCurrent, web TS type-checked in ts:check. Snippets in clients/ts/examples/{spa,bearer,errors,flows}.ts.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-12T06:10:08.280344000Z",
+  "created_at": "2026-10-12T06:10:08.185954000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a12ebb96b97e96a4172e176126bf25",
+  "mission_id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "TypeScript client guide set (docs/client) and the app-generated client example",
+  "updated_at": "2026-10-12T06:10:08.280346000Z"
+}

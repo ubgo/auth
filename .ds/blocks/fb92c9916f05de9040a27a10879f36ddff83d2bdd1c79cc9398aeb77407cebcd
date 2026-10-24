@@ -1,0 +1,8 @@
+func Seal(key, plain []byte, aad string) (string, error) {
+	gcm, err := newGCM(key)
+	if err != nil {
+		return "", err
+	}
+	nonce := randomBytes(gcm.NonceSize())
+	return base64.RawStdEncoding.EncodeToString(gcm.Seal(nonce, nonce, plain, []byte(aad))), nil
+}

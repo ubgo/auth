@@ -1,0 +1,10 @@
+type SessionTask struct {
+	ID SessionTaskID
+	// Allow lists the operations a session with this task pending may call,
+	// besides the core's session read, sign-out and refresh, which every
+	// task allows: the operations that complete the task and the reads they
+	// need. Every id must be an operation of this deployment (New refuses
+	// one that is not), and only these operations may call
+	// CompleteSessionTask for it.
+	Allow []EndpointID
+}

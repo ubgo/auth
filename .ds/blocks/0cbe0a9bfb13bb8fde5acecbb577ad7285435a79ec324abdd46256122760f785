@@ -1,0 +1,16 @@
+func (a *Auth) MigrationSQL() (string, error) {
+	ms, err := a.Migrations()
+	if err != nil {
+		return "", err
+	}
+	var b strings.Builder
+	for _, m := range ms {
+		fmt.Fprintf(&b, "-- %s %s\n", m.Owner, m.Name)
+		for _, st := range m.Statements {
+			b.WriteString(st)
+			b.WriteString(";\n")
+		}
+		b.WriteString("\n")
+	}
+	return b.String(), nil
+}

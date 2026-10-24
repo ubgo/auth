@@ -1,0 +1,12 @@
+func providerFromEnv(getenv func(string) string) (sso.Provider, bool) {
+	iss, id, secret, domain := getenv(envSSOIssuer), getenv(envSSOClientID), getenv(envSSOSecret), getenv(envSSODomain)
+	if iss == "" || id == "" || secret == "" || domain == "" {
+		return sso.Provider{}, false
+	}
+	return sso.Provider{
+		ProviderID: cmp.Or(getenv(envProviderID), defaultProvider),
+		Issuer:     iss,
+		Domain:     domain,
+		OIDC:       &sso.OIDCConfig{ClientID: id, ClientSecret: secret},
+	}, true
+}

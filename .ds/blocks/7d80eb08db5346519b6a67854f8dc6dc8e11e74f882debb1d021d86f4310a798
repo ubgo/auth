@@ -1,0 +1,15 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *deviceauth.Plugin, error) {
+	dp := deviceauth.New(
+		deviceauth.ValidateClient(func(_ context.Context, id string) (bool, error) { return id == clientID, nil }),
+	)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			dp,
+		),
+	)
+	return a, dp, err
+}

@@ -1,0 +1,4 @@
+func NewSessionStore(client redis.Cmdable, opts ...Option) *SessionStore {
+	c := newConfig(DefaultSessionKeyPrefix, opts)
+	return &SessionStore{optionErr: optionErr{c.optErrs.OptionErr()}, client: client, prefix: c.prefix, now: c.now}
+}

@@ -1,0 +1,40 @@
+export type AuthProviderProps = {
+  /** The client from createAuthClient. Its plugin list decides which methods the components offer. */
+  readonly client: AnyAuthClient;
+  /**
+   * The same baseURL the client was created with. The client calls routes
+   * with fetch; the few flows that are page navigations (OAuth start) need
+   * the URL itself, and the client does not expose it. Defaults to "/auth".
+   */
+  readonly baseURL?: string;
+  /**
+   * The app's query cache. Left out, the provider uses the QueryClientProvider
+   * above it, and creates a private one only when there is none, so an app
+   * that already uses TanStack Query shares one cache with the session.
+   */
+  readonly queryClient?: QueryClient;
+  /**
+   * Client-side navigation, such as TanStack Router's navigate or Next's
+   * router.push. Left out, the browser loads the page (location.assign).
+   */
+  readonly navigate?: (href: string) => void;
+  /** The app's link component, so links between auth pages use the router. Left out, a plain `<a>`. */
+  readonly Link?: ComponentType<AuthLinkProps>;
+  /** Overrides of the default paths. */
+  readonly paths?: Partial<AuthPaths>;
+  /**
+   * App-wide text overrides: error messages by code, and each component's
+   * strings under its key (signInForm, ...). A component's own localization
+   * prop wins over these.
+   */
+  readonly localization?: AuthLocalization;
+  /**
+   * Origins a component's redirectTo may point at besides this site, such as
+   * "https://app.example.com" for auth pages served from another origin than
+   * the app. Empty by default: a redirectTo that is not a path on this site
+   * (it usually comes from the address bar, so anyone can write one) is
+   * ignored and the component's default path applies. See safeRedirect.
+   */
+  readonly allowedRedirectOrigins?: readonly string[];
+  readonly children: ReactNode;
+};

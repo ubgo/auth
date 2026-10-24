@@ -1,0 +1,5 @@
+export async function changePassword(current: string, next: string): Promise<string> {
+  const result = await auth.password.change({ current, new: next, revokeOtherSessions: true });
+  if (result.error) return result.error.message;
+  return result.data.ok ? "Password changed." : "Nothing changed.";
+}

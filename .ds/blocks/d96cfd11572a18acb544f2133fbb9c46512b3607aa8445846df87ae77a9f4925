@@ -1,0 +1,21 @@
+func newAuth(db *sql.DB, secret []byte, m email.Mailer, admins ...string) (*auth.Auth, *twofactor.Plugin, error) {
+	tf := twofactor.New(
+		twofactor.ReadableTOTPURI(),                             // POST /auth/twofactor/totp-uri
+		twofactor.RecoveryCodeStorage(twofactor.StoreEncrypted), // POST /auth/twofactor/recovery-codes/view
+		twofactor.Lockout(maxWrongCodes, lockFor),
+	)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSecret(secret), // seals the TOTP secret and the recovery codes
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			tf,
+			// GET /auth/admin/two-factor, POST /auth/admin/disable-two-factor,
+			// /enable-two-factor and /reset-two-factor.
+			admin.New(admin.AdminIDs(admins...)),
+		),
+	)
+	return a, tf, err
+}

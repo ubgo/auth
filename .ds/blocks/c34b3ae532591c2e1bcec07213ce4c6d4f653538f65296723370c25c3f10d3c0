@@ -1,0 +1,1 @@
+func WithRateExempt(fn RateExemptFunc) Option { return func(s *settings) { s.rateExempt = fn } }

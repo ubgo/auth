@@ -1,0 +1,4 @@
+type Verifier interface {
+	Send(ctx context.Context, number string) error
+	Check(ctx context.Context, number, code string) error
+}

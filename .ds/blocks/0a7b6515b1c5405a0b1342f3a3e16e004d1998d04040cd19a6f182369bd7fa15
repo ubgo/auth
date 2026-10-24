@@ -1,0 +1,27 @@
+func TestSecurityEvents_SprayIsOneEventWithoutThePassword(t *testing.T) {
+	e, b, buf := world(t, true)
+	for i := range sprayFailures {
+		victim, _ := stranger(i)
+		signIn(b, victim, sprayed).Expect(password.ErrInvalidCredentials.Status)
+	}
+	// Refused now for ada too, though her real password is never tried.
+	if code := signIn(b, adaMail, sprayed).Expect(http.StatusTooManyRequests).ErrorCode(); code != auth.ErrRateLimited.Code {
+		t.Fatalf("sprayed password after the crossing: %s", code)
+	}
+	events := drain(t, e, buf)
+	got := ofKind(events, auth.SecurityCredentialStuffing)
+	if len(got) != 1 {
+		t.Fatalf("%d credential.stuffing events, want 1: %+v", len(got), got)
+	}
+	ev := got[0]
+	if ev.Attrs[auth.AttrScope] != auth.ScopePassword || ev.Attrs[auth.AttrFailures] != strconv.Itoa(sprayFailures) ||
+		ev.Severity != auth.SeverityAlert || ev.Outcome != auth.RateOutcomeBlocked || ev.Op != password.EndpointSignIn {
+		t.Fatalf("event = %+v", ev)
+	}
+	if strings.Contains(buf.String(), sprayed) || strings.Contains(buf.String(), adaPass) {
+		t.Fatalf("a password reached the drain: %s", buf)
+	}
+	if n := len(ofKind(events, auth.SecurityRateLimit)); n != 0 {
+		t.Fatalf("%d rate.limit events; the spray stayed under the address rule", n)
+	}
+}

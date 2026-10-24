@@ -1,0 +1,9 @@
+func newOAuth(issuer string, key []byte) *oauth.Plugin {
+	corp := oauth.OIDC(providerName, issuer, issuerClientID, issuerClientSecret)
+	corp.IDToken.Audiences = []string{issuerNativeClientID}
+	return oauth.New(
+		oauth.WithProviders(corp),
+		oauth.ErrorURL(signInPage),
+		oauth.StoreTokens(key),
+	)
+}

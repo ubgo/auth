@@ -1,0 +1,9 @@
+func coreOptions(db *sql.DB) []auth.Option {
+	return []auth.Option{
+		auth.WithDBAuto(db),
+		auth.WithBaseURL(baseURL),
+		auth.WithIDs(newUUIDv7),
+		auth.WithDisabledOperations(password.EndpointSignUp),
+		auth.WithFetchMetadata(),
+	}
+}

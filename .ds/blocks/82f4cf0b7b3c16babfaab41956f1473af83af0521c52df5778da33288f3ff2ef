@@ -1,0 +1,13 @@
+export async function claimHandle(handle: string): Promise<string> {
+  const { data, error } = await auth.username.set({ username: handle });
+  if (!error) return `You are @${data.username}.`;
+  switch (error.code) {
+    case "auth.identity_taken":
+    case "username.reserved":
+      return "This username is not available.";
+    case "username.immutable":
+      return "Your username cannot be changed.";
+    default:
+      return error.message;
+  }
+}

@@ -1,0 +1,13 @@
+func newAuth(db *sql.DB, providers ...oauth.Provider) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			oauth.New(
+				oauth.WithProviders(providers...),
+				oauth.SkipBrokenProviders(),
+				oauth.ExplicitSignUp(),
+			),
+		),
+	)
+}

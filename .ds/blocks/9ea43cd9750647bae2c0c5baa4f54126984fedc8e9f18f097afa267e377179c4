@@ -1,0 +1,3 @@
+func WithDeliveryOutbox(keys ...[]byte) Option {
+	return func(s *settings) { s.outbox, s.outboxKeys = true, keys }
+}

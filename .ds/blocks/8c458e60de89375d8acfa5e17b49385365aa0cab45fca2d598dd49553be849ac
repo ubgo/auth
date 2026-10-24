@@ -1,0 +1,3 @@
+type SMSSender interface {
+	Send(ctx context.Context, to, text string) error
+}

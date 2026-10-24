@@ -1,0 +1,5 @@
+func AppleWithEmail(clientID string, secret func(ctx context.Context) (string, error), audiences ...string) *OAuth2 {
+	o := Apple(clientID, secret, audiences...)
+	o.Scopes, o.FormPost, o.PostedUser = AppleScopes(), true, ApplePostedUser
+	return o
+}

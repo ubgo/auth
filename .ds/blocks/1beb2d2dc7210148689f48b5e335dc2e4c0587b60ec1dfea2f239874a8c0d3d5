@@ -1,0 +1,6 @@
+func SignedIn(ctx context.Context, _ any, next graphql.Resolver) (any, error) {
+	if _, ok := auth.CurrentUser(ctx); !ok {
+		return nil, auth.ErrSignedOut
+	}
+	return next(ctx)
+}

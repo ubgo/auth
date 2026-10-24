@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: plugin/oauth has typed Go methods for Tokens, Refresh, Profile, Accounts, Unlink and ImportAccount, but none for start or callback. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:02.237173000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f6021292738295ed1f4364d88027",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc690dd72d6a0ea4eef3965a22d",
+  "updated_at": "2026-10-05T15:55:02.237173000Z"
+}

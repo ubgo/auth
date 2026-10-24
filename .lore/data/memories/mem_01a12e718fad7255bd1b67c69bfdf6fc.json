@@ -1,0 +1,23 @@
+{
+  "_table": "memories",
+  "_v": 1,
+  "archived_at": null,
+  "body": "ubgo/docsync was recreated on 2026-09-30 and is PUBLIC. ubgo/sqlb is PUBLIC since 2026-10-11 (first release v0.1.1; every auth module requires it). ubgo/auth stays private: never put auth code or paths into docsync or sqlb issues; use neutral reproductions.",
+  "confidence": null,
+  "created_at": "2026-10-12T04:49:16.717151000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "mem_01a12e718fad7255bd1b67c69bfdf6fc",
+  "kind": "retrieved",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "superseded_by_id": "mem_01a0f5a7fc7d75288e42f7c9c6e4501e",
+  "trust_score": 0.5,
+  "tx_at": "2026-10-12T04:49:16.717370000Z",
+  "updated_at": "2026-10-14T08:45:28.088981000Z",
+  "valid_at": null,
+  "valid_until": "2026-10-14T08:45:28.088956000Z",
+  "validated_by_actor_id": null
+}

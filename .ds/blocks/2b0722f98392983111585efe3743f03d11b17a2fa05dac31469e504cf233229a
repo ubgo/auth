@@ -1,0 +1,7 @@
+type FormPostRequest struct {
+	Code  string `json:"code"`
+	State string `json:"state"`
+	Error string `json:"error"`
+	// User is Apple's first-consent user field (name and email as JSON).
+	User string `json:"user"`
+}

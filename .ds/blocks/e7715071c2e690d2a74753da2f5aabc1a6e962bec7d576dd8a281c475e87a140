@@ -1,0 +1,4 @@
+type MemorySecuritySink struct {
+	mu     sync.Mutex
+	events []SecurityEvent
+}

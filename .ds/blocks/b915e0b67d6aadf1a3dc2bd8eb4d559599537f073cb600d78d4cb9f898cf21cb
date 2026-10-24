@@ -1,0 +1,41 @@
+func (a *Auth) CompleteSessionTask(ctx context.Context, c *Call, task SessionTaskID) (Session, error) {
+	switch {
+	case c == nil || c.Session == nil || c.User == nil || c.Session.SecondFactorPending:
+		return Session{}, ErrSignedOut
+	case c.Session.APIKeyID != "":
+		return Session{}, ErrAPIKeyRefused
+	case !slices.Contains(c.Session.Tasks, task):
+		return *c.Session, nil
+	}
+	if _, ok := a.sessionTasks[task].allow[c.Op.ID]; !ok {
+		return Session{}, fmt.Errorf("%w: operation %q does not serve session task %q", ErrBadOperation, c.Op.ID, task)
+	}
+	old := *c.Session
+	remaining := slices.DeleteFunc(slices.Clone(old.Tasks), func(id SessionTaskID) bool { return id == task })
+	if len(remaining) == 0 {
+		remaining = nil
+	}
+	var out Session
+	err := a.Tx(ctx, func(ctx context.Context, _ sqlbTx) error {
+		if err := a.endSession(ctx, old); err != nil {
+			return err
+		}
+		s, tok, err := a.createSessionFull(ctx, old.UserID, c.Client, sessionSeed{
+			transient: old.Transient, data: old.Data, promoted: true, continued: true, tasks: remaining,
+		})
+		if err != nil {
+			return err
+		}
+		if err := a.sessionReplaced(ctx, old, s); err != nil {
+			return err
+		}
+		c.Effects.ReplaceSessionOf(s, tok)
+		out = s
+		return nil
+	})
+	if err != nil {
+		return Session{}, err
+	}
+	*c.Session = out
+	return out, nil
+}

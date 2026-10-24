@@ -1,0 +1,4 @@
+export async function serviceToken(): Promise<string | null> {
+  const { data } = await auth.jwt.token();
+  return data?.token ?? null;
+}

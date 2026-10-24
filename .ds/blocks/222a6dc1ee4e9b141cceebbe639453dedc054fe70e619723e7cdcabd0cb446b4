@@ -1,0 +1,12 @@
+func WithTemplate(name string, t Template) Option {
+	return func(p *Plugin) {
+		if p.templates == nil {
+			p.templates = map[string]Template{}
+		}
+		if _, dup := p.templates[name]; dup {
+			p.templateErr = fmt.Errorf("jwt.WithTemplate(%q): %w: given twice", name, ErrTemplateName)
+			return
+		}
+		p.templates[name] = t
+	}
+}

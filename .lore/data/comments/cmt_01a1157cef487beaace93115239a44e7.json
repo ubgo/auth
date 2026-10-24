@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r33-provider (2026-10-07): plugin/oauthprovider (no third-party deps) issues opaque access tokens only so far; refresh-token reuse interval is 0 (a reused refresh token is refused at once); a provider access token is not an app session. Core hook auth.OpInfo.SelfServed (wired, not mounted by transports). r31 also flagged: SAML metadata is answered wrapped in JSON; SAML responses are not tied to the starting browser (the feature checklist same).",
+  "created_at": "2026-10-07T08:31:11.688764000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1157cef487beaace93115239a44e7",
+  "updated_at": "2026-10-07T08:31:11.688765000Z"
+}

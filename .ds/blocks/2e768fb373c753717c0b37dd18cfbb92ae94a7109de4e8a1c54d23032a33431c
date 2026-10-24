@@ -1,0 +1,4 @@
+export async function startDeviceSignIn(): Promise<string | null> {
+  const { data } = await auth.device.code({ client_id: "my-cli" });
+  return data ? `${data.verification_uri}  code ${data.user_code}` : null;
+}

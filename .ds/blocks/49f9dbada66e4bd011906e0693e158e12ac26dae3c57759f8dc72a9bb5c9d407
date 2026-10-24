@@ -1,0 +1,9 @@
+func (p *Plugin) Record(ctx context.Context, e Event) error {
+	if e.At.IsZero() {
+		e.At = p.core.Now()
+	}
+	if e.Transport == "" {
+		e.Transport = auth.TransportGo
+	}
+	return p.record(ctx, e)
+}

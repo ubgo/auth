@@ -1,0 +1,25 @@
+function Rename() {
+  const { queryClient } = useAuth()
+  const message = useErrorMessage()
+  const [name, setName] = useState("")
+  const [error, setError] = useState<AuthError | null>(null)
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const { error } = await client.profile({ name })
+    setError(error)
+    if (error) return
+    await queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY })
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <label>
+        New name
+        <input name="name" value={name} onChange={(e) => setName(e.target.value)} required />
+      </label>
+      <button type="submit">Rename</button>
+      {error && <p role="alert">{message(error)}</p>}
+    </form>
+  )
+}

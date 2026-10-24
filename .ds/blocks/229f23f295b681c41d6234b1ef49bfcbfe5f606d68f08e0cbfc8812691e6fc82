@@ -1,0 +1,6 @@
+func onlyOurDomain(_ context.Context, _ *auth.Call, ev oauth.ProfileEvent) error {
+	if claimString(ev.Profile.Claims, claimHostedDomain) != allowedDomain {
+		return errDomainNotAllowed
+	}
+	return nil
+}

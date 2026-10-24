@@ -1,0 +1,165 @@
+<svg viewBox="0 0 900 1023" width="900" xmlns="http://www.w3.org/2000/svg">
+  <title>ubgo/auth client architecture</title>
+  <desc>Layer stack of the TypeScript and React client of github.com/ubgo/auth: the browser, the React UI kit and app code, @ubgo/auth-react, @ubgo/auth-client, the network, the Go server and storage, with a numbered password sign-in going down and the answer coming back up, and the build-time column where the Go operations generate client.ts.</desc>
+  <style>
+    text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui, sans-serif; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="2" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,4 L0,8 L2,4 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="2" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,4 L0,8 L2,4 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="2" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,4 L0,8 L2,4 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="2" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,4 L0,8 L2,4 z" fill="#a855f7"/>
+    </marker>
+  </defs>
+  <!-- White canvas, so the diagram reads as a light card on both GitHub themes. -->
+  <rect x="0" y="0" width="900" height="1023" fill="#ffffff"/>
+  <text x="450" y="34" font-size="16" fill="#1e293b" text-anchor="middle">ubgo/auth client: from a click in React to a row in the database</text>
+  <!-- Layer groups, top to bottom. -->
+  <rect x="22" y="50" width="632" height="95" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="32" y="64" font-size="11" fill="#64748b">Browser</text>
+  <rect x="22" y="185" width="632" height="113" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="32" y="199" font-size="11" fill="#64748b">React UI kit: registry components you copy and own, plus your own code</text>
+  <rect x="22" y="338" width="632" height="95" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="32" y="352" font-size="11" fill="#64748b">@ubgo/auth-react: imported, headless, built on TanStack Query</text>
+  <rect x="22" y="473" width="632" height="95" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="32" y="487" font-size="11" fill="#64748b">@ubgo/auth-client: generated client.ts on a hand-written runtime.ts</text>
+  <rect x="22" y="608" width="632" height="95" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="32" y="622" font-size="11" fill="#64748b">Network: fetch to /auth/*</text>
+  <rect x="22" y="743" width="632" height="95" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="32" y="757" font-size="11" fill="#64748b">Go server: github.com/ubgo/auth</text>
+  <rect x="22" y="878" width="632" height="95" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="32" y="892" font-size="11" fill="#64748b">Storage</text>
+  <!-- Build-time column: aligned from @ubgo/auth-client down to the Go server. -->
+  <rect x="684" y="473" width="194" height="365" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="6,4"/>
+  <text x="694" y="487" font-size="11" fill="#64748b">Build time: when Go changes</text>
+  <!-- Down (blue, x=62) and up (green, x=92) through every gap between layers. -->
+  <path d="M62,150 L 62,174" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <path d="M92,180 L 92,156" fill="none" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <path d="M62,303 L 62,327" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <path d="M92,333 L 92,309" fill="none" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <path d="M62,438 L 62,462" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <path d="M92,468 L 92,444" fill="none" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <path d="M62,573 L 62,597" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <path d="M92,603 L 92,579" fill="none" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <path d="M62,708 L 62,732" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <path d="M92,738 L 92,714" fill="none" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <path d="M62,843 L 62,867" fill="none" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <path d="M92,873 L 92,849" fill="none" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <!-- Inside the Go server: handler, pipeline, plugin. -->
+  <path d="M226,795 L 235,795" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M434,795 L 443,795" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Build time, bottom to top: operations, generator, the two ways to run it, the files; then into the client layer. -->
+  <path d="M781,763 L 781,749" fill="none" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <path d="M781,679 L 781,665" fill="none" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <path d="M781,577 L 781,563" fill="none" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <path d="M696,525 L 665,525" fill="none" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <text x="106" y="168.5" font-size="10" fill="#1e40af">① click Sign in</text>
+  <text x="360" y="168.5" font-size="10" fill="#166534">⑫ navigate: the page is signed in</text>
+  <text x="106" y="321.5" font-size="10" fill="#1e40af">② SignInForm: usePluginClient("password")</text>
+  <text x="360" y="321.5" font-size="10" fill="#166534">⑪ useSession() now has the user</text>
+  <text x="106" y="456.5" font-size="10" fill="#1e40af">③ client.password.signIn({ … })</text>
+  <text x="360" y="456.5" font-size="10" fill="#166534">⑩ refreshSession(): refetch GET /auth/session</text>
+  <text x="106" y="591.5" font-size="10" fill="#1e40af">④ fetch POST /auth/password/sign-in</text>
+  <text x="360" y="591.5" font-size="10" fill="#166534">⑨ runtime.ts resolves { data, error }</text>
+  <text x="106" y="726.5" font-size="10" fill="#1e40af">⑤ JSON body, cookie or Bearer header</text>
+  <text x="360" y="726.5" font-size="10" fill="#166534">⑧ 200 + Set-Cookie (or Set-Auth-Token)</text>
+  <text x="106" y="861.5" font-size="10" fill="#1e40af">⑥ read the hash, INSERT auth_session</text>
+  <text x="360" y="861.5" font-size="10" fill="#166534">⑦ row stored</text>
+  <rect x="38" y="75" width="183" height="54" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="129.5" y="97" font-size="12" fill="#1e40af" text-anchor="middle">User</text>
+  <text x="129.5" y="115" font-size="10" fill="#1e40af" text-anchor="middle">clicks Sign in</text>
+  <rect x="246" y="75" width="183" height="54" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="337.5" y="97" font-size="12" fill="#1e40af" text-anchor="middle">Page</text>
+  <text x="337.5" y="115" font-size="10" fill="#1e40af" text-anchor="middle">React app, same origin as /auth</text>
+  <rect x="454" y="75" width="183" height="54" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="545.5" y="97" font-size="12" fill="#1e40af" text-anchor="middle">Cookie jar</text>
+  <text x="545.5" y="115" font-size="10" fill="#1e40af" text-anchor="middle">__Host-auth_session</text>
+  <rect x="38" y="210" width="131" height="72" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="103.5" y="233" font-size="12" fill="#1e40af" text-anchor="middle">Sign-in forms</text>
+  <text x="103.5" y="251" font-size="10" fill="#1e40af" text-anchor="middle">SignInForm</text>
+  <text x="103.5" y="266" font-size="10" fill="#1e40af" text-anchor="middle">SignUpForm</text>
+  <rect x="194" y="210" width="131" height="72" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="259.5" y="233" font-size="12" fill="#1e40af" text-anchor="middle">Second factor</text>
+  <text x="259.5" y="251" font-size="10" fill="#1e40af" text-anchor="middle">TwoFactorChallenge</text>
+  <text x="259.5" y="266" font-size="10" fill="#1e40af" text-anchor="middle">TwoFactorSetup</text>
+  <rect x="350" y="210" width="131" height="72" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="415.5" y="233" font-size="12" fill="#1e40af" text-anchor="middle">Account</text>
+  <text x="415.5" y="251" font-size="10" fill="#1e40af" text-anchor="middle">AccountSettings</text>
+  <text x="415.5" y="266" font-size="10" fill="#1e40af" text-anchor="middle">UserButton · Passkeys</text>
+  <rect x="506" y="210" width="131" height="72" rx="6" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="571.5" y="233" font-size="12" fill="#1e40af" text-anchor="middle">Your app code</text>
+  <text x="571.5" y="251" font-size="10" fill="#1e40af" text-anchor="middle">pages and routes</text>
+  <text x="571.5" y="266" font-size="10" fill="#1e40af" text-anchor="middle">SignedIn · SignedOut</text>
+  <rect x="38" y="363" width="131" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="103.5" y="385" font-size="12" fill="#b45309" text-anchor="middle">AuthProvider</text>
+  <text x="103.5" y="403" font-size="10" fill="#b45309" text-anchor="middle">client, queryClient</text>
+  <rect x="194" y="363" width="131" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="259.5" y="385" font-size="12" fill="#b45309" text-anchor="middle">useAuth</text>
+  <text x="259.5" y="403" font-size="10" fill="#b45309" text-anchor="middle">context for the kit</text>
+  <rect x="350" y="363" width="131" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="415.5" y="385" font-size="12" fill="#b45309" text-anchor="middle">useSession</text>
+  <text x="415.5" y="403" font-size="10" fill="#b45309" text-anchor="middle">one cached query</text>
+  <rect x="506" y="363" width="131" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="571.5" y="385" font-size="12" fill="#b45309" text-anchor="middle">usePlugin</text>
+  <text x="571.5" y="403" font-size="10" fill="#b45309" text-anchor="middle">is the plugin on?</text>
+  <rect x="38" y="498" width="131" height="54" rx="6" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="103.5" y="520" font-size="12" fill="#6b21a8" text-anchor="middle">client.ts</text>
+  <text x="103.5" y="538" font-size="10" fill="#6b21a8" text-anchor="middle">plugin namespaces</text>
+  <rect x="194" y="498" width="131" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="259.5" y="520" font-size="12" fill="#b45309" text-anchor="middle">runtime.ts</text>
+  <text x="259.5" y="538" font-size="10" fill="#b45309" text-anchor="middle">fetch, never throws</text>
+  <rect x="350" y="498" width="131" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="415.5" y="520" font-size="12" fill="#b45309" text-anchor="middle">TokenStore</text>
+  <text x="415.5" y="538" font-size="10" fill="#b45309" text-anchor="middle">bearer mode only</text>
+  <rect x="506" y="498" width="131" height="54" rx="6" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="571.5" y="520" font-size="12" fill="#6b21a8" text-anchor="middle">error-codes.ts</text>
+  <text x="571.5" y="538" font-size="10" fill="#6b21a8" text-anchor="middle">closed union of codes</text>
+  <rect x="38" y="633" width="183" height="54" rx="6" fill="#fce7f3" stroke="#ec4899"/>
+  <text x="129.5" y="655" font-size="12" fill="#9d174d" text-anchor="middle">Cookie mode (default)</text>
+  <text x="129.5" y="673" font-size="10" fill="#9d174d" text-anchor="middle">credentials: include</text>
+  <rect x="246" y="633" width="183" height="54" rx="6" fill="#fce7f3" stroke="#ec4899"/>
+  <text x="337.5" y="655" font-size="12" fill="#9d174d" text-anchor="middle">Bearer mode</text>
+  <text x="337.5" y="673" font-size="10" fill="#9d174d" text-anchor="middle">Authorization: Bearer</text>
+  <rect x="454" y="633" width="183" height="54" rx="6" fill="#fce7f3" stroke="#ec4899"/>
+  <text x="545.5" y="655" font-size="12" fill="#9d174d" text-anchor="middle">Dev proxy</text>
+  <text x="545.5" y="673" font-size="10" fill="#9d174d" text-anchor="middle">Vite forwards /auth to Go</text>
+  <rect x="38" y="768" width="183" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="129.5" y="790" font-size="12" fill="#b45309" text-anchor="middle">authhttp.Handler</text>
+  <text x="129.5" y="808" font-size="10" fill="#b45309" text-anchor="middle">routes under /auth</text>
+  <rect x="246" y="768" width="183" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="337.5" y="790" font-size="12" fill="#b45309" text-anchor="middle">Operation pipeline</text>
+  <text x="337.5" y="808" font-size="10" fill="#b45309" text-anchor="middle">rate limit · hooks · effects</text>
+  <rect x="454" y="768" width="183" height="54" rx="6" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="545.5" y="790" font-size="12" fill="#6b21a8" text-anchor="middle">password plugin</text>
+  <text x="545.5" y="808" font-size="10" fill="#6b21a8" text-anchor="middle">verify hash, create session</text>
+  <rect x="38" y="903" width="183" height="54" rx="6" fill="#d1fae5" stroke="#22c55e"/>
+  <text x="129.5" y="925" font-size="12" fill="#166534" text-anchor="middle">auth_identity</text>
+  <text x="129.5" y="943" font-size="10" fill="#166534" text-anchor="middle">password hash</text>
+  <rect x="246" y="903" width="183" height="54" rx="6" fill="#d1fae5" stroke="#22c55e"/>
+  <text x="337.5" y="925" font-size="12" fill="#166534" text-anchor="middle">auth_session</text>
+  <text x="337.5" y="943" font-size="10" fill="#166534" text-anchor="middle">the new session row</text>
+  <rect x="454" y="903" width="183" height="54" rx="6" fill="#d1fae5" stroke="#22c55e"/>
+  <text x="545.5" y="925" font-size="12" fill="#166534" text-anchor="middle">SQL database</text>
+  <text x="545.5" y="943" font-size="10" fill="#166534" text-anchor="middle">SQLite · Postgres · MySQL</text>
+  <rect x="701" y="498" width="160" height="54" rx="6" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="781" y="520" font-size="12" fill="#6b21a8" text-anchor="middle">Four .ts files</text>
+  <text x="781" y="538" font-size="10" fill="#6b21a8" text-anchor="middle">client.ts, runtime.ts, …</text>
+  <rect x="701" y="582" width="160" height="72" rx="6" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="781" y="605" font-size="12" fill="#6b21a8" text-anchor="middle">Run the generator</text>
+  <text x="781" y="623" font-size="10" fill="#6b21a8" text-anchor="middle">task docs:api → prebuilt</text>
+  <text x="781" y="638" font-size="10" fill="#6b21a8" text-anchor="middle">auth client ts → app-exact</text>
+  <rect x="701" y="684" width="160" height="54" rx="6" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="781" y="706" font-size="12" fill="#6b21a8" text-anchor="middle">TypeScriptClient(a)</text>
+  <text x="781" y="724" font-size="10" fill="#6b21a8" text-anchor="middle">authhttp generator</text>
+  <rect x="701" y="768" width="160" height="54" rx="6" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="781" y="790" font-size="12" fill="#6b21a8" text-anchor="middle">Go operations</text>
+  <text x="781" y="808" font-size="10" fill="#6b21a8" text-anchor="middle">auth.Define, per plugin</text>
+  <text x="450" y="999" font-size="10" fill="#64748b" text-anchor="middle">Blue: a password sign-in going down (1 to 6). Green: the answer coming back up (7 to 12). Purple: plugins and generated code.</text>
+</svg>

@@ -1,0 +1,1 @@
+var Locales = []string{"ar", "bn", "de", "es", "fa", "fr", "hi", "id", "it", "ja", "ko", "nl", "pl", "pt", "ru", "sv", "th", "tr", "uk", "vi", "zh"}

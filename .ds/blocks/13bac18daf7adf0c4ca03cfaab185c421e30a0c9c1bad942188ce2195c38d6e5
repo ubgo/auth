@@ -1,0 +1,24 @@
+func (p *Plugin) OperationHooks() []auth.OperationHook {
+	if p.challengeOnly {
+		return nil
+	}
+	if len(p.patterns) > 0 {
+		p.protected = append(p.protected, p.resolvePatterns()...)
+	}
+	if !p.explicit {
+		known := map[auth.EndpointID]bool{}
+		for _, id := range p.core.DisabledOperations() {
+			known[id] = true
+		}
+		narrowed := make([]auth.EndpointID, 0, len(p.protected))
+		for _, id := range p.protected {
+			if _, ok := p.core.Operation(id); ok || known[id] {
+				narrowed = append(narrowed, id)
+			}
+		}
+		if len(narrowed) > 0 {
+			p.protected = narrowed
+		}
+	}
+	return []auth.OperationHook{{Match: slices.Clone(p.protected), Before: p.before}}
+}

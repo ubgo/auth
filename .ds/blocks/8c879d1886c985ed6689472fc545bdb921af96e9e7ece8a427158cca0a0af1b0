@@ -1,0 +1,8 @@
+func WithOrganizations(o Organizations) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("apikey.WithOrganizations", o) {
+			return
+		}
+		p.orgs = o
+	}
+}
