@@ -1,0 +1,8 @@
+var (
+	_ auth.Initializer       = (*Plugin)(nil)
+	_ auth.Validator         = (*Plugin)(nil)
+	_ auth.TableOwner        = (*Plugin)(nil)
+	_ auth.TypedMigrator     = (*Plugin)(nil)
+	_ auth.OperationProvider = (*Plugin)(nil)
+	_ auth.RateLimiter       = (*Plugin)(nil)
+)

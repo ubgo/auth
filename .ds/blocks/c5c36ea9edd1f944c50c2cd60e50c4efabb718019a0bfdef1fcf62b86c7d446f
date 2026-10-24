@@ -1,0 +1,15 @@
+func checkout(md *metadata.Plugin) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u := authhttp.MustUser(r)
+		if _, err := md.Merge(r.Context(), u.ID, metadata.Public, json.RawMessage(`{"plan":"`+paidPlan+`"}`)); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if _, err := md.Merge(r.Context(), u.ID, metadata.Private, json.RawMessage(`{"billingCustomer":"cus_`+u.ID+`"}`)); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(checkoutResponse{Plan: paidPlan}) // a client that hung up cannot be told
+	})
+}

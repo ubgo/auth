@@ -1,0 +1,92 @@
+func (v Verifier) Verify(token string) (Verified, error) {
+	parts := strings.Split(token, segmentSeparator)
+	if len(parts) != segmentCount {
+		return Verified{}, fmt.Errorf("%w: not three parts", ErrInvalid)
+	}
+	// Strict: a segment has one spelling. The lenient decoder ignores the
+	// unused bits of the last character, so one signature would have many
+	// valid texts and a token could be re-encoded without the key.
+	enc := base64.RawURLEncoding.Strict()
+	hb, err := enc.DecodeString(parts[0])
+	if err != nil {
+		return Verified{}, fmt.Errorf("%w: header", ErrInvalid)
+	}
+	types := v.Types
+	if len(types) == 0 {
+		types = []string{tokenType}
+	}
+	for _, t := range types {
+		if _, err := tokenTypeOf(t); err != nil {
+			return Verified{}, err
+		}
+	}
+	h, err := parseHeader(hb, types...)
+	if err != nil {
+		return Verified{}, err
+	}
+	pub, ok := v.Keys[h.Kid]
+	if !ok && v.Lookup != nil {
+		pub, ok = v.Lookup(h.Kid)
+	}
+	if !ok {
+		return Verified{}, fmt.Errorf("%w: unknown key %q", ErrInvalid, h.Kid)
+	}
+	if err := checkSignature(pub, h.Alg, parts, enc); err != nil {
+		return Verified{}, err
+	}
+	pb, err := enc.DecodeString(parts[1])
+	if err != nil {
+		return Verified{}, fmt.Errorf("%w: payload", ErrInvalid)
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(pb, &raw); err != nil {
+		return Verified{}, fmt.Errorf("%w: payload", ErrInvalid)
+	}
+	var std struct {
+		Iss string   `json:"iss"`
+		Sub string   `json:"sub"`
+		Aud audience `json:"aud"`
+		Exp int64    `json:"exp"`
+		Nbf int64    `json:"nbf"`
+		Sid string   `json:"sid"`
+		Act *struct {
+			Sub string `json:"sub"`
+		} `json:"act"`
+	}
+	if err := json.Unmarshal(pb, &std); err != nil {
+		return Verified{}, fmt.Errorf("%w: claims", ErrInvalid)
+	}
+	now := time.Now
+	if v.Now != nil {
+		now = v.Now
+	}
+	leeway := v.Leeway
+	if leeway == 0 {
+		leeway = DefaultLeeway
+	}
+	t := now()
+	switch {
+	case std.Sub == "" || std.Exp == 0:
+		return Verified{}, fmt.Errorf("%w: missing sub or exp", ErrInvalid)
+	case t.After(time.Unix(std.Exp, 0).Add(leeway)):
+		return Verified{}, fmt.Errorf("%w: expired", ErrInvalid)
+	case std.Nbf != 0 && t.Add(leeway).Before(time.Unix(std.Nbf, 0)):
+		return Verified{}, fmt.Errorf("%w: not yet valid", ErrInvalid)
+	case v.Issuer != "" && std.Iss != v.Issuer:
+		return Verified{}, fmt.Errorf("%w: issuer %q", ErrInvalid, std.Iss)
+	case v.Audience != "" && !slices.Contains(std.Aud, v.Audience):
+		return Verified{}, fmt.Errorf("%w: audience %q", ErrInvalid, []string(std.Aud))
+	}
+	// UTC, like every time the library returns, so a caller comparing or
+	// printing it never depends on the verifying machine's time zone.
+	c := Verified{Subject: std.Sub, SessionID: std.Sid, ExpiresAt: time.Unix(std.Exp, 0).UTC(), Extra: map[string]json.RawMessage{}}
+	if std.Act != nil {
+		c.Actor = std.Act.Sub
+	}
+	for k, val := range raw {
+		if !slices.Contains(reservedClaims, k) {
+			c.Extra[k] = val
+		}
+	}
+	return c, nil
+}

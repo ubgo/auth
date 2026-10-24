@@ -1,0 +1,14 @@
+{
+  "_table": "missions",
+  "_v": 1,
+  "body": "Top-down finish of the library after the module split: code standards pass (type safety, coverage, constants, doc comments), a cookbook of runnable examples each with a README, up-to-date docs everywhere, and the ship-repo launch files. Commit only after the owner approves.",
+  "completed_at": null,
+  "created_at": "2026-09-29T07:55:54.537724000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "status": "active",
+  "target_date": "2026-10-06T00:00:00.000000000Z",
+  "title": "Ship ubgo/auth v0: optimized, fully documented, open-source ready",
+  "updated_at": "2026-09-29T07:55:54.537724000Z"
+}

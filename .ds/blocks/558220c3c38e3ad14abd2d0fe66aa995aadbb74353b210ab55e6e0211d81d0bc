@@ -1,0 +1,7 @@
+func (a *Auth) One(ctx context.Context, s Statement) error {
+	c, q, err := a.prepare(ctx, s)
+	if err != nil {
+		return err
+	}
+	return sqlb.One(ctx, c, q)
+}

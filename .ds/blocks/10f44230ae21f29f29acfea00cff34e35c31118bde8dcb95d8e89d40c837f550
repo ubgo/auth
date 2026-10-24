@@ -1,0 +1,1 @@
+var ErrNoScope = NewError("auth.no_scope", http.StatusBadRequest, "The request does not name a workspace.")

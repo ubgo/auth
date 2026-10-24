@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "Review one at a time, in plain words (owner asked to save these for later, 2026-10-07).\n1. WithoutOriginCheck lets reset and magic links point at any host: one-click account takeover (documented). Line-break and backslash refusal kept as a header-injection guard.\n2. ReuseCodeOnResend: the default code is HMAC-derived from the row id under WithSecret; a GenerateCode code is stored sealed (AES-256-GCM) in auth_code.code_sealed (migration 0006). Database AND secret together read every open code.\n3. Breaking API: phone sign-in now takes phone.SignInRequest.\n4. Sign-up fields (auth.WithSignUpFields) are limited to the app's own WithUserColumns columns; top-level keys or nested fields object, both ways = auth.field_invalid.\n5. KV verification store: cutoffs expire after max(7d, longest token issued); gap: a token issued by another process with a longer lifetime.\n6. WithSecondaryStorage does not move verification tokens; WithVerificationStore is a separate opt-in (no transaction for non-SQL stores).\n7. WeChat preset sends the app secret in the token URL (WeChat documents no other way).\n8. Left for owner: hosted demo, in-docs AI chat, remote docs MCP server and npx installer, curated videos/blog posts.\n9. CHANGELOG lines for r11-r14, round 6, r20, r21 are not yet written (see the private notes and agent reports).",
+  "commitment": "accepted",
+  "completed_at": "2026-10-10T10:00:38.604669000Z",
+  "created_at": "2026-10-07T06:25:33.461930000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Owner review later: decisions made in round 6 and r20/r21 feature builds",
+  "updated_at": "2026-10-10T10:00:38.604682000Z"
+}

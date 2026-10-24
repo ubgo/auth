@@ -1,0 +1,1 @@
+const MaxSessionLifetime = 400 * 24 * time.Hour

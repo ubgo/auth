@@ -1,0 +1,1 @@
+	ErrCallbackInvalid = auth.NewError("magiclink.callback_invalid", http.StatusBadRequest, "This page cannot be opened after signing in.")

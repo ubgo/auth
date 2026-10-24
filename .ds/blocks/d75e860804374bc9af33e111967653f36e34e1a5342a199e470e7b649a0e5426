@@ -1,0 +1,6 @@
+export async function switchTo(slug: string): Promise<string | null> {
+  const switched = await auth.organization.setActive({ orgSlug: slug });
+  if (switched.error) return null; // organization.not_member
+  const { data } = await auth.organization.active();
+  return data?.organization?.name ?? null;
+}

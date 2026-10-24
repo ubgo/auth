@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "In integration/: two organizations verify the same domain on SQLite, Postgres and MySQL, the second is refused with organization.domain_taken; several unproved rows (verified_domain NULL) are allowed. Break-verify once. Then rerun task cover once to confirm it stays at or under 168 missed.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-14T04:11:11.516466000Z",
+  "created_at": "2026-10-13T18:21:47.026107000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a1367fca9271ad875c44a5505edcc5",
+  "mission_id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-14T04:11:11.400331000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "Batch 5 follow-up: engine test for the unique verified_domain rule",
+  "updated_at": "2026-10-14T04:11:11.516468000Z"
+}

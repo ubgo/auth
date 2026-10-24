@@ -1,0 +1,13 @@
+type OperationHook struct {
+	Match  []EndpointID
+	Before func(ctx context.Context, c *Call) error
+	After  func(ctx context.Context, c *Call, result any) error
+	// Finally runs once per call after the call's transaction has ended,
+	// commit or rollback, before the observer, on every outcome, with the
+	// error the caller gets (nil on success). It returns nothing and cannot
+	// change the answer: it is for recording what happened (an audit row
+	// for a failed sign-in, a counter), never for deciding. It runs for a
+	// refusal before the input was decoded too (rate limit, origin,
+	// requirement), with c.Input nil then.
+	Finally func(ctx context.Context, c *Call, err error)
+}

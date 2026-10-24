@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r31-sso (2026-10-07): plugin/sso uses gosaml2 + goxmldsig + etree (chosen over crewjam/saml: per-provider settings, not package globals; returns only signed content). One shared OIDC callback and SAML ACS path (core routes exact paths). Domain verification tokens are stable HMACs with no expiry.",
+  "created_at": "2026-10-07T08:30:36.690236000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1157c669274039d5b0e0d80d405d0",
+  "updated_at": "2026-10-07T08:30:36.690236000Z"
+}

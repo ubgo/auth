@@ -1,0 +1,6 @@
+func NewMemoryStorage(now func() time.Time) SecondaryStorage {
+	if now == nil {
+		now = time.Now
+	}
+	return &memoryStorage{now: now, vals: map[string]memoryValue{}}
+}

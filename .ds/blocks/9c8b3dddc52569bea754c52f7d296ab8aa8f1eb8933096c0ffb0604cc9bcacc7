@@ -1,0 +1,1 @@
+type EnrolmentRule func(ctx context.Context, a *auth.Auth, userID string) (bool, error)

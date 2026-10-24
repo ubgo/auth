@@ -1,0 +1,11 @@
+func (p *Plugin) Claim(ctx context.Context, userID, handle string) error {
+	if p.core == nil {
+		return auth.ErrOperationNotWired
+	}
+	ids, err := p.core.Identities(ctx, userID)
+	if err != nil {
+		return err
+	}
+	_, err = p.replaceHandle(ctx, userID, ids, handle)
+	return err
+}

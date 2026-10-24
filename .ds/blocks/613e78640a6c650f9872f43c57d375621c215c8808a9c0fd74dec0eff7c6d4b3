@@ -1,0 +1,14 @@
+console.log("re-authentication on the current session");
+const currentId = (r: AuthResult<AuthSessionsResult>) => r.data?.sessions?.find((x) => x.current)?.id;
+const before = currentId(await laptop.sessions()) ?? fail("no session to re-authenticate");
+step("password.reauthenticate (wrong password)", await laptop.password.reauthenticate({ password: FIRST_PASSWORD }), "password.invalid_credentials");
+const first = step("password.reauthenticate", await laptop.password.reauthenticate({ password: NEW_PASSWORD }), "ok", (d) => `fresh=${d.fresh} secondFactorRequired=${d.secondFactorRequired}`);
+// Ada has a second factor, so the password alone is not enough: the answer
+// carries a ticket, and the code finishes the same re-authentication.
+const ticket = first?.ticket ?? fail("password.reauthenticate returned no ticket");
+step("twofactor.send", await laptop.twofactor.send(), "ok");
+const reauthCode = await mailbox(ADA);
+step("twofactor.reauthenticate", await laptop.twofactor.reauthenticate({ code: reauthCode.code, ticket }), "ok", (d) => `fresh=${d.fresh}`);
+step("sessions (the same one, now fresh)", await laptop.sessions(), "ok", (d) => `same id: ${d.sessions?.find((x) => x.current)?.id === before}`);
+
+console.log("organizations");

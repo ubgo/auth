@@ -1,0 +1,11 @@
+type RemoteKeys struct {
+	url string
+	hc  *http.Client
+	// Now is the clock; nil means time.Now.
+	Now func() time.Time
+
+	mu      sync.Mutex
+	keys    map[string]ed25519.PublicKey
+	fetched time.Time
+	lastErr error
+}

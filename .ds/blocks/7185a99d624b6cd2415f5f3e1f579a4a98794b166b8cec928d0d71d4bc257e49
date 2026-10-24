@@ -1,0 +1,15 @@
+type UserMembership struct {
+	// Role is the user's role in the organization the join was parameterised
+	// with. Empty when they are not a member, because the join is LEFT and the
+	// binding coalesces the null away.
+	Role Role
+
+	// JoinedAt is nil when they are not a member.
+	//
+	// A pointer rather than a bare time.Time because this column arrives via a
+	// LEFT join and database/sql cannot scan NULL into a time.Time. Coalescing
+	// it would mean inventing a fallback timestamp, which is worse than nil: a
+	// zero time reads as a real value from 1 January year 1 and will eventually
+	// be formatted into someone's interface.
+	JoinedAt *time.Time
+}

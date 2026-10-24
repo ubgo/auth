@@ -1,0 +1,39 @@
+func DefaultTemplates(m auth.Message) (subject, text string) {
+	switch m.Purpose {
+	case auth.PurposeVerify:
+		// Under VerifyByCode the message carries a code instead of a link.
+		if m.Code != "" && m.Link == "" {
+			return "Your verification code", "Your verification code is " + m.Code + ".\n\nIf you did not ask for this, ignore this email."
+		}
+		return "Verify your email address", "Open this link to verify your email address:\n\n" + m.Link + "\n\nIf you did not ask for this, ignore this email."
+	case auth.PurposeReset:
+		// A reset by code (the password plugin's ResetByCode) carries a code
+		// instead of a link.
+		if m.Code != "" && m.Link == "" {
+			return "Your password reset code", "Your password reset code is " + m.Code + ".\n\nIf you did not ask for this, ignore this email. Your password has not changed."
+		}
+		return "Reset your password", "Open this link to choose a new password:\n\n" + m.Link + "\n\nIf you did not ask for this, ignore this email. Your password has not changed."
+	case auth.PurposeSignUpAttempt:
+		return "Someone tried to sign up with your address", "Someone tried to create an account with this email address. You already have one.\n\nIf this was you, sign in instead. If it was not, you do not need to do anything."
+	case auth.PurposeChanged:
+		return "Your email address was changed", "The email address of your account was changed. If you did not do this, open this link to undo it and sign out every session:\n\n" + m.Link
+	case auth.PurposeSignInCode:
+		return "Your sign-in code", "Your sign-in code is " + m.Code
+	case auth.PurposeWelcome:
+		return "Welcome", "Your account is ready. You can sign in with this address from now on."
+	case auth.PurposeSignInLink:
+		return "Your sign-in link", "Open this link to sign in. It works once, for a few minutes:\n\n" + m.Link + "\n\nIf you did not ask for this, ignore this email."
+	default:
+		// A purpose of another plugin: use its own wording when it gave some
+		// (auth.Message.DefaultText), under the generic subject if it gave
+		// none, so a mail never goes out without one.
+		subject := genericSubject
+		if m.DefaultSubject != "" {
+			subject = m.DefaultSubject
+		}
+		if m.DefaultText != "" {
+			return subject, m.DefaultText
+		}
+		return subject, m.Link
+	}
+}

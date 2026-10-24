@@ -1,0 +1,1 @@
+var ErrIDTokenReplayed = auth.NewError("oauth.id_token_replayed", http.StatusUnauthorized, "This sign-in token was already used. Sign in with the provider again.")

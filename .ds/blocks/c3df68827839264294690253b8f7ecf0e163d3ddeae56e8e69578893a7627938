@@ -1,0 +1,3 @@
+type DomainVerifier interface {
+	VerifyDomain(ctx context.Context, ch DomainChallenge) (bool, error)
+}

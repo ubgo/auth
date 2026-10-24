@@ -1,0 +1,12 @@
+func (p *Plugin) ImportAccount(ctx context.Context, in ImportAccount) error {
+	if in.UserID == "" || in.ProviderAccountID == "" {
+		return ErrImportSubject
+	}
+	if p.provider(in.Provider) == nil {
+		return fmt.Errorf("%w: %q", ErrProviderUnknown, in.Provider)
+	}
+	if _, err := p.core.User(ctx, in.UserID); err != nil {
+		return err
+	}
+	return p.createAccount(ctx, in.UserID, in.Provider, Profile{Subject: in.ProviderAccountID, Email: in.Email})
+}

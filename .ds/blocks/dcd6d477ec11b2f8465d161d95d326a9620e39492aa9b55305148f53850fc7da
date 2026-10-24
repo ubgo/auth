@@ -1,0 +1,3 @@
+func (p *Plugin) Callback(ctx context.Context, provider string, in CallbackRequest) (CallbackResult, error) {
+	return callProvider[CallbackRequest, CallbackResult](ctx, p, p.callbacks, provider, in)
+}

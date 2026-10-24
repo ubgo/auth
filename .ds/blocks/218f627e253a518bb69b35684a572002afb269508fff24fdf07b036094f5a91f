@@ -1,0 +1,6 @@
+func newExports() *exportsPlugin {
+	return &exportsPlugin{request: auth.Define(
+		auth.OpInfo{ID: EndpointExport, Kind: auth.Mutation, Require: auth.SignedIn, Path: "/request"},
+		func(context.Context, *auth.Call, struct{}) (auth.Done, error) { return auth.Done{OK: true}, nil },
+	)}
+}

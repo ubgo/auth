@@ -1,0 +1,3 @@
+func ReferencesUser(col string) string {
+	return "FOREIGN KEY (" + col + ") REFERENCES " + TableNameUser + " (" + ColUserID + ") ON DELETE CASCADE"
+}

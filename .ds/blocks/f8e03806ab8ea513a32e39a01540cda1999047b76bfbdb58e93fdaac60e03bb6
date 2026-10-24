@@ -1,0 +1,8 @@
+func (c *Call) Annotation(key string) string {
+	if c.annotations == nil {
+		return ""
+	}
+	c.annotations.mu.Lock()
+	defer c.annotations.mu.Unlock()
+	return c.annotations.m[key]
+}

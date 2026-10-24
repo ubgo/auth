@@ -1,0 +1,6 @@
+var homePage = template.Must(template.New("home").Parse(`<!doctype html>
+<title>OAuth: link and tokens</title>
+{{if .User}}<p>Signed in as {{.User}}.</p>
+<p><a href="/auth/oauth/corp/start?link=true&returnTo=/tokens">Link corp</a> · <a href="/auth/oauth/accounts">Linked accounts</a> · <a href="/tokens">Provider tokens</a></p>
+{{else}}<p><a href="/auth/oauth/corp/start?returnTo=/me">Sign in with corp</a></p>
+{{end}}`))

@@ -1,0 +1,6 @@
+type SessionReauthStore interface {
+	// SetReauthenticatedAt records at as session id's ReauthenticatedAt. An
+	// unknown or ended id is no error. Every other field, the expiry and the
+	// token above all, stays as it is.
+	SetReauthenticatedAt(ctx context.Context, id string, at time.Time) error
+}

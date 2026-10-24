@@ -1,0 +1,12 @@
+func (s *mapVerificationStore) Consume(_ context.Context, purpose auth.Purpose, tokenHash []byte, now time.Time) (auth.Verification, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	key := storeKey(purpose, tokenHash)
+	v, ok := s.rows[key]
+	if !ok || !v.ExpiresAt.After(now) {
+		return auth.Verification{}, auth.ErrTokenInvalid
+	}
+	delete(s.rows, key)
+	v.ConsumedAt = &now
+	return v, nil
+}

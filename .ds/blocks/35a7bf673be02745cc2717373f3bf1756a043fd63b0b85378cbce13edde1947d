@@ -1,0 +1,9 @@
+func WithLogger(l *slog.Logger) Option {
+	return func(s *settings) {
+		if l == nil {
+			s.refuseNil("WithLogger")
+			return
+		}
+		s.logger = l
+	}
+}

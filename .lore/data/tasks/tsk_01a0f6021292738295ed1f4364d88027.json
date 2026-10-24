@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-07T06:55:30.053619000Z",
+  "created_at": "2026-10-01T05:48:46.098227000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0f6021292738295ed1f4364d88027",
+  "mission_id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "plan_id": null,
+  "priority": "low",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-07T06:49:21.703002000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "oauth: typed Go methods for start and callback (today only Operation.Invoke reaches them)",
+  "updated_at": "2026-10-07T06:55:30.053633000Z"
+}

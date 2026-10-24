@@ -1,0 +1,1 @@
+func WithStatelessVersion(n int) Option { return func(s *settings) { s.statelessVersion = n } }

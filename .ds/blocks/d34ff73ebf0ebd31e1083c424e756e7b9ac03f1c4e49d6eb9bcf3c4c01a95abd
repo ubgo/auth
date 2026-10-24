@@ -1,0 +1,5 @@
+export async function securityHistory(page: number): Promise<string[]> {
+  const { data, error } = await auth.audit.myEvents({ limit: "20", page: String(page) });
+  if (error) return []; // audit.no_query_backend when the server's audit sink cannot be queried
+  return (data.events ?? []).map((e) => `${e.at} ${e.type} ${e.ok ? "ok" : (e.code ?? "refused")} from ${e.ip ?? "?"}`);
+}

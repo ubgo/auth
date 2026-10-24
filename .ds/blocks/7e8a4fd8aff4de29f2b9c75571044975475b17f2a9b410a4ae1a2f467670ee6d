@@ -1,0 +1,3 @@
+func (p *Plugin) Set(ctx context.Context, handle string) (Result, error) {
+	return p.set.Call(ctx, Request{Username: handle})
+}

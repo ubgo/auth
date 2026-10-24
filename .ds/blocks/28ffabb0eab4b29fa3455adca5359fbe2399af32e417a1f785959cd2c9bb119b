@@ -1,0 +1,1 @@
+export const web = createAuthClient({ baseURL: "/auth", plugins: [password(), lastLoginMethod()] });

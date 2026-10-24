@@ -1,0 +1,7 @@
+func (p *Plugin) IsAnonymous(ctx context.Context, userID string) (bool, error) {
+	var c AnonymousColumns
+	if err := p.core.LoadUserColumns(ctx, userID, Bindings(&c)...); err != nil {
+		return false, err
+	}
+	return c.IsAnonymous, nil
+}

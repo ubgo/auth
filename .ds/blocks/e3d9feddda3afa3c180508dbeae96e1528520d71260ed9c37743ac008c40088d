@@ -1,0 +1,14 @@
+func postgresMigrationSQL() (string, error) {
+	a, err := auth.New(
+		auth.WithDialect(sqlb.PostgresDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSQLTypes(auth.EnginePostgres, postgresTypes),
+		auth.WithIDs(newUUIDv7),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(logMailer{})), password.New()),
+	)
+	if err != nil {
+		return "", err
+	}
+	defer a.Close()
+	return a.MigrationSQL()
+}

@@ -1,0 +1,12 @@
+func newHandler(a *auth.Auth, op *oauthprovider.Plugin) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle("/.well-known/", op.Handler())
+	mux.Handle(oauthprovider.DefaultBasePath+"/", op.Handler())
+	mux.Handle("GET "+loginPath, loginPage(op))
+	mux.HandleFunc("GET "+consentPath, consentPage)
+	mux.Handle(mcpPath, op.RequireToken(oauthprovider.RequireOptions{
+		Resource: mcpURL, Scopes: []string{scopeMCPTools}, JSONRPC: true,
+	})(http.HandlerFunc(mcpServer)))
+	return mux
+}

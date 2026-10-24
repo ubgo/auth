@@ -1,0 +1,32 @@
+func newServiceProvider(base, metadataURL string, client *http.Client) (*saml2.SAMLServiceProvider, error) {
+	res, err := client.Get(metadataURL)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	doc := etree.NewDocument()
+	if _, err := doc.ReadFrom(io.LimitReader(res.Body, 1<<20)); err != nil {
+		return nil, err
+	}
+	ed := doc.Root()
+	certEl := ed.FindElement("./IDPSSODescriptor/KeyDescriptor/KeyInfo/X509Data/X509Certificate")
+	ssoEl := ed.FindElement("./IDPSSODescriptor/SingleSignOnService[@Binding='" + samlidp.BindingRedirect + "']")
+	if certEl == nil || ssoEl == nil {
+		return nil, errors.New("metadata has no signing certificate or redirect SSO service")
+	}
+	der, err := base64.StdEncoding.DecodeString(certEl.Text())
+	if err != nil {
+		return nil, err
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		return nil, err
+	}
+	sp := demoSP(base)
+	return &saml2.SAMLServiceProvider{
+		IdentityProviderSSOURL: ssoEl.SelectAttrValue("Location", ""), IdentityProviderIssuer: ed.SelectAttrValue("entityID", ""),
+		ServiceProviderIssuer: sp.EntityID, AssertionConsumerServiceURL: sp.ACSURLs[0], AudienceURI: sp.EntityID,
+		IDPCertificateStore: &dsig.MemoryX509CertificateStore{Roots: []*x509.Certificate{cert}},
+		NameIdFormat:        samlidp.NameIDPersistent, AllowMissingAttributes: true, Clock: dsig.NewRealClock(),
+	}, nil
+}

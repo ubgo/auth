@@ -1,0 +1,8 @@
+func NewSessionToken(ctx context.Context) (auth.Token, bool) {
+	for _, e := range auth.RequestEffects(ctx) {
+		if e.Kind == auth.EffectHeader && e.Name == SetOTTHeader {
+			return auth.Token(e.Value), true
+		}
+	}
+	return "", false
+}

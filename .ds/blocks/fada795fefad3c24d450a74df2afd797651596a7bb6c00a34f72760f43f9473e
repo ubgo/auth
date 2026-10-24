@@ -1,0 +1,12 @@
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <AuthProviders>
+          <Header />
+          {children}
+        </AuthProviders>
+      </body>
+    </html>
+  )
+}

@@ -1,0 +1,15 @@
+func newAuth(db *sql.DB, m email.Mailer, secret []byte, extra ...auth.Option) (*auth.Auth, error) {
+	pk := passkey.New(passkey.DisplayName(appName))
+	opts := []auth.Option{
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSecret(secret),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			pk,
+			twofactor.New(twofactor.Issuer(appName), twofactor.WithSecurityKeys(pk.SecurityKeys())),
+		),
+	}
+	return auth.New(append(opts, extra...)...)
+}

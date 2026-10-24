@@ -1,0 +1,12 @@
+func newHandler(a *auth.Auth) (http.Handler, error) {
+	orgs, err := auth.PluginOf[*organization.Plugin](a)
+	if err != nil {
+		return nil, err
+	}
+	mw := authhttp.Middleware(a)
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle("GET /orgs/{"+pathOrgParam+"}/dashboard", mw(orgs.RequireRole(orgInPath, organization.RoleMember)(page("dashboard"))))
+	mux.Handle("GET /orgs/{"+pathOrgParam+"}/billing", mw(orgs.RequireRole(orgInPath, organization.RoleAdmin)(page("billing"))))
+	return mux, nil
+}

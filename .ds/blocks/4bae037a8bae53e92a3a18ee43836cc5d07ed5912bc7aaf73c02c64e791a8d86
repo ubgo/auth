@@ -1,0 +1,1 @@
+func WithSessionArchive() Option { return func(s *settings) { s.archive = true } }

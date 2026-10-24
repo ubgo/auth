@@ -1,0 +1,15 @@
+type ReauthenticateIDTokenRequest struct {
+	// Provider names the provider that issued IDToken; it must verify ID
+	// tokens (an IDTokenVerifier) and the user must have an account linked
+	// there.
+	Provider string `json:"provider"`
+	// IDToken is the provider's ID token, a compact JWS.
+	IDToken string `json:"idToken"`
+	// Nonce is the value the app sent to the provider, when it sent one,
+	// under the same rule as IDTokenRequest.Nonce.
+	Nonce string `json:"nonce,omitempty"`
+	// AccessToken is the access token the SDK received with the ID token,
+	// taken only when the ID token's at_hash binds it, and then stored under
+	// StoreTokens, as IDTokenRequest.AccessToken is.
+	AccessToken string `json:"accessToken,omitempty"`
+}

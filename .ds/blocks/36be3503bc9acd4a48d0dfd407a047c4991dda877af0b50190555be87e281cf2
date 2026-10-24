@@ -1,0 +1,1 @@
+const DefaultTransientIdleTimeout = 12 * time.Hour

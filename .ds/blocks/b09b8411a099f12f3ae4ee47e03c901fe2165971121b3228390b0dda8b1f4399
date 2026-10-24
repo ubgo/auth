@@ -1,0 +1,5 @@
+type MemoryCache struct {
+	mu      sync.Mutex
+	entries map[string]memoryEntry
+	now     func() time.Time
+}

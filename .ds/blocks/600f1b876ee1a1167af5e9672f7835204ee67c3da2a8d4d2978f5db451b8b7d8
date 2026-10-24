@@ -1,0 +1,5 @@
+type browser struct {
+	srv    *httptest.Server
+	client *http.Client
+	origin string
+}

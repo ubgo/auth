@@ -1,0 +1,4 @@
+func me(c echo.Context) error {
+	u := authecho.MustUser(c)
+	return c.JSON(http.StatusOK, meResponse{ID: u.ID, Hello: u.Name})
+}

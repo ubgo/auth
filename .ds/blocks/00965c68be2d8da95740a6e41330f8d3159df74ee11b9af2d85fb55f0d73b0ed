@@ -1,0 +1,4 @@
+export async function apiKeyCount(): Promise<number> {
+  const { data } = await auth.apikey.list();
+  return data?.total ?? 0;
+}

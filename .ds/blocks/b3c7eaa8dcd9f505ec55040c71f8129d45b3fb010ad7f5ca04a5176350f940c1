@@ -1,0 +1,18 @@
+const approvalPageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Approve an agent</title>
+<form id="f"><input name="user_code" placeholder="Code"> <button value="approve">Approve</button> <button value="deny">Deny</button></form>
+<pre id="out"></pre>
+<script>
+const q = new URLSearchParams(location.search);
+document.querySelector("[name=user_code]").value = q.get("user_code") || "";
+document.getElementById("f").onsubmit = async (e) => {
+  e.preventDefault();
+  const res = await fetch("` + authPrefix + `/agentauth/approve-capability", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({agent_id: q.get("agent_id"), user_code: e.target.user_code.value, action: e.submitter.value}),
+  });
+  document.getElementById("out").textContent = JSON.stringify(await res.json(), null, 2);
+};
+</script>
+`

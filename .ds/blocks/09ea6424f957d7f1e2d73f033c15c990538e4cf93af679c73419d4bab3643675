@@ -1,0 +1,7 @@
+func pageTemplates() fs.FS {
+	own, err := fs.Sub(pagesFS, pagesDir)
+	if err != nil {
+		panic(err) // pagesDir is a constant that the embed directive names
+	}
+	return overlayFS{top: own, base: authui.DefaultTemplates()}
+}

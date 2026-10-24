@@ -1,0 +1,6 @@
+var appColumns = []auth.ColumnExtension{
+	{Name: colCompany, Type: auth.ColumnText, Default: "''"},
+	{Name: colSeats, Type: auth.ColumnInt, Default: "1"},
+	{Name: colNewsletter, Type: auth.ColumnBool, Default: "false"},
+	{Name: colPlan, Type: auth.ColumnText, Default: "'free'"},
+}

@@ -1,0 +1,8 @@
+func StoreTokens(key ...[]byte) Option {
+	return func(p *Plugin) {
+		p.keepTokens = true
+		if len(key) > 0 {
+			p.tokenKey = key[0]
+		}
+	}
+}

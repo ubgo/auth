@@ -1,0 +1,1 @@
+type LinkFunc func(ctx context.Context, tx sqlb.DBTX, guest, user auth.User) error

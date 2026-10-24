@@ -1,0 +1,4 @@
+export async function myMetadata(): Promise<unknown> {
+  const { data } = await auth.metadata.get();
+  return data?.public ?? null;
+}

@@ -1,0 +1,6 @@
+export const persistent = createAuthClient({
+  baseURL: "https://api.example.com/auth",
+  tokenMode: "bearer",
+  tokenStore: keyValueTokenStore(localStorage),
+  plugins: [password()],
+});

@@ -1,0 +1,1 @@
+func ExposeAccessTokens() Option { return func(p *Plugin) { p.exposeTokens = true } }

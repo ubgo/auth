@@ -1,0 +1,3 @@
+func WithDB(db *sql.DB, d sqlb.Dialect) Option {
+	return func(s *settings) { s.db, s.cfg.Dialect = db, d }
+}

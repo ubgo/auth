@@ -1,0 +1,8 @@
+export async function signUpWithCaptcha(address: string, secret: string, widgetToken: string): Promise<string> {
+  const { error } = await auth.password.signUp(
+    { identifier: address, password: secret },
+    { headers: { "X-Captcha-Response": widgetToken } },
+  );
+  if (!error) return "signed-up";
+  return error.code === "captcha.failed" || error.code === "captcha.missing" ? "Solve the captcha again." : error.message;
+}

@@ -1,0 +1,10 @@
+func RequireUserExcept(next http.Handler, allow ...string) http.Handler {
+	guarded := RequireUser(next)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if pathAllowed(r.URL.Path, allow) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		guarded.ServeHTTP(w, r)
+	})
+}

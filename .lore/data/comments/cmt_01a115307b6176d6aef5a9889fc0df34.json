@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r25-plugins (2026-10-07): (1) password change-expired changes an expired password with only the old one; the session it returns still waits for the second factor (lead checked: startSession -> CreateSessionWithOptions), but someone holding only the old password can change it and end the owner's sessions. (2) passkey allow-list needs metadata; the plugin checks the attestation chain itself because go-webauthn skips none/self attestation. (3) a re-hash no longer moves updated_at. (4) History(n) creates auth_password_history only when on. Examples read PORT and REPORT_PORT/API_PORT/PORT_B/ISSUER_PORT (r24). oauth ErrProviderUnknown is a plain error (r24).",
+  "created_at": "2026-10-07T07:07:41.281434000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a115307b6176d6aef5a9889fc0df34",
+  "updated_at": "2026-10-07T07:07:41.281435000Z"
+}

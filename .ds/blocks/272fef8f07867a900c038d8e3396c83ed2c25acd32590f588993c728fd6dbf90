@@ -1,0 +1,11 @@
+type SpanInfo struct {
+	Kind      SpanKind
+	Name      string
+	Op        OpInfo
+	Plugin    string
+	Transport Transport
+	Stage     HookStage
+	Source    string
+	// Route is the request path a middleware span wraps; empty otherwise.
+	Route string
+}

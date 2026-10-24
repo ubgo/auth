@@ -1,0 +1,3 @@
+func WithDataHooks(h ...DataHooks) Option {
+	return func(s *settings) { s.dataHooks = append(s.dataHooks, h...) }
+}

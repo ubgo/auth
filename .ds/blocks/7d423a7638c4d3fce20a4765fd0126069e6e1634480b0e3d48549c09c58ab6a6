@@ -1,0 +1,11 @@
+func TestChat_NewRefusesAPluginWithoutASender(t *testing.T) {
+	db := openDB(t)
+	_, err := auth.New(
+		auth.WithDB(db, dialect),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.WithMailer(discard{})), password.New(), chat.New(nil, chat.Recover())),
+	)
+	if !errors.Is(err, chat.ErrNoSender) {
+		t.Fatalf("auth.New = %v, want %v", err, chat.ErrNoSender)
+	}
+}

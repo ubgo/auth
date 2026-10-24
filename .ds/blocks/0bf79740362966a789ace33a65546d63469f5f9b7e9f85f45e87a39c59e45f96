@@ -1,0 +1,4 @@
+export async function secondFactorMethods(): Promise<string[]> {
+  const { data } = await auth.twofactor.status();
+  return data?.enabled ? (data.methods ?? []) : [];
+}

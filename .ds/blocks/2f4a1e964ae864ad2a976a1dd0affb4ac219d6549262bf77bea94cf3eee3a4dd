@@ -1,0 +1,17 @@
+func ensureEndpoint(ctx context.Context, hooks *webhook.Plugin, target string) (string, error) {
+	eps, err := hooks.Endpoints(ctx)
+	if err != nil {
+		return "", err
+	}
+	for _, ep := range eps {
+		if ep.URL == target {
+			return hooks.EndpointSecret(ctx, ep.ID)
+		}
+	}
+	ep, secret, err := hooks.CreateEndpoint(ctx, webhook.EndpointInput{URL: target, Description: "demo receiver"})
+	if err != nil {
+		return "", err
+	}
+	log.Printf("registered endpoint %s for %s", ep.ID, ep.URL)
+	return secret, nil
+}

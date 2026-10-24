@@ -1,0 +1,8 @@
+type TokenResult struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
+	Scope       string `json:"scope"`
+	// UserID is the signed-in user, for a Go caller; not part of the RFC answer.
+	UserID string `json:"-"`
+}

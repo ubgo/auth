@@ -1,0 +1,8 @@
+func WithOptions(opts ...auth.Option) Option {
+	return func(s *settings) {
+		if auth.RefuseNilEach(&s.optErrs, "authtest.WithOptions", opts) {
+			return
+		}
+		s.opts = append(s.opts, opts...)
+	}
+}

@@ -1,0 +1,1 @@
+func WithDeviceSessionExtras() Option { return func(s *settings) { s.deviceExtras = true } }

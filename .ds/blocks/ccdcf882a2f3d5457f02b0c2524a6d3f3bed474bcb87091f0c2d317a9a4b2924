@@ -1,0 +1,8 @@
+func WithTrialAbuseCheck(c TrialAbuseChecker, p RiskPolicy) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithTrialAbuseCheck", c) {
+			return
+		}
+		s.riskTrial = &riskCheck[TrialAbuseChecker]{checker: c, policy: p}
+	}
+}

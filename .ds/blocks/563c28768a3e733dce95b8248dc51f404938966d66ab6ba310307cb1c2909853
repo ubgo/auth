@@ -1,0 +1,6 @@
+func newHandler(a *auth.Auth) *echo.Echo {
+	e := echo.New()
+	authecho.Mount(e.Group(authPrefix), a)
+	e.GET("/me", me, authecho.Middleware(a), authecho.RequireUser())
+	return e
+}

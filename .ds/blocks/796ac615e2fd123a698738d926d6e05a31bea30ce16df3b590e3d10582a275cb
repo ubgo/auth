@@ -1,0 +1,8 @@
+func newHandler(a *auth.Auth, dp *deviceauth.Plugin) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("POST "+codePath, dp.CodeHandler())
+	mux.Handle("POST "+tokenPath, dp.TokenHandler())
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle("/me", authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(me))))
+	return mux
+}

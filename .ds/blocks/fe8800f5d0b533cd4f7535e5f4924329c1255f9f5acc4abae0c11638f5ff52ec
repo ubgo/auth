@@ -1,0 +1,6 @@
+func brandTemplates(m auth.Message) (subject, text string) {
+	if m.Purpose == auth.PurposeWelcome {
+		return "Welcome to " + appName, "Your address is verified and your " + appName + " account is ready."
+	}
+	return email.DefaultTemplates(m)
+}

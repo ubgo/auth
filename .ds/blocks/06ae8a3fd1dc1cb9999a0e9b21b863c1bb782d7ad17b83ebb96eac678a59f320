@@ -1,0 +1,3 @@
+func VerifyByGET(callback string) Option {
+	return func(p *Plugin) { p.getVerify, p.getCallback = true, callback }
+}

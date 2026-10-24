@@ -1,0 +1,1 @@
+func DeferUpdates() Option { return func(p *Plugin) { p.deferUpdates = true } }

@@ -1,0 +1,37 @@
+# BEGIN repolink (managed — do not edit)
+/CLAUDE.md
+/docsi
+# END repolink
+
+# lore
+.lore/lore.db
+.lore/lore.db-shm
+.lore/lore.db-wal
+.lore/state/
+.lore/backups/
+
+# coverage output (task cover)
+.cover/
+
+# SQLite files left by running an example (go run ./<example> from examples/)
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+
+# binary left by "go build" in integration/ (the apiref command lives in integration/cmd/apiref)
+/integration/apiref
+
+# node dependencies and build output of the React UI kit and its demo
+node_modules/
+/clients/react/registry/r/
+/examples/react-demo/web/dist/
+/examples/react-demo/web/.shots/
+/examples/react-demo/.bin/
+/examples/react-demo/*.2fa-key
+
+# bearer token file written by examples/ts-client-bearer/web/cli.ts (a live credential)
+.auth-token
+
+# lore's generated agent page (regenerated locally)
+.lore/LORE.md

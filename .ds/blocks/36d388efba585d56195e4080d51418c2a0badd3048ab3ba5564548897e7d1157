@@ -1,0 +1,5 @@
+export async function changeAddress(address: string): Promise<"sent" | "sign-in-again" | string> {
+  const { error } = await auth.email.change({ email: address });
+  if (!error) return "sent";
+  return error.code === "auth.fresh_session_required" ? "sign-in-again" : error.message;
+}

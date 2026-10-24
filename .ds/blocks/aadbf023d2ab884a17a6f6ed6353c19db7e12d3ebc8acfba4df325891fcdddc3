@@ -1,0 +1,1 @@
+func (u *appUser) Joins() []sqlb.Join { return []sqlb.Join{username.UserJoin()} }

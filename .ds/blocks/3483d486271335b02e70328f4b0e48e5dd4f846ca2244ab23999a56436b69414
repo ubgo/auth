@@ -1,0 +1,8 @@
+type Group struct {
+	Schemas     []string `json:"schemas"`
+	ID          string   `json:"id,omitempty"`
+	ExternalID  string   `json:"externalId,omitempty"`
+	DisplayName string   `json:"displayName"`
+	Members     []Member `json:"members,omitempty"`
+	Meta        *Meta    `json:"meta,omitempty"`
+}

@@ -1,0 +1,23 @@
+func newAuth(db *sql.DB, m email.Mailer, dns email.MXResolver, allowed []string) (*auth.Auth, error) {
+	blocked, err := email.ParseDomainList(strings.NewReader(blockList))
+	if err != nil {
+		return nil, err
+	}
+	checks := []email.AddressCheck{email.BlockDomains(blocked...), email.RequireMX(dns, 0)}
+	if len(allowed) > 0 {
+		checks = append([]email.AddressCheck{email.AllowDomains(allowed...)}, checks...)
+	}
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m),
+				email.CheckAddresses(checks...),
+				email.Welcome(),
+				email.Templates(brandTemplates),
+				email.TemplatesByLocale(map[string]email.TemplateFunc{localeFrench: frenchTemplates}),
+			),
+			password.New(),
+		),
+	)
+}

@@ -1,0 +1,17 @@
+type Signer interface {
+	// PublicKeys returns every key a token in flight may carry, the key
+	// that signs now first: its KeyID becomes the token's kid header, and
+	// the JWKS publishes the list in this order. An empty list means the
+	// signer cannot sign, and Token fails with ErrSignerKey.
+	PublicKeys() []crypto.PublicKey
+	// Sign returns the JWS signature of the signing input (header dot
+	// payload) with the private half of key, the first key PublicKeys
+	// returned when the token's header was built: for EdDSA the Ed25519
+	// signature of the input, for RS256 the PKCS #1 v1.5 signature of its
+	// SHA-256, for ES256 the 64-byte r||s of its SHA-256 (RFC 7518 section
+	// 3.4, not the ASN.1 form crypto.Signer returns). The key is passed
+	// back, rather than assumed current, so a signer whose key changes
+	// between the two calls, at the instant of a rotation, still signs with
+	// the key the header names.
+	Sign(ctx context.Context, key crypto.PublicKey, signingInput []byte) ([]byte, error)
+}

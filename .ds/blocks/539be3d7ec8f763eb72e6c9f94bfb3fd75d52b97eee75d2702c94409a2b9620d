@@ -1,0 +1,1 @@
+func Kinds(kinds ...auth.IdentifierKindName) Option { return func(p *Plugin) { p.kinds = kinds } }

@@ -1,0 +1,9 @@
+func newAgentAuth(l *ledger) *agentauth.Plugin {
+	return agentauth.New(
+		agentauth.Capabilities(
+			agentauth.Capability{Name: capListInvoices, Description: "List your unpaid invoices"},
+			agentauth.Capability{Name: capPayInvoice, Description: "Pay one of your invoices", RequiredConstraints: []string{argAmount}},
+		),
+		agentauth.OnExecute(l.execute),
+	)
+}

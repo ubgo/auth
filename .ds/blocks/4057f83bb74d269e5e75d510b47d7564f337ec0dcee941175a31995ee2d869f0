@@ -1,0 +1,8 @@
+func newHandler(a *auth.Auth) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	cart := &cart{db: a.DB()}
+	mux.Handle("GET /cart", authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(cart.list))))
+	mux.Handle("POST /cart", authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(cart.add))))
+	return mux
+}

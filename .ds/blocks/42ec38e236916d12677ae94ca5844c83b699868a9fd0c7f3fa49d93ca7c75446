@@ -1,0 +1,1 @@
+type RateExemptFunc func(ctx context.Context, c *Call) bool

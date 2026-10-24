@@ -1,0 +1,8 @@
+func WithSessionStore(s SessionStore) Option {
+	return func(st *settings) {
+		if st.optErrs.RefuseNil("auth.WithSessionStore", s) {
+			return
+		}
+		st.sessions = s
+	}
+}

@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Build first (auth itself): admin control of another user's 2FA, email domain allow-list, unknown-device sign-in mail, LDAP sign-in module, SIWE sign-in module, graded log/challenge/block on auth rate rules. Later (peripheral, after the core has no gaps): security event stream and drains, geo-blocking and impossible travel, proof-of-work, stale-account monitoring. No vendor connectors ever; interfaces and hooks only.",
+  "confidence": null,
+  "created_at": "2026-10-09T08:02:57.063874000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a11fafcba77d599770997485d1d707",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Owner 2026-10-09: focus on auth itself; build order",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-09T08:02:57.063874000Z"
+}

@@ -1,0 +1,29 @@
+const pageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Passkeys</title>
+<form id="signup"><input name="name" placeholder="name"> <input name="identifier" type="email" placeholder="email"> <input name="password" type="password" placeholder="password"> <button>Sign up</button></form>
+<button id="add">Add a passkey</button>
+<button id="signin">Sign in with a passkey</button>
+<pre id="out"></pre>
+<script>
+const out = (v) => document.getElementById("out").textContent = JSON.stringify(v, null, 2);
+const post = async (path, body) => {
+  const res = await fetch("` + authPrefix + `" + path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body || {})});
+  const json = await res.json();
+  if (!res.ok) throw json.error;
+  return json;
+};
+const run = (fn) => async (e) => { e.preventDefault(); try { out(await fn()); } catch (err) { out(err); } };
+document.getElementById("signup").onsubmit = run(() => post("/password/sign-up", Object.fromEntries(new FormData(document.getElementById("signup")))));
+document.getElementById("add").onclick = run(async () => {
+  const begin = await post("/passkey/register-begin");
+  const cred = await navigator.credentials.create({publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(begin.options.publicKey)});
+  return post("/passkey/register-finish", {ceremony: begin.ceremony, credential: cred.toJSON(), name: navigator.platform});
+});
+document.getElementById("signin").onclick = run(async () => {
+  const begin = await post("/passkey/login-begin");
+  const cred = await navigator.credentials.get({publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(begin.options.publicKey)});
+  return post("/passkey/login-finish", {ceremony: begin.ceremony, credential: cred.toJSON()});
+});
+</script>
+`

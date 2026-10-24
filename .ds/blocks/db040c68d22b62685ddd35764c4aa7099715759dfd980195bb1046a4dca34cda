@@ -1,0 +1,4 @@
+export async function myOrganizations(): Promise<string[]> {
+  const { data } = await auth.organization.list();
+  return (data?.orgs ?? []).map((org) => `${org.name} (${org.role})`);
+}

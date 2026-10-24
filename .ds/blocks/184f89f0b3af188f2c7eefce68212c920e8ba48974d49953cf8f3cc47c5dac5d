@@ -1,0 +1,4 @@
+func (p *Plugin) Resend(ctx context.Context, address string) error {
+	_, err := p.resend.Call(ctx, AddressRequest{Email: address})
+	return err
+}

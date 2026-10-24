@@ -1,0 +1,10 @@
+func StoreTokensWith(s auth.Sealer) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauth.StoreTokensWith", s) {
+			return
+		}
+
+		p.keepTokens = true
+		p.tokenSealer = s
+	}
+}

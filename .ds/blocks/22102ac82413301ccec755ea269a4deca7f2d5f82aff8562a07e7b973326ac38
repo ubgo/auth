@@ -1,0 +1,3 @@
+func WithTokenRotation(r TokenRotation) Option {
+	return func(s *settings) { s.tokenRotation = &r }
+}

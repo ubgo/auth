@@ -1,0 +1,14 @@
+func (p *Plugin) Tokens(ctx context.Context, userID, provider string) (TokenSet, error) {
+	id, ts, err := p.loadTokens(ctx, userID, provider)
+	if err != nil {
+		return TokenSet{}, err
+	}
+	if ts.ExpiresAt.IsZero() || ts.RefreshToken == "" || p.core.Now().Add(RefreshMargin).Before(ts.ExpiresAt) {
+		return ts, nil
+	}
+	r, ok := p.provider(provider).(Refresher)
+	if !ok {
+		return ts, nil
+	}
+	return p.refresh(ctx, provider, r, id, ts)
+}

@@ -1,0 +1,18 @@
+export async function signUp(address: string, secret: string, name: string): Promise<string> {
+  const { data, error } = await auth.password.signUp({ identifier: address, password: secret, name });
+  if (error) {
+    switch (error.code) {
+      case "password.too_short":
+      case "password.too_long":
+      case "password.weak":
+      case "password.breached":
+        return `Choose another password: ${error.message}`;
+      case "auth.identifier_invalid":
+        return "Check the address.";
+      default:
+        return error.message;
+    }
+  }
+  if (data.verificationRequired) return "Check your inbox to verify the address, then sign in.";
+  return `Welcome, ${data.user.name}.`;
+}

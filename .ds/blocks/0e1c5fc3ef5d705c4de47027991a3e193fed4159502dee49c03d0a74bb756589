@@ -1,0 +1,8 @@
+func WithLogger(l *slog.Logger) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithLogger", l) {
+			return
+		}
+		s.logger = l
+	}
+}

@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "Callback gets (ctx, auth.User) only.",
+  "commitment": "accepted",
+  "completed_at": "2026-09-29T09:04:22.684345000Z",
+  "created_at": "2026-09-29T08:32:52.446393000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a0ec4b98de760e996c3c4fd56a3dd6",
+  "mission_id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "twofactor.AccountLabel callback cannot reach the core to read the email",
+  "updated_at": "2026-09-29T09:04:22.684347000Z"
+}

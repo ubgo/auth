@@ -1,0 +1,6 @@
+export function secureTokenStore(storage: SecureStorage, key = "auth-token"): TokenStore {
+  return {
+    get: () => storage.getItem(key),
+    set: (token) => (token === null ? storage.deleteItem(key) : storage.setItem(key, token)),
+  };
+}

@@ -1,0 +1,9 @@
+type MigrationState struct {
+	Owner string
+	Name  string
+	// Applied is true when the ledger has a row for Owner and Name.
+	Applied bool
+	// Changed is true when the ledger has the migration with another
+	// checksum: the next Migrate stops with ErrChecksumMismatch.
+	Changed bool
+}

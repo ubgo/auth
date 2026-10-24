@@ -1,0 +1,15 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, error) {
+	return auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(
+				email.Login(), email.Recover(),
+				email.VerifyByCode(), // POST /auth/email/verify-code and confirm-change-code
+				email.WithCodeTTL(codeTTL), email.WithMaxAttempts(maxAttempts),
+				email.WithMailer(m),
+			),
+			password.New(),
+		),
+	)
+}

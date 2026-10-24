@@ -1,0 +1,10 @@
+export function Root() {
+  const go = useNavigate()
+  const navigate = useCallback((href: string) => void go(href), [go])
+  return (
+    <AuthProvider client={auth} navigate={navigate} Link={RouterLink}>
+      <Header />
+      <Outlet />
+    </AuthProvider>
+  )
+}

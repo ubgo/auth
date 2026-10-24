@@ -1,0 +1,6 @@
+func Validate(v string) error {
+	if len(v) < minHandleLength || len(v) > maxHandleLength || !handlePattern.MatchString(v) {
+		return fmt.Errorf("%w: a chat handle is %d to %d letters, digits or underscores", auth.ErrIdentifierInvalid, minHandleLength, maxHandleLength)
+	}
+	return nil
+}

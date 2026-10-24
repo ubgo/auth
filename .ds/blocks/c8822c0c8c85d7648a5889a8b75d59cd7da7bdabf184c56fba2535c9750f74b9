@@ -1,0 +1,7 @@
+func Google(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "google", DisplayName: "Google", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: GoogleAuthURL, TokenURL: GoogleTokenURL, Scopes: openIDScopes(),
+		FetchProfile: GoogleProfile(GoogleUserInfoURL),
+	}
+}

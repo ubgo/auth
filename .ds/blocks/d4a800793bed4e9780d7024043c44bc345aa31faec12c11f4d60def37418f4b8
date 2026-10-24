@@ -1,0 +1,1 @@
+func WithPermissions(ac *access.AccessControl) Option { return func(p *Plugin) { p.ac = ac } }

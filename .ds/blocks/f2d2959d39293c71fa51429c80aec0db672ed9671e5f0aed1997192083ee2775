@@ -1,0 +1,7 @@
+func GitHub(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "github", DisplayName: "GitHub", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: GitHubAuthURL, TokenURL: GitHubTokenURL, Scopes: []string{"read:user", "user:email"},
+		FetchProfile: GitHubProfile(GitHubAPIURL),
+	}
+}

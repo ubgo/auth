@@ -1,0 +1,8 @@
+func DisplayValidator(fn func(display string) error) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("username.DisplayValidator", fn) {
+			return
+		}
+		p.displayValid = fn
+	}
+}

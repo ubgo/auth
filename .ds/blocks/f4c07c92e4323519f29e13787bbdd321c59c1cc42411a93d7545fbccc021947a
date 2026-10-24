@@ -1,0 +1,14 @@
+var (
+	// ErrNotAllowed is a sign-in or a cookie whose profile no Allow rule
+	// accepts.
+	ErrNotAllowed = auth.NewError("authgate.not_allowed", http.StatusForbidden, "This account is not allowed here.")
+	// ErrCookieTooLarge is a sign-in whose sealed session would exceed
+	// MaxCookieSize. Nothing is written; the log says how large it was.
+	ErrCookieTooLarge = auth.NewError("authgate.cookie_too_large", http.StatusInternalServerError, "The sign-in could not be saved. Contact the site's owner.")
+	// ErrBadReturnTo is a returnTo that is not a path on this site.
+	ErrBadReturnTo = auth.NewError("authgate.bad_return_to", http.StatusBadRequest, "The return address must be a path on this site.")
+	// ErrUnknownProvider is a route naming a provider the gate was not given.
+	ErrUnknownProvider = auth.NewError("authgate.unknown_provider", http.StatusNotFound, "This sign-in method is not offered here.")
+	// ErrCrossSite is a sign-out posted from another site.
+	ErrCrossSite = auth.NewError("authgate.cross_site", http.StatusForbidden, "This request came from another site.")
+)

@@ -1,0 +1,8 @@
+const (
+	// DefaultResourceCacheTTL is how long CacheResources keeps a resource
+	// when it is given 0.
+	DefaultResourceCacheTTL = time.Minute
+	// MaxResourceCacheTTL caps CacheResources: a resource disabled or
+	// deleted on another instance is served at most this long after.
+	MaxResourceCacheTTL = 15 * time.Minute
+)

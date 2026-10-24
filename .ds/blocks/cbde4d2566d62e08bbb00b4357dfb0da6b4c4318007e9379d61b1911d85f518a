@@ -1,0 +1,9 @@
+func Normalizer(defaultRegion string) func(raw string) (string, error) {
+	return func(raw string) (string, error) {
+		n, err := phonenumbers.Parse(raw, defaultRegion)
+		if err != nil {
+			return "", fmt.Errorf("%w: %v", ErrNotANumber, err)
+		}
+		return phonenumbers.Format(n, phonenumbers.E164), nil
+	}
+}

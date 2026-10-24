@@ -1,0 +1,7 @@
+func (a *Auth) LoadUser(ctx context.Context, id string, dst Scannable) error {
+	var joins []sqlb.Join
+	if j, ok := dst.(Joiner); ok {
+		joins = j.Joins()
+	}
+	return a.loadUser(ctx, id, dst.Bindings(), joins...)
+}

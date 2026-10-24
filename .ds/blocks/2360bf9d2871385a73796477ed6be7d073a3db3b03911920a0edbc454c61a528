@@ -1,0 +1,1 @@
+func JWKSPath(path string) Option { return func(p *Plugin) { p.jwksPath = path } }

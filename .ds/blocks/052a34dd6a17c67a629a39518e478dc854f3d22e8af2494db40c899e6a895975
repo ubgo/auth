@@ -1,0 +1,6 @@
+func (a *Auth) WithRequest(ctx context.Context, r Request) context.Context {
+	if r.Credential == "" {
+		r.Credential = CredentialNone
+	}
+	return context.WithValue(ctx, requestKey{}, &requestState{req: r, effects: &Effects{}})
+}

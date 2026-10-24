@@ -1,0 +1,27 @@
+func (a *Auth) EndUserSessions(ctx context.Context, userID, exceptID string, reason SessionEndReason) error {
+	if exceptID != "" && a.stateless != nil {
+		return ErrSessionsUnavailable
+	}
+	return a.endAlways(ctx, func(ctx context.Context, m hookMode) error {
+		return a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+			if exceptID == "" {
+				now := a.now()
+				if _, err := a.Exec(ctx, sqlb.NewUpdate(a.cfg.Dialect).Table(TableUser).
+					Set(sqlb.Set(UserSessionsValidAfter, &now)).Where(sqlb.Eq(UserID, userID))); err != nil {
+					return fmt.Errorf("auth: mark sessions invalid: %w", err)
+				}
+			}
+			if err := a.userSessionsEnded(ctx, userID, exceptID); err != nil {
+				return err
+			}
+			if err := a.fireUserSessionsEnded(ctx, tx, m, userID, exceptID, reason); err != nil {
+				return err
+			}
+			a.EvictCachedSessions(ctx, userID)
+			if a.stateless != nil {
+				return nil
+			}
+			return a.sessions.DeleteUser(ctx, userID, exceptID)
+		})
+	})
+}

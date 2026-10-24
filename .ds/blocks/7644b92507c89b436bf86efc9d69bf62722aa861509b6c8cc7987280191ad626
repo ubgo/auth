@@ -1,0 +1,4 @@
+export async function continueAsGuest(): Promise<string | null> {
+  const { data } = await auth.anonymous.signIn();
+  return data?.user.id ?? null;
+}

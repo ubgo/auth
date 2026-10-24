@@ -1,0 +1,1 @@
+func WithFetchMetadata() Option { return func(s *settings) { s.fetchMetadata = true } }

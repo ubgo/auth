@@ -1,0 +1,22 @@
+func Run(t *testing.T, newProvider func(serverURL string) oauth.Provider, opts ...Option) Report {
+	t.Helper()
+	cfg, err := newConfig(opts)
+	if err != nil {
+		t.Fatalf("oauthtest: %v", err)
+	}
+	srv, err := newServer(cfg.routes, cfg.public)
+	if err != nil {
+		t.Fatalf("oauthtest: start the server: %v", err)
+	}
+	t.Cleanup(srv.srv.Close)
+	rep := &Report{PKCE: !cfg.noPKCE, ReportsVerified: !cfg.neverVerified}
+	e := &env{srv: srv, cfg: cfg, newProvider: newProvider, report: rep}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) { c.run(t, e) })
+	}
+	t.Logf("oauthtest: provider %q: PKCE %v, reports email verification %v, profile endpoint %v", rep.Provider, rep.PKCE, rep.ReportsVerified, rep.ProfileCall)
+	if !rep.PKCE {
+		t.Logf("oauthtest: provider %q declares NoPKCE: its authorization URL carries no code_challenge, so the flow rests on the state alone", rep.Provider)
+	}
+	return *rep
+}

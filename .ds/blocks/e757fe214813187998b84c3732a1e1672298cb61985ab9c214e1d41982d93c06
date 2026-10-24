@@ -1,0 +1,37 @@
+func (p *Plugin) use(ctx context.Context, tok auth.Token, userID string, newAccount bool) error {
+	r, ok, err := p.find(ctx, tok)
+	if err != nil {
+		return err
+	}
+	now := p.core.Now()
+	if !ok || !r.open(now) {
+		return ErrInvalid
+	}
+	if used, err := p.usedBy(ctx, r.id, userID); err != nil || used {
+		return cmp.Or(err, error(ErrInvalid))
+	}
+	d := p.core.Dialect()
+	n, err := p.core.Exec(ctx, sqlb.NewUpdate(d).Table(TableInvite).
+		Set(sqlb.SetExpr(InviteUses, sqlb.Add(InviteUses, sqlb.Param[int64](1)))).
+		Where(sqlb.Eq(InviteID, r.id), sqlb.Eq(InviteStatus, StatusPending), sqlb.Greater(InviteExpiresAt, now), usesLeft))
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return ErrInvalid
+	}
+	if r.maxUses > 0 && r.uses+1 >= r.maxUses {
+		if _, err := p.core.Exec(ctx, sqlb.NewUpdate(d).Table(TableInvite).Set(sqlb.Set(InviteStatus, StatusUsed)).
+			Where(sqlb.Eq(InviteID, r.id), sqlb.Eq(InviteStatus, StatusPending))); err != nil {
+			return err
+		}
+	}
+	if _, err := p.core.Exec(ctx, sqlb.NewInsert(d).Into(TableUse).Row(
+		sqlb.Set(UseInviteID, r.id), sqlb.Set(UseUserID, userID), sqlb.Set(UseAt, now))); err != nil {
+		return fmt.Errorf("invite: record use: %w", err)
+	}
+	if p.onAccepted != nil {
+		return p.onAccepted(ctx, Accepted{InviteID: r.id, UserID: userID, CreatedBy: r.createdBy, Role: r.role, NewAccount: newAccount})
+	}
+	return nil
+}

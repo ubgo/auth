@@ -1,0 +1,27 @@
+type Template struct {
+	// Claims builds the template's app claims from the user and the
+	// session; nil adds none, and an error fails the call.
+	Claims ClaimsFunc
+	// Subject chooses sub; nil takes the plugin's Subject option, else the
+	// user id. An empty result fails the call with ErrEmptySubject.
+	Subject SubjectFunc
+	// Issuer is iss; "" takes the plugin's issuer.
+	Issuer string
+	// Audience is aud; nil writes none. A template meant for one receiver
+	// should name it, so the receiver's audience check keeps a token from
+	// another template out.
+	Audience []string
+	// TTL is the lifetime; 0 takes the plugin's, and more than MaxTTL
+	// becomes MaxTTL. A token never outlives its session either way.
+	TTL time.Duration
+	// Key signs the tokens; nil is the plugin's signing key. See
+	// PublishedKey, HMACKey and PrivateKey.
+	Key TemplateKey
+	// Algs, when not empty, are the algorithms the receiver accepts: Convex
+	// verifies RS256 and ES256 only, Firebase RS256 only. auth.New fails
+	// with ErrTemplateKey when Key signs another one, rather than minting
+	// tokens the receiver refuses.
+	Algs []string
+	// Type is the typ header; "" is "JWT". Same rules as SignRequest.Type.
+	Type string
+}

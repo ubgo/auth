@@ -1,0 +1,12 @@
+async function userName(cookie: string): Promise<string | null> {
+  if (cookie === "") return null;
+  const perRequest = createAuthClient({ baseURL: `${AUTH_URL}/auth`, headers: { Cookie: cookie } });
+  const { data, error } = await perRequest.session();
+  if (error) {
+    // auth.signed_out is the normal answer for a stale cookie; anything else
+    // (the API is down, a 500) is worth a log line, and still renders signed out.
+    if (error.code !== "auth.signed_out") console.error(`session: ${error.code} ${error.message}`);
+    return null;
+  }
+  return data.user.name;
+}

@@ -1,0 +1,6 @@
+func TestConformance_OAuth2UserInfo(t *testing.T) {
+	oauthtest.Run(t, func(u string) oauth.Provider {
+		return pointAt(&oauth.OAuth2{ID: "corp", ClientID: oauthtest.ClientID, ClientSecret: oauthtest.ClientSecret, Scopes: []string{"openid", "email"},
+			FetchProfile: oauth.UserInfoProfile(u+oauthtest.UserInfoPath, "")}, u)
+	}, oauthtest.WantScopes("openid", "email"))
+}

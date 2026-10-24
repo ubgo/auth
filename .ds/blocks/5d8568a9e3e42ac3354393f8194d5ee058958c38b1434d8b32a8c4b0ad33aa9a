@@ -1,0 +1,7 @@
+func newSCIM(token string, groups scim.GroupMapper) *scim.Plugin {
+	return scim.New(
+		scim.Connections(scim.Connection{ID: connectionID, Credentials: []scim.Credential{{ID: credentialID, Token: token}}}),
+		scim.TrustEmails(),
+		scim.WithGroupMapper(groups),
+	)
+}

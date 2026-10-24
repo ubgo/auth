@@ -1,0 +1,53 @@
+func samlConfig(r samlRow, spEntityID string) (*sso.SAMLConfig, []string, error) {
+	var notes []string
+	if r.MetadataXML == "" {
+		return nil, nil, fmt.Errorf("no metadata_xml (metadata_url %q): fetch the XML and put it in the CSV", r.MetadataURL)
+	}
+	cfg := &sso.SAMLConfig{
+		IdPMetadata:          sso.IdPMetadata{Metadata: r.MetadataXML},
+		SPMetadata:           sso.SPMetadata{EntityID: spEntityID},
+		IdentifierFormat:     r.NameIDFormat,
+		WantAssertionsSigned: true,
+	}
+	if r.Mapping == "" {
+		return cfg, nil, nil
+	}
+	var m supabaseMapping
+	if err := json.Unmarshal([]byte(r.Mapping), &m); err != nil {
+		return nil, nil, fmt.Errorf("attribute_mapping: %w", err)
+	}
+	keys := make([]string, 0, len(m.Keys))
+	for k := range m.Keys {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := m.Keys[k]
+		attr := v.Name
+		if attr == "" && len(v.Names) > 0 {
+			attr = v.Names[0]
+			if len(v.Names) > 1 {
+				notes = append(notes, fmt.Sprintf("%s: kept the first of %d attribute names (%s)", k, len(v.Names), attr))
+			}
+		}
+		if attr == "" {
+			continue
+		}
+		switch k {
+		case "email":
+			cfg.Mapping.Email = attr
+		case "name":
+			cfg.Mapping.Name = attr
+		case "first_name", "given_name":
+			cfg.Mapping.FirstName = attr
+		case "last_name", "family_name":
+			cfg.Mapping.LastName = attr
+		default:
+			if cfg.Mapping.ExtraFields == nil {
+				cfg.Mapping.ExtraFields = map[string]string{}
+			}
+			cfg.Mapping.ExtraFields[k] = attr
+		}
+	}
+	return cfg, notes, nil
+}

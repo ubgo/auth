@@ -1,0 +1,11 @@
+type CodeRequest struct {
+	ClientID string `json:"client_id"`
+	Scope    string `json:"scope,omitempty"`
+	UserID   string `json:"user_id,omitempty"`
+	// Confidential-client credentials and the RFC 8707 resource, read only
+	// by a Grant (WithGrant); the standalone flow ignores them.
+	ClientSecret        string `json:"client_secret,omitempty"`
+	ClientAssertion     string `json:"client_assertion,omitempty"`
+	ClientAssertionType string `json:"client_assertion_type,omitempty"`
+	Resource            string `json:"resource,omitempty"`
+}

@@ -1,0 +1,7 @@
+function planExtras(value: unknown): Plan {
+  if (typeof value === "object" && value !== null && "plan" in value && "seats" in value) {
+    const { plan, seats } = value;
+    if ((plan === "free" || plan === "pro") && typeof seats === "number") return { plan, seats };
+  }
+  throw new Error("session extras are not a Plan");
+}

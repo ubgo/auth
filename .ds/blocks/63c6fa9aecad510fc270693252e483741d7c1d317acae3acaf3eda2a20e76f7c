@@ -1,0 +1,16 @@
+var loginPageTemplate = template.Must(template.New("login").Parse(`<!doctype html>
+<meta charset="utf-8">
+<title>Sign in</title>
+<form id="f"><input name="identifier" type="email"> <input name="password" type="password"> <button>Sign in</button></form>
+<pre id="out"></pre>
+<script>
+const resume = {{.Resume}};
+document.getElementById("f").onsubmit = async (e) => {
+  e.preventDefault();
+  const body = Object.fromEntries(new FormData(e.target));
+  const res = await fetch("{{.Prefix}}/password/sign-in", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  if (res.ok) { location.href = resume; return; }
+  document.getElementById("out").textContent = (await res.json()).error.message;
+};
+</script>
+`))

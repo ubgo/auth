@@ -1,0 +1,1 @@
+func Health() Option { return func(c *config) { c.health = true } }

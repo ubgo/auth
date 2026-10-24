@@ -1,0 +1,1 @@
+	ErrExpired = auth.NewError("password.expired", http.StatusForbidden, "Your password has expired. Choose a new one.")

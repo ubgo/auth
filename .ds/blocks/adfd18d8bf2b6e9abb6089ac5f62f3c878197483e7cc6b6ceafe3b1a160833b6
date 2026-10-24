@@ -1,0 +1,16 @@
+func TestRateActions_ChallengeAsksForACaptchaOnlyOverTheLimit(t *testing.T) {
+	_, b := world(t, auth.RateChallenge)
+	for i := range freeSignIns {
+		if r := signIn(t, b, ""); r.Status != http.StatusOK {
+			t.Fatalf("sign-in %d under the limit: %d %s", i+1, r.Status, r.Body)
+		}
+	}
+	over := signIn(t, b, "").Expect(http.StatusPreconditionRequired)
+	if over.ErrorCode() != auth.ErrChallengeRequired.Code {
+		t.Fatalf("over the limit: %s", over.Body)
+	}
+	if code := signIn(t, b, "forged").Expect(http.StatusForbidden).ErrorCode(); code != captcha.ErrFailed.Code {
+		t.Fatalf("a rejected token: %s", code)
+	}
+	signIn(t, b, humanToken).Expect(http.StatusOK)
+}

@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Still open: every example still hardcodes localhost:8081 with no env override. Captures work around it with the shared lock in the shared port rule (lockf /tmp/ubgo-auth-ports.lock), which also says the default port must not change; an env override would keep the default. Audit 2026-10-05.",
+  "created_at": "2026-10-05T15:55:01.645059000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5dcf1827ef09b29af456f9edd60",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc68e8d7115962001a6c6d056ef",
+  "updated_at": "2026-10-05T15:55:01.645060000Z"
+}

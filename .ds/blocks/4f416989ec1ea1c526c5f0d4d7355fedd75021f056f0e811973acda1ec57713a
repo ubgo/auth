@@ -1,0 +1,4 @@
+func OperationOf(ctx context.Context) (OpInfo, bool) {
+	info, ok := ctx.Value(opKey{}).(OpInfo)
+	return info, ok
+}

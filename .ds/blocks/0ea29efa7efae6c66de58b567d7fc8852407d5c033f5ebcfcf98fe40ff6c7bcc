@@ -1,0 +1,5 @@
+type callLog struct {
+	logger *slog.Logger
+	mu     sync.Mutex
+	calls  []callRecord
+}

@@ -1,0 +1,5 @@
+export async function acceptCurrentTerms(version: string): Promise<"accepted" | "show-new-terms" | string> {
+  const { error } = await auth.terms.accept({ version });
+  if (!error) return "accepted";
+  return error.code === "terms.stale_version" ? "show-new-terms" : error.message;
+}

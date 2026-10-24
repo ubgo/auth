@@ -1,0 +1,7 @@
+func plugins(m email.Mailer) []auth.Plugin {
+	return []auth.Plugin{
+		email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+		password.New(),
+		stale.New(stale.InactiveAfter(inactiveAfter), stale.DeleteAfterWarning(deletionGrace)),
+	}
+}

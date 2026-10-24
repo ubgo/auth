@@ -1,0 +1,11 @@
+func (a *Auth) One(ctx context.Context, s Statement) error {
+	c, q, err := a.prepare(ctx, s)
+	if err != nil {
+		return err
+	}
+	ctx, end := a.dbSpan(ctx, q.SQL)
+	err = sqlb.One(ctx, c, q)
+	// No row is an answer, not a failed statement.
+	end(ignoreNoRows(err))
+	return err
+}

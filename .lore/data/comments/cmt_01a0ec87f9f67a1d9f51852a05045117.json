@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "cancelled: the owner keeps ubgo/auth and ubgo/sqlb private; no public repo, no About/topics/social preview.",
+  "created_at": "2026-09-29T09:38:49.462646000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec7a34e07d848ecbda7d49465a9d",
+  "entity_table": "tasks",
+  "id": "cmt_01a0ec87f9f67a1d9f51852a05045117",
+  "updated_at": "2026-09-29T09:38:49.462646000Z"
+}

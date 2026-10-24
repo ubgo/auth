@@ -1,0 +1,13 @@
+export type OAuthStartOptions = {
+  /** Where the browser lands after the callback signs the user in: a path on this site or a trusted origin. */
+  readonly returnTo?: string;
+  /** Where the browser lands when the provider or the callback fails. */
+  readonly errorTo?: string;
+  /** Where a brand-new account lands instead of returnTo. */
+  readonly newUserTo?: string;
+  /**
+   * Link the provider account to the signed-in user instead of signing in
+   * (account settings' "Connect"); the start route then needs a session.
+   */
+  readonly link?: boolean;
+};

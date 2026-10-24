@@ -1,0 +1,24 @@
+func (c *Call) RequireOwnerRow(ctx context.Context, o Ownership, id string, cols ...sqlb.Binding) error {
+	if c.User == nil {
+		return ErrSignedOut
+	}
+	if id == "" || len(cols) == 0 {
+		return ErrBadRequest
+	}
+	err := c.Auth.One(ctx, c.Auth.Select().Columns(cols...).From(o.Table).Where(sqlb.Eq(o.ID, id), sqlb.Eq(o.Owner, c.User.ID)).Limit(1))
+	if errors.Is(err, sqlb.ErrNoRows) {
+		if err := c.RequireOwner(ctx, o, id); err != nil {
+			return err
+		}
+		// The row turned up between the two reads: answer it as missing
+		// rather than return unfilled columns as a success.
+		if o.NotFound != nil {
+			return o.NotFound
+		}
+		return ErrResourceNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("auth: ownership of %s: %w", o.Table.Name, err)
+	}
+	return nil
+}

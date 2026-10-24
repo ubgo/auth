@@ -1,0 +1,7 @@
+func RequestDevice(ctx context.Context) Token {
+	st := stateFrom(ctx)
+	if st == nil {
+		return ""
+	}
+	return st.req.Device
+}

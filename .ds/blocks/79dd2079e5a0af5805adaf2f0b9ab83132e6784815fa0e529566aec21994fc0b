@@ -1,0 +1,4 @@
+func WeakenCookies(a CookieAttributes) Option {
+	a.validate("WeakenCookies")
+	return func(c *config) { c.weakAll = &a }
+}

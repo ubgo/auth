@@ -1,0 +1,4 @@
+export async function onResetPasswordPage(newPassword: string): Promise<boolean> {
+  const { error } = await auth.password.reset({ token: tokenFromLink(), password: newPassword });
+  return error === null;
+}

@@ -1,0 +1,1 @@
+func RemoteJWKS(rawURL string) Option { return func(p *Plugin) { p.remoteJWKS = rawURL } }

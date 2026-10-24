@@ -1,0 +1,28 @@
+func TestUnknownDevice_MailsOnceForANewDevice(t *testing.T) {
+	e := authtest.New(t,
+		authtest.WithOptions(notify()),
+		authtest.WithPlugins(func(e *authtest.Env) []auth.Plugin { return plugins(e.Mail) }))
+	b := e.Browser(newHandler(e.Auth))
+	post(t, b, "/auth/password/sign-up", `{"identifier":"`+adaMail+`","password":"`+adaPass+`","name":"Ada"}`, chrome129)
+	// The notice goes to a verified address.
+	e.Auth.WaitDeliveries()
+	post(t, b, "/auth/email/verify", `{"token":"`+string(e.Mail.LastToken(adaMail))+`"}`, chrome129)
+
+	signIn(t, b, chrome129)
+	signIn(t, b, chrome130)
+	if n := notices(e); n != 0 {
+		t.Fatalf("after sign-ins from the browser that signed up, %d notices; want 0", n)
+	}
+	signIn(t, b, firefox)
+	if n := notices(e); n != 1 {
+		t.Fatalf("after a sign-in from a new device, %d notices; want 1", n)
+	}
+	signIn(t, b, firefox)
+	if n := notices(e); n != 1 {
+		t.Fatalf("after a second sign-in from the same device, %d notices; want still 1", n)
+	}
+	last, _ := e.Mail.Last(adaMail)
+	if !strings.Contains(last.Text, "Firefox") {
+		t.Fatalf("the notice does not name the device:\n%s", last.Text)
+	}
+}

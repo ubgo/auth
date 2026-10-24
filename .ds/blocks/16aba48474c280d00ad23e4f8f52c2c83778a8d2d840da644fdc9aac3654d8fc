@@ -1,0 +1,1 @@
+func ReuseCodeOnResend() Option { return func(p *Plugin) { p.reuseCode = true } }

@@ -1,0 +1,1 @@
+"authhttp: cookie protections are off (WeakenCookies/WeakenCookie): HttpOnly, Secure, the browser prefix or SameSite no longer protect the session"

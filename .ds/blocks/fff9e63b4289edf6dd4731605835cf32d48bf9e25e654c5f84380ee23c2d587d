@@ -1,0 +1,1 @@
+var DefaultGrantTypes = []string{GrantAuthorizationCode, GrantClientCredentials, GrantRefreshToken}

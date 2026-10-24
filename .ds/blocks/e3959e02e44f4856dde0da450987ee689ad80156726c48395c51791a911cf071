@@ -1,0 +1,3 @@
+func (p *Plugin) Columns() []auth.ColumnExtension {
+	return []auth.ColumnExtension{{Table: auth.TableNameUser, Name: ColCode, Type: auth.ColumnText, Nullable: true, Unique: true}}
+}

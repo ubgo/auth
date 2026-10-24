@@ -1,0 +1,7 @@
+type Verifier interface {
+	// Recognizes reports whether encoded is in this verifier's format. It
+	// must be cheap and must not run the hash.
+	Recognizes(encoded string) bool
+	// Verify reports whether pw matches encoded.
+	Verify(pw Secret, encoded string) (bool, error)
+}

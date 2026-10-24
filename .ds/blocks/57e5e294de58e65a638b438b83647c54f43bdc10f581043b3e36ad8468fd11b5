@@ -1,0 +1,6 @@
+type DomainVerification struct {
+	// TokenPrefix names the record; empty is DefaultDomainTokenPrefix.
+	TokenPrefix string
+	// Resolver looks the record up; nil is net.DefaultResolver.
+	Resolver TXTResolver
+}

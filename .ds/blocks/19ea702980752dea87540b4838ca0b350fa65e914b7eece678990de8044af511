@@ -1,0 +1,8 @@
+func WithSealer(s Sealer) Option {
+	return func(st *settings) {
+		if st.optErrs.RefuseNil("auth.WithSealer", s) {
+			return
+		}
+		st.cfg.sealer = s
+	}
+}

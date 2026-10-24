@@ -1,0 +1,19 @@
+func (p *Plugin) doVerify(ctx context.Context, c *auth.Call, in CodeRequest) (auth.Done, error) {
+	idn, err := p.userHandle(ctx, c.User.ID, in.Handle)
+	if errors.Is(err, auth.ErrIdentityNotFound) || errors.Is(err, auth.ErrIdentifierInvalid) {
+		return auth.Done{}, auth.ErrCodeInvalid // a handle the user never added gets the same answer as a wrong code
+	}
+	if err != nil {
+		return auth.Done{}, err
+	}
+	if err := c.Auth.CheckCode(ctx, PurposeVerifyCode, idn.ID, in.Code, auth.DefaultCodeMaxAttempts); err != nil {
+		return auth.Done{}, err
+	}
+	if _, err := c.Auth.VerifyIdentity(ctx, idn.ID); err != nil {
+		return auth.Done{}, err
+	}
+	if _, err := c.Auth.SetPrimaryIdentity(ctx, c.User.ID, idn.ID); err != nil {
+		return auth.Done{}, err
+	}
+	return auth.Done{OK: true}, nil
+}

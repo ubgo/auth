@@ -1,0 +1,4 @@
+func New(client redis.Cmdable, opts ...Option) *Store {
+	c := newConfig(DefaultKeyPrefix, opts)
+	return &Store{optionErr: optionErr{c.optErrs.OptionErr()}, client: client, prefix: c.prefix, now: c.now}
+}

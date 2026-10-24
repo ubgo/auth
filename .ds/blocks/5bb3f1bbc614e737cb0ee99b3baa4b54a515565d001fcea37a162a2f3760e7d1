@@ -1,0 +1,7 @@
+func CurrentUser(ctx context.Context) (User, bool) {
+	st := stateFrom(ctx)
+	if st == nil || st.user == nil || st.session == nil || !st.session.usable() {
+		return User{}, false
+	}
+	return *st.user, true
+}

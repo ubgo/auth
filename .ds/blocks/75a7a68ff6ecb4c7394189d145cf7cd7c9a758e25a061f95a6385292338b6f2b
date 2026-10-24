@@ -1,0 +1,7 @@
+func newJWT(seed []byte, rsaKey crypto.Signer) *jwt.Plugin {
+	return jwt.New(
+		jwt.WithSigner(jwt.Rotating(seed, rotationInterval, rotationGrace)),
+		jwt.AlgorithmKeys(rsaKey),
+		jwt.Audience(audience),
+	)
+}

@@ -1,0 +1,31 @@
+func (p *Plugin) ReconcileProjection(ctx context.Context, domain string) (ProjectionResult, error) {
+	out := ProjectionResult{ProvisioningDomainID: domain}
+	if p.groups == nil && p.roles == nil {
+		return out, ErrNoGroupMapper
+	}
+	type ref struct{ conn, id string }
+	var r ref
+	var all []ref
+	q := p.core.Select().Columns(sqlb.Bind(GroupConnectionID, &r.conn), sqlb.Bind(GroupID, &r.id)).From(TableGroup).
+		Join(sqlb.Join{Type: sqlb.JoinInner, Table: TableConnection, On: []sqlb.Predicate{sqlb.EqExpr(ConnID, GroupConnectionID)}}).
+		Where(sqlb.Eq(ConnDomain, domain), sqlb.Eq(ConnStatus, ConnectionActive)).Order(sqlb.OrderBy(GroupID, sqlb.SortAsc))
+	if err := p.core.Each(ctx, q, func() error { all = append(all, r); return nil }); err != nil {
+		return out, err
+	}
+	for start := 0; start < len(all); start += decommissionBatch {
+		batch := all[start:min(start+decommissionBatch, len(all))]
+		if err := p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+			for _, g := range batch {
+				if err := p.syncGroup(ctx, g.conn, g.id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
+			return out, err
+		}
+		out.Groups += len(batch)
+		out.Batches++
+	}
+	return out, nil
+}

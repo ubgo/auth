@@ -1,0 +1,8 @@
+func ClaimSource(fn ClaimsFunc) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("jwt.ClaimSource", fn) {
+			return
+		}
+		p.claimSources = append(p.claimSources, fn)
+	}
+}

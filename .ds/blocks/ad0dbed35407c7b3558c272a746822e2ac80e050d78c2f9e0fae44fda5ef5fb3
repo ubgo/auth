@@ -1,0 +1,9 @@
+export function AuthProviders({ children }: { children: ReactNode }) {
+  const router = useRouter()
+  const navigate = useCallback((href: string) => router.push(href), [router])
+  return (
+    <AuthProvider client={auth} navigate={navigate} Link={Link}>
+      {children}
+    </AuthProvider>
+  )
+}

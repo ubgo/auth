@@ -1,0 +1,16 @@
+func (x *app) canCreate(ctx context.Context, inviter auth.User, in invite.Request) error {
+	if in.Role == "" {
+		return nil
+	}
+	if !grantable[Role(in.Role)] {
+		return invite.ErrForbidden
+	}
+	role, err := x.roleOf(ctx, inviter.ID)
+	if err != nil {
+		return err
+	}
+	if role != RoleOwner {
+		return invite.ErrForbidden
+	}
+	return nil
+}

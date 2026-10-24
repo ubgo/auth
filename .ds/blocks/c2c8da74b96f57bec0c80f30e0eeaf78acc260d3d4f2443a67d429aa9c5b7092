@@ -1,0 +1,3 @@
+type Argon2id struct {
+	Params Argon2Params
+}

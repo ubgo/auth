@@ -1,0 +1,1 @@
+func (p *Plugin) CodeHandler(opts ...authhttp.Option) http.Handler { return p.rfcHandler(p.code, opts) }

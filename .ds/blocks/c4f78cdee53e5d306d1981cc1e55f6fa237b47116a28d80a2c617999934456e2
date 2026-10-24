@@ -1,0 +1,14 @@
+type Endpoints struct {
+	AuthURL     string
+	TokenURL    string
+	UserInfoURL string
+	// JWKSURL is the key set, for ID tokens; empty accepts none while the
+	// fallback is in use.
+	JWKSURL       string
+	EndSessionURL string
+	RevokeURL     string
+	// IssParameterSupported is the discovery flag of RFC 9207: set it when
+	// the issuer sends iss on every authorization response, so the callback
+	// keeps checking it while the fallback is in use.
+	IssParameterSupported bool
+}

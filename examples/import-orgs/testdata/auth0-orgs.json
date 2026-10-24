@@ -1,0 +1,13 @@
+[
+  {"id": "org_W1a2B3c4D5e6F7g8", "name": "acme", "display_name": "Acme Inc.",
+   "members": [
+     {"user_id": "auth0|5f1a2b3c4d5e6f7a8b9c0d1e", "roles": [{"id": "rol_1", "name": "Owner"}]},
+     {"user_id": "github|8675309", "roles": [{"id": "rol_2", "name": "Admin"}]},
+     {"user_id": "auth0|blocked0001", "roles": [{"id": "rol_3", "name": "Billing Viewer"}]}
+   ]},
+  {"id": "org_H9i8J7k6L5m4N3o2", "name": "globex", "display_name": "Globex",
+   "members": [
+     {"user_id": "github|8675309", "roles": [{"id": "rol_1", "name": "Owner"}]},
+     {"user_id": "auth0|dup0001", "roles": []}
+   ]}
+]

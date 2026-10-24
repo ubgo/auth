@@ -1,0 +1,4 @@
+var (
+	corsAllowHeaders  = []string{"Content-Type", "Authorization", authhttp.TokenModeHeader, authhttp.SessionCacheHeader}
+	corsExposeHeaders = []string{authhttp.SetTokenHeader, authhttp.SetTokenExpiresHeader, authhttp.SetSessionCacheHeader, "Retry-After"}
+)

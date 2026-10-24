@@ -1,0 +1,3 @@
+func Cognito(region, userPoolID, clientID, clientSecret string) *OIDCProvider {
+	return OIDC("cognito", fmt.Sprintf(cognitoIssuerFormat, region, userPoolID), clientID, clientSecret)
+}

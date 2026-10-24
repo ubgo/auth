@@ -1,0 +1,7 @@
+function Link({ href, className, children }: AuthLinkProps) {
+  return (
+    <NextLink href={href} className={className}>
+      {children}
+    </NextLink>
+  )
+}

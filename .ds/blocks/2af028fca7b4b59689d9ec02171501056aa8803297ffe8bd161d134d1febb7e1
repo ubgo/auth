@@ -1,0 +1,3 @@
+func DisplayNormalizer(fn func(display string) string) Option {
+	return func(p *Plugin) { p.displayNorm = fn }
+}

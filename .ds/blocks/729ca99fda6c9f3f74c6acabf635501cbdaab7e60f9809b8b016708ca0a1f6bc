@@ -1,0 +1,7 @@
+func (p *Plugin) SecondFactorRequired(ctx context.Context, userID string) (bool, error) {
+	var hash *string
+	if err := p.a.LoadUserColumns(ctx, userID, sqlb.Bind(PINHash, &hash)); err != nil {
+		return false, err
+	}
+	return hash != nil, nil
+}

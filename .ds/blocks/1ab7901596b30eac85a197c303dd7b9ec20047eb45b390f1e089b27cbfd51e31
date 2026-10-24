@@ -1,0 +1,6 @@
+func newOAuth(issuer string, key []byte) *oauth.Plugin {
+	return oauth.New(
+		oauth.WithProviders(oauth.OIDC(providerName, issuer, issuerClientID, issuerClientSecret)),
+		oauth.StoreTokens(key),
+	)
+}

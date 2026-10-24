@@ -1,0 +1,10 @@
+func (p *Plugin) SessionPolicy() auth.SessionPolicy {
+	byClient := auth.ByCredential(WebLifetime, AppLifetime)
+	return func(ctx context.Context, in auth.SessionPolicyInput) auth.SessionLifetime {
+		var hash *string
+		if err := p.a.LoadUserColumns(ctx, in.UserID, sqlb.Bind(PINHash, &hash)); err != nil || hash == nil {
+			return OneFactorLifetime
+		}
+		return byClient(ctx, in)
+	}
+}

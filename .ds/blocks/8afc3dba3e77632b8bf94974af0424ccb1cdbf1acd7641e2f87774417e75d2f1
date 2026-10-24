@@ -1,0 +1,8 @@
+func rotationOptions(sink auth.SecuritySink) []auth.Option {
+	return []auth.Option{
+		auth.WithSession(auth.SessionConfig{RefreshAfter: refreshAfter}),
+		auth.WithTokenRotation(auth.TokenRotation{Grace: rotationGrace}),
+		// The reuse alarm arrives here; a real app pages someone.
+		auth.WithSecuritySink(sink, auth.SecurityQueue{}),
+	}
+}

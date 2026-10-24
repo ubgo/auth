@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Filed as https://github.com/ubgo/docsync/issues/18",
+  "created_at": "2026-09-29T09:38:49.584621000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0ec7a35207bb489f3a08126eb6ebb",
+  "entity_table": "tasks",
+  "id": "cmt_01a0ec87fa7079b488c97e91a9466d9f",
+  "updated_at": "2026-09-29T09:38:49.584621000Z"
+}

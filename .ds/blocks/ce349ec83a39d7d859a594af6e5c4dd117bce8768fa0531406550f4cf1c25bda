@@ -1,0 +1,16 @@
+func deploy(keys *apikey.Plugin) http.HandlerFunc {
+	want := apikey.Permissions{resourceProject: {actionDeploy}}
+	return func(w http.ResponseWriter, r *http.Request) {
+		v, err := keys.VerifyPermissions(r.Context(), r.Header.Get(deployKeyHeader), want)
+		if err != nil {
+			authhttp.WriteError(w, err)
+			return
+		}
+		if !v.Valid {
+			authhttp.WriteError(w, v.Reason)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(deployResponse{Deployed: true, By: v.UserID}) // a client that hung up cannot be told
+	}
+}

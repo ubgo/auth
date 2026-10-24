@@ -1,0 +1,1 @@
+func (p *Plugin) Tables() []sqlb.Table { return []sqlb.Table{TableDevice} }

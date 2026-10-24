@@ -1,0 +1,1 @@
+func (a *Auth) EmitSecurityOf(c *Call, e SecurityEvent) { a.EmitSecurity(securityOfCall(c, e)) }

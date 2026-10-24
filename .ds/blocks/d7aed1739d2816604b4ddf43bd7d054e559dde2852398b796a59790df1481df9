@@ -1,0 +1,4 @@
+export async function registeredClients(): Promise<number> {
+  const { data } = await auth.oauthprovider.listClients();
+  return data?.clients?.length ?? 0;
+}

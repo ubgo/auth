@@ -1,0 +1,4 @@
+type VerifyRequest struct {
+	Token    auth.WireToken `json:"token"`
+	Verifier string         `json:"verifier,omitempty"`
+}

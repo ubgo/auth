@@ -1,0 +1,11 @@
+export async function actAs(userId: string, work: () => Promise<void>): Promise<boolean> {
+  const started = await auth.admin.impersonate({ userId, minutes: 15 });
+  if (started.error) return false;
+  try {
+    await work();
+  } finally {
+    const stopped = await auth.admin.stopImpersonating();
+    if (!stopped.data?.restored) location.assign("/sign-in"); // the admin's own session ended meanwhile
+  }
+  return true;
+}

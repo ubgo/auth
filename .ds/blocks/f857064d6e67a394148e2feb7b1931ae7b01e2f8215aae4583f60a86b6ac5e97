@@ -1,0 +1,25 @@
+type DataHooks struct {
+	User         TableHooks[User]
+	Identity     TableHooks[Identity]
+	Session      TableHooks[Session]
+	Verification TableHooks[Verification]
+	// SessionEnded runs for every session that ends: sign-out, revoke, an
+	// admin, a ban, a password change, token-reuse theft, user deletion and
+	// the expiry sweep (see SessionEndReason), once per session, inside the
+	// transaction that ends it and before the store is told, so a rollback
+	// leaves nothing durable. tx is the transaction and must be used for
+	// writes. A hook cannot refuse an ending; failures are reported, not
+	// enforced: a session that must end (a stolen token, a banned user, a
+	// changed password) never stays alive because a hook failed. When a hook
+	// returns an error the core rolls that attempt back, ends the session
+	// again without the hooks in a transaction of its own, and emits
+	// SecuritySessionEndHookFailed (and logs it) with the reason and error.
+	// Inside a transaction the caller already opened the attempt cannot be
+	// rolled back alone, so the error is reported and the ending continues,
+	// and the hook's own writes in that transaction stay with it. Gaps: a store that expires
+	// sessions itself (Redis TTL, storage) or wraps another (mirror) reports
+	// no expiry, and stateless mode reports only ends the core performs
+	// (see SessionEnd). It is not told of a pending second-factor session
+	// being replaced (SessionLifecycle.SessionReplaced is).
+	SessionEnded func(ctx context.Context, tx sqlb.DBTX, e SessionEnd) error
+}

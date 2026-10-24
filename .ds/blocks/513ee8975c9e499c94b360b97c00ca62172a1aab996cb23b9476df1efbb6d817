@@ -1,0 +1,11 @@
+func (a *Auth) CanPeekRates() bool {
+	if a.limiter != nil {
+		_, ok := a.limiter.store.(RatePeeker)
+		return ok
+	}
+	if a.chosenDBRates || a.chosenRateStore == nil {
+		return true
+	}
+	_, ok := a.chosenRateStore.(RatePeeker)
+	return ok
+}

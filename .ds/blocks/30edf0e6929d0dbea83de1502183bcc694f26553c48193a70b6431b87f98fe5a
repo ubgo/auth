@@ -1,0 +1,10 @@
+export async function onConsentPage(ask: (clientName: string, scope: string) => Promise<boolean>): Promise<void> {
+  const query = new URLSearchParams(location.search);
+  const client = await auth.oauthprovider.publicClient({ client_id: query.get("client_id") ?? "" });
+  if (client.error) return; // auth.signed_out: the login page comes first
+  const accept = await ask(client.data.client_name, query.get("scope") ?? "");
+  // Without scope the consent grants every scope the client asked for; a
+  // space-separated subset in scope narrows it.
+  const { data } = await auth.oauthprovider.consent({ oauth_query: location.search.slice(1), accept });
+  if (data) location.assign(data.redirect_to);
+}

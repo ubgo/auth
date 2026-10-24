@@ -1,0 +1,4 @@
+func (p *Plugin) Verify(ctx context.Context, number, code string) error {
+	_, err := p.verify.Call(ctx, CodeRequest{Phone: number, Code: code})
+	return err
+}

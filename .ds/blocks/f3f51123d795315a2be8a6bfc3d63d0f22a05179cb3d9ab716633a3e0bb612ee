@@ -1,0 +1,35 @@
+func (p *Plugin) Verify(ctx context.Context, secret string, scopes ...string) (Verification, error) {
+	if !strings.HasPrefix(secret, p.prefix) {
+		return Verification{Reason: auth.ErrSignedOut}, nil
+	}
+	// The core's resolution, so SessionCheckers (a banned owner) apply as
+	// they do to a bearer request.
+	rctx := p.core.WithRequest(ctx, auth.Request{Transport: auth.TransportGo, Credential: auth.CredentialBearer, Token: auth.Token(secret)})
+	err := p.core.Resolve(rctx)
+	switch {
+	case errors.Is(err, auth.ErrRateLimited), errors.Is(err, ErrUsageExceeded):
+		// The key was valid; the core reports these so a transport can answer
+		// 429, and Verify reports them the same way.
+		return Verification{Reason: err}, nil
+	case err != nil:
+		return Verification{}, err
+	}
+	// An unknown, revoked, expired or disabled key, or a banned owner,
+	// resolves to nobody rather than to an error, like a stale cookie.
+	sess, ok := auth.CurrentSession(rctx)
+	if !ok {
+		return Verification{Reason: auth.ErrSignedOut}, nil
+	}
+	granted, _ := auth.CurrentScopes(rctx)
+	for _, s := range scopes {
+		if !slices.Contains(granted, s) {
+			return Verification{Reason: ErrScopeMissing}, nil
+		}
+	}
+	r, err := p.keyByID(ctx, sess.APIKeyID)
+	if err != nil {
+		return Verification{}, err
+	}
+	k := r.key()
+	return Verification{Valid: true, Key: &k, UserID: sess.UserID}, nil
+}

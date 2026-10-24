@@ -1,0 +1,22 @@
+func (p *Plugin) BanFor(ctx context.Context, userID, reason string, until time.Time) error {
+	return p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		r, err := p.load(ctx, userID)
+		if err != nil {
+			return err
+		}
+		if p.isAdmin(userID, r.cols) {
+			return ErrAdminTarget
+		}
+		var expires *time.Time
+		if !until.IsZero() {
+			expires = &until
+		}
+		if err := p.applyBan(ctx, userID, reason, expires); err != nil {
+			return err
+		}
+		if p.events == nil {
+			return nil
+		}
+		return p.events.Record(ctx, audit.Event{Op: EndpointBan, Plugin: PluginName, OK: true, SubjectID: userID})
+	})
+}

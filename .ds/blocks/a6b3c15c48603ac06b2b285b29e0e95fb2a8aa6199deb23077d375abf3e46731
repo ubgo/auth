@@ -1,0 +1,1 @@
+func WithOrganizations(o Organizations) Option { return func(p *Plugin) { p.orgs = o } }

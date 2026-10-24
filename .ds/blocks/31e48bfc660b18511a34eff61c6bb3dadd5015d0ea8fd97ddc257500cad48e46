@@ -1,0 +1,8 @@
+type OpInfo struct {
+	ID      EndpointID
+	Kind    OpKind
+	Require Requirement
+	// Path is relative to the plugin, such as "/sign-in". The core serves it at
+	// "/<plugin>/sign-in"; a core operation's path has no plugin segment.
+	Path string
+}

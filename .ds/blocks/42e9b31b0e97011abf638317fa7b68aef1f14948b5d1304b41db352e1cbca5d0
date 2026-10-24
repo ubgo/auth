@@ -1,0 +1,17 @@
+func (p *Plugin) Set(ctx context.Context, userID string, kind Kind, doc json.RawMessage) error {
+	return p.write(ctx, userID, func(m *Metadata) error {
+		cur, err := m.doc(kind)
+		if err != nil {
+			return err
+		}
+		if len(doc) == 0 {
+			doc = emptyObject
+		}
+		obj, err := parseObject(doc)
+		if err != nil {
+			return err
+		}
+		*cur = encode(obj)
+		return nil
+	})
+}

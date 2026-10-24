@@ -1,0 +1,21 @@
+const consentPageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Allow access</title>
+<p><b id="client"></b> asks for: <span id="scope"></span></p>
+<button id="allow">Allow</button> <button id="deny">Deny</button>
+<script>
+const q = new URLSearchParams(location.search);
+document.getElementById("scope").textContent = q.get("scope");
+fetch("` + authPrefix + `/oauthprovider/public-client?client_id=" + encodeURIComponent(q.get("client_id")))
+  .then(r => r.json()).then(c => document.getElementById("client").textContent = c.client_name);
+const answer = async (accept) => {
+  const res = await fetch("` + authPrefix + `/oauthprovider/consent", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({oauth_query: location.search.slice(1), accept}),
+  });
+  location.href = (await res.json()).redirect_to;
+};
+document.getElementById("allow").onclick = () => answer(true);
+document.getElementById("deny").onclick = () => answer(false);
+</script>
+`

@@ -1,0 +1,48 @@
+func TestP3CommunityEmailChallenge_CrossDevice(t *testing.T) {
+	eachEngine(t, func(t *testing.T, e *env) {
+		em, pw, ec := e.emailPlugin(), e.passwordPlugin(), emailchallenge.New()
+		a := e.newAuth(t, nil, em, pw, ec)
+		owner := signUpVerified(t, e, a, pw, em)
+
+		asking := p3Req(a, "", "198.51.100.1", nil, nil)
+		st := must[emailchallenge.Result](t)(ec.Start(asking, " ALICE@example.com ", ""))
+		if st.PollToken == "" || st.ExpiresAt == nil || st.State != emailchallenge.StatePending {
+			t.Fatalf("start = %+v", st)
+		}
+		if p, _ := ec.Poll(anon(a), st.PollToken.Token()); p.State != emailchallenge.StatePending {
+			t.Fatalf("poll before approval = %+v", p)
+		}
+		approval := e.mail.LastToken(t, a, alice)
+
+		// The phone opens the link: context shows the request and changes
+		// nothing, so a scanner that fetches it approves nothing.
+		phone := p3Req(a, "", "198.51.100.2", nil, nil)
+		cx := must[emailchallenge.ContextResult](t)(ec.Context(phone, approval))
+		if cx.State != emailchallenge.StateNeedsConfirmation || cx.Identifier != alice || cx.IP != "198.51.100.1" || cx.UserAgent != "p3-browser" {
+			t.Fatalf("context on another device = %+v", cx)
+		}
+		if p, _ := ec.Poll(anon(a), st.PollToken.Token()); p.State != emailchallenge.StatePending {
+			t.Fatalf("a GET approved: %+v", p)
+		}
+		ap := must[emailchallenge.Result](t)(ec.Approve(phone, approval))
+		if ap.State != emailchallenge.StateApproved || ap.Token != "" || ap.User != nil {
+			t.Fatalf("approve must sign nobody in: %+v", ap)
+		}
+		// A second click is a success too.
+		must[emailchallenge.Result](t)(ec.Approve(phone, approval))
+		if p, _ := ec.Poll(anon(a), "not-the-poll-token"); p.State != emailchallenge.StateExpired {
+			t.Fatalf("a stranger's poll = %+v", p)
+		}
+
+		done := must[emailchallenge.Result](t)(ec.Poll(anon(a), st.PollToken.Token()))
+		if done.State != emailchallenge.StateCompleted || done.Token == "" || done.User == nil || done.User.ID != owner.User.ID || done.Created {
+			t.Fatalf("completed poll = %+v", done)
+		}
+		if again, _ := ec.Poll(anon(a), st.PollToken.Token()); again.State != emailchallenge.StateExpired {
+			t.Fatalf("a spent challenge polled = %+v", again)
+		}
+		if _, err := ec.Approve(phone, approval); !errors.Is(err, emailchallenge.ErrInvalid) {
+			t.Fatalf("approving a spent challenge: %v", err)
+		}
+	})
+}

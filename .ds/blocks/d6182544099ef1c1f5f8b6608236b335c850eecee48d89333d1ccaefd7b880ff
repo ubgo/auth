@@ -1,0 +1,5 @@
+export type SessionGateProps = {
+  readonly children: ReactNode;
+  /** Rendered while the first session read is in flight. Nothing by default. */
+  readonly fallback?: ReactNode;
+};

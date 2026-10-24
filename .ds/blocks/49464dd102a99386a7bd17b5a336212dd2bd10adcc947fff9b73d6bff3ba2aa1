@@ -1,0 +1,11 @@
+func nudgeHandler(a *auth.Auth) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u := authhttp.MustUser(r)
+		msg := auth.Message{Purpose: PurposeNudge, DefaultSubject: "Unread comments", DefaultText: nudgeText}
+		if err := a.DeliverRecovery(r.Context(), u.ID, msg); err != nil {
+			authhttp.WriteError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
+	})
+}

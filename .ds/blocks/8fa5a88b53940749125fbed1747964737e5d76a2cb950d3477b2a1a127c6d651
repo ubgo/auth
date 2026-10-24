@@ -1,0 +1,14 @@
+func (c *Client) RequestCode(ctx context.Context, scope string) (CodeResult, error) {
+	if err := c.check(); err != nil {
+		return CodeResult{}, err
+	}
+	form := url.Values{"client_id": {c.ClientID}}
+	if scope != "" {
+		form.Set("scope", scope)
+	}
+	var out CodeResult
+	if _, err := c.post(ctx, c.CodeURL, form, &out); err != nil {
+		return CodeResult{}, err
+	}
+	return out, nil
+}

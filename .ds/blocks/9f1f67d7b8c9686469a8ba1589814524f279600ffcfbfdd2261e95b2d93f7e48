@@ -1,0 +1,4 @@
+func (p *Plugin) Init(a *auth.Auth) error {
+	p.a = a
+	return nil
+}

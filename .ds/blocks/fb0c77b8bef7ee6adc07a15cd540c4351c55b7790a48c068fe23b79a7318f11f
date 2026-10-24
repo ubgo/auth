@@ -1,0 +1,4 @@
+`CREATE TABLE IF NOT EXISTS app_cart_item (
+	user_id TEXT NOT NULL REFERENCES auth_user (id) ON DELETE CASCADE,
+	item TEXT NOT NULL
+)`

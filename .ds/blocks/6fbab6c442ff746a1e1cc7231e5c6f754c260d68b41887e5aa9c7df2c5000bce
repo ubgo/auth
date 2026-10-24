@@ -1,0 +1,9 @@
+func TestPhoneNumbers_InternationalFormatFromAnotherCountry(t *testing.T) {
+	a, sms := newTestAuth(t)
+	b := newBrowser(t, newHandler(a))
+	post[auth.Done](t, b, "/auth/phone/send-code", fields{"phone": usNumber}, http.StatusOK)
+	res := post[phone.SignInResult](t, b, "/auth/phone/sign-in", fields{"phone": usNumber, "code": sms.lastCode(t, a, "+16502530000")}, http.StatusOK)
+	if me := get[meResponse](t, b, "/me", http.StatusOK); me.ID != res.User.ID || me.Phone != "+16502530000" {
+		t.Fatalf("/me = %+v", me)
+	}
+}

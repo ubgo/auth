@@ -1,0 +1,21 @@
+func TestFixturesAndFreshSession(t *testing.T) {
+	e := newEnv(t)
+	u := e.CreateUser("Ada", authtest.Identity{Kind: email.KindEmail, Value: alice})
+	s := e.SignIn(u.ID)
+	b := e.Browser(newHandler(e.Auth))
+	b.SetSession(s)
+
+	b.Post("/auth/phone/add", map[string]string{"phone": number}).Expect(http.StatusOK)
+	code := e.SMS.LastCode(number)
+	b.Post("/auth/phone/verify", map[string]string{"phone": number, "code": code}).Expect(http.StatusOK)
+
+	// Removing the number needs a fresh sign-in; after the window it is
+	// refused, and signing in again is the answer.
+	e.Clock.Advance(auth.DefaultFreshWindow + time.Minute)
+	stale := b.Post("/auth/phone/remove", map[string]string{"phone": number}).Expect(http.StatusForbidden)
+	if stale.ErrorCode() != auth.ErrFreshSessionRequired.Code {
+		t.Fatalf("stale session: %q", stale.ErrorCode())
+	}
+	b.SetSession(e.SignIn(u.ID))
+	b.Post("/auth/phone/remove", map[string]string{"phone": number}).Expect(http.StatusOK)
+}

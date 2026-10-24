@@ -1,0 +1,10 @@
+func Options(opts ...Option) Option {
+	return func(s *settings) {
+		if RefuseNilEach(&s.optErrs, "auth.Options", opts) {
+			return
+		}
+		for _, o := range opts {
+			o(s)
+		}
+	}
+}

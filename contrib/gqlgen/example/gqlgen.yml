@@ -1,0 +1,21 @@
+schema:
+  - graph/*.graphqls
+exec:
+  filename: graph/generated.go
+  package: graph
+model:
+  filename: graph/model/models_gen.go
+  package: model
+resolver:
+  layout: follow-schema
+  dir: graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+directives:
+  signedIn:
+    skip_runtime: false
+
+# The module is developed inside the repository's go.work, and `go mod tidy`
+# ignores the workspace, so a tidy here would resolve the auth modules from
+# their published tags instead of the working tree.
+skip_mod_tidy: true

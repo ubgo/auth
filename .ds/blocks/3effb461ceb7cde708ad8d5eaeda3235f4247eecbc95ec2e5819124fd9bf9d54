@@ -1,0 +1,11 @@
+func agentConnect(ctx context.Context, c *agentclient.Client, providerURL, message string) (agentclient.Agent, agentauth.RegisterResult, error) {
+	p, err := c.Discover(ctx, providerURL)
+	if err != nil {
+		return agentclient.Agent{}, agentauth.RegisterResult{}, err
+	}
+	return c.Connect(ctx, p, agentclient.ConnectRequest{
+		Name:          agentName,
+		Capabilities:  []agentauth.CapabilityRequest{{Name: capReadBalance}},
+		ApprovalHints: agentauth.ApprovalHints{PreferredMethod: agentauth.MethodCIBA, BindingMessage: message},
+	})
+}

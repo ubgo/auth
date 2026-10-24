@@ -1,0 +1,9 @@
+func WithRateExempt(fn RateExemptFunc) Option {
+	return func(s *settings) {
+		if fn == nil {
+			s.refuseNil("WithRateExempt")
+			return
+		}
+		s.rateExempt = fn
+	}
+}

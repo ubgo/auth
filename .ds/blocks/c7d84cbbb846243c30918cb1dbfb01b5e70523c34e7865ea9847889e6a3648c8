@@ -1,0 +1,12 @@
+func (p *Plugin) RateLimits() []auth.RateRule {
+	rules := []auth.RateRule{
+		{Match: EndpointSignIn, Key: auth.ByIP, Limit: signInIPLimit, Window: signInIPWindow},
+		{Match: EndpointSignIn, Key: auth.ByIdentifier, Limit: signInAccountLimit, Window: signInAccountWindow},
+		{Match: EndpointSignUp, Key: auth.ByIP, Limit: signUpIPLimit, Window: signUpIPWindow},
+		{Match: EndpointSignUp, Key: auth.ByIdentifier, Limit: signUpIDLimit, Window: signUpIDWindow},
+	}
+	if !p.noRecovery {
+		rules = append(rules, auth.RateRule{Match: EndpointForgot, Key: auth.ByIdentifier, Limit: forgotLimit, Window: forgotWindow})
+	}
+	return rules
+}

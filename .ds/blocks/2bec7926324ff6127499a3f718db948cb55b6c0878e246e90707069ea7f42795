@@ -1,0 +1,43 @@
+function PasswordSignIn() {
+  // ds:def id=headless-signin-submit-ejvycaf5 owner=@khanakia stability=stable span=+22
+  const passwordClient = usePluginClient("password")
+  const { refreshSession } = useSessionActions()
+  const { navigate, paths } = useAuth()
+  const message = useErrorMessage()
+  const [identifier, setIdentifier] = useState("")
+  const [secret, setSecret] = useState("")
+  const [error, setError] = useState<AuthError | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  if (passwordClient === null) return null // the client has no password plugin: offer no form
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setBusy(true)
+    const { data, error } = await passwordClient.signIn({ identifier, password: secret })
+    setBusy(false)
+    setError(error)
+    if (error) return
+    if (data.secondFactorRequired) navigate(paths.twoFactor)
+    // The session query is stale now; refreshing it flips SignedOut to SignedIn.
+    else await refreshSession()
+  }
+
+  return (
+    <section aria-labelledby="sign-in">
+      <h2 id="sign-in">Sign in</h2>
+      <form onSubmit={submit}>
+        <label>
+          Email
+          <input name="identifier" type="email" autoComplete="username" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required />
+        </label>
+        <label>
+          Password
+          <input name="password" type="password" autoComplete="current-password" value={secret} onChange={(e) => setSecret(e.target.value)} required />
+        </label>
+        <button type="submit" disabled={busy}>Sign in</button>
+        {error && <p role="alert">{message(error)}</p>}
+      </form>
+    </section>
+  )
+}

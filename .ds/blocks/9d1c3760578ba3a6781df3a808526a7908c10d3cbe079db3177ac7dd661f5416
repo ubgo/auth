@@ -1,0 +1,5 @@
+type ErrorInfo struct {
+	Code    string `json:"code"`
+	Status  int    `json:"-"`
+	Message string `json:"message"`
+}

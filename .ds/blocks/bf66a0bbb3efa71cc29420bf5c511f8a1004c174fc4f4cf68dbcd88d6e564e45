@@ -1,0 +1,1 @@
+	ErrRedirectInvalid = auth.NewError("password.redirect_invalid", http.StatusBadRequest, "This page cannot receive a reset link.")

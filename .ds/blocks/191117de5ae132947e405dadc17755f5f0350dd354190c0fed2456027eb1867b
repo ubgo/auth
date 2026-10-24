@@ -1,0 +1,4 @@
+export async function directorySignIn(user: string, secret: string): Promise<boolean> {
+  const { error } = await auth.ldap.signIn({ username: user, password: secret });
+  return error === null;
+}

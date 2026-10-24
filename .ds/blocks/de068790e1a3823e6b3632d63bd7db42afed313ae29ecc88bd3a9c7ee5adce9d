@@ -1,0 +1,8 @@
+export async function onInvitePage(): Promise<"accepted" | "sign-in-or-sign-up" | "invalid"> {
+  const token = new URLSearchParams(location.search).get("token") ?? "";
+  const shown = await auth.invite.get({ token });
+  if (shown.error || shown.data.status !== "pending") return "invalid";
+  const { data, error } = await auth.invite.activate({ token });
+  if (error) return "invalid";
+  return data.action === "accepted" ? "accepted" : "sign-in-or-sign-up";
+}

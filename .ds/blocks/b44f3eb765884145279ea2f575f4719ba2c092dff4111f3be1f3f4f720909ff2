@@ -1,0 +1,8 @@
+export function RequireUser({ children }: { readonly children: ReactNode }) {
+  const { user, isPending } = useSession()
+  const { paths } = useAuth()
+  const { pathname } = useLocation()
+  if (isPending) return <p className="muted">Checking your session…</p>
+  if (user === null) return <Navigate to={`${paths.signIn}?${REDIRECT_PARAM}=${encodeURIComponent(pathname)}`} replace />
+  return children
+}

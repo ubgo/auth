@@ -1,0 +1,9 @@
+func loginPage(op *oauthprovider.Plugin) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		data := loginPageData{Resume: op.ResumeURL(r.URL.Query()), Prefix: authPrefix}
+		if err := loginPageTemplate.Execute(w, data); err != nil {
+			log.Printf("login page: %v", err)
+		}
+	})
+}

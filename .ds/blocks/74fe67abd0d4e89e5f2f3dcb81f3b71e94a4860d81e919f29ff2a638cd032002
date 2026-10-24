@@ -1,0 +1,3 @@
+func PreCheck(fn func(ctx context.Context, key string) bool) Option {
+	return func(p *Plugin) { p.check = fn }
+}

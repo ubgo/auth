@@ -1,0 +1,1 @@
+	DefaultTimeout = 15 * time.Second

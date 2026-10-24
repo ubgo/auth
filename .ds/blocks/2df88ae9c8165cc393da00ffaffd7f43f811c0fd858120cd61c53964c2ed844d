@@ -1,0 +1,24 @@
+const approvalPageHTML = `<!doctype html>
+<meta charset="utf-8">
+<title>Approve sign-in</title>
+<p id="msg">Checking…</p>
+<button id="ok" hidden>Confirm</button>
+<script>
+const token = new URLSearchParams(location.search).get("token");
+const api = "` + authPrefix + `/emailchallenge";
+const msg = document.getElementById("msg"), ok = document.getElementById("ok");
+fetch(api + "/context?token=" + encodeURIComponent(token)).then(r => r.json()).then(c => {
+  if (c.state === "needs-confirmation") {
+    msg.textContent = "Sign in as " + c.identifier + " from " + c.userAgent + " (" + c.ipAddress + ")?";
+    ok.hidden = false;
+  } else if (c.state === "approved") msg.textContent = "Approved. Go back to your other tab.";
+  else if (c.state === "wrong-browser") msg.textContent = "Open this link in the browser where you started.";
+  else msg.textContent = "This sign-in request is not valid any more.";
+});
+ok.onclick = async () => {
+  const res = await fetch(api + "/approve", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({token})});
+  ok.hidden = true;
+  msg.textContent = res.ok ? "Approved. Go back to your other tab." : (await res.json()).error.message;
+};
+</script>
+`

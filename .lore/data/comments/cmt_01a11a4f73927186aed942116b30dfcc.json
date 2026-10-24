@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Built 2026-10-08 under the owner's rule (opt-in, start WARN, risk documented): authhttp.WeakenCookies/WeakenCookie, oauth.LinkUnverifiedLocalEmail, email.ChangeWithoutVerification; plus auth.WithProfileFields, auth.TableSchema/SchemaMigration, auth.WithUserLocale, oauth.StateInCookie. Not built: VK refresh device_id (needs an auth_account column and migration) and a Discord channel (owner's, when the repo is public).",
+  "created_at": "2026-10-08T06:59:36.978064000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11a3432c67dbbabc7914a5a69d756",
+  "entity_table": "tasks",
+  "id": "cmt_01a11a4f73927186aed942116b30dfcc",
+  "updated_at": "2026-10-08T06:59:36.978065000Z"
+}

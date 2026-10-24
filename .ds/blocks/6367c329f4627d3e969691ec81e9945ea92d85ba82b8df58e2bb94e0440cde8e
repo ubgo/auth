@@ -1,0 +1,8 @@
+func WithVerificationStore(s VerificationStore) Option {
+	return func(st *settings) {
+		if st.optErrs.RefuseNil("auth.WithVerificationStore", s) {
+			return
+		}
+		st.verifications = s
+	}
+}

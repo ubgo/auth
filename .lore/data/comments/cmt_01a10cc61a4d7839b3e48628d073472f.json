@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Done: authhttp.TrustedProxies and authhttp.ClientIPHeaders (authhttp/authhttp.go; X-Forwarded-For then X-Real-IP from named networks only), round 1, tagged [security]; tests TestRequestOf_TrustedProxies and TestTrustedProxies_RefusesAValueThatIsNotANetwork in authhttp/cover_test.go. Request.Host from trusted proxies followed in round 2. Verified by r10-lore audit 2026-10-05.",
+  "created_at": "2026-10-05T15:54:31.885530000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a0f5d75e917697afa4a39e94a41e7f",
+  "entity_table": "tasks",
+  "id": "cmt_01a10cc61a4d7839b3e48628d073472f",
+  "updated_at": "2026-10-05T15:54:31.885530000Z"
+}

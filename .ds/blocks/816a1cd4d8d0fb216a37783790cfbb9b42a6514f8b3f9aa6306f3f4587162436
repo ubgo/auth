@@ -1,0 +1,45 @@
+type Session struct {
+	ID         string
+	UserID     string
+	ExpiresAt  time.Time
+	LastSeenAt time.Time
+
+	// IP and UserAgent are for the "your sessions" list only. Both come from
+	// the client, so nothing may use them to decide anything.
+	IP        string
+	UserAgent string
+
+	CreatedAt time.Time
+
+	// SecondFactorPending is true for a session whose user must still pass a
+	// second factor. Such a session signs nobody in: CurrentUser and the
+	// SignedIn requirement ignore it, and only PendingSecondFactor operations
+	// see it. PromoteSession replaces it with a full one.
+	SecondFactorPending bool
+
+	// ImpersonatedBy is the id of the admin acting as this user, or nil for
+	// the user's own session. It is on the row, so the user's session list
+	// shows it and nothing can hide that someone else was signed in as them.
+	ImpersonatedBy *string
+
+	// APIKeyID is set when the request was made with an API key rather than
+	// a session; such a Session is built for the request and has no row. It
+	// signs the user in for the app's routes, and every auth operation that
+	// needs a person refuses it.
+	APIKeyID string
+
+	// Transient is true for a session made without "remember me": it lives
+	// SessionConfig.TransientIdleTimeout at most, and its cookie has no
+	// expiry, so closing the browser ends it.
+	Transient bool
+
+	// IdleSeconds, RefreshSeconds and MaxExpiresAt are the lifetime chosen
+	// for this session when it was created (WithSessionPolicy), which a
+	// sliding refresh keeps using: a year-long app session must not shrink
+	// to the web default on its first refresh. 0 and nil mean the
+	// SessionConfig defaults, as for rows from before the columns existed;
+	// Lifetime resolves them.
+	IdleSeconds    int64
+	RefreshSeconds int64
+	MaxExpiresAt   *time.Time
+}

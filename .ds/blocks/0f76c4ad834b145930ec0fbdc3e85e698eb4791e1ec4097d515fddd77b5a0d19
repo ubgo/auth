@@ -1,0 +1,8 @@
+var DefaultRateLimits = map[auth.EndpointID]int{
+	EndpointToken:      20,
+	EndpointAuthorize:  30,
+	EndpointIntrospect: 100,
+	EndpointRevoke:     30,
+	EndpointRegister:   5,
+	EndpointUserInfo:   60,
+}

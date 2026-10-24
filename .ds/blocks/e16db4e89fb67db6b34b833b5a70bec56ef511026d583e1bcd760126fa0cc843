@@ -1,0 +1,3 @@
+func WithOperationHooks(h ...OperationHook) Option {
+	return func(s *settings) { s.opHooks = append(s.opHooks, h...) }
+}

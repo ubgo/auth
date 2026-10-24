@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r24-misc (2026-10-07): examples read the port from PORT (default 8081) and second servers from REPORT_PORT, API_PORT, PORT_B, ISSUER_PORT (env names chosen by the agent; PORT is the common convention, so a shell that exports PORT moves every example). oauth Start/Callback typed methods answer ErrProviderUnknown (a plain error, not an auth code) for a provider not in use; without a request in ctx the start's flow binding is dropped and the callback answers ErrStateInvalid. email: an add, change or resend for an address another account verified mails that owner the duplicate sign-up notice instead of the link (changeEmail does the same); the token is still issued so timing matches; a link mailed before the other account verified still answers auth.identity_taken. authhttp drops a cached copy recorded before a session clear in the same response, in cookie mode too, not only bearer.",
+  "created_at": "2026-10-07T07:02:54.070354000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1152c197675b1a2fcd34a4a0fc5a8",
+  "updated_at": "2026-10-07T07:02:54.070354000Z"
+}

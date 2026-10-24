@@ -1,0 +1,3 @@
+func Define[In, Out any](info OpInfo, run func(ctx context.Context, c *Call, in In) (Out, error)) *Op[In, Out] {
+	return &Op[In, Out]{info: info, run: run}
+}

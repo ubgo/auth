@@ -1,0 +1,4 @@
+func (p *Plugin) Unlink(ctx context.Context, provider string) error {
+	_, err := p.unlink.Call(ctx, UnlinkRequest{Provider: provider})
+	return err
+}

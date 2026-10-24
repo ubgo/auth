@@ -1,0 +1,6 @@
+func LocaleCookie(name string) Option {
+	if name == "" {
+		name = DefaultLocaleCookieName
+	}
+	return func(c *config) { c.localeCookie = name }
+}

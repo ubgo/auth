@@ -1,0 +1,1 @@
+var ErrSessionTaskPending = NewError("auth.session_task_pending", http.StatusForbidden, "Finish setting up your account to continue.")

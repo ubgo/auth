@@ -1,0 +1,10 @@
+type RoleProjection struct {
+	// Map returns the roles a group grants its members (projection.roles.map).
+	Map func(ctx context.Context, g RoleSource) ([]string, error)
+	// Exists, when set, keeps only roles the app knows
+	// (projection.roles.exists); a refused role grants nothing.
+	Exists func(ctx context.Context, connectionID, role string) (bool, error)
+	// Reconcile receives each affected user's full state, idempotent, in the
+	// request's transaction (projection.reconcileUser); an error rolls back.
+	Reconcile func(ctx context.Context, u ProjectedUser) error
+}

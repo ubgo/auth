@@ -1,0 +1,6 @@
+type MultiSessionConfig struct {
+	// Enabled is true when WithMultiSession was given.
+	Enabled bool
+	// Max is the most sessions one device may hold, the active one included.
+	Max int
+}

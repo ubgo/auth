@@ -1,0 +1,85 @@
+go 1.25.0
+
+use (
+	.
+	./authui
+	./contrib/echo
+	./contrib/fiber
+	./contrib/gin
+	./contrib/goth
+	./contrib/gqlgen
+	./contrib/gqlgen/example
+	./contrib/otel
+	./contrib/phonenumbers
+	./contrib/redis
+	./examples
+	./integration
+	./plugin/access
+	./plugin/agentauth
+	./plugin/deviceauth
+	./plugin/deviceauth/oauthdevice
+	./plugin/ldap
+	./plugin/oauthprovider
+	./plugin/oauthproxy
+	./plugin/organization
+	./plugin/passkey
+	./plugin/password
+	./plugin/referral
+	./plugin/samlidp
+	./plugin/scim
+	./plugin/siwe
+	./plugin/sso
+	./plugin/webhook
+)
+
+replace github.com/ubgo/auth v0.1.0 => .
+
+replace github.com/ubgo/auth/plugin/access v0.1.0 => ./plugin/access
+
+replace github.com/ubgo/auth/plugin/agentauth v0.1.0 => ./plugin/agentauth
+
+replace github.com/ubgo/auth/plugin/deviceauth v0.1.0 => ./plugin/deviceauth
+
+replace github.com/ubgo/auth/plugin/ldap v0.1.0 => ./plugin/ldap
+
+replace github.com/ubgo/auth/plugin/oauthprovider v0.1.0 => ./plugin/oauthprovider
+
+replace github.com/ubgo/auth/plugin/oauthproxy v0.1.0 => ./plugin/oauthproxy
+
+replace github.com/ubgo/auth/plugin/passkey v0.1.0 => ./plugin/passkey
+
+replace github.com/ubgo/auth/plugin/password v0.1.0 => ./plugin/password
+
+replace github.com/ubgo/auth/plugin/referral v0.1.0 => ./plugin/referral
+
+replace github.com/ubgo/auth/plugin/samlidp v0.1.0 => ./plugin/samlidp
+
+replace github.com/ubgo/auth/plugin/scim v0.1.0 => ./plugin/scim
+
+replace github.com/ubgo/auth/plugin/siwe v0.1.0 => ./plugin/siwe
+
+replace github.com/ubgo/auth/plugin/sso v0.1.0 => ./plugin/sso
+
+replace github.com/ubgo/auth/plugin/webhook v0.1.0 => ./plugin/webhook
+
+replace github.com/ubgo/auth/contrib/echo v0.1.0 => ./contrib/echo
+
+replace github.com/ubgo/auth/contrib/fiber v0.1.0 => ./contrib/fiber
+
+replace github.com/ubgo/auth/contrib/gin v0.1.0 => ./contrib/gin
+
+replace github.com/ubgo/auth/contrib/goth v0.1.0 => ./contrib/goth
+
+replace github.com/ubgo/auth/contrib/gqlgen v0.1.0 => ./contrib/gqlgen
+
+replace github.com/ubgo/auth/contrib/otel v0.1.0 => ./contrib/otel
+
+replace github.com/ubgo/auth/contrib/phonenumbers v0.1.0 => ./contrib/phonenumbers
+
+replace github.com/ubgo/auth/contrib/redis v0.1.0 => ./contrib/redis
+
+replace github.com/ubgo/auth/plugin/organization v0.1.0 => ./plugin/organization
+
+replace github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.1.0 => ./plugin/deviceauth/oauthdevice
+
+replace github.com/ubgo/auth/authui v0.1.0 => ./authui

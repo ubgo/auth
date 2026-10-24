@@ -1,0 +1,1 @@
+func (a *Auth) SQLTypes() SQLTypes { return a.typesFor(a.Engine()) }

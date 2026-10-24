@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r33 round 5 (2026-10-07): OAuth provider clients must now be linked to a resource before they can get tokens for it. ID tokens default to 10 h. JWT access tokens carry typ at+jwt, so outside verifiers need Verifier.Types at+jwt.",
+  "created_at": "2026-10-07T10:40:08.323059000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a115f2fc83712c8e1ed4e3410866e7",
+  "updated_at": "2026-10-07T10:40:08.323059000Z"
+}

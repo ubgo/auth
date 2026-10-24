@@ -1,0 +1,12 @@
+func (p *Plugin) Accounts(ctx context.Context, userID string) ([]Account, error) {
+	var row Account
+	out := []Account{}
+	err := p.core.Each(ctx, p.core.Select().Columns(accountBindings(&row)...).From(TableAccount).
+		Where(sqlb.Eq(AccountUserID, userID)).Order(sqlb.OrderBy(AccountCreated, sqlb.SortAsc), sqlb.OrderBy(AccountID, sqlb.SortAsc)),
+		func() error {
+			row.Scopes = strings.Fields(row.scope)
+			out = append(out, row)
+			return nil
+		})
+	return out, err
+}

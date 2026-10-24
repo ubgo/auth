@@ -1,0 +1,3 @@
+func authRoutes(a *auth.Auth) http.Handler {
+	return authhttp.Handler(a, authhttp.Prefix(authPrefix), localeRule, authhttp.ErrorPage(authhttp.ErrorPageOptions{}))
+}

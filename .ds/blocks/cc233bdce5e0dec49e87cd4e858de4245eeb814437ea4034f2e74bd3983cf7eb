@@ -1,0 +1,11 @@
+export async function turnOnAuthenticatorApp(
+  showQRCode: (otpauthURL: string, secret: string) => void,
+  askForCode: () => Promise<string>,
+): Promise<string[] | null> {
+  const started = await auth.twofactor.enroll({ method: "totp" });
+  if (started.error) return null; // auth.fresh_session_required, twofactor.already_enabled, ...
+  showQRCode(started.data.url ?? "", started.data.secret ?? "");
+  const confirmed = await auth.twofactor.confirm({ code: await askForCode() });
+  if (confirmed.error) return null; // twofactor.code_invalid: ask again; the enrolment stays open
+  return confirmed.data.codes ?? [];
+}

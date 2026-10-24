@@ -1,0 +1,4 @@
+export async function turnOff(code: string): Promise<boolean> {
+  const { error } = await auth.twofactor.disable({ code });
+  return error === null;
+}

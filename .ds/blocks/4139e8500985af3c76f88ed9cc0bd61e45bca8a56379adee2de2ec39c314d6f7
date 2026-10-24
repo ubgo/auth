@@ -1,0 +1,1 @@
+func RingSealer(r *KeyRing) Sealer { return ringSealer{r: r} }

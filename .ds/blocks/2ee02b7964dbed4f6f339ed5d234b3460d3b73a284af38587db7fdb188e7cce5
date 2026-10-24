@@ -1,0 +1,31 @@
+func TestSPA_PreflightAndCredentialedRequests(t *testing.T) {
+	a := newTestAuth(t)
+	srv := httptest.NewTLSServer(newHandler(a)) // the cookie is Secure, and a jar keeps it only over https
+	defer srv.Close()
+	jar, _ := cookiejar.New(nil)
+	client := srv.Client()
+	client.Jar = jar
+
+	pre := do(t, client, http.MethodOptions, srv.URL+"/auth/password/sign-up", nil, map[string]string{
+		"Origin": spaOrigin, "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type",
+	})
+	if pre.StatusCode != http.StatusNoContent || pre.Header.Get("Access-Control-Allow-Origin") != spaOrigin || pre.Header.Get("Access-Control-Allow-Credentials") != "true" {
+		t.Fatalf("preflight: %d %v", pre.StatusCode, pre.Header)
+	}
+	if pre.Header.Get("Access-Control-Allow-Origin") == "*" {
+		t.Fatal("a wildcard origin cannot carry credentials")
+	}
+
+	up := do(t, client, http.MethodPost, srv.URL+"/auth/password/sign-up", map[string]string{"identifier": testEmail, "password": testPassword}, map[string]string{"Origin": spaOrigin})
+	if up.StatusCode != http.StatusOK || up.Header.Get("Access-Control-Allow-Origin") != spaOrigin || len(up.Cookies()) == 0 {
+		t.Fatalf("sign-up from the SPA: %d %v cookies=%v", up.StatusCode, up.Header, up.Cookies())
+	}
+	me := do(t, client, http.MethodGet, srv.URL+"/me", nil, map[string]string{"Origin": spaOrigin})
+	if me.StatusCode != http.StatusOK || me.Header.Get("Access-Control-Allow-Origin") != spaOrigin {
+		t.Fatalf("/me from the SPA: %d %v", me.StatusCode, me.Header)
+	}
+	out := do(t, client, http.MethodPost, srv.URL+"/auth/sign-out", nil, map[string]string{"Origin": spaOrigin})
+	if out.StatusCode != http.StatusOK {
+		t.Fatalf("sign-out from the SPA: %d", out.StatusCode)
+	}
+}

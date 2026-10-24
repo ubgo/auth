@@ -1,0 +1,4 @@
+type mapVerificationStore struct {
+	mu   sync.Mutex
+	rows map[string]auth.Verification
+}

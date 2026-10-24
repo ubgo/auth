@@ -1,0 +1,11 @@
+export default async function AccountPage() {
+  const user = await serverUser()
+  if (user === null) redirect(`/sign-in?redirectTo=${encodeURIComponent("/account")}`)
+  return (
+    <section aria-labelledby="account">
+      <h1 id="account">{user.name}</h1>
+      <p className="muted">Read on the server from GET /auth/session, before this page was sent.</p>
+      <SignOutButton />
+    </section>
+  )
+}

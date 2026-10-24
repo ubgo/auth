@@ -1,0 +1,33 @@
+type Config struct {
+	// Dialect renders every statement.
+	Dialect sqlb.Dialect
+
+	// Identifiers is every kind the plugins registered, in plugin order.
+	Identifiers []IdentifierKind
+
+	// BaseURL is the app's public URL. Its origin is trusted, and plugins
+	// build the links they send from it.
+	BaseURL string
+
+	// TrustedOrigins are extra origins allowed to send cookie-authenticated
+	// mutations, as "scheme://host".
+	TrustedOrigins []string
+
+	// FreshWindow is how recent a session must be for FreshSignIn operations.
+	FreshWindow time.Duration
+
+	// Session holds the session lifetimes.
+	Session SessionConfig
+
+	// PendingSessionTTL is how long a pending second-factor session lives;
+	// see WithPendingSessionTTL.
+	PendingSessionTTL time.Duration
+
+	// CodeLength is the number of digits of a one-time code; see
+	// WithCodeLength.
+	CodeLength int
+
+	// MultiSession is the WithMultiSession setting; Enabled is false
+	// without it.
+	MultiSession MultiSessionConfig
+}

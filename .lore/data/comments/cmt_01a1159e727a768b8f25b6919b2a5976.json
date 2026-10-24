@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r32 last round (2026-10-07): with the oauthproxy skip header (X-Skip-OAuth-Proxy), a preview deployment now accepts an unsealed authorization code and exchanges it with its own callback (before: only codes production relayed sealed). The provider's PKCE check still protects the exchange. New generic hook oauth.RequestAuthURLer. SCIM Entra row stays partial: Microsoft's validator not run, its request shapes replayed in a test.",
+  "created_at": "2026-10-07T09:07:47.962411000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1159e727a768b8f25b6919b2a5976",
+  "updated_at": "2026-10-07T09:07:47.962412000Z"
+}

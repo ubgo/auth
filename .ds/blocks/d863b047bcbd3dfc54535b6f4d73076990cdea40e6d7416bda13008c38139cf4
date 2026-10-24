@@ -1,0 +1,7 @@
+func (e *Error) Is(target error) bool {
+	var t *Error
+	if !errors.As(target, &t) {
+		return false
+	}
+	return t.Code == e.Code
+}

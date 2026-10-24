@@ -1,0 +1,8 @@
+func WithRateChallenger(ch RateChallenger) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithRateChallenger", ch) {
+			return
+		}
+		s.rateChallenger = ch
+	}
+}

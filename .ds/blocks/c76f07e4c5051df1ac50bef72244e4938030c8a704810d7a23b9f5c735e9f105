@@ -1,0 +1,10 @@
+func (a *Auth) CredentialChanged(ctx context.Context, userID string) error {
+	for _, p := range a.plugins {
+		if l, ok := p.(CredentialListener); ok {
+			if err := l.CredentialChanged(ctx, userID); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}

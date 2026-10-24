@@ -1,0 +1,11 @@
+func (p *Plugin) Refresh(ctx context.Context, userID, provider string) (TokenSet, error) {
+	id, ts, err := p.loadTokens(ctx, userID, provider)
+	if err != nil {
+		return TokenSet{}, err
+	}
+	r, ok := p.provider(provider).(Refresher)
+	if !ok || ts.RefreshToken == "" {
+		return TokenSet{}, ErrCannotRefresh
+	}
+	return p.refresh(ctx, provider, r, id, ts)
+}

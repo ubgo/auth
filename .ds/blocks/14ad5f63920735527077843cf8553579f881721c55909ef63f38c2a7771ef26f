@@ -1,0 +1,10 @@
+var (
+	_ auth.Initializer       = (*Plugin)(nil)
+	_ auth.Dependent         = (*Plugin)(nil)
+	_ auth.ColumnExtender    = (*Plugin)(nil)
+	_ auth.OperationHooker   = (*Plugin)(nil)
+	_ auth.DataHooker        = (*Plugin)(nil)
+	_ auth.SessionChecker    = (*Plugin)(nil)
+	_ auth.SecondFactor      = (*Plugin)(nil)
+	_ auth.OperationProvider = (*Plugin)(nil)
+)

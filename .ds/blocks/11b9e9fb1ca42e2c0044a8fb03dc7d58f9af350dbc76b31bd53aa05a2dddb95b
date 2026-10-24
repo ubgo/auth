@@ -1,0 +1,3 @@
+func signInRule() auth.RateRule {
+	return auth.RateRule{Match: password.EndpointSignIn, Key: auth.ByIP, Limit: signInsPerMinute, Window: time.Minute}
+}

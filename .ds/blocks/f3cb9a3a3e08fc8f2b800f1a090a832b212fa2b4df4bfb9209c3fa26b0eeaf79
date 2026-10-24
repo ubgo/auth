@@ -1,0 +1,6 @@
+type CodeSignInResult struct {
+	User                 auth.UserView `json:"user"`
+	Created              bool          `json:"created"`
+	SecondFactorRequired bool          `json:"secondFactorRequired"`
+	Token                auth.Token    `json:"-"`
+}

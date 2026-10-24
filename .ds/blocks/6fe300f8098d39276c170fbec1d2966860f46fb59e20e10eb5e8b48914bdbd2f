@@ -1,0 +1,16 @@
+func (p *app) ensureAccount(ctx context.Context, addr, secret string) error {
+	err := p.auth.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		u, err := p.auth.CreateUser(ctx, auth.NewUser{})
+		if err != nil {
+			return err
+		}
+		if _, err := p.auth.CreateIdentity(ctx, auth.NewIdentity{UserID: u.ID, Kind: email.KindEmail, Raw: addr, Verified: true, Primary: true}); err != nil {
+			return err
+		}
+		return p.passwords.SetPassword(ctx, u.ID, password.Secret(secret))
+	})
+	if errors.Is(err, auth.ErrIdentityTaken) {
+		return nil
+	}
+	return err
+}

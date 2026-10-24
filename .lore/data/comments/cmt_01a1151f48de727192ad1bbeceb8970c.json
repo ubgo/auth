@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r22-core (2026-10-07): delivery outbox is at-least-once (a mail can go twice after a crash), max 5 tries, backoff 1m doubling to 1h; the Redis session-cache eviction needs Redis 7 or later. CHANGELOG: ban/revoke/delete drop cached sessions; opt-in delivery outbox (WithDeliveryOutbox, SendOutbox, auth sweep); authtest exports the fault-injecting driver and SweepFaults.",
+  "created_at": "2026-10-07T06:48:54.238142000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1151f48de727192ad1bbeceb8970c",
+  "updated_at": "2026-10-07T06:48:54.238142000Z"
+}

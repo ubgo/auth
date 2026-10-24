@@ -1,0 +1,8 @@
+export async function onDevicePage(typedCode: string, confirm: (clientId: string, scope: string) => Promise<boolean>): Promise<string> {
+  const code = typedCode || (new URLSearchParams(location.search).get("user_code") ?? "");
+  const looked = await auth.device.verify({ user_code: code });
+  if (looked.error) return looked.error.code === "auth.signed_out" ? "Sign in first." : "This code is not valid.";
+  const allow = await confirm(looked.data.client_id ?? "", looked.data.scope ?? "");
+  const decided = allow ? await auth.device.approve({ userCode: code }) : await auth.device.deny({ userCode: code });
+  return decided.error ? decided.error.message : allow ? "Done. Go back to your device." : "Denied.";
+}

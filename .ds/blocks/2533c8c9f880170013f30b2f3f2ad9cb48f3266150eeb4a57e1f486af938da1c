@@ -1,0 +1,17 @@
+func (a *Auth) MergeFields(nested, top Fields) (Fields, error) {
+	if len(top) == 0 {
+		return nested, nil
+	}
+	out := make(Fields, len(nested)+len(top))
+	maps.Copy(out, nested)
+	for k, v := range top {
+		if _, ok := a.signUpFields[k]; !ok {
+			return nil, ErrBadRequest
+		}
+		if _, dup := nested[k]; dup {
+			return nil, ErrFieldInvalid
+		}
+		out[k] = v
+	}
+	return out, nil
+}

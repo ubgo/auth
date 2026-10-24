@@ -1,0 +1,16 @@
+type Key struct {
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	Hint       string     `json:"hint"`
+	Scopes     []string   `json:"scopes"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	// Disabled is true while the owner has paused the key (UpdateRequest
+	// .Disabled); a disabled key is refused like an unknown one.
+	Disabled bool `json:"disabled"`
+	// Metadata is the owner's JSON object, or null.
+	Metadata json.RawMessage `json:"metadata"`
+	// Limits are the key's rate limit and quota; Remaining is live.
+	Limits Limits `json:"limits"`
+}

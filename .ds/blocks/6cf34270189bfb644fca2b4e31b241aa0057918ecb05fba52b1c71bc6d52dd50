@@ -1,0 +1,10 @@
+func Errors() []*Error {
+	registry.mu.Lock()
+	defer registry.mu.Unlock()
+	out := make([]*Error, 0, len(registry.byCode))
+	for _, e := range registry.byCode {
+		out = append(out, e)
+	}
+	slices.SortFunc(out, func(x, y *Error) int { return strings.Compare(x.Code, y.Code) })
+	return out
+}

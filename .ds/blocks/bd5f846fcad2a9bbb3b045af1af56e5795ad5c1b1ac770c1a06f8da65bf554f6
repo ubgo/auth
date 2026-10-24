@@ -1,0 +1,3 @@
+func (s *Session) Context(ctx context.Context) context.Context {
+	return s.env.request(ctx, auth.CredentialCookie, s.Token)
+}

@@ -1,0 +1,8 @@
+func WithIDs(gen func(prefix string) (string, error)) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithIDs", gen) {
+			return
+		}
+		s.ids = gen
+	}
+}

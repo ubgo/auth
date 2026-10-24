@@ -1,0 +1,19 @@
+type CookieAttributes struct {
+	// ScriptReadable drops HttpOnly: page script can read the cookie, so
+	// one cross-site scripting bug hands the session to an attacker.
+	ScriptReadable bool
+	// Insecure drops Secure, and with it the __Host- or __Secure- prefix
+	// (a browser refuses either without Secure), for plain-HTTP development
+	// on a non-localhost host. The cookie then crosses the network in clear
+	// text, and any subdomain or a network attacker can set it.
+	Insecure bool
+	// CrossSite sends the cookie with SameSite=None, so it travels on
+	// requests from other sites, for an app embedded in a third-party page.
+	// The origin check is then the only CSRF defence. It needs Secure, so
+	// it cannot be combined with Insecure.
+	CrossSite bool
+	// Path narrows the cookie to a path other than "/". __Host- requires
+	// Path=/, so the cookie is named with __Secure- instead, which a
+	// sibling subdomain can set.
+	Path string
+}

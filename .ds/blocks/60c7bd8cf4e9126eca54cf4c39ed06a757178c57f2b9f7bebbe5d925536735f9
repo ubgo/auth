@@ -1,0 +1,21 @@
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *sessiondata.Plugin, error) {
+	sd := sessiondata.New(sessiondata.WithInitial(func(_ context.Context, s auth.Session) (any, error) {
+		return device{UserAgent: s.UserAgent, SignedInAt: s.CreatedAt}, nil
+	}))
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			sd,
+		),
+		auth.WithDataHooks(auth.DataHooks{Session: auth.TableHooks[auth.Session]{
+			BeforeCreate: func(_ context.Context, _ sqlb.DBTX, s *auth.Session) (err error) {
+				s.Data, err = auth.EncodeSessionData(prefs{Workspace: defaultWorkspace})
+				return err
+			},
+		}}),
+	)
+	return a, sd, err
+}

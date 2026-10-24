@@ -1,0 +1,17 @@
+export const ADMIN_CAPABILITIES = {
+  listUsers: { user: ["list"] },
+  getUser: { user: ["get"] },
+  createUser: { user: ["create"] },
+  updateUser: { user: ["update"] },
+  ban: { user: ["ban"] },
+  setRole: { user: ["set-role"] },
+  impersonate: { user: ["impersonate"] },
+  deleteUser: { user: ["delete"] },
+  setPassword: { user: ["set-password"] },
+  listSessions: { session: ["list"] },
+  revokeSessions: { session: ["revoke"] },
+  getTwoFactor: { "two-factor": ["get"] },
+  disableTwoFactor: { "two-factor": ["disable"] },
+  enableTwoFactor: { "two-factor": ["enable"] },
+  resetTwoFactor: { "two-factor": ["reset"] },
+} as const satisfies Record<string, Readonly<Record<string, readonly string[]>>>;

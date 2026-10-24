@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Build: admin 2FA control, unknown-device mail, stale accounts, security events and drains, graded actions, geo-blocking and impossible travel via a GeoIP interface, proof-of-work, email domain allow-list, LDAP module, SIWE module. Defer: OPAQUE, DBSC, EVP, USOS OAuth 1.0a, Nostr/NEAR/TON, Firebase/Strapi identity sources, devtools panel, inbox, analytics dashboard, hosted admin UI. Skip: CRM/marketing connectors (Dub, Attio, Sequenzy: a data hook is enough), GitHub-star gating, trial-abuse fingerprinting, hosted demo, docs chat, docs MCP server, videos.",
+  "confidence": null,
+  "created_at": "2026-10-09T08:01:49.700122000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a11faec48472599ffb1de5f11800dc",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Owner 2026-10-09: remaining checklist rows split",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-09T08:01:49.700124000Z"
+}

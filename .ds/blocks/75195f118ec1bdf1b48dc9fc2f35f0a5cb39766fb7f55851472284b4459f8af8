@@ -1,0 +1,11 @@
+export type PasskeyAutofillOutcome =
+  /** A passkey was picked and the server signed its owner in (maybe pending a second factor). */
+  | { readonly kind: "signed_in"; readonly result: PasskeySignInResult }
+  /** A passkey was picked and the server refused it: an expired ceremony, a passkey it does not know. */
+  | { readonly kind: "refused"; readonly error: AuthError }
+  /** Autofill was not offered: no conditional mediation in this browser, or login-begin failed. */
+  | { readonly kind: "unavailable"; readonly error: AuthError | null }
+  /** The browser ended the request without a credential (no passkey for this site, or it gave up). */
+  | { readonly kind: "no_credential" }
+  /** `signal` aborted it: the person chose another method, or the page went away. */
+  | { readonly kind: "aborted" };

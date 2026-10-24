@@ -1,0 +1,61 @@
+func TestGuard_PasswordSignInAlwaysHashesOnce(t *testing.T) {
+	var body *ast.BlockStmt
+	for _, f := range sourceFiles(t, "plugin/password") {
+		for _, d := range f.Decls {
+			if fn, ok := d.(*ast.FuncDecl); ok && fn.Name.Name == "doSignIn" {
+				body = fn.Body
+			}
+		}
+	}
+	if body == nil {
+		t.Fatal("doSignIn not found; the guard would pass vacuously")
+	}
+	isCheck := func(n ast.Node) bool {
+		c, ok := n.(*ast.CallExpr)
+		return ok && nameOf(c.Fun) == "checkPassword"
+	}
+	calls := 0
+	ast.Inspect(body, func(n ast.Node) bool {
+		if isCheck(n) {
+			calls++
+		}
+		return true
+	})
+	checkAt := -1
+	for i, st := range body.List {
+		ast.Inspect(st, func(n ast.Node) bool {
+			if _, ok := n.(*ast.BlockStmt); ok {
+				return false // nested block: not top level
+			}
+			if isCheck(n) {
+				checkAt = i
+			}
+			return true
+		})
+	}
+	if calls != 1 || checkAt < 0 {
+		t.Fatalf("doSignIn calls checkPassword %d times, top level at statement %d; want exactly 1, unconditionally", calls, checkAt)
+	}
+	for i, st := range body.List[:checkAt] {
+		lengthGuard := false
+		if ifs, ok := st.(*ast.IfStmt); ok {
+			ast.Inspect(ifs.Cond, func(n ast.Node) bool {
+				if sel, ok := n.(*ast.SelectorExpr); ok && sel.Sel.Name == "maxLen" {
+					lengthGuard = true
+				}
+				return true
+			})
+		}
+		ast.Inspect(st, func(n ast.Node) bool {
+			ret, ok := n.(*ast.ReturnStmt)
+			if !ok || lengthGuard || len(ret.Results) == 0 {
+				return true
+			}
+			last := nameOf(ret.Results[len(ret.Results)-1])
+			if last != "err" && last != "lerr" {
+				t.Errorf("statement %d of doSignIn returns %s before the hash check; an unknown account would answer faster", i, last)
+			}
+			return true
+		})
+	}
+}

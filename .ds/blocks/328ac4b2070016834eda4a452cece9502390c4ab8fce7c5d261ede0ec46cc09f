@@ -1,0 +1,15 @@
+func (p *Plugin) Get(ctx context.Context, userID string) (Metadata, error) {
+	if p.core == nil {
+		return Metadata{}, auth.ErrOperationNotWired
+	}
+	m, found, err := p.read(ctx, userID)
+	if err != nil {
+		return Metadata{}, err
+	}
+	if !found {
+		if _, err := p.core.User(ctx, userID); err != nil {
+			return Metadata{}, err
+		}
+	}
+	return m, nil
+}

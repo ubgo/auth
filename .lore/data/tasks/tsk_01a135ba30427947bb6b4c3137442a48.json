@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "Admin hooks, AdminUsersTable, AdminUserDetail, ImpersonationBanner; demo route /admin; ui:e2e e2e-admin.mjs.",
+  "commitment": "accepted",
+  "completed_at": "2026-10-13T17:58:14.010004000Z",
+  "created_at": "2026-10-13T14:45:56.930606000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a135ba30427947bb6b4c3137442a48",
+  "mission_id": "msn_01a0ec29c1297b138d183fd798f19008",
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-10-13T17:58:13.907771000Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "Batch 5: React admin dashboard and screens",
+  "updated_at": "2026-10-13T17:58:14.010006000Z"
+}

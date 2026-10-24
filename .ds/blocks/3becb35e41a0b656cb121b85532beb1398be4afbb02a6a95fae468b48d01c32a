@@ -1,0 +1,3 @@
+func GoogleIDTokens(audiences ...string) IDTokenConfig {
+	return GoogleIDTokensFor("", audiences...)
+}

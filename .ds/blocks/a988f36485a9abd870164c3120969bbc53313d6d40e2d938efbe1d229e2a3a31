@@ -1,0 +1,4 @@
+func (p *Plugin) Send(ctx context.Context, identifier string) error {
+	_, err := p.send.Call(ctx, SendRequest{Identifier: identifier})
+	return err
+}

@@ -1,0 +1,5 @@
+var DefaultSessionConfig = SessionConfig{
+	IdleTimeout:  7 * 24 * time.Hour,
+	MaxLifetime:  30 * 24 * time.Hour,
+	RefreshAfter: 24 * time.Hour,
+}

@@ -1,0 +1,20 @@
+func cors(a *auth.Auth, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if origin != "" && a.TrustsOrigin(auth.OriginOf(origin)) {
+			h := w.Header()
+			h.Set("Access-Control-Allow-Origin", origin)
+			h.Set("Access-Control-Allow-Credentials", "true")
+			h.Set("Access-Control-Expose-Headers", strings.Join(corsExposeHeaders, ", "))
+			h.Add("Vary", "Origin")
+			if r.Method == http.MethodOptions {
+				h.Set("Access-Control-Allow-Methods", strings.Join([]string{http.MethodGet, http.MethodPost}, ", "))
+				h.Set("Access-Control-Allow-Headers", strings.Join(corsAllowHeaders, ", "))
+				h.Set("Access-Control-Max-Age", strconv.Itoa(int(preflightMaxAge.Seconds())))
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}

@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": null,
+  "commitment": "accepted",
+  "completed_at": "2026-10-07T06:29:16.260141000Z",
+  "created_at": "2026-10-06T03:43:05.402586000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a10f4eceba7904807b16e3552f13d2",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "title": "Fix the intermittent TestPhone_ChangeEdgeCases and TestIdentResendOnSignIn failures (background delivery timing; pass in isolation): make the tests wait on deliveries deterministically, never retry or skip",
+  "updated_at": "2026-10-07T06:29:16.260154000Z"
+}

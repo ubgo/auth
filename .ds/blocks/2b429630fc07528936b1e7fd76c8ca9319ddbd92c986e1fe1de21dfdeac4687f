@@ -1,0 +1,5 @@
+export async function bannedUsers(page: number): Promise<string[]> {
+  const { data, error } = await auth.admin.users({ banned: "true", limit: "50", page: String(page), sortBy: "createdAt", sortDirection: "desc" });
+  if (error) return [];
+  return (data.users ?? []).map((u) => `${u.name} (${u.id})`);
+}

@@ -1,0 +1,8 @@
+func NewVerifier() (verifier, challenge string, err error) {
+	b := make([]byte, VerifierBytes)
+	if _, err := rand.Read(b); err != nil {
+		return "", "", err
+	}
+	verifier = base64.RawURLEncoding.EncodeToString(b)
+	return verifier, ChallengeOf(verifier), nil
+}

@@ -1,0 +1,8 @@
+func RequireEnrolment(rule EnrolmentRule) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("twofactor.RequireEnrolment", rule) {
+			return
+		}
+		p.enrolRule = rule
+	}
+}

@@ -1,0 +1,1 @@
+func EncodeErrors(enc ErrorEncoder) Option { return func(c *config) { c.errorEncoder = enc } }

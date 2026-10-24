@@ -1,0 +1,3 @@
+func RelyingParty(id string, origins ...string) Option {
+	return func(p *Plugin) { p.rpID, p.origins = id, origins }
+}

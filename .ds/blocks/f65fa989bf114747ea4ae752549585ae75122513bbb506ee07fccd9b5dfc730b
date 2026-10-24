@@ -1,0 +1,30 @@
+func TestConnections_RotateThenRevoke(t *testing.T) {
+	w := newWorld(t)
+	acme := w.newCustomer(t, "Acme")
+	first := w.connect(t, acme, "acme-create-0001-form")
+	connPath := acme.connections() + "/" + first.Connection.ID
+
+	var second issuedResponse
+	acme.b.Post(connPath+"/rotate", nil).Expect(http.StatusCreated).Decode(&second)
+	for _, tok := range []string{first.Token, second.Token} {
+		if status := w.listUsers(t, tok); status != http.StatusOK {
+			t.Fatalf("during the rotation a token answered %d", status)
+		}
+	}
+
+	acme.b.Post(connPath+"/credentials/"+first.CredentialID+"/revoke", nil).Expect(http.StatusOK)
+	if status := w.listUsers(t, first.Token); status != http.StatusUnauthorized {
+		t.Fatalf("the revoked token answered %d", status)
+	}
+	if status := w.listUsers(t, second.Token); status != http.StatusOK {
+		t.Fatalf("the new token answered %d", status)
+	}
+	if code := acme.b.Post(connPath+"/credentials/"+first.CredentialID+"/revoke", nil).Expect(http.StatusNotFound).ErrorCode(); code != scim.ErrCredentialNotFound.Code {
+		t.Fatalf("revoking twice: %q", code)
+	}
+
+	want := []scim.EventKind{scim.EventConnectionCreated, scim.EventCredentialIssued, scim.EventCredentialRotated, scim.EventCredentialRevoked}
+	if got := w.eventKinds(t, acme, connPath); !slices.Equal(got, want) {
+		t.Fatalf("events = %v, want %v", got, want)
+	}
+}

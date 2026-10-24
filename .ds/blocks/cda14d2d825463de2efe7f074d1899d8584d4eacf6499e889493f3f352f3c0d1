@@ -1,0 +1,3 @@
+func WithOptions(opts ...auth.Option) Option {
+	return func(s *settings) { s.opts = append(s.opts, opts...) }
+}

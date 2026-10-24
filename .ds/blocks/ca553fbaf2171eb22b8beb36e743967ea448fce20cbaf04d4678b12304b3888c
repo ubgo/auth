@@ -1,0 +1,1 @@
+func WithFaults(f *Faults) Option { return func(s *settings) { s.faults = f } }

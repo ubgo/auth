@@ -1,0 +1,7 @@
+type SetIfAbsenter interface {
+	SecondaryStorage
+	// SetIfAbsent stores value under key for ttl (0: no expiry) and returns
+	// true, or returns false and changes nothing when a live value is
+	// already there.
+	SetIfAbsent(ctx context.Context, key, value string, ttl time.Duration) (bool, error)
+}

@@ -1,0 +1,11 @@
+export async function revokeExpiredKeys(): Promise<number> {
+  const { data } = await auth.apikey.list({ limit: "100" });
+  const now = Date.now();
+  let revoked = 0;
+  for (const key of data?.keys ?? []) {
+    if (key.expiresAt === null || Date.parse(key.expiresAt) > now) continue;
+    const { error } = await auth.apikey.revoke({ id: key.id, configId: key.configId });
+    if (!error) revoked++;
+  }
+  return revoked;
+}

@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r34-agentauth (2026-10-07): agent auth now 31/2/0/1. CIBA approval works only for an agent that belongs to the requesting host; proof of presence reuses plugin/passkey through an interface (new plugin/passkey/presence.go), so agentauth has no passkey dependency. Go minimums: core and plain plugins stay go 1.24; several modules (sso, oauthprovider, agentauth, oauthdevice, passkey, contrib adapters) declare go 1.25 - check whether agentauth/oauthprovider/sso truly need 1.25 before release.",
+  "created_at": "2026-10-07T10:43:24.225406000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a115f5f9c17687bdbb16955bbaaa41",
+  "updated_at": "2026-10-07T10:43:24.225407000Z"
+}

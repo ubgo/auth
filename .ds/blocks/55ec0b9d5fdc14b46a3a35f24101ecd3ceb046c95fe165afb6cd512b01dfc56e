@@ -1,0 +1,8 @@
+export function nativeClient(asyncStorage: KeyValueStorage) {
+  return createAuthClient({
+    baseURL: "https://api.example.com/auth",
+    tokenMode: "bearer",
+    tokenStore: keyValueTokenStore(asyncStorage),
+    plugins: [password(), lastLoginMethod({ storage: keyValueTokenStore(asyncStorage, LAST_LOGIN_STORAGE_KEY) })],
+  });
+}

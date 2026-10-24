@@ -1,0 +1,35 @@
+func TypeScriptClient(a *auth.Auth) (map[string][]byte, error) {
+	b := &tsBuilder{decls: map[string]string{}, owners: map[string]reflect.Type{}}
+	byPlugin := map[string][]tsOp{}
+	// methodIDs maps "<plugin> <method>" to the operation that took it, so
+	// two ids that differ only in punctuation are refused.
+	methodIDs := map[string]auth.EndpointID{}
+	for _, op := range a.Operations() {
+		info := op.Info()
+		plugin := op.Plugin()
+		name := tsCamel(strings.TrimPrefix(string(info.ID), plugin+"."))
+		if prev, ok := methodIDs[plugin+" "+name]; ok {
+			return nil, fmt.Errorf("%w: operations %s and %s are both %s", ErrTypeScriptName, prev, info.ID, name)
+		}
+		methodIDs[plugin+" "+name] = info.ID
+		byPlugin[plugin] = append(byPlugin[plugin], tsOp{
+			name: name, id: string(info.ID), method: MethodOf(info.Kind), path: op.Route(),
+			require: string(info.Require), in: b.typeOf(op.InputType()), out: b.typeOf(op.OutputType()),
+			endsSession: tsEndsSession[info.ID],
+		})
+	}
+	if b.err != nil {
+		return nil, b.err
+	}
+	codes := TypeScriptErrorCodes()
+	client, err := renderTSClient(b, byPlugin, tsTakenNames(codes))
+	if err != nil {
+		return nil, err
+	}
+	return map[string][]byte{
+		TSFileClient:     client,
+		TSFileRuntime:    tsRuntime,
+		TSFileErrorCodes: codes,
+		TSFileIndex:      []byte(tsIndex),
+	}, nil
+}

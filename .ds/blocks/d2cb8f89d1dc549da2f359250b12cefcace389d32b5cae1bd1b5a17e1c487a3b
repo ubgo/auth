@@ -1,0 +1,16 @@
+function fileTokenStore(path: string): TokenStore {
+  return {
+    get: async () => {
+      try {
+        return (await readFile(path, "utf8")).trim() || null;
+      } catch (err) {
+        if (isMissingFile(err)) return null; // no file yet: signed out
+        throw err; // unreadable (permissions, a directory): say so, never pretend to be signed out
+      }
+    },
+    set: async (token) => {
+      if (token === null) await rm(path, { force: true });
+      else await writeFile(path, token, { mode: TOKEN_FILE_MODE });
+    },
+  };
+}

@@ -1,0 +1,6 @@
+const PATHS: Partial<AuthPaths> = {
+  signIn: "/",
+  afterSignIn: "/",
+  afterSignOut: `/?${SIGNED_OUT_FLAG}`,
+  twoFactor: `/?${SECOND_FACTOR_FLAG}`,
+}

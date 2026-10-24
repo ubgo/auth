@@ -1,0 +1,72 @@
+type Session struct {
+	ID         string
+	UserID     string
+	ExpiresAt  time.Time
+	LastSeenAt time.Time
+
+	// IP and UserAgent are for the "your sessions" list only. Both come from
+	// the client, so nothing may use them to decide anything.
+	IP        string
+	UserAgent string
+
+	CreatedAt time.Time
+
+	// SecondFactorPending is true for a session whose user must still pass a
+	// second factor. Such a session signs nobody in: CurrentUser and the
+	// SignedIn requirement ignore it, and only PendingSecondFactor operations
+	// see it. PromoteSession replaces it with a full one.
+	SecondFactorPending bool
+
+	// Tasks are the session tasks still to complete (SessionTasker), empty
+	// for an ordinary session. While any is pending the session reaches only
+	// the operations its tasks allow, and CurrentUser reports nobody;
+	// CompleteSessionTask replaces it with one without the task.
+	Tasks SessionTasks
+
+	// ImpersonatedBy is the id of the admin acting as this user, or nil for
+	// the user's own session. It is on the row, so the user's session list
+	// shows it and nothing can hide that someone else was signed in as them.
+	ImpersonatedBy *string
+
+	// APIKeyID is set when the request was made with an API key rather than
+	// a session; such a Session is built for the request and has no row. It
+	// signs the user in for the app's routes, and every auth operation that
+	// needs a person refuses it.
+	APIKeyID string
+
+	// Transient is true for a session made without "remember me": it lives
+	// SessionConfig.TransientIdleTimeout at most, and its cookie has no
+	// expiry, so closing the browser ends it.
+	Transient bool
+
+	// IdleSeconds, RefreshSeconds and MaxExpiresAt are the lifetime chosen
+	// for this session when it was created (WithSessionPolicy), which a
+	// sliding refresh keeps using: a year-long app session must not shrink
+	// to the web default on its first refresh. 0 and nil mean the
+	// SessionConfig defaults, as for rows from before the columns existed;
+	// Lifetime resolves them.
+	IdleSeconds    int64
+	RefreshSeconds int64
+	MaxExpiresAt   *time.Time
+
+	// RevokedAt is when the session was ended before its expiry, kept under
+	// WithSessionArchive as an audit trail; nil for a live session. A
+	// revoked session is never found by a lookup or a list, only by
+	// RevokedSessions.
+	RevokedAt *time.Time
+
+	// ReauthenticatedAt is when the user last proved who they are on this
+	// session without signing in again (Auth.Reauthenticate), or nil when
+	// they never did; FreshAt is the later of it and CreatedAt, which is what
+	// a FreshSignIn operation checks. It never moves the expiry.
+	ReauthenticatedAt *time.Time
+
+	// Data is JSON the app attached to this session, or nil: the active
+	// workspace, a device name, a flag resolved at sign-in. Every store
+	// keeps it with the session, so a request reads it with no query
+	// (SessionData); SetSessionData replaces it, a Session.BeforeCreate
+	// hook sets what a session starts with (EncodeSessionData). It
+	// survives refresh, token rotation and the second-factor promotion,
+	// and ends with the session. At most MaxSessionDataSize bytes.
+	Data AppData
+}

@@ -1,0 +1,50 @@
+func (p *Plugin) SetFor(ctx context.Context, userID, address string, verified bool) error {
+	if p.core == nil {
+		return auth.ErrOperationNotWired
+	}
+	return p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
+		if _, err := p.core.User(ctx, userID); err != nil {
+			return err
+		}
+		value, err := p.core.Normalize(KindEmail, address)
+		if err != nil {
+			return err
+		}
+		owner, err := p.core.FindIdentity(ctx, KindEmail, value, true)
+		switch {
+		case err == nil && owner.UserID != userID:
+			return auth.ErrIdentityTaken
+		case err != nil && !errors.Is(err, auth.ErrIdentityNotFound):
+			return err
+		}
+		ids, err := p.emailsOf(ctx, userID)
+		if err != nil {
+			return err
+		}
+		for _, idn := range ids {
+			if idn.Value != value {
+				continue
+			}
+			if !verified {
+				return nil
+			}
+			if _, err := p.core.VerifyIdentity(ctx, idn.ID); err != nil {
+				return err
+			}
+			_, err := p.core.SetPrimaryIdentity(ctx, userID, idn.ID)
+			return err
+		}
+		if _, err := p.core.CreateIdentity(ctx, auth.NewIdentity{UserID: userID, Kind: KindEmail, Raw: address, Verified: verified, Primary: verified}); err != nil {
+			return err
+		}
+		if p.multiple {
+			return nil
+		}
+		for _, idn := range ids {
+			if err := p.core.DeleteIdentity(ctx, userID, idn.ID); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}

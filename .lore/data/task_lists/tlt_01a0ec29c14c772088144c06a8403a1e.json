@@ -1,0 +1,11 @@
+{
+  "_table": "task_lists",
+  "_v": 1,
+  "body": "Work packages for the v0 ship mission, top-down order.",
+  "created_at": "2026-09-29T07:55:54.572457000Z",
+  "id": "tlt_01a0ec29c14c772088144c06a8403a1e",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "status_str": "active",
+  "title": "v0 ship",
+  "updated_at": "2026-09-29T07:55:54.572457000Z"
+}

@@ -1,0 +1,3 @@
+func (c Config) DeriveKeys(label string) ([][]byte, error) {
+	return DeriveSecretKeys(label, c.secrets...)
+}

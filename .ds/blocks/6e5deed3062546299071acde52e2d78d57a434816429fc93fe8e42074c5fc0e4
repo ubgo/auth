@@ -1,0 +1,25 @@
+func listUsersWithNotes(ctx context.Context, a *auth.Auth, client *ent.Client) ([]UserRow, error) {
+	var row UserRow
+	q, err := a.Select().
+		Columns(sqlb.Bind(auth.UserID, &row.ID), sqlb.Bind(auth.UserName, &row.Name)).
+		From(auth.TableUser).
+		Order(sqlb.OrderBy(auth.UserCreatedAt, sqlb.SortAsc), sqlb.OrderBy(auth.UserID, sqlb.SortAsc)).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	var out []UserRow
+	if err := sqlb.Each(ctx, a.DB(), q, func() error {
+		out = append(out, row) // the targets are reused for every row
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	for i := range out {
+		out[i].Notes, err = client.Note.Query().Where(note.UserID(out[i].ID)).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}

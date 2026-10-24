@@ -1,0 +1,7 @@
+export async function signInByText(number: string, askForCode: () => Promise<string>): Promise<"signed-in" | "second-factor" | string> {
+  const sent = await auth.phone.sendCode({ phone: number });
+  if (sent.error) return sent.error.code === "auth.rate_limited" ? `Wait ${sent.error.retryAfter ?? 60} seconds.` : sent.error.message;
+  const { data, error } = await auth.phone.signIn({ phone: number, code: await askForCode() });
+  if (error) return error.message;
+  return data.secondFactorRequired ? "second-factor" : "signed-in";
+}

@@ -1,0 +1,5 @@
+type Labeler interface {
+	Provider
+	// Label is the display name; "" falls back to Name.
+	Label() string
+}

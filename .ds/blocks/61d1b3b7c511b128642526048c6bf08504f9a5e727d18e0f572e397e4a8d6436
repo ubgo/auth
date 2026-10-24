@@ -1,0 +1,12 @@
+func GenerateKey(alg Alg) (crypto.Signer, error) {
+	switch alg {
+	case EdDSA, "":
+		_, k, err := ed25519.GenerateKey(rand.Reader)
+		return k, err
+	case RS256:
+		return rsa.GenerateKey(rand.Reader, MinRSABits)
+	case ES256:
+		return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	}
+	return nil, fmt.Errorf("%w: algorithm %q", ErrUnsupportedKey, alg)
+}

@@ -1,0 +1,46 @@
+func EnvOptions(lookup func(string) (string, bool)) ([]Option, error) {
+	var opts []Option
+	if v, ok := lookup(EnvBaseURL); ok && v != "" {
+		opts = append(opts, WithBaseURL(v))
+	}
+	if v, ok := lookup(EnvTrustedOrigins); ok && v != "" {
+		var origins []string
+		for _, o := range strings.Split(v, ",") {
+			if o = strings.TrimSpace(o); o != "" {
+				origins = append(origins, o)
+			}
+		}
+		opts = append(opts, WithTrustedOrigins(origins...))
+	}
+	dur := func(name string) (time.Duration, bool, error) {
+		v, ok := lookup(name)
+		if !ok || v == "" {
+			return 0, false, nil
+		}
+		d, err := time.ParseDuration(v)
+		if err != nil || d <= 0 {
+			return 0, false, fmt.Errorf("auth: %s=%q is not a positive duration such as 168h", name, v)
+		}
+		return d, true, nil
+	}
+	if d, ok, err := dur(EnvFreshWindow); err != nil {
+		return nil, err
+	} else if ok {
+		opts = append(opts, WithFreshWindow(d))
+	}
+	sc := DefaultSessionConfig
+	changed := false
+	for name, field := range map[string]*time.Duration{EnvSessionIdle: &sc.IdleTimeout, EnvSessionMax: &sc.MaxLifetime, EnvSessionRefresh: &sc.RefreshAfter} {
+		d, ok, err := dur(name)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			*field, changed = d, true
+		}
+	}
+	if changed {
+		opts = append(opts, WithSession(sc))
+	}
+	return opts, nil
+}

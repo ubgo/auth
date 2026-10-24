@@ -1,0 +1,5 @@
+export async function onConfirmChangePage(): Promise<string> {
+  const { data, error } = await auth.email.confirmChange({ token: tokenFromLink() });
+  if (error) return error.code === "auth.token_invalid" ? "This link has expired. Change the address again." : error.message;
+  return `Your address is now ${data.email}.`;
+}

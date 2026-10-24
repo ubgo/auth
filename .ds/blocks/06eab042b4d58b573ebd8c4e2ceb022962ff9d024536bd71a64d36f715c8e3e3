@@ -1,0 +1,23 @@
+func newJWT(k keys, org *organization.Plugin, meta *metadata.Plugin) (*jwt.Plugin, error) {
+	supabase, err := jwtpreset.Supabase(jwtpreset.SupabaseConfig{Key: jwt.HMACKey(k.supabase)})
+	if err != nil {
+		return nil, err
+	}
+	convex, err := jwtpreset.Convex(jwtpreset.ConvexConfig{ApplicationID: convexApplicationID, Alg: jwt.ES256})
+	if err != nil {
+		return nil, err
+	}
+	orgClaims, err := orgjwt.Claims(org)
+	if err != nil {
+		return nil, err
+	}
+	return jwt.New(
+		jwt.WithSigningKey(k.main),
+		jwt.AlgorithmKeys(k.es256),
+		jwt.WithTemplate(TemplateSupabase, supabase),
+		jwt.WithTemplate(TemplateHasura, jwtpreset.Hasura(jwtpreset.HasuraConfig{Audience: []string{hasuraAudience}})),
+		jwt.WithTemplate(TemplateConvex, convex),
+		jwt.WithTemplate(TemplateOrg, jwt.Template{Audience: []string{orgAudience}, Claims: orgClaims}),
+		jwt.WithTemplate(TemplateProfile, jwt.Template{Audience: []string{profileAudience}, Claims: jwt.UserClaim(publicMetadataClaim, meta.PublicOf)}),
+	), nil
+}

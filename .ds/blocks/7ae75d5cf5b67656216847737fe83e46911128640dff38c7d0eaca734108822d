@@ -1,0 +1,3 @@
+func sessionExtras(_ context.Context, c *auth.Call) (any, error) {
+	return sessionInfo{Plan: planFree, SignedInAt: c.Session.CreatedAt}, nil
+}

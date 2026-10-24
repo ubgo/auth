@@ -1,0 +1,4 @@
+type CreateResult struct {
+	Key    Key    `json:"key"`
+	Secret string `json:"secret"`
+}

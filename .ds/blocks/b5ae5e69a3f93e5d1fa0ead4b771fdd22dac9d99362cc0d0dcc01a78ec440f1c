@@ -1,0 +1,22 @@
+func switches(tu tuning) []auth.Option {
+	var opts []auth.Option
+	if tu.Clock != nil {
+		opts = append(opts, auth.WithClock(tu.Clock))
+	}
+	if tu.NoIP {
+		opts = append(opts, auth.WithoutIPTracking())
+	}
+	if tu.KV != nil {
+		opts = append(opts, auth.WithSecondaryStorage(tu.KV))
+	}
+	if tu.Deferred {
+		opts = append(opts, auth.WithDeferredSessionRefresh())
+	}
+	if tu.Stateless {
+		opts = append(opts, auth.WithStatelessSessions(tu.Key), auth.WithStatelessVersion(tu.Version))
+		if tu.ReadEvery > 0 {
+			opts = append(opts, auth.WithStatelessRefreshWithoutRead(tu.ReadEvery))
+		}
+	}
+	return opts
+}

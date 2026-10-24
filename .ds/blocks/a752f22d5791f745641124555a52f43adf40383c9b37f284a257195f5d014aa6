@@ -1,0 +1,15 @@
+func (a *Auth) CheckCode(ctx context.Context, purpose Purpose, subject, code string, maxAttempts int) error {
+	id, err := a.matchCode(ctx, purpose, subject, code, maxAttempts)
+	if err != nil {
+		return err
+	}
+	del := sqlb.NewDelete(a.cfg.Dialect).From(TableCode).Where(sqlb.Eq(codeID, id))
+	n, err := a.Exec(ctx, del)
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return ErrCodeInvalid
+	}
+	return nil
+}

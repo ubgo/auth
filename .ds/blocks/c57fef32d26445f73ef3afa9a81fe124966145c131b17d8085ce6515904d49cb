@@ -1,0 +1,9 @@
+func (a *Auth) Sessions(ctx context.Context, userID string) ([]Session, error) {
+	if a.stateless != nil {
+		if s, ok := currentSession(ctx, userID); ok {
+			return []Session{s}, nil
+		}
+		return nil, ErrSessionsUnavailable
+	}
+	return a.sessions.List(ctx, userID, a.now())
+}

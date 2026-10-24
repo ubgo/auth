@@ -1,0 +1,3 @@
+type SecondFactor interface {
+	SecondFactorRequired(ctx context.Context, userID string) (bool, error)
+}

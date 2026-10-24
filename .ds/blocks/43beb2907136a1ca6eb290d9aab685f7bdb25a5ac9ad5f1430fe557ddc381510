@@ -1,0 +1,1 @@
+	ErrDisplayInvalid = auth.NewError("username.display_invalid", http.StatusBadRequest, "This display username is not valid for the username.")

@@ -1,0 +1,11 @@
+export async function reauthenticateWithIdToken(provider: string, idToken: string, nonce: string, askForCode: () => Promise<string>): Promise<"fresh" | AuthError["code"]> {
+  const { data, error } = await auth.oauth.reauthenticateIdToken({ provider, idToken, nonce });
+  if (error) return error.code;
+  if (data.fresh) return "fresh";
+  if (data.secondFactorRequired && data.ticket) {
+    const second = await auth.twofactor.reauthenticate({ code: await askForCode(), ticket: data.ticket });
+    if (second.error) return second.error.code;
+    if (second.data.fresh) return "fresh";
+  }
+  return "auth.fresh_session_required";
+}

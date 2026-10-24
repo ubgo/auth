@@ -1,0 +1,8 @@
+func WithServerContext(fn ServerContextFunc) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauth.WithServerContext", fn) {
+			return
+		}
+		p.serverContext = append(p.serverContext, fn)
+	}
+}

@@ -1,0 +1,1 @@
+	MaxTokenRotationGrace = 10 * time.Minute

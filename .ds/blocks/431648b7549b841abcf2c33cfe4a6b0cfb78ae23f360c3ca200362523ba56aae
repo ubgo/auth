@@ -1,0 +1,1 @@
+	ErrNameInvalid = auth.NewError("devices.name_invalid", http.StatusBadRequest, "Give the device a name of up to 40 characters.")

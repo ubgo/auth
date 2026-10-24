@@ -1,0 +1,15 @@
+type SecurityQueue struct {
+	// Name labels the sink in SecurityStats and in the log lines about it;
+	// "" is "sink1", "sink2", … in registration order ("log" for
+	// WithSecurityLog).
+	Name string
+	// Buffer is how many events may wait for the sink; 0 is
+	// DefaultSecurityBuffer.
+	Buffer int
+	// BatchSize is the most events handed to the sink in one call; 0 is
+	// DefaultSecurityBatch.
+	BatchSize int
+	// FlushEvery is the longest an event waits for its batch to fill; 0 is
+	// DefaultSecurityFlush.
+	FlushEvery time.Duration
+}

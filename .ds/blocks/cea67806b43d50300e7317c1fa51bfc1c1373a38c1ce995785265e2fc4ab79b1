@@ -1,0 +1,15 @@
+func setLocale(a *auth.Auth) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var in localeRequest
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil || !slices.Contains(supportedLocales, in.Locale) {
+			writeJSON(w, http.StatusBadRequest, loginAnswer{Reason: reasonUnsupportedLocale})
+			return
+		}
+		if err := auth.SetUserColumn(r.Context(), a, auth.AppName, authhttp.MustUser(r).ID, UserLocale, in.Locale); err != nil {
+			log.Printf("store locale: %v", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, http.StatusOK, localeAnswer{Locale: in.Locale})
+	}
+}

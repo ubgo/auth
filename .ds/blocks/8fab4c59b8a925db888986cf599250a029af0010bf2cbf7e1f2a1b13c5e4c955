@@ -1,0 +1,10 @@
+type IDTokenRequest struct {
+	// IDToken is the provider's ID token, a compact JWS.
+	IDToken string `json:"idToken"`
+	// Nonce is the value the app sent to the provider, when it sent one;
+	// the token's nonce claim must be it or its SHA-256 hex.
+	Nonce string `json:"nonce"`
+	// SignUp says the person meant to sign up, which ExplicitSignUp
+	// requires before a user is created.
+	SignUp bool `json:"signUp"`
+}

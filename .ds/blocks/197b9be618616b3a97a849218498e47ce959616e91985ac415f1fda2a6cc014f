@@ -1,0 +1,7 @@
+func (p *Plugin) HasPassword(ctx context.Context, userID string) (bool, error) {
+	_, err := p.load(ctx, userID)
+	if errors.Is(err, sqlb.ErrNoRows) {
+		return false, nil
+	}
+	return err == nil, err
+}

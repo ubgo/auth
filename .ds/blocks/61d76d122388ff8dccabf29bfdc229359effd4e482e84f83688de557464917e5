@@ -1,0 +1,1 @@
+func SignUpWithCode() Option { return func(p *Plugin) { p.codes, p.codeUp = true, true } }

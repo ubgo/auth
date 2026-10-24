@@ -1,0 +1,11 @@
+func newAuth(db *sql.DB, m email.Mailer, opts ...metadata.Option) (*auth.Auth, *metadata.Plugin, *admin.Plugin, error) {
+	ad := admin.New()
+	md := metadata.New(append([]metadata.Option{metadata.WithAdmin(adminAuthorizer(ad))}, opts...)...)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), password.New(), ad, md),
+		auth.WithSessionExtras(md.SessionExtras),
+	)
+	return a, md, ad, err
+}

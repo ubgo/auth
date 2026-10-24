@@ -1,0 +1,8 @@
+func WithPermissions(s Vocabulary) Option {
+	return func(p *Plugin) {
+		p.vocab = nil
+		if s != nil {
+			p.vocab = Vocabulary(Permissions(s).Clone())
+		}
+	}
+}

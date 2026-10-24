@@ -1,0 +1,14 @@
+func maintain(ctx context.Context, a *auth.Auth) {
+	t := time.NewTicker(maintainEvery)
+	defer t.Stop()
+	for range t.C {
+		res, err := a.Maintain(ctx, auth.MaintainOptions{})
+		if err != nil {
+			log.Printf("maintain: %v", err)
+			continue
+		}
+		if len(res) > 0 {
+			log.Printf("maintain: %v", res)
+		}
+	}
+}

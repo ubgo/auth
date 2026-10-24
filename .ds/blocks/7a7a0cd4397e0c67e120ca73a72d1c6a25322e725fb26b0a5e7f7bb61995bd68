@@ -1,0 +1,1 @@
+func (c *Call) Respond(out any) { c.answer, c.answered = out, true }

@@ -1,0 +1,22 @@
+func TestGoAPIWithASessionContext(t *testing.T) {
+	e := newEnv(t)
+	u := e.CreateUser("Ada", authtest.Identity{Kind: email.KindEmail, Value: alice})
+	s := e.SignIn(u.ID)
+	ctx := s.Context(context.Background())
+	if res, err := e.Auth.Session(ctx); err != nil || res.User.ID != u.ID {
+		t.Fatalf("Session: %+v %v", res, err)
+	}
+	if err := e.Auth.SignOut(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var cleared bool
+	for _, ef := range auth.RequestEffects(ctx) {
+		cleared = cleared || ef.Kind == auth.EffectClearSession
+	}
+	if !cleared {
+		t.Fatal("sign-out must ask the transport to clear the cookie")
+	}
+	if _, err := e.Auth.Session(s.Context(context.Background())); !errors.Is(err, auth.ErrSignedOut) {
+		t.Fatalf("after sign-out: %v, want ErrSignedOut", err)
+	}
+}

@@ -1,0 +1,1 @@
+func VerifyByGET() Option { return func(p *Plugin) { p.getVerify = true } }

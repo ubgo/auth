@@ -1,0 +1,7 @@
+export async function referralSummary(): Promise<string> {
+  const board = await auth.referral.dashboard();
+  if (board.error) return board.error.message;
+  const list = await auth.referral.list({ limit: 20 });
+  const names = (list.data?.referrals ?? []).map((r) => `${r.referredUser.name} (${r.progress.completed}/${r.progress.total})`);
+  return `Code ${board.data.code}: ${board.data.stats.completed} of ${board.data.stats.total} completed. ${names.join(", ")}`;
+}

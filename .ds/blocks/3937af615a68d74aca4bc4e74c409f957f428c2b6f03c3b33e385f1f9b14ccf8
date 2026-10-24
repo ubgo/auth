@@ -1,0 +1,8 @@
+export async function changePassword(current: string, next: string, askForCode: () => Promise<string>): Promise<boolean> {
+  const { error } = await withFreshSession(
+    () => auth.password.change({ current, new: next }),
+    async () => current,
+    askForCode,
+  );
+  return error === null;
+}

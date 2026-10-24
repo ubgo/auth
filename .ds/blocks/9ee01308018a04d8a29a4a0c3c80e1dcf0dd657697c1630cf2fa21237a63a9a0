@@ -1,0 +1,9 @@
+func WithSessionRevocations(r SessionRevocations) Option {
+	return func(s *settings) {
+		if r == nil {
+			s.refuseNil("WithSessionRevocations")
+			return
+		}
+		s.revocations = r
+	}
+}

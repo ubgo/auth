@@ -1,0 +1,5 @@
+const (
+	EndpointAdd    auth.EndpointID = "devices.add"
+	EndpointList   auth.EndpointID = "devices.list"
+	EndpointRemove auth.EndpointID = "devices.remove"
+)

@@ -1,0 +1,22 @@
+type SessionStore interface {
+	// Insert saves a new session under its token hash.
+	Insert(ctx context.Context, s Session, tokenHash []byte) error
+	// Find returns the session whose token hashes to tokenHash and that is
+	// still live at now (ExpiresAt after now), or ErrSessionNotFound.
+	Find(ctx context.Context, tokenHash []byte, now time.Time) (Session, error)
+	// Touch moves the expiry of session id forward to expiresAt, and records
+	// lastSeenAt, only if its current expiry is earlier; it reports whether
+	// it moved. Of concurrent refreshes the first wins and the rest report
+	// false.
+	Touch(ctx context.Context, id string, expiresAt, lastSeenAt time.Time) (bool, error)
+	// List returns userID's live, non-pending sessions: newest first, ties by
+	// id descending, the same order on every store.
+	List(ctx context.Context, userID string, now time.Time) ([]Session, error)
+	// Delete ends session id of userID; another user's id matches nothing.
+	Delete(ctx context.Context, userID, id string) error
+	// DeleteUser ends every session of userID except exceptID ("" = all).
+	DeleteUser(ctx context.Context, userID, exceptID string) error
+	// Sweep deletes sessions expired before now and reports how many; a
+	// store that expires entries by itself returns 0, nil.
+	Sweep(ctx context.Context, now time.Time) (int64, error)
+}

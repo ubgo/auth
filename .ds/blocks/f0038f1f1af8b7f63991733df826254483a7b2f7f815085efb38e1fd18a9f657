@@ -1,0 +1,4 @@
+const client = createAuthClient({
+  baseURL: BASE_URL,
+  plugins: [email(), password(), magiclink(), oauth(), passkey(), twofactor()],
+})

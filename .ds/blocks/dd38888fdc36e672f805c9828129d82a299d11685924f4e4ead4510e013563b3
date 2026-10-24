@@ -1,0 +1,8 @@
+func WithRateStore(r RateStore) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithRateStore", r) {
+			return
+		}
+		s.rateStore = r
+	}
+}

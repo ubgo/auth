@@ -1,0 +1,1 @@
+	DefaultLoginTTL = 15 * time.Minute

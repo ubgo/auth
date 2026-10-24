@@ -1,0 +1,10 @@
+func UserBindings(dst *User) []sqlb.Binding {
+	return []sqlb.Binding{
+		sqlb.Bind(UserID, &dst.ID),
+		sqlb.Bind(UserName, &dst.Name),
+		sqlb.Bind(UserImage, &dst.Image),
+		sqlb.Bind(UserCreatedAt, &dst.CreatedAt),
+		sqlb.Bind(UserUpdatedAt, &dst.UpdatedAt),
+		sqlb.Bind(UserSessionsValidAfter, &dst.SessionsValidAfter),
+	}
+}

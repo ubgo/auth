@@ -1,0 +1,7 @@
+func geoOptions() []auth.Option {
+	return []auth.Option{
+		auth.WithGeoLocator(locator),
+		auth.WithGeoRules(auth.GeoRules{Deny: deniedCountries}),
+		auth.WithImpossibleTravel(auth.ImpossibleTravelRule{}),
+	}
+}

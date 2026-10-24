@@ -1,0 +1,18 @@
+const routes = [
+  page("/", HomePage),
+  page("/sign-in", SignInPage),
+  page("/sign-up", SignUpPage),
+  page("/magic-link", MagicLinkPage),
+  page("/forgot-password", ForgotPasswordPage),
+  page("/reset-password", ResetPasswordPage),
+  page("/verify-email", VerifyEmailPage),
+  page("/two-factor", TwoFactorPage),
+  page("/two-factor/setup", TwoFactorSetupPage),
+  page("/passkeys", PasskeysPage),
+  page("/account", AccountPage),
+  page("/account-sections", AccountSectionsPage),
+  page("/user-button", UserButtonPage),
+  page("/confirm-email-change", ConfirmEmailChangePage),
+  page("/undo-email-change", UndoEmailChangePage),
+  page("/inbox", InboxPage),
+]

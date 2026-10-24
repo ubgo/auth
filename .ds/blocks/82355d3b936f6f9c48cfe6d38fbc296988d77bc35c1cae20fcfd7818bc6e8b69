@@ -1,0 +1,5 @@
+export async function addAddress(address: string): Promise<string> {
+  const { error } = await auth.email.add({ email: address });
+  if (!error) return `We sent a link to ${address}.`;
+  return error.code === "email.single_address" ? "This account has one address; change it instead." : error.message;
+}

@@ -1,0 +1,18 @@
+type Verifier struct {
+	// Keys maps key ids to public keys; build it with KeysFromJWKS or add
+	// keys with KeyID.
+	Keys map[string]crypto.PublicKey
+	// Lookup finds a key Keys does not hold, such as one published after a
+	// rotation; RemoteKeys.Lookup fetches the issuer's JWKS. Nil means Keys
+	// is the whole set.
+	Lookup   func(kid string) (crypto.PublicKey, bool)
+	Issuer   string
+	Audience string
+	// Types are the JWS "typ" headers accepted; nil accepts "JWT" only, as
+	// before. An OAuth resource server verifying access tokens sets
+	// []string{"at+jwt"}. The session-cache type is never accepted.
+	Types  []string
+	Leeway time.Duration
+	// Now is the clock; nil means time.Now.
+	Now func() time.Time
+}

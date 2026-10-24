@@ -1,0 +1,15 @@
+func newAuth(db *sql.DB, m email.Mailer, trusted ...string) (*auth.Auth, *handoff.Plugin, error) {
+	hp := handoff.New(handoff.ServerOnly())
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithTrustedOrigins(trusted...),
+		auth.WithLoopbackReturn(),
+		auth.WithPlugins(
+			email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+			password.New(),
+			hp,
+		),
+	)
+	return a, hp, err
+}

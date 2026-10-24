@@ -1,0 +1,6 @@
+type SendRequest struct {
+	Identifier string `json:"identifier"`
+	// Name is the display name for the account the link creates (SignUp);
+	// it travels in the token and is ignored when the identifier has an owner.
+	Name string `json:"name,omitempty"`
+}

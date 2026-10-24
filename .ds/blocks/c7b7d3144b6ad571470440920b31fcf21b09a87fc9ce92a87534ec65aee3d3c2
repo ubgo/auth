@@ -1,0 +1,1 @@
+func Templates(fn func(m auth.Message) string) Option { return func(p *Plugin) { p.templates = fn } }

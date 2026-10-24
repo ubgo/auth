@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "r23-plugins (2026-10-07): twofactor Reset leaves the user's sessions alive; terms history stores no IP or user agent; the history backfill keeps only the latest acceptance; phone list and make-primary routes exist only under phone.Multiple(); username availability check limited to 30/min per IP by default. CHANGELOG: resend revokes old verify links; username available limit; twofactor Reset/Unlock; phone.Multiple; terms history (re-accept is now a no-op).",
+  "created_at": "2026-10-07T06:44:08.492359000Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a11509e9157e48900a6aa9f3cde88c",
+  "entity_table": "tasks",
+  "id": "cmt_01a1151aecac75b18793054b4aa2d052",
+  "updated_at": "2026-10-07T06:44:08.492360000Z"
+}

@@ -1,0 +1,13 @@
+type Info struct {
+	Version        string             `json:"version"`
+	Engine         string             `json:"engine"`
+	BaseURL        string             `json:"baseUrl"`
+	TrustedOrigins []string           `json:"trustedOrigins"`
+	FreshWindow    time.Duration      `json:"freshWindow"`
+	Session        auth.SessionConfig `json:"session"`
+	Plugins        []string           `json:"plugins"`
+	Identifiers    []string           `json:"identifiers"`
+	Operations     []OperationInfo    `json:"operations"`
+	Disabled       []auth.EndpointID  `json:"disabled"`
+	Migrations     []MigrationRef     `json:"migrations"`
+}

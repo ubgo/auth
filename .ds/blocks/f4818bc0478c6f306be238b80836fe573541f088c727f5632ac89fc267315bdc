@@ -1,0 +1,7 @@
+func (p *Plugin) Accepted(ctx context.Context, userID string) (bool, error) {
+	var c TermsColumns
+	if err := p.core.LoadUserColumns(ctx, userID, Bindings(&c)...); err != nil {
+		return false, err
+	}
+	return c.TermsVersion == p.current, nil
+}

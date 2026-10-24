@@ -1,0 +1,36 @@
+type Identity struct {
+	ID     string
+	UserID string
+
+	// Kind selects which registered kind's rules apply: its normalizer, its
+	// uniqueness, whether it can sign in or recover.
+	Kind IdentifierKindName
+
+	// Value is the normalized form, and the only form any lookup, comparison or
+	// index uses. It is compared exactly, never through SQL lower(): the
+	// normalizer is the one folding rule, and a second one in SQL would differ
+	// between engines.
+	Value string
+
+	// ValueRaw is what the user typed, kept to show it back. Never compared.
+	ValueRaw string
+
+	// VerifiedAt is nil until the user proved control of Value.
+	//
+	// The most security-critical nullable in the schema. Any flow that treats
+	// an unverified identity as proof of ownership — matching an invitation,
+	// linking a social account, joining by domain — is an account takeover,
+	// and the published advisories in comparable libraries are all that one
+	// mistake. Match identities to people only through VerifiedIdentities.
+	VerifiedAt *time.Time
+
+	// IsPrimary marks the one identity per kind that the kind's plugin copies
+	// onto the user row. Only a verified identity can be primary.
+	IsPrimary bool
+
+	// ScopeID confines uniqueness to one tenant. Nil means the value is unique
+	// across the deployment.
+	ScopeID *string
+
+	CreatedAt time.Time
+}

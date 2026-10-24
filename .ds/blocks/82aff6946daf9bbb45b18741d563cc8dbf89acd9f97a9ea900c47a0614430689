@@ -1,0 +1,3 @@
+func LINE(clientID, clientSecret string) *OIDCProvider {
+	return OIDC("line", LINEIssuer, clientID, clientSecret)
+}

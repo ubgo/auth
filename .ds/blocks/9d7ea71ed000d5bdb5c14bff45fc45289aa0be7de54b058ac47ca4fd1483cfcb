@@ -1,0 +1,10 @@
+func bannedMessage(_ context.Context, b admin.Ban) string {
+	msg := "Your account is suspended"
+	if b.Reason != "" {
+		msg += ": " + b.Reason
+	}
+	if b.ExpiresAt != nil {
+		msg += " (until " + b.ExpiresAt.Format(time.RFC1123) + ")"
+	}
+	return msg + "."
+}

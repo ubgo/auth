@@ -1,0 +1,8 @@
+func WithSecuritySink(sink SecuritySink, q SecurityQueue) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithSecuritySink", sink) {
+			return
+		}
+		s.securitySinks = append(s.securitySinks, securitySinkSpec{sink: sink, queue: q, owner: "auth.WithSecuritySink"})
+	}
+}

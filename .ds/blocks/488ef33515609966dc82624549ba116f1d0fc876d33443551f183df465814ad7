@@ -1,0 +1,11 @@
+type VerifyResult struct {
+	UserCode string `json:"user_code"`
+	Status   Status `json:"status"`
+	ClientID string `json:"client_id,omitempty"`
+	Scope    string `json:"scope,omitempty"`
+	// Resource is the RFC 8707 resource of a code issued through a Grant.
+	Resource string `json:"resource,omitempty"`
+	// Owned is true when the code belongs to the caller: claimed now, or
+	// earlier, or pre-bound.
+	Owned bool `json:"owned"`
+}

@@ -1,0 +1,9 @@
+func NormalizeUserCode(code string) string {
+	var b strings.Builder
+	for _, r := range strings.ToUpper(code) {
+		if strings.ContainsRune(UserCodeAlphabet, r) {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}

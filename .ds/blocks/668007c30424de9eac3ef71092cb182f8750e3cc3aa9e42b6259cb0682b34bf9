@@ -1,0 +1,4 @@
+export async function orderMethods(methods: readonly string[]): Promise<string[]> {
+  const { data: last } = await web.lastLoginMethod.getLastUsedLoginMethod();
+  return [...methods].sort((a, b) => Number(b === last) - Number(a === last));
+}

@@ -1,0 +1,11 @@
+type SchemaColumn struct {
+	Name string
+	Type ColumnType
+	// Nullable makes the column optional. A NOT NULL column added
+	// to a table with rows needs Default.
+	Nullable bool
+	// Default is a constant SQL literal ("''", "false", "0"), or empty.
+	Default string
+	// Unique adds a unique index on the column alone.
+	Unique bool
+}

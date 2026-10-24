@@ -1,0 +1,11 @@
+func referralHook(logf func(string, ...any)) auth.OperationHook {
+	return auth.OperationHook{
+		Match: []auth.EndpointID{oauth.CallbackEndpoint(providerName)},
+		After: func(_ context.Context, c *auth.Call, res any) error {
+			if r, ok := res.(oauth.CallbackResult); ok && r.Data != "" {
+				logf("user %s (created: %v) arrived with data %q", r.User.ID, r.Created, r.Data)
+			}
+			return nil
+		},
+	}
+}

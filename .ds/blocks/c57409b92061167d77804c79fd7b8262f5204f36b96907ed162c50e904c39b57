@@ -1,0 +1,4 @@
+func (a *Auth) TrustsOrigin(origin string) bool {
+	_, ok := a.trustedOrigins[origin]
+	return ok && origin != ""
+}

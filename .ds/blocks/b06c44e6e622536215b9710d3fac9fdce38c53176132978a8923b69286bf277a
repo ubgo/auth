@@ -1,0 +1,7 @@
+func newHandler(a *auth.Auth, tm *terms.Plugin) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle("GET /terms", termsHandler(tm))
+	mux.Handle("GET /dashboard", authhttp.Middleware(a)(authhttp.RequireUser(tm.RequireCurrent()(http.HandlerFunc(dashboard)))))
+	return mux
+}

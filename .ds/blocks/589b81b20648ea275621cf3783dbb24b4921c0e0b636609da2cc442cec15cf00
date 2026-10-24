@@ -1,0 +1,4 @@
+func (logMailer) Send(_ context.Context, m email.Mail) error {
+	log.Printf("mail to=%s subject=%q\n%s", m.To, m.Subject, m.Text)
+	return nil
+}

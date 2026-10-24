@@ -1,0 +1,6 @@
+func UserRateKey(_ context.Context, c *Call) (string, error) {
+	if c.User == nil {
+		return "", nil
+	}
+	return c.User.ID, nil
+}

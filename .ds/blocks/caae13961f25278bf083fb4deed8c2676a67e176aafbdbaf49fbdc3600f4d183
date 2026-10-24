@@ -1,0 +1,1 @@
+func RequireVerified() Option { return func(p *Plugin) { p.kind.RequireVerified = true } }

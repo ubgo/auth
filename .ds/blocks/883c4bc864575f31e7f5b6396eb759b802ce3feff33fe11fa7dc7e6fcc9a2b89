@@ -1,0 +1,8 @@
+type ListResult struct {
+	Keys []Key `json:"keys"`
+	// Total is how many keys the caller holds, whatever the page.
+	Total int `json:"total"`
+	// Limit and Offset echo the request as parsed, 0 for none.
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+}

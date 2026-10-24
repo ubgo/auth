@@ -1,0 +1,12 @@
+func UserClaim(name string, read func(ctx context.Context, userID string) (json.RawMessage, error)) ClaimsFunc {
+	return func(ctx context.Context, u auth.User, _ auth.Session) (map[string]any, error) {
+		doc, err := read(ctx, u.ID)
+		if err != nil {
+			return nil, err
+		}
+		if !json.Valid(doc) {
+			return nil, fmt.Errorf("jwt: UserClaim %q: the document is not valid JSON", name)
+		}
+		return map[string]any{name: doc}, nil
+	}
+}

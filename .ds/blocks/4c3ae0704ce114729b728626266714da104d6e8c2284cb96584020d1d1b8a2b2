@@ -1,0 +1,7 @@
+func AppleClientSecret(teamID, clientID, keyID string, key *ecdsa.PrivateKey) (func(ctx context.Context) (string, error), error) {
+	if teamID == "" || clientID == "" || keyID == "" || key == nil {
+		return nil, ErrAppleSecret
+	}
+	s := &appleSecret{teamID: teamID, clientID: clientID, keyID: keyID, key: key, now: time.Now}
+	return s.secret, nil
+}

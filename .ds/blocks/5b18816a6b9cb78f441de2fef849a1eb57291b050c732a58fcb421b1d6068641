@@ -1,0 +1,8 @@
+func ByCredential(cookie, bearer SessionLifetime) SessionPolicy {
+	return func(_ context.Context, in SessionPolicyInput) SessionLifetime {
+		if in.Credential == CredentialBearer {
+			return bearer
+		}
+		return cookie
+	}
+}

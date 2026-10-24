@@ -1,0 +1,6 @@
+type AccountDeletedData struct {
+	// WarnedAt is when the warning was sent.
+	WarnedAt time.Time `json:"warnedAt"`
+	// DeletedAt is when the account was deleted.
+	DeletedAt time.Time `json:"deletedAt"`
+}

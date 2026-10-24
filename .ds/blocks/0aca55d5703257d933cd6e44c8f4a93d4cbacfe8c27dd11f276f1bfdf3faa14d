@@ -1,0 +1,4 @@
+func (p *Plugin) ApproveChangeCode(ctx context.Context, address, code string) error {
+	_, err := p.approveCode.Call(ctx, AddressCodeRequest{Email: address, Code: code})
+	return err
+}

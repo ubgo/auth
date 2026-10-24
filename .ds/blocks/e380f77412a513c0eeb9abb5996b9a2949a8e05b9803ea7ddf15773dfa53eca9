@@ -1,0 +1,7 @@
+func Apple(clientID string, secret func(ctx context.Context) (string, error), audiences ...string) *OAuth2 {
+	return &OAuth2{
+		ID: "apple", DisplayName: "Apple", ClientID: clientID, ClientSecretFunc: secret,
+		AuthURL: AppleAuthURL, TokenURL: AppleTokenURL,
+		IDToken: IDTokenConfig{JWKSURL: AppleJWKSURL, Issuers: []string{AppleIssuer}, Audiences: audiences, ProfileFromToken: true},
+	}
+}

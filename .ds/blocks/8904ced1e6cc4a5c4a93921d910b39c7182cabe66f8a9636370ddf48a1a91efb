@@ -1,0 +1,11 @@
+func RequireScope(scope string) func(http.Handler) http.Handler {
+	return RequireFunc(func(r *http.Request) error {
+		if _, ok := auth.CurrentUser(r.Context()); !ok {
+			return auth.ErrSignedOut
+		}
+		if !auth.HasScope(r.Context(), scope) {
+			return ErrMissingScope
+		}
+		return nil
+	})
+}

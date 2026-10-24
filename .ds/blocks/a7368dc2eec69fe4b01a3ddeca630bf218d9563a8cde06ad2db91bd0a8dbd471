@@ -1,0 +1,11 @@
+type AdminResult struct {
+	UserID string `json:"userId"`
+	Email  string `json:"email"`
+	// Created is true when `create` made the user; `grant` leaves it false.
+	Created bool `json:"created"`
+	// Granted is true when the user is now an admin by this command.
+	Granted bool `json:"granted"`
+	// PasswordSet is true when a password was read from stdin and set.
+	PasswordSet bool `json:"passwordSet"`
+	DryRun      bool `json:"dryRun"`
+}

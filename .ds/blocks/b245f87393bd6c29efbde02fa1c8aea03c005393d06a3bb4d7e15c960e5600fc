@@ -1,0 +1,29 @@
+func (a *Auth) Tx(ctx context.Context, fn func(ctx context.Context, tx *sql.Tx) error) error {
+	if st := txFrom(ctx); st != nil {
+		return fn(ctx, st.tx)
+	}
+	if a.db == nil {
+		return ErrNoDatabase
+	}
+	tx, err := a.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("auth: begin transaction: %w", err)
+	}
+	st := &txState{tx: tx}
+	txCtx := context.WithValue(ctx, txKey{}, st)
+	defer st.runAfterEnd(ctx)
+	if err := fn(txCtx, tx); err != nil {
+		_ = tx.Rollback() // the fn error is the one worth reporting
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("auth: commit: %w", err)
+	}
+	st.mu.Lock()
+	work := st.afterCommit
+	st.mu.Unlock()
+	for _, w := range work {
+		w(ctx)
+	}
+	return nil
+}

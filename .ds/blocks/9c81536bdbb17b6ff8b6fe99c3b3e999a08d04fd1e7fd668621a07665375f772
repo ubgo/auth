@@ -1,0 +1,5 @@
+export async function secondFactorSummary(): Promise<string> {
+  const { data, error } = await auth.twofactor.status();
+  if (error) return error.message;
+  return data.enabled ? `On (${data.method ?? "totp"})` : `Off; available: ${(data.methods ?? []).join(", ")}`;
+}

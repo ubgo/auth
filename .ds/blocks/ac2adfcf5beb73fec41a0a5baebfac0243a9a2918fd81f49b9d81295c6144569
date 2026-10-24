@@ -1,0 +1,24 @@
+func newHandler(a *auth.Auth, sp *scim.Plugin) (http.Handler, error) {
+	orgs, err := auth.PluginOf[*organization.Plugin](a)
+	if err != nil {
+		return nil, err
+	}
+	mw := authhttp.Middleware(a)
+	owner := func(h http.Handler) http.Handler {
+		return mw(orgs.RequireRole(orgInPath, organization.RoleOwner)(h))
+	}
+	s := settings{a: a, sp: sp}
+	base := "/orgs/{" + pathOrgParam + "}/scim/connections"
+	conn := base + "/{" + pathConnParam + "}"
+	mux := http.NewServeMux()
+	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
+	mux.Handle(scimPrefix+"/", http.StripPrefix(scimPrefix, sp.Handler()))
+	mux.Handle("GET "+base, owner(http.HandlerFunc(s.list)))
+	mux.Handle("POST "+base, owner(s.post(s.create)))
+	mux.Handle("GET "+conn+"/events", owner(http.HandlerFunc(s.events)))
+	mux.Handle("POST "+conn+"/rotate", owner(s.post(s.rotate)))
+	mux.Handle("POST "+conn+"/credentials/{"+pathCredParam+"}/revoke", owner(s.post(s.revoke)))
+	mux.Handle("POST "+conn+"/decommission", owner(s.post(s.decommission)))
+	mux.Handle("/me", mw(authhttp.RequireUser(http.HandlerFunc(me))))
+	return mux, nil
+}

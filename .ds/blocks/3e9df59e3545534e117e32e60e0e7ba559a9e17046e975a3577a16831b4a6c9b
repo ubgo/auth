@@ -1,0 +1,12 @@
+func newBrowser(t *testing.T, h http.Handler) *browser {
+	t.Helper()
+	srv := httptest.NewTLSServer(h)
+	t.Cleanup(srv.Close)
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := srv.Client()
+	client.Jar = jar
+	return &browser{srv: srv, client: client, origin: baseURL}
+}

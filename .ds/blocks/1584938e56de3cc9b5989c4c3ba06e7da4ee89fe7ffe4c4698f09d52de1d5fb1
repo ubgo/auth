@@ -1,0 +1,14 @@
+type SchemaReport struct {
+	// PendingMigrations are the "owner/name" labels the ledger lacks, in
+	// the order Migrate would apply them.
+	PendingMigrations []string
+	// ChangedMigrations are applied migrations whose statements changed
+	// since; Migrate refuses to run while any exists.
+	ChangedMigrations []string
+	// MissingTables are tables the migrations create that the database
+	// lacks.
+	MissingTables []string
+	// MissingColumns are "table.column" pairs the migrations create that the
+	// database lacks, on tables that exist.
+	MissingColumns []string
+}

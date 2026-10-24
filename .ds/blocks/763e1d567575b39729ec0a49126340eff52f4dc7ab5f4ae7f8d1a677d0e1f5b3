@@ -1,0 +1,22 @@
+type SignInMethod struct {
+	// ID is unique among the methods, such as "oauth.github". A page keys
+	// its translation on it ("authui.method." + ID) and a template may key
+	// an icon on it.
+	ID string
+	// Kind groups methods for styling: "oauth", "sso", "passkey". A page
+	// adds it as a class.
+	Kind string
+	// Label is the English button text, such as "Continue with GitHub".
+	Label string
+	// Route is the operation's route under the Handler prefix, such as
+	// "/oauth/github/start" (auth.Operation.Route). It must start with one
+	// "/": a page refuses anything else at start-up, so no method can
+	// become a link to another site.
+	Route string
+	// Field, when set, makes the method a one-input GET form instead of a
+	// link: the input's name, sent as a query parameter to Route, such as
+	// "email" for an SSO start that finds the company by the address.
+	Field string
+	// FieldLabel is the English label of that input.
+	FieldLabel string
+}

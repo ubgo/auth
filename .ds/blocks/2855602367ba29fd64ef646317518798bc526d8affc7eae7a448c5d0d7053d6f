@@ -1,0 +1,8 @@
+type Account struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"-"`
+	Provider  string    `json:"provider"`
+	Subject   string    `json:"-"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
+}

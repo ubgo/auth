@@ -1,0 +1,8 @@
+func WithSecurityKeys(s SecurityKeyStore) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("twofactor.WithSecurityKeys", s) {
+			return
+		}
+		p.keys = s
+	}
+}

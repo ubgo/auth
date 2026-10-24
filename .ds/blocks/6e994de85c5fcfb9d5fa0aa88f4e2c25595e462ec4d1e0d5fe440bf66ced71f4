@@ -1,0 +1,7 @@
+type TokenSet struct {
+	AccessToken  auth.Token
+	RefreshToken auth.Token
+	// ExpiresAt is when AccessToken expires; zero when the provider did not
+	// say.
+	ExpiresAt time.Time
+}

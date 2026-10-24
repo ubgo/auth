@@ -1,0 +1,15 @@
+`usage: auth sweep [--retention 168h] delete expired sessions, tokens and plugin rows
+       auth migrate [--dry-run]    apply pending migrations
+       auth migrate sql              print every migration as SQL, change nothing
+       auth migrate status           list migrations and whether each is applied
+       auth migrate orphans          list tables, columns and owners no plugin claims now
+       auth migrate check            fail unless the database holds every table, column and migration the code needs
+       auth info [--json]            print the wiring: version, engine, plugins, routes, lifetimes
+
+examples:
+  myapp auth migrate status
+  myapp auth migrate --dry-run
+  myapp auth migrate check && myapp serve
+  myapp auth migrate sql > schema.sql
+  myapp auth info --json
+`

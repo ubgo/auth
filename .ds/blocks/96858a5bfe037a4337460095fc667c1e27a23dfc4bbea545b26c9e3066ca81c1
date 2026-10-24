@@ -1,0 +1,13 @@
+func (l *memoryLog) Events(_ context.Context, q audit.Query) (audit.Page, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	var hits []audit.Event
+	for _, e := range slices.Backward(l.events) {
+		if matches(e, q) {
+			hits = append(hits, e)
+		}
+	}
+	from := min((q.Page-1)*q.Limit, len(hits))
+	to := min(from+q.Limit, len(hits))
+	return audit.Page{Events: hits[from:to], Total: int64(len(hits)), Page: q.Page, Limit: q.Limit}, nil
+}

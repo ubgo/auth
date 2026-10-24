@@ -1,0 +1,9 @@
+type UnknownDeviceData struct {
+	UserAgent string    `json:"userAgent"`
+	IP        string    `json:"ip,omitempty"`
+	At        time.Time `json:"at"`
+	SessionID string    `json:"sessionId"`
+	// Method is the sign-in method, the plugin of the operation that signed
+	// the user in ("password", "oauth"), or "" for a Go call outside one.
+	Method string `json:"method,omitempty"`
+}

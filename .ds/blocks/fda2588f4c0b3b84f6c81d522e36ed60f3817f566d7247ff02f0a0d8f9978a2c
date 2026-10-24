@@ -1,0 +1,4 @@
+export async function seatsLeft(used: number): Promise<number> {
+  const { data } = await withPlan.session();
+  return (data?.extras?.seats ?? 0) - used; // extras is Plan here
+}

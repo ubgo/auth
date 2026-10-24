@@ -1,0 +1,38 @@
+func (c *Client) Poll(ctx context.Context, code CodeResult) (TokenResult, error) {
+	if err := c.check(); err != nil {
+		return TokenResult{}, err
+	}
+	interval := time.Duration(code.Interval) * time.Second
+	if interval <= 0 {
+		interval = defaultPollInterval
+	}
+	form := url.Values{"grant_type": {GrantType}, "device_code": {code.DeviceCode}, "client_id": {c.ClientID}}
+	wait := interval
+	for {
+		if err := c.sleep(ctx, wait); err != nil {
+			return TokenResult{}, err
+		}
+		wait = interval
+		var out TokenResult
+		retry, err := c.post(ctx, c.TokenURL, form, &out)
+		if err == nil {
+			return out, nil
+		}
+		var ce *ClientError
+		if !errors.As(err, &ce) {
+			return TokenResult{}, err
+		}
+		switch {
+		case ce.ErrorName == RFCAuthorizationPending:
+		case ce.ErrorName == RFCSlowDown:
+			interval += SlowDownStep
+			wait = interval
+		case ce.ErrorName == RFCTemporarilyUnavailable || ce.Status == http.StatusTooManyRequests:
+			if retry > wait {
+				wait = retry
+			}
+		default:
+			return TokenResult{}, err
+		}
+	}
+}

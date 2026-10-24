@@ -1,0 +1,6 @@
+type DataHooks struct {
+	User         TableHooks[User]
+	Identity     TableHooks[Identity]
+	Session      TableHooks[Session]
+	Verification TableHooks[Verification]
+}

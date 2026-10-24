@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Owner, 2026-10-03. The library creates no FOREIGN KEY and no ON DELETE CASCADE on any engine, in the core or any plugin. Every table holding a user's rows declares its user column to the core, and Auth.DeleteUser removes those rows itself, in Go, in one transaction; plugins delete their own child rows (for example organization members) the same way. Why: sharding and moving tables stay easy, the deletion rules live in Go where tests cover them, and every session store (SQL, Redis, memory, custom) behaves alike. A guard test fails when a registered user-owned table is not cleaned. See the private notes",
+  "confidence": null,
+  "created_at": "2026-10-03T11:38:10.718045000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a1018eaf9f79a8b96188d1931f6659",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "No foreign keys and no database cascades: tables are plain storage, the library deletes related rows in Go",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-03T11:38:10.718046000Z"
+}

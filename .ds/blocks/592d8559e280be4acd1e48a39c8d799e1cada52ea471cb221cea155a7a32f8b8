@@ -1,0 +1,5 @@
+func Zoho(region ZohoRegion, clientID, clientSecret string) *OIDCProvider {
+	p := withDisplayName(OIDC("zoho", string(region), clientID, clientSecret), "Zoho")
+	p.Scopes = []string{"openid", "email", "profile"}
+	return p
+}

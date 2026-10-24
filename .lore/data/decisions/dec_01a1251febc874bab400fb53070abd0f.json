@@ -1,0 +1,20 @@
+{
+  "_table": "decisions",
+  "_v": 1,
+  "archived_at": null,
+  "body": "Owner: no extra stable-column test for plugin tables. Apps query plugin tables through each plugin's exported sqlb.Col handles; a rename keeps working and a removal is a compile error on upgrade. Raw SQL against auth tables is the app's own risk. Docs: add one paragraph to docs/concepts/databases.md Step 6 saying so.",
+  "confidence": null,
+  "created_at": "2026-10-10T09:23:31.400307000Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "id": "dec_01a1251febc874bab400fb53070abd0f",
+  "last_validated_at": null,
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "source_kind": "manual",
+  "source_ref": null,
+  "status": "accepted",
+  "superseded_by_id": null,
+  "title": "Stable columns: the exported sqlb column handles are the contract (owner 2026-10-10)",
+  "trust_score": 0.5,
+  "updated_at": "2026-10-10T09:23:31.400307000Z"
+}

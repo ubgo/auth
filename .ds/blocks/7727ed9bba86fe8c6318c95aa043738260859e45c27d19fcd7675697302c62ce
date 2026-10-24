@@ -1,0 +1,4 @@
+func (p *Plugin) Change(ctx context.Context, number string) error {
+	_, err := p.change.Call(ctx, NumberRequest{Phone: number})
+	return err
+}

@@ -1,0 +1,4 @@
+export async function siweNonce(wallet: string): Promise<string | null> {
+  const { data } = await auth.siwe.nonce({ walletAddress: wallet, chainId: 1 });
+  return data?.nonce ?? null;
+}

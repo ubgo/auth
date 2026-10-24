@@ -1,0 +1,3 @@
+func Salesforce(issuer, clientID, clientSecret string) *OIDCProvider {
+	return withDisplayName(OIDC("salesforce", issuer, clientID, clientSecret), "Salesforce")
+}

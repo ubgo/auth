@@ -1,0 +1,8 @@
+func WithPlugins(fn func(e *Env) []auth.Plugin) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("authtest.WithPlugins", fn) {
+			return
+		}
+		s.plugins = fn
+	}
+}

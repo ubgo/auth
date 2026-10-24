@@ -1,0 +1,4 @@
+export async function signOutRemote(): Promise<AuthError | null> {
+  const { error } = await remote.signOut();
+  return error?.code === "auth.signed_out" ? null : error;
+}

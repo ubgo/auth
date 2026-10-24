@@ -1,0 +1,4 @@
+export async function leaveAsGuest(): Promise<boolean> {
+  const { error } = await auth.anonymous.delete();
+  return error === null;
+}

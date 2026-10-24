@@ -1,0 +1,1 @@
+func WithCodeLength(digits int) Option { return func(s *settings) { s.cfg.CodeLength = digits } }

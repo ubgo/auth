@@ -1,0 +1,8 @@
+func TestCorpProvider_PassesTheConformanceKit(t *testing.T) {
+	oauthtest.Run(t, func(u string) oauth.Provider {
+		return corpProvider(u, oauthtest.ClientID, oauthtest.ClientSecret)
+	}, oauthtest.WantScopes(corpScopes...),
+		oauthtest.Route(corpProfilePath, func(p oauthtest.Person) any { // any: the kit's Route signature
+			return corpUser{ID: p.Subject, Mail: p.Email, MailConfirmed: p.EmailVerified, DisplayName: p.Name}
+		}))
+}

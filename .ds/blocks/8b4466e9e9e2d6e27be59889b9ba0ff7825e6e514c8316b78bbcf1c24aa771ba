@@ -1,0 +1,11 @@
+type ListRequest struct {
+	// Limit is the page size; "" or "0" is no limit.
+	Limit string `json:"limit"`
+	// Offset is how many keys to skip; "" is none.
+	Offset string `json:"offset"`
+	// SortBy is one of SortByValues; "" is SortByCreatedAt.
+	SortBy string `json:"sortBy"`
+	// Sort is SortAsc or SortDesc; "" is SortAsc. A sort on a nullable field
+	// (lastUsedAt, expiresAt) puts the NULL rows where the engine puts them.
+	Sort string `json:"sort"`
+}

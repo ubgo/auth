@@ -1,0 +1,4 @@
+type device struct {
+	UserAgent  string    `json:"userAgent"`
+	SignedInAt time.Time `json:"signedInAt"`
+}

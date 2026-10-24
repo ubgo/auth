@@ -1,0 +1,4 @@
+export async function recentEvents(): Promise<number> {
+  const { data } = await auth.audit.myEvents({ limit: "10" });
+  return data?.events?.length ?? 0;
+}

@@ -1,0 +1,7 @@
+func plugins(m email.Mailer, s phone.SMSSender) []auth.Plugin {
+	return []auth.Plugin{
+		email.New(email.Login(), email.Recover(), email.WithMailer(m)),
+		password.New(),
+		phone.New(phone.Contact(), phone.WithSMS(s)),
+	}
+}

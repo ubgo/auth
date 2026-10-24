@@ -1,0 +1,1 @@
+func WithDBRateStore() Option { return func(s *settings) { s.dbRateStore = true } }

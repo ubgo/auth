@@ -1,0 +1,16 @@
+func TestSIWE_FirstSignInCreatesThenSignsIn(t *testing.T) {
+	w := newWorld(t)
+	first := w.signIn(t, w.key)
+	if !first.Created || first.User.ID == "" || first.Wallet.Address != w.key.Address() || !first.Wallet.Primary {
+		t.Fatalf("first sign-in = %+v", first)
+	}
+	var me meResponse
+	w.b.Get("/me").Expect(http.StatusOK).Decode(&me)
+	if me.ID != first.User.ID {
+		t.Fatalf("/me = %+v", me)
+	}
+	again := w.signIn(t, w.key)
+	if again.Created || again.User.ID != first.User.ID || again.Wallet.ID != first.Wallet.ID {
+		t.Fatalf("second sign-in = %+v, want the same user and wallet", again)
+	}
+}

@@ -1,0 +1,39 @@
+func (a *Auth) EndSession(ctx context.Context, userID, id string, reason SessionEndReason) error {
+	return a.endAlways(ctx, func(ctx context.Context, m hookMode) error {
+		if a.stateless != nil {
+			s, ok := currentSession(ctx, userID)
+			if !ok || s.ID != id {
+				return ErrSessionsUnavailable
+			}
+			err := a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+				if err := a.sessionEnded(ctx, userID, id); err != nil {
+					return err
+				}
+				return a.fireSessionEnded(ctx, tx, m, reason, s)
+			})
+			if err != nil {
+				return err
+			}
+			a.EvictCachedSessions(ctx, userID)
+			return a.revokeStateless(ctx, s)
+		}
+		return a.Tx(ctx, func(ctx context.Context, tx sqlbTx) error {
+			if err := a.sessionEnded(ctx, userID, id); err != nil {
+				return err
+			}
+			if m != hookOff && a.wantsSessionEnd() {
+				s, ok, err := a.endingSession(ctx, userID, id)
+				if err != nil {
+					return err
+				}
+				if ok {
+					if err := a.fireSessionEnded(ctx, tx, m, reason, s); err != nil {
+						return err
+					}
+				}
+			}
+			a.EvictCachedSessions(ctx, userID)
+			return a.sessions.Delete(ctx, userID, id)
+		})
+	})
+}

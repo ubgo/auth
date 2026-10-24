@@ -1,0 +1,18 @@
+type SpanInfo struct {
+	Kind      SpanKind
+	Name      string
+	Op        OpInfo
+	Plugin    string
+	Transport Transport
+	Stage     HookStage
+	Source    string
+	// Route is the request path a middleware span wraps; empty otherwise.
+	Route string
+	// DBOperation and Table are set for database and data-hook spans: the
+	// statement's verb ("select", "insert", "update", "delete", or "query"
+	// for anything else) and the real table name it names first, or for a
+	// data hook its stage ("before_create" …) and the core model ("user",
+	// "identity", "session", "verification").
+	DBOperation string
+	Table       string
+}

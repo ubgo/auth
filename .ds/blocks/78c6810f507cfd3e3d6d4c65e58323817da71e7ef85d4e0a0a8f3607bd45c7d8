@@ -1,0 +1,30 @@
+func (p *Plugin) RateLimits() []auth.RateRule {
+	rules := []auth.RateRule{
+		{Match: EndpointSignIn, Key: auth.ByIP, Limit: signInIPLimit, Window: signInIPWindow},
+		{Match: EndpointSignIn, Key: auth.ByIdentifier, Limit: signInAccountLimit, Window: signInAccountWindow},
+		{Match: EndpointVerify, Key: auth.ByIP, Limit: verifyIPLimit, Window: verifyIPWindow},
+	}
+	if !p.noSignUp {
+		rules = append(rules,
+			auth.RateRule{Match: EndpointSignUp, Key: auth.ByIP, Limit: signUpIPLimit, Window: signUpIPWindow},
+			auth.RateRule{Match: EndpointSignUp, Key: auth.ByIdentifier, Limit: signUpIDLimit, Window: signUpIDWindow},
+		)
+	}
+	if p.expireAfter > 0 {
+		// change-expired checks a password, so it is bounded like sign-in.
+		rules = append(rules,
+			auth.RateRule{Match: EndpointChangeExpired, Key: auth.ByIP, Limit: signInIPLimit, Window: signInIPWindow},
+			auth.RateRule{Match: EndpointChangeExpired, Key: auth.ByIdentifier, Limit: signInAccountLimit, Window: signInAccountWindow},
+		)
+	}
+	if !p.noRecovery {
+		rules = append(rules, auth.RateRule{Match: EndpointForgot, Key: auth.ByIdentifier, Limit: forgotLimit, Window: forgotWindow})
+	}
+	if !p.noRecovery && p.byCode {
+		rules = append(rules,
+			auth.RateRule{Match: EndpointResetCode, Key: auth.ByIP, Limit: signInIPLimit, Window: signInIPWindow},
+			auth.RateRule{Match: EndpointResetCode, Key: auth.ByIdentifier, Limit: resetCodeLimit, Window: resetCodeWindow},
+		)
+	}
+	return rules
+}

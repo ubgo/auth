@@ -1,0 +1,9 @@
+export async function signInWithPasskey(get: Ceremony): Promise<"signed-in" | "second-factor" | "failed"> {
+  const begun = await auth.passkey.loginBegin();
+  if (begun.error) return "failed";
+  const credential = await get(begun.data.options);
+  if (credential === null) return "failed";
+  const { data, error } = await auth.passkey.loginFinish({ ceremony: begun.data.ceremony, credential });
+  if (error) return "failed"; // passkey.invalid or passkey.ceremony_invalid
+  return data.secondFactorRequired ? "second-factor" : "signed-in";
+}

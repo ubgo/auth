@@ -1,0 +1,8 @@
+func WithIPReputation(c IPReputation, p RiskPolicy) Option {
+	return func(s *settings) {
+		if s.optErrs.RefuseNil("auth.WithIPReputation", c) {
+			return
+		}
+		s.riskIP = &riskCheck[IPReputation]{checker: c, policy: p}
+	}
+}

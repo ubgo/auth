@@ -1,0 +1,13 @@
+func TestPoW_ChallengeOnlyOverTheLimitAndEachProofOnce(t *testing.T) {
+	_, b := world(t)
+	useFreeSignIns(t, b)
+	over := signIn(t, b, "").Expect(http.StatusPreconditionRequired)
+	if over.ErrorCode() != auth.ErrChallengeRequired.Code {
+		t.Fatalf("over the limit: %s", over.Body)
+	}
+	proof := solve(t, challenge(t, b))
+	signIn(t, b, proof).Expect(http.StatusOK)
+	if code := signIn(t, b, proof).Expect(pow.ErrChallengeInvalid.Status).ErrorCode(); code != pow.ErrChallengeInvalid.Code {
+		t.Fatalf("the same proof again: %s, want %s", code, pow.ErrChallengeInvalid.Code)
+	}
+}

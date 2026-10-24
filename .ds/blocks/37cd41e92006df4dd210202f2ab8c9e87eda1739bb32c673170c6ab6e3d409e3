@@ -1,0 +1,3 @@
+func GitLab(issuer, clientID, clientSecret string) *OIDCProvider {
+	return OIDC("gitlab", issuer, clientID, clientSecret)
+}

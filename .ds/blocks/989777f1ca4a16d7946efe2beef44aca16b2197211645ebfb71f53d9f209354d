@@ -1,0 +1,6 @@
+export async function signInTranslated(identifier: string, secret: string, language: string): Promise<string | null> {
+  const { error } = await auth.password.signIn({ identifier, password: secret }, { headers: { "Accept-Language": language } });
+  if (!error) return null;
+  console.info(error.code, error.originalMessage ?? error.message);
+  return error.message;
+}

@@ -1,0 +1,10 @@
+export async function signInWithWork(identifier: string, secret: string): Promise<boolean> {
+  const first = await auth.password.signIn({ identifier, password: secret });
+  if (first.error?.code !== "auth.challenge_required") return first.error === null;
+  const puzzle = await auth.pow.challenge();
+  if (puzzle.error) return false;
+  const nonce = await solve(puzzle.data.challenge, puzzle.data.difficulty);
+  const proof = `${puzzle.data.challenge}.${nonce}`;
+  const second = await auth.password.signIn({ identifier, password: secret }, { headers: { "X-Pow-Proof": proof } });
+  return second.error === null;
+}

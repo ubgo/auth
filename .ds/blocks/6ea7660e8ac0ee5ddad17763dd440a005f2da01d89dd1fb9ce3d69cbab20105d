@@ -1,0 +1,5 @@
+var DefaultReserved = []string{
+	"admin", "administrator", "root", "support", "help", "about", "api",
+	"auth", "login", "logout", "signup", "register", "settings", "account",
+	"billing", "security", "system", "static", "assets", "www", "mail",
+}

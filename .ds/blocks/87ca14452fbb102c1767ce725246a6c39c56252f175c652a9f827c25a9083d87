@@ -1,0 +1,3 @@
+func Main(ctx context.Context, a *auth.Auth, args []string, stdout, stderr io.Writer) int {
+	return MainWithStdin(ctx, a, args, os.Stdin, stdout, stderr)
+}

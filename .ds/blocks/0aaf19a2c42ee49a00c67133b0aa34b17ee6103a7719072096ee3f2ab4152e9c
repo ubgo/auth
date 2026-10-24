@@ -1,0 +1,4 @@
+export async function providerCount(): Promise<number> {
+  const { data } = await auth.oauth.providers();
+  return data?.providers?.length ?? 0;
+}

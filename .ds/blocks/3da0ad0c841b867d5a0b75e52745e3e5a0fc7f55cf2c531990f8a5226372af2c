@@ -1,0 +1,4 @@
+func (p *Plugin) CheckCode(ctx context.Context, kind CodeKind, address, code string) error {
+	_, err := p.checkCode.Call(ctx, CheckCodeRequest{Kind: kind, Email: address, Code: code})
+	return err
+}

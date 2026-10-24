@@ -1,0 +1,24 @@
+func (p *Plugin) OperationHooks() []auth.OperationHook {
+	return []auth.OperationHook{{
+		Match: []auth.EndpointID{password.EndpointSignIn},
+		Before: func(ctx context.Context, _ *auth.Call) error {
+			// The count must survive a wrong password, which fails the call
+			// and rolls its transaction back: AfterTx runs either way.
+			p.a.AfterTx(ctx, func(context.Context) { p.attempts.Add(1) })
+			if p.paused.Load() {
+				return ErrSignInsPaused
+			}
+			return nil
+		},
+		After: func(ctx context.Context, _ *auth.Call, result any) error {
+			// result is the operation's own output; a hook that matches one
+			// operation asserts its type.
+			if r, ok := result.(password.SignInResult); ok && !r.SecondFactorRequired {
+				// Counted only once the session is committed: a rollback
+				// after this hook must not count a sign-in that never was.
+				p.a.AfterCommit(ctx, func(context.Context) { p.signedIn.Add(1) })
+			}
+			return nil
+		},
+	}}
+}

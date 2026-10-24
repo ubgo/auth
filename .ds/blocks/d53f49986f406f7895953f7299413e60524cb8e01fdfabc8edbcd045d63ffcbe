@@ -1,0 +1,36 @@
+export type OrganizationActions = {
+  /** Makes an organization the session's active one (null clears it), then re-reads everything scoped to it. */
+  readonly setActive: (target: ActiveOrganizationTarget) => Promise<AuthError | null>;
+  /**
+   * Creates an organization with the caller as its owner. The server makes it
+   * the active one unless `keepCurrentActiveOrganization` is set.
+   */
+  readonly create: (input: OrganizationCreateRequest) => Promise<{ readonly organization: OrganizationOrg | null; readonly error: AuthError | null }>;
+  /** Invites someone into an organization (the active one when `orgId` is left out). */
+  readonly invite: (input: OrganizationInviteRequest) => Promise<AuthError | null>;
+  /** Cancels a pending invitation. */
+  readonly cancelInvitation: (inviteId: string) => Promise<AuthError | null>;
+  /** Accepts an invitation addressed to the caller and joins its organization. */
+  readonly acceptInvitation: (inviteId: string) => Promise<{ readonly organization: OrganizationOrg | null; readonly error: AuthError | null }>;
+  /** Declines an invitation addressed to the caller. */
+  readonly rejectInvitation: (inviteId: string) => Promise<AuthError | null>;
+  /**
+   * Removes another member (`organization.remove-member`); needs member:delete,
+   * and only an owner may remove an owner. The last owner is refused with
+   * `organization.last_owner`.
+   */
+  readonly removeMember: (input: OrganizationMemberTarget) => Promise<AuthError | null>;
+  /**
+   * Takes the caller out of an organization (the active one when `orgId` is
+   * left out): `organization.remove-member` naming themselves, which any
+   * member may do except the last owner (`organization.last_owner`). The
+   * session's active organization is cleared when it was this one.
+   */
+  readonly leave: (orgId?: string) => Promise<AuthError | null>;
+  /**
+   * Changes a member's role (`organization.set-role`); needs member:update.
+   * Only an owner may grant the owner role or change an owner's, and the last
+   * owner cannot be demoted (`organization.last_owner`).
+   */
+  readonly setRole: (input: OrganizationRoleChange) => Promise<AuthError | null>;
+};

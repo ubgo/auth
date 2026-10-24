@@ -1,0 +1,7 @@
+func Kakao(clientID, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "kakao", DisplayName: "Kakao", ClientID: clientID, ClientSecret: clientSecret,
+		AuthURL: KakaoAuthURL, TokenURL: KakaoTokenURL, Scopes: []string{"account_email", "profile_image", "profile_nickname"},
+		FetchProfile: KakaoProfile(KakaoProfileURL),
+	}
+}

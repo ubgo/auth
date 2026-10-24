@@ -1,0 +1,7 @@
+func CurrentScopes(ctx context.Context) (scopes []string, ok bool) {
+	st := stateFrom(ctx)
+	if st == nil || st.session == nil || st.session.APIKeyID == "" {
+		return nil, false
+	}
+	return slices.Clone(st.scopes), true
+}

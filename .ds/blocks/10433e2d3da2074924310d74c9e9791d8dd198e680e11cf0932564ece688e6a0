@@ -1,0 +1,9 @@
+type SignUpInfo struct {
+	// UserID is the new user's id.
+	UserID string
+	// Identifiers are the account's first identifier, normalized (the
+	// address a "+tag" or dot-trick checker compares).
+	Identifiers []SignUpIdentifier
+	// Client is the caller's address and user agent; empty for a Go call.
+	Client Client
+}

@@ -1,0 +1,26 @@
+func supabaseRecord(get func(string) string) record {
+	var meta sbMeta
+	_ = json.Unmarshal([]byte(get(sbColMeta)), &meta) // odd metadata only loses name and picture
+	r := record{
+		ID:           get(sbColID),
+		Name:         firstNonEmpty(meta.FullName, meta.Name),
+		Image:        firstNonEmpty(meta.AvatarURL, meta.Picture),
+		CreatedAt:    parseTime(get(sbColCreatedAt)),
+		PasswordHash: get(sbColPassword),
+		Admin:        get(sbColSuperAdmin) == pgTrue,
+		BannedUntil:  parseTime(get(sbColBannedUntil)),
+	}
+	switch {
+	case get(sbColDeletedAt) != "":
+		r.Skip = "deleted in Supabase"
+	case get(sbColAnonymous) == pgTrue:
+		r.Skip = "anonymous user, nothing to sign in with"
+	}
+	if e := get(sbColEmail); e != "" {
+		r.Emails = []identifier{{Value: e, Verified: get(sbColEmailConfirmed) != "", Primary: true}}
+	}
+	if p := get(sbColPhone); p != "" {
+		r.Phones = []identifier{{Value: "+" + strings.TrimPrefix(p, "+"), Verified: get(sbColPhoneConfirmed) != "", Primary: true}}
+	}
+	return r
+}

@@ -1,0 +1,4 @@
+export async function signUpWithHandle(address: string, secret: string, handle: string): Promise<boolean> {
+  const { error } = await auth.password.signUp({ identifier: address, password: secret, name: handle, username: handle });
+  return error === null;
+}

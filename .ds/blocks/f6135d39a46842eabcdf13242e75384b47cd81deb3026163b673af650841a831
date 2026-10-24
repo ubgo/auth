@@ -1,0 +1,1 @@
+type Initial func(ctx context.Context, s auth.Session) (any, error)

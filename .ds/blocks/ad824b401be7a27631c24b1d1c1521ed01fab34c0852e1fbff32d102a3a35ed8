@@ -1,0 +1,11 @@
+func newAuth(db *sql.DB, m email.Mailer, key ed25519.PrivateKey, secret []byte, cimd ...oauthprovider.CIMDOption) (*auth.Auth, *oauthprovider.Plugin, error) {
+	jw := jwt.New(jwt.WithSigningKey(key), jwt.Issuer(baseURL))
+	op := newProvider(jw, cimd...)
+	a, err := auth.New(
+		auth.WithDB(db, sqlb.SQLiteDialect{}),
+		auth.WithBaseURL(baseURL),
+		auth.WithSecret(secret),
+		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), password.New(), jw, op),
+	)
+	return a, op, err
+}

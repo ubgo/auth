@@ -1,0 +1,3 @@
+type RateObserver interface {
+	RateLimit(ctx context.Context, e RateEvent)
+}

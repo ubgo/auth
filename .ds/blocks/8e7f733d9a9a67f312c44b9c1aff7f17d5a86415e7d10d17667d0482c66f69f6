@@ -1,0 +1,28 @@
+func TestOrgWorkspace_RolesGuardTheData(t *testing.T) {
+	a := newApp(t)
+	alice, bob, eve := a.env.CreateUser("Alice"), a.env.CreateUser("Bob"), a.env.CreateUser("Eve")
+	fix := a.f.NewOrganization(alice.ID, "Acme")
+	fix.Members = []orgtest.Member{{UserID: bob.ID, Role: organization.RoleMember}}
+	org := a.f.SaveOrganization(fix)
+
+	asBob := a.env.Browser(a.h)
+	asBob.SetSession(a.env.SignIn(bob.ID))
+	var list listResponse
+	asBob.Get("/orgs/" + org.ID + "/projects").Expect(http.StatusOK).Decode(&list)
+	if len(list.Projects) != 1 || list.Projects[0].Name != defaultProject {
+		t.Fatalf("a fixture organization's projects = %+v", list.Projects)
+	}
+	if code := asBob.Post("/orgs/"+org.ID+"/projects", createRequest{Name: "Roadmap"}).Expect(http.StatusForbidden).ErrorCode(); code != organization.ErrForbidden.Code {
+		t.Fatalf("a member creating: %q", code)
+	}
+
+	asEve := a.env.Browser(a.h)
+	asEve.SetSession(a.env.SignIn(eve.ID))
+	if code := asEve.Get("/orgs/" + org.ID + "/projects").Expect(http.StatusNotFound).ErrorCode(); code != organization.ErrNotMember.Code {
+		t.Fatalf("a stranger reading: %q", code)
+	}
+
+	// Adding Eve as an admin with the fixture lets her create.
+	a.f.AddMember(org.ID, eve.ID, organization.RoleAdmin)
+	asEve.Post("/orgs/"+org.ID+"/projects", createRequest{Name: "Roadmap"}).Expect(http.StatusCreated)
+}

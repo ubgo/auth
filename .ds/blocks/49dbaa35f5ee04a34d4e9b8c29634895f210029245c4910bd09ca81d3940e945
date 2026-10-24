@@ -1,0 +1,16 @@
+func (p *Plugin) RequireRole(orgID func(r *http.Request) string, role Role) func(http.Handler) http.Handler {
+	return authhttp.RequireFunc(func(r *http.Request) error {
+		u, ok := auth.CurrentUser(r.Context())
+		if !ok {
+			return auth.ErrSignedOut
+		}
+		have, err := p.RoleOf(r.Context(), orgID(r), u.ID)
+		if err != nil {
+			return err
+		}
+		if !have.AtLeast(role) {
+			return ErrForbidden
+		}
+		return nil
+	})
+}

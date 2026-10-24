@@ -1,0 +1,14 @@
+type Signer interface {
+	// PublicKeys returns every key a token in flight may carry, the key
+	// that signs now first: its KeyID becomes the token's kid header, and
+	// the JWKS publishes the list in this order. An empty list means the
+	// signer cannot sign, and Token fails with ErrSignerKey.
+	PublicKeys() []ed25519.PublicKey
+	// Sign returns the signature of the JWS signing input (header dot
+	// payload) with the private half of key, the first key PublicKeys
+	// returned when the token's header was built. The key is passed back,
+	// rather than assumed current, so a signer whose key changes between
+	// the two calls, at the instant of a rotation, still signs with the key
+	// the header names.
+	Sign(ctx context.Context, key ed25519.PublicKey, signingInput []byte) ([]byte, error)
+}

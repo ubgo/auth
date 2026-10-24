@@ -1,0 +1,4 @@
+type ExclusiveVerificationStore interface {
+	VerificationStore
+	RefusesDuplicateTokens() bool
+}

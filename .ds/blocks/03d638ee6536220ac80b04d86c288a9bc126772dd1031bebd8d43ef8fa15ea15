@@ -1,0 +1,5 @@
+export async function createKey(name: string, scopes: string[]): Promise<string | null> {
+  const { data, error } = await auth.apikey.create({ name, scopes, expiresInDays: 90 });
+  if (error) return null; // auth.fresh_session_required, apikey.unknown_scope, apikey.too_many, ...
+  return data.secret;
+}

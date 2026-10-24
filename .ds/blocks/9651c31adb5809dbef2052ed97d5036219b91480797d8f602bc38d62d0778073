@@ -1,0 +1,1 @@
+func ReplaceUnverified() Option { return func(p *Plugin) { p.replaceUnverified = true } }

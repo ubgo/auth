@@ -1,0 +1,12 @@
+const (
+	// AccountSignIn: a linked provider account signed its user in.
+	AccountSignIn AccountAction = "sign_in"
+	// AccountSignUp: a user was created for the provider account.
+	AccountSignUp AccountAction = "sign_up"
+	// AccountLinked: a signed-in user linked the provider account (a link
+	// flow, or an id-token call from a session).
+	AccountLinked AccountAction = "link"
+	// AccountLinkedByEmail: the provider account was linked to an existing
+	// user because both sides' verified addresses matched.
+	AccountLinkedByEmail AccountAction = "link_email"
+)

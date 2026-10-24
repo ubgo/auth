@@ -1,0 +1,5 @@
+type workspaces struct {
+	mu     sync.Mutex
+	byUser map[string]string
+	choose *auth.Op[ChooseRequest, ChooseResult]
+}

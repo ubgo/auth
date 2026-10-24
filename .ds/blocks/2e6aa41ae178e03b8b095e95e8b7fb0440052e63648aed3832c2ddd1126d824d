@@ -1,0 +1,8 @@
+func TikTok(clientKey, clientSecret string) *OAuth2 {
+	return &OAuth2{
+		ID: "tiktok", DisplayName: "TikTok", ClientID: clientKey, ClientSecret: clientSecret,
+		ClientIDParam: tiktokClientKeyParam, ScopeSeparator: commaScopes, NoPKCE: true,
+		AuthURL: TikTokAuthURL, TokenURL: TikTokTokenURL, RevokeURL: TikTokRevokeURL,
+		Scopes: []string{"user.info.basic"}, FetchProfile: TikTokProfile(TikTokUserInfoURL),
+	}
+}

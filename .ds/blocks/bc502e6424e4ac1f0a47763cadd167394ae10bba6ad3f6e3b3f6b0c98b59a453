@@ -1,0 +1,3 @@
+func Protect(ids ...auth.EndpointID) Option {
+	return func(p *Plugin) { p.protect, p.explicit = slices.Clone(ids), true }
+}

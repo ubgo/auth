@@ -1,0 +1,12 @@
+const (
+	//ds:def id=core-envvars-h63nyypk owner=@khanakia stability=stable
+	EnvBaseURL        = "AUTH_BASE_URL"
+	EnvTrustedOrigins = "AUTH_TRUSTED_ORIGINS" // comma-separated
+	EnvFreshWindow    = "AUTH_FRESH_WINDOW"
+	EnvSessionIdle    = "AUTH_SESSION_IDLE"
+	EnvSessionMax     = "AUTH_SESSION_MAX"
+	EnvSessionRefresh = "AUTH_SESSION_REFRESH"
+	// EnvSecret is the WithSecret value, used as its bytes: any string of at
+	// least MinSecretSize characters, such as `openssl rand -base64 32`.
+	EnvSecret = "AUTH_SECRET"
+)

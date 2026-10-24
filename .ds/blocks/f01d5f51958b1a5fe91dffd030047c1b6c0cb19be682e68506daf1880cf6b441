@@ -1,0 +1,8 @@
+export async function userForRequest(cookieHeader: string): Promise<string | null> {
+  const perRequest = createAuthClient({
+    baseURL: "http://localhost:8081/auth",
+    headers: { Cookie: cookieHeader },
+  });
+  const { data } = await perRequest.session();
+  return data?.user.id ?? null;
+}

@@ -1,0 +1,8 @@
+func adminAuthorizer() *accessadmin.Authorizer {
+	ac := accessadmin.DefaultAccessControl
+	support := ac.MustRole(access.Permissions{
+		admin.ResourceUser:    {admin.ActionList, admin.ActionGet},
+		admin.ResourceSession: {admin.ActionList},
+	})
+	return accessadmin.MustNew(ac, map[string]access.Role{roleSupport: support})
+}

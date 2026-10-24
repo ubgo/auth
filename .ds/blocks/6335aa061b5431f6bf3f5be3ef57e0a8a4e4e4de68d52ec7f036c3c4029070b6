@@ -1,0 +1,3 @@
+export function errorText(error: AuthError): string {
+  return messages[error.code] ?? error.message;
+}

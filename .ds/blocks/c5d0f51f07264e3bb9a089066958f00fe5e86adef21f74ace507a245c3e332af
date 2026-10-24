@@ -1,0 +1,13 @@
+func providersFromEnv(getenv func(string) string) []oauth.Provider {
+	var out []oauth.Provider
+	if id, secret := getenv(envGitHubID), getenv(envGitHubSecret); id != "" && secret != "" {
+		out = append(out, oauth.GitHub(id, secret))
+	}
+	if id, secret := getenv(envGoogleID), getenv(envGoogleSecret); id != "" && secret != "" {
+		out = append(out, oauth.Google(id, secret))
+	}
+	if iss, id, secret := getenv(envOIDCIssuer), getenv(envOIDCID), getenv(envOIDCSecret); iss != "" && id != "" && secret != "" {
+		out = append(out, oauth.OIDC(oidcProviderName, iss, id, secret))
+	}
+	return out
+}

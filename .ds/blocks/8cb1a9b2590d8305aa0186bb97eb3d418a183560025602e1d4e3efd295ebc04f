@@ -1,0 +1,7 @@
+func (c Config) DeriveKey(label string) ([]byte, error) {
+	keys, err := c.DeriveKeys(label)
+	if err != nil {
+		return nil, err
+	}
+	return keys[0], nil
+}

@@ -1,0 +1,10 @@
+function step<T>(label: string, result: AuthResult<T>, expect: "ok" | AuthErrorCode, note?: (data: T) => string): T | null {
+  if (result.error === null) {
+    console.log(`  ok   ${label}${note ? `: ${note(result.data)}` : ""}`);
+    if (expect !== "ok") fail(`${label}: expected ${expect}`);
+    return result.data;
+  }
+  console.log(`  err  ${label}: ${result.error.code}`);
+  if (expect !== result.error.code) fail(`${label}: expected ${expect}, got ${result.error.code} "${result.error.message}"`);
+  return null;
+}

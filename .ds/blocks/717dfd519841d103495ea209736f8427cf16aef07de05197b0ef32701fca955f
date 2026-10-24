@@ -1,0 +1,3 @@
+func (p *Plugin) Token(ctx context.Context) (TokenResult, error) {
+	return p.token.Call(ctx, struct{}{})
+}

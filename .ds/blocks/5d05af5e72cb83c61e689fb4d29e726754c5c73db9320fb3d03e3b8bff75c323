@@ -1,0 +1,30 @@
+func TestPassword_UnknownAccountCostsAHash(t *testing.T) {
+	db, d := openSQLite(t)
+	e := newEnv(t, auth.EngineSQLite, db, d)
+	em := e.emailPlugin()
+	pw := password.New(password.Argon2(password.Argon2Params{Memory: 16 * 1024, Time: 2, Threads: 1}))
+	a := e.newAuth(t, nil, em, pw)
+	if _, err := pw.SignUp(anon(a), password.SignUpRequest{Identifier: alice, Password: secret}); err != nil {
+		t.Fatal(err)
+	}
+	// Samples alternate between the two cases, so a burst of load from the
+	// rest of the machine lands on both medians instead of only on the half
+	// that happened to run during it.
+	const runs = 9
+	knownRuns, unknownRuns := make([]time.Duration, runs), make([]time.Duration, runs)
+	timeSignIn := func(identifier string) time.Duration {
+		start := time.Now()
+		_, _ = pw.SignIn(anon(a), password.SignInRequest{Identifier: identifier, Password: "wrong password!"})
+		return time.Since(start)
+	}
+	for i := range runs {
+		knownRuns[i] = timeSignIn(alice)
+		unknownRuns[i] = timeSignIn("nobody@example.com")
+	}
+	slices.Sort(knownRuns)
+	slices.Sort(unknownRuns)
+	known, unknown := knownRuns[runs/2], unknownRuns[runs/2]
+	if unknown < known/2 {
+		t.Fatalf("unknown account answered in %v, a wrong password in %v: the hash is being skipped", unknown, known)
+	}
+}

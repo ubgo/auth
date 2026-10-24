@@ -1,0 +1,18 @@
+func (a *Auth) CompleteReauthentication(ctx context.Context, c *Call, ticket Token) (Reauthentication, error) {
+	if err := a.reauthAllowed(c); err != nil {
+		return Reauthentication{}, err
+	}
+	v, err := a.ConsumeVerification(ctx, PurposeReauth, ticket)
+	if errors.Is(err, ErrTokenInvalid) {
+		return Reauthentication{}, ErrReauthTicketInvalid
+	}
+	if err != nil {
+		return Reauthentication{}, err
+	}
+	// A ticket proves the first factor on one session only: another
+	// session's ticket (a second tab, a captured value) proves nothing here.
+	if subtle.ConstantTimeCompare([]byte(v.Identifier), []byte(c.Session.ID)) != 1 {
+		return Reauthentication{}, ErrReauthTicketInvalid
+	}
+	return a.markFresh(ctx, c)
+}

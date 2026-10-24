@@ -1,0 +1,10 @@
+{{define "body"}}
+{{if or .Token .CodeField}}
+<form method="post" action="{{.Action}}">
+{{if .Token}}<input type="hidden" name="token" value="{{.Token}}">{{end}}
+<p>{{.T .Prompt}}</p>
+{{if .CodeField}}<label>{{.T "authui.code"}}<input name="code" inputmode="numeric" autocomplete="one-time-code" required></label>{{end}}
+<button type="submit">{{.T .Button}}</button>
+</form>
+{{else}}<p><a href="{{.Prefix}}/login">{{.T "authui.sign_in"}}</a></p>{{end}}
+{{end}}

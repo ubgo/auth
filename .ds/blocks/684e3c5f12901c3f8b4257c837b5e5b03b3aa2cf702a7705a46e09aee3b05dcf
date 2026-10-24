@@ -1,0 +1,4 @@
+func (a *Auth) IssueVerification(ctx context.Context, purpose Purpose, identifier string, ttl time.Duration, meta string) (Token, error) {
+	tok := NewToken()
+	return tok, a.IssueVerificationToken(ctx, purpose, identifier, tok, ttl, meta)
+}

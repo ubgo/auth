@@ -1,0 +1,7 @@
+func RetryAfter(err error) (time.Duration, bool) {
+	var rl rateLimited
+	if errors.As(err, &rl) {
+		return rl.retry, true
+	}
+	return 0, false
+}

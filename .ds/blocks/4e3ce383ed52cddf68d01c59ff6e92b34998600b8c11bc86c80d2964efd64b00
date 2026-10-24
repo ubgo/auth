@@ -1,0 +1,4 @@
+export async function handOffTo(challenge: string): Promise<string | null> {
+  const { data } = await auth.handoff.generate({ challenge });
+  return data?.token ?? null;
+}

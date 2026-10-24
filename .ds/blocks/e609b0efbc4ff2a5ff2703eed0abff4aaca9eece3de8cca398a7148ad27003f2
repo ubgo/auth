@@ -1,0 +1,5 @@
+type MaintainOptions struct {
+	// DryRun reports what the run would do, in the same counters, without
+	// sending, writing or deleting anything.
+	DryRun bool
+}

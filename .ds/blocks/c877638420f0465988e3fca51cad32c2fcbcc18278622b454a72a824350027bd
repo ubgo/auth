@@ -1,0 +1,3 @@
+func WithUnknownDeviceNotification() Option {
+	return func(s *settings) { s.unknownDevice = true }
+}

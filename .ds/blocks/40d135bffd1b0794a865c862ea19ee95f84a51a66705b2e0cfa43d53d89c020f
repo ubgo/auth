@@ -1,0 +1,43 @@
+func readSupabase(in input) ([]record, error) {
+	rows, err := readCSV(in.Main, "supabase users")
+	if err != nil {
+		return nil, err
+	}
+	accounts := map[string][]account{}
+	if in.Identities != nil {
+		ids, err := readCSV(in.Identities, "supabase identities")
+		if err != nil {
+			return nil, err
+		}
+		for _, get := range ids {
+			if sbCredentialProviders[get(sbColProvider)] {
+				continue
+			}
+			var data struct {
+				Email string `json:"email"`
+			}
+			_ = json.Unmarshal([]byte(get(sbColIdentityData)), &data) // a missing or odd identity_data only loses the email hint
+			accounts[get(sbColUserID)] = append(accounts[get(sbColUserID)], account{Provider: get(sbColProvider), AccountID: get(sbColProviderID), Email: data.Email})
+		}
+	}
+	secrets := map[string]string{}
+	if in.Factors != nil {
+		fs, err := readCSV(in.Factors, "supabase factors")
+		if err != nil {
+			return nil, err
+		}
+		for _, get := range fs {
+			if get(sbColFactorType) == sbFactorTOTP && get(sbColStatus) == sbStatusVerified && get(sbColSecret) != "" {
+				secrets[get(sbColUserID)] = get(sbColSecret)
+			}
+		}
+	}
+	out := make([]record, 0, len(rows))
+	for _, get := range rows {
+		r := supabaseRecord(get)
+		r.Accounts = accounts[r.ID]
+		r.TOTPSecret = secrets[r.ID]
+		out = append(out, r)
+	}
+	return out, nil
+}

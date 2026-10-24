@@ -1,0 +1,3 @@
+func UserInfoProfile(u, subjectClaim string) func(ctx context.Context, hc *http.Client, accessToken string) (Profile, error) {
+	return userInfoProfile(u, "", subjectClaim)
+}

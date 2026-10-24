@@ -1,0 +1,7 @@
+export async function signIn(identifier: string, secret: string): Promise<SignInStep> {
+  const { data, error } = await auth.password.signIn({ identifier, password: secret });
+  if (error) return { error: messageFor(error) };
+  if (data.secondFactorRequired) return "second-factor";
+  if (data.verificationRequired) return "verify-email";
+  return "signed-in";
+}

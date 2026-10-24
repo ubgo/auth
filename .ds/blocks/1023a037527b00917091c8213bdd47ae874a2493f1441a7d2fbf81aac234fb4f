@@ -1,0 +1,10 @@
+func (p *Plugin) Of(ctx context.Context, userID string) (LastLoginColumns, error) {
+	if p.core == nil {
+		return LastLoginColumns{}, auth.ErrOperationNotWired
+	}
+	var c LastLoginColumns
+	if err := p.core.LoadUserColumns(ctx, userID, Bindings(&c)...); err != nil {
+		return LastLoginColumns{}, err
+	}
+	return c, nil
+}

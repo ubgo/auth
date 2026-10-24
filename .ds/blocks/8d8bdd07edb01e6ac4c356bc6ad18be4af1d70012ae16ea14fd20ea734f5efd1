@@ -1,0 +1,16 @@
+type ColumnExtension struct {
+	// Table is the core table to extend. Only auth_user is extendable: it is
+	// the one row every request loads.
+	Table string
+	// Name must match KindNamePattern and should carry the plugin's name, as
+	// "two_factor_enabled", so it cannot collide with another plugin's.
+	Name     string
+	Type     ColumnType
+	Nullable bool
+	// Default is a constant SQL literal such as "''" or "false", or empty for
+	// none. A NOT NULL column needs one, so existing rows can be filled.
+	Default string
+	Unique  bool
+
+	owner string
+}

@@ -1,0 +1,22 @@
+func login(a *auth.Auth, pw *password.Plugin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var in loginRequest
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+			writeJSON(w, http.StatusBadRequest, loginAnswer{Reason: reasonBadRequest})
+			return
+		}
+		res, err := pw.SignIn(r.Context(), password.SignInRequest{Identifier: in.Email, Password: password.Secret(in.Password)})
+		msg := a.ErrorInfo(r.Context(), err).Message
+		switch {
+		case err == nil:
+			writeJSON(w, http.StatusOK, loginAnswer{OK: true, UserID: res.User.ID})
+		case errors.Is(err, password.ErrInvalidCredentials):
+			writeJSON(w, http.StatusUnauthorized, loginAnswer{Reason: reasonWrongPassword, Message: msg})
+		case errors.Is(err, auth.ErrRateLimited):
+			writeJSON(w, http.StatusTooManyRequests, loginAnswer{Reason: reasonSlowDown, Message: msg})
+		default:
+			log.Printf("sign-in failed: %v", err) // the log is the only record of an internal error's detail
+			writeJSON(w, auth.ErrorOf(err).Status, loginAnswer{Reason: reasonFailed, Message: msg})
+		}
+	}
+}

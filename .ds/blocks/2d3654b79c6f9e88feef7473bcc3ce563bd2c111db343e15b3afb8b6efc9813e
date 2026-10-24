@@ -1,0 +1,4 @@
+export async function addressCount(): Promise<number> {
+  const { data } = await auth.email.list();
+  return data?.addresses?.length ?? 0;
+}

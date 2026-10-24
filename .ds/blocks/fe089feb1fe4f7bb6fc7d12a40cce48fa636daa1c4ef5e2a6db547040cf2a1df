@@ -1,0 +1,17 @@
+function OAuthButtons() {
+  const { baseURL } = useAuth()
+  const { providers, isPending, error } = useOAuthProviders()
+  const message = useErrorMessage()
+  if (isPending || (providers.length === 0 && error === null)) return null
+  return (
+    <section aria-labelledby="oauth">
+      <h2 id="oauth">Or continue with</h2>
+      {providers.map((p) => (
+        <a key={p.id} className="button" href={oauthStartURL(baseURL, p.id, { returnTo: OAUTH_RETURN_TO })}>
+          Continue with {p.name}
+        </a>
+      ))}
+      {error && <p role="alert">{message(error)}</p>}
+    </section>
+  )
+}
