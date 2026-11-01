@@ -1,4 +1,4 @@
-# docsync ledger format=2 extract=1 repo=auth commit=cb22729 scanned_at=2026-10-24T18:39:26Z
+# docsync ledger format=2 extract=1 repo=auth commit=48bc43e scanned_at=2026-11-01T17:04:16Z
 id	repo	kind	file	symbol	lines	hash	owner	stability	env	args
 accesstokeniplimit-x4wn8kqt	auth	const	plugin/oauth/clientaccess.go	accessTokenIPLimit	98	624b60c58c9d8bfb6ff1886c2fd605d2adeb6ea4da576068201b6c6958ce93f4	@khanakia	stable		id=accesstokeniplimit-x4wn8kqt owner=@khanakia stability=stable
 accesstokenipwindow-m7qk2xwn	auth	const	plugin/oauth/clientaccess.go	accessTokenIPWindow	100	9a24c52b7c6f8eb74643956369aba5ed0c892980a341c700ccb98ca61a12c23e	@khanakia	stable		id=accesstokenipwindow-m7qk2xwn owner=@khanakia stability=stable
@@ -611,6 +611,7 @@ custom-verification-store-t8h4nk2b	auth	type	examples/delivery-outbox/main.go	ma
 custompages-newhandler-8mt4qw2x	auth	func	examples/custom-pages/main.go	newHandler	163-182	003ef9a2a4241581201acff5a2e56f93f940cc6eefc0fd7226408084e5e9ca7c		stable		id=custompages-newhandler-8mt4qw2x
 custompages-pagetemplates-3wh7kd9p	auth	func	examples/custom-pages/main.go	pageTemplates	189-195	09ea6424f957d7f1e2d73f033c15c990538e4cf93af679c73419d4bab3643675		stable		id=custompages-pagetemplates-3wh7kd9p
 custompages-pagetexts-5rk2vn8q	auth	const	examples/custom-pages/main.go	pageTexts	145-157	ab3d05b9c8f44594e3355da00a9fc0e0a1f4451c9ca2271da8aa846aa7173597		stable		id=custompages-pagetexts-5rk2vn8q
+customsignin-zudarghh	auth	func	clients/react/examples/custom-backend/views-only.tsx	CustomSignIn	36-59	eb8c52375fcd89b1e36f8596246d3dd2e1fdb6160e2df6fb5d428b3492d59ff0	@khanakia	stable		id=customsignin-zudarghh owner=@khanakia stability=stable
 dashboard-46336d85	auth	func	examples/terms/main.go	dashboard	145-147	3653478bce8f6375b1141af535610d88abab2672105c6f44f6dee12561447653	@khanakia	stable		id=dashboard-46336d85 owner=@khanakia stability=stable
 dashboard-5jvjn3k4	auth	func	examples/ready-made-pages/main.go	dashboard	144-154	9b77c1914bf91be585feb19a8a81b04e9c5d6385eab7ac8d9c3a7b7ea6bcc098		stable		id=dashboard-5jvjn3k4
 data-crzjpnsx	auth	type	plugin/phone/phone.go	Data	85-90	24446f43d427e61b57fa234ae55628f09e28b3d3a74262e8735b76af9ea33105		stable		id=data-crzjpnsx
@@ -1005,6 +1006,8 @@ ldap-example-newdirectory-5r8w2k6n	auth	func	examples/ldap-sign-in/main.go	newDi
 ldap-example-plugins-7m3q9x2v	auth	func	examples/ldap-sign-in/main.go	plugins	113-118	99771058511ab0e945a7a1abb0d579bd09cdf055b143e8693551331e3daca3dd		stable		id=ldap-example-plugins-7m3q9x2v
 ldap-example-test-signin-2p8x4m6k	auth	func	examples/ldap-sign-in/main_test.go	TestLDAP_FirstSignInCreatesThenSignsIn	40-61	86d887762520d186bb13e009de6e206899ee142c0883cd56db02a9877ede37b9		stable		id=ldap-example-test-signin-2p8x4m6k
 ledger-execute-agentauth-example	auth	func	examples/agent-auth/main.go	ledger.execute	216-245	32a7e8f8c91bca8f2391df12497ee3e6660c97d890b4f8a5f60c58d795af1615		stable		id=ledger-execute-agentauth-example
+legacyclient-mnsdjy8v	auth	func	clients/react/examples/custom-backend/translate-fetch.tsx	legacyClient	82-84	d900b8b5970090fc5c38a008962062d9a90999cf1179be6a4c481cb31b77e5c4	@khanakia	stable		id=legacyclient-mnsdjy8v owner=@khanakia stability=stable
+legacyfetch-w46whdwa	auth	func	clients/react/examples/custom-backend/translate-fetch.tsx	legacyFetch	51-78	91a2fae79ebda646415accfdfc57780cbc736e40510d75a2e34b13279be62398	@khanakia	stable		id=legacyfetch-w46whdwa owner=@khanakia stability=stable
 lifecycle-checkwebhookkey-b7d3nf5x	auth	func	examples/api-key-lifecycle/main.go	checkWebhookKey	174-183	e68556b2c694ae0a5941cca5f04fc4eb0aea2a95c5c8309c55e0f2ba930812b7		stable		id=lifecycle-checkwebhookkey-b7d3nf5x
 lifecycle-newauth-w3m7cpzd	auth	func	examples/api-key-lifecycle/main.go	newAuth	112-132	579688cd9bb39c73bb891b929f47a7481aa956a0274a3f5ff0f4f483669cbc3f		stable		id=lifecycle-newauth-w3m7cpzd
 lifecycle-newhandler-t4kx8b2n	auth	func	examples/api-key-lifecycle/main.go	newHandler	156-165	56678600e3290b15de52d3e0a340350caba9355462b38a982420bf847e198b45		stable		id=lifecycle-newhandler-t4kx8b2n
@@ -1143,6 +1146,7 @@ mobile-newauth-7qpx4rvm	auth	func	examples/mobile-bearer/main.go	newAuth	146-157
 mobile-newhandler-c8ht2nfe	auth	func	examples/mobile-bearer/main.go	newHandler	164-169	9e6587775abf73a7718ef7789021515ff50d36ace1d9375fb70070e9852171d1		stable		id=mobile-newhandler-c8ht2nfe
 movecart-2p9xr5kt	auth	func	examples/guest-sessions/main.go	moveCart	133-136	31e66227baea1c140d607e50653e5cfa05853f3fccc657aba300a936857219c4		stable		id=movecart-2p9xr5kt
 multiple-epxe5zae	auth	func	plugin/email/email.go	Multiple	403	19c7c9ed33915018596285aa9bb610444580fc12fd2d982d1d7c176f569af308		stable		id=multiple-epxe5zae
+myauthapi-jwwej3zq	auth	type	clients/react/examples/custom-backend/views-only.tsx	MyAuthApi	13-15	52d162de25c95c2c72a3ea80a556826666513ca778834e54cda28aadbefe2199	@khanakia	stable		id=myauthapi-jwwej3zq owner=@khanakia stability=stable
 nameclaim-a6ksmavc	auth	func	examples/api-keys-and-jwt/main.go	nameClaim	193-195	fb2dff6c4f04a5a9f107444210bd4282c2dc9f1c74af18f4fddba1bd43e0237d	@khanakia	stable		id=nameclaim-a6ksmavc owner=@khanakia stability=stable
 native-8sm2nqdz	auth	const	clients/ts/examples/quickstart.ts	native	18-23	571daa64e30671599e855fd7705c947251bd02d8c52f542a77e9a4cf8eb537e4	@khanakia	stable		id=native-8sm2nqdz owner=@khanakia stability=stable
 naver-q6tn3xkw	auth	func	plugin/oauth/providers.go	Naver	700-706	da5e7ca1423016c36eb28f7070f34ae6bc71f1fa9c522a7f3d1ee07e7af43d05	@khanakia	stable		id=naver-q6tn3xkw owner=@khanakia stability=stable
@@ -1745,6 +1749,10 @@ scimconn-rotatetest-4n7vq2km	auth	func	examples/scim-connections/main_test.go	Te
 scopes-ttm5sga6	auth	func	plugin/apikey/apikey.go	Scopes	265-267	7ca6b32bc7f81eab5f203ae8ea12236240e3db9e3eb44580b3db81865895669a	@khanakia	stable		id=scopes-ttm5sga6 owner=@khanakia stability=stable
 scrypt-verifier-r5d9pw3c	auth	func	plugin/password/legacy_scrypt.go	Scrypt	47	1a8ba415315da1b66e6d9a5f7cf4b82fe9b5a3c52960031f374ffb232cd43f98	@khanakia	stable		id=scrypt-verifier-r5d9pw3c owner=@khanakia stability=stable
 scryptparams-6kq2vn9b	auth	type	plugin/password/legacy_scrypt.go	ScryptParams	16-25	1612db9f971928ffdc848a885aadfeae5d16c00aa17936390a4e95735ebe95b1	@khanakia	stable		id=scryptparams-6kq2vn9b owner=@khanakia stability=stable
+sdkadapter-9pazz82r	auth	func	clients/react/examples/custom-backend/adapter.tsx	sdkAdapter	105-107	f57cc32b14e065282d907fba88e4ddf9e004bb79982ca010f0643a17f9b557bb	@khanakia	stable		id=sdkadapter-9pazz82r owner=@khanakia stability=stable
+sdkcore-f93225u3	auth	func	clients/react/examples/custom-backend/adapter.tsx	sdkCore	55-78	e0e3a240186328d7e77bc44d5ce8bf99f787fedad2e3b462447c42848a32b9bd	@khanakia	stable		id=sdkcore-f93225u3 owner=@khanakia stability=stable
+sdkpassword-4ca8yqjn	auth	func	clients/react/examples/custom-backend/adapter.tsx	sdkPassword	82-101	a853ac724536968ddf78291596dbd8b3d980a11299fd733472344c6af1de8fd3	@khanakia	stable		id=sdkpassword-4ca8yqjn owner=@khanakia stability=stable
+sdksigninpage-ezyjqyy9	auth	func	clients/react/examples/custom-backend/adapter.tsx	SdkSignInPage	111-118	092303822b73155cea40448fad60bcd4772decd0129aa395de2bb27f5cc8fedd	@khanakia	stable		id=sdksigninpage-ezyjqyy9 owner=@khanakia stability=stable
 sealkey-5cmce22d	auth	func	examples/two-factor/main.go	sealKey	109-121	987d3ab9f422d43f37646ec07b40fb99e0f5e7c899bb748869183175c159473d		stable		id=sealkey-5cmce22d
 sealkeysize-ks8du6jx	auth	const	seal.go	SealKeySize	15	e29c9c180c6279b0b02abd6a1801c7c04082cf486ec027aa13515e4f3884bb6b	@khanakia	stable		id=sealkeysize-ks8du6jx owner=@khanakia stability=stable
 secondfactor-hpetvrpf	auth	func	clients/ts/examples/quickstart.ts	secondFactor	42-45	10767b1b5284f719b2c1bcd1e5ef8eb34b998e8a074dc06dcafc44de3aae9f2e	@khanakia	stable		id=secondfactor-hpetvrpf owner=@khanakia stability=stable
@@ -1793,6 +1801,7 @@ signedin-rfebjfkv	auth	func	contrib/gqlgen/authgql.go	SignedIn	61-66	1beb2d2dc72
 signer-v8kd3qxw	auth	type	plugin/jwt/signer.go	Signer	26-42	33c33f33a810e940f5cb1bd8d45ef74d903a3ccff516ac0f445c15bfa1ef0673	@khanakia	stable		id=signer-v8kd3qxw owner=@khanakia stability=stable
 signin-ycsbpzg3	auth	func	clients/ts/examples/quickstart.ts	signIn	31-37	92a36e2b52f4ed5edbabab50fc861cf258f28c73aec8d2bb266d5aaac1b4a57c	@khanakia	stable		id=signin-ycsbpzg3 owner=@khanakia stability=stable
 signinaccountlimit-yz756w5r	auth	const	plugin/password/password.go	signInAccountLimit	135	ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d	@khanakia	stable		id=signinaccountlimit-yz756w5r owner=@khanakia stability=stable
+signinadapter-khybttxg	auth	type	clients/react/examples/custom-backend/adapter.tsx	SignInAdapter	46	c5aa4f5cd21682d4602786bce36ffb288b07f3e1d1e5faa2edbcfde98c3a9612	@khanakia	stable		id=signinadapter-khybttxg owner=@khanakia stability=stable
 signingkey-jmtjdh92	auth	func	examples/api-keys-and-jwt/main.go	signingKey	155-169	2a727538a2fe47d99492f2439c88750188508d46c8daf31d354096d7e9125793		stable		id=signingkey-jmtjdh92
 signiniplimit-9v4bq2zp	auth	const	plugin/anonymous/anonymous.go	signInIPLimit	72	4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5	@khanakia	stable		id=signiniplimit-9v4bq2zp owner=@khanakia stability=stable
 signiniplimit-a4yqscxz	auth	const	plugin/password/password.go	signInIPLimit	132	f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b	@khanakia	stable		id=signiniplimit-a4yqscxz owner=@khanakia stability=stable

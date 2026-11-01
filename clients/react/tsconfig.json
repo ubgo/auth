@@ -20,8 +20,9 @@
     "paths": {
       "@/components/ui/*": ["./registry/ui/*"],
       "@/components/auth/*": ["./registry/auth/*"],
-      "@/lib/utils": ["./test/support/utils.ts"]
+      "@/lib/utils": ["./test/support/utils.ts"],
+      "@ubgo/auth-react": ["./src/index.ts"]
     }
   },
-  "include": ["src", "test", "registry/auth/*-view.tsx", "registry/auth/auth-view.tsx"]
+  "include": ["src", "test", "examples", "registry/auth/*-view.tsx", "registry/auth/auth-view.tsx"]
 }

@@ -1,4 +1,4 @@
-# docsync refs format=2 extract=1 repo=auth commit=cb22729 scanned_at=2026-10-24T18:39:26Z
+# docsync refs format=2 extract=1 repo=auth commit=48bc43e scanned_at=2026-11-01T17:04:16Z
 id	repo	doc	line	verb	carrier	acked_hash	seen_hash	sentence_hash	env	args
 defaultsessioncachettl-8knzqpgz	auth	README.md	170	block	link		cce38a4c4ea1c121549f0c91e33aba9d27a751ef86c84fde51749414341e364d	3def2e974af5e6d535aa9136a6dbab67a97e5c5c3ea88aa259dbf58014e2fdcd		id=defaultsessioncachettl-8knzqpgz
 maxsessioncachettl-2sh2x4n6	auth	README.md	170	block	link		dacb38de707bb81a9c0beb0a097ee7ce0bb5267d7ac576965643fe0b207a19a4	3def2e974af5e6d535aa9136a6dbab67a97e5c5c3ea88aa259dbf58014e2fdcd		id=maxsessioncachettl-2sh2x4n6
@@ -135,6 +135,15 @@ bearer-client-2xq7kw9n	auth	docs/client/bearer-and-mobile.md	207	block	block		98
 bearer-serverside-5qk2nw8v	auth	docs/client/bearer-and-mobile.md	226	block	block		f01d5f51958b1a5fe91dffd030047c1b6c0cb19be682e68506daf1880cf6b441			id=bearer-serverside-5qk2nw8v
 username-ztrn8raq	auth	docs/client/bearer-and-mobile.md	245	block	block		aba03a24372eed9888afb447a4da24753edaf285c5d4fddc45c5990ecda934a8			id=username-ztrn8raq
 handle-mesexndv	auth	docs/client/bearer-and-mobile.md	264	block	block		39c8a09848b6a6610932ac4898e825c238184ad2a35318de10557bf93f3f1e79			id=handle-mesexndv
+myauthapi-jwwej3zq	auth	docs/client/custom-backend.md	31	block	block		52d162de25c95c2c72a3ea80a556826666513ca778834e54cda28aadbefe2199			id=myauthapi-jwwej3zq
+customsignin-zudarghh	auth	docs/client/custom-backend.md	43	block	block		eb8c52375fcd89b1e36f8596246d3dd2e1fdb6160e2df6fb5d428b3492d59ff0			id=customsignin-zudarghh
+legacyfetch-w46whdwa	auth	docs/client/custom-backend.md	86	block	block		91a2fae79ebda646415accfdfc57780cbc736e40510d75a2e34b13279be62398			id=legacyfetch-w46whdwa
+legacyclient-mnsdjy8v	auth	docs/client/custom-backend.md	123	block	block		d900b8b5970090fc5c38a008962062d9a90999cf1179be6a4c481cb31b77e5c4			id=legacyclient-mnsdjy8v
+signinadapter-khybttxg	auth	docs/client/custom-backend.md	139	block	block		c5aa4f5cd21682d4602786bce36ffb288b07f3e1d1e5faa2edbcfde98c3a9612			id=signinadapter-khybttxg
+sdkcore-f93225u3	auth	docs/client/custom-backend.md	155	block	block		e0e3a240186328d7e77bc44d5ce8bf99f787fedad2e3b462447c42848a32b9bd			id=sdkcore-f93225u3
+sdkpassword-4ca8yqjn	auth	docs/client/custom-backend.md	188	block	block		a853ac724536968ddf78291596dbd8b3d980a11299fd733472344c6af1de8fd3			id=sdkpassword-4ca8yqjn
+sdkadapter-9pazz82r	auth	docs/client/custom-backend.md	217	block	block		f57cc32b14e065282d907fba88e4ddf9e004bb79982ca010f0643a17f9b557bb			id=sdkadapter-9pazz82r
+sdksigninpage-ezyjqyy9	auth	docs/client/custom-backend.md	229	block	block		092303822b73155cea40448fad60bcd4772decd0129aa395de2bb27f5cc8fedd			id=sdksigninpage-ezyjqyy9
 nickname-new-5kz9wq3h	auth	docs/client/custom-plugins.md	27	block	block		b532110513495b27c907c6ed286154da5be8a707441901485311475a0aaf5265			id=nickname-new-5kz9wq3h
 nickname-types-8mw2xq4t	auth	docs/client/custom-plugins.md	42	block	block		0597a3ad0b379a64641758b75b77142852a07ee4f2bcf624e22be75f4739d6cf			id=nickname-types-8mw2xq4t
 nickname-errtoolong-3vq8kd2m	auth	docs/client/custom-plugins.md	54	block	block		8d27cb5f9a773ae18c8067c6cd2344ec4d45f708a96116ccf32dbdc48b98a130			id=nickname-errtoolong-3vq8kd2m

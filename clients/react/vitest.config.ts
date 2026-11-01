@@ -2,7 +2,8 @@
 // the guard that keeps them free of the data layer (test/views-guard.test.ts).
 // The aliases resolve the `@/` paths a registry file uses the way an app's
 // components.json would: primitives from registry/ui, sibling components
-// from registry/auth, and `cn` from test/support/utils.ts. The plain
+// from registry/auth, `cn` from test/support/utils.ts, and @ubgo/auth-react
+// from src. The plain
 // `node test/*.ts` scripts are not vitest files and are not picked up.
 import { defineConfig } from "vitest/config"
 
@@ -17,6 +18,9 @@ export default defineConfig({
       { find: /^@\/components\/ui\/(.*)$/, replacement: here("./registry/ui/$1") },
       { find: /^@\/components\/auth\/(.*)$/, replacement: here("./registry/auth/$1") },
       { find: /^@\/lib\/utils$/, replacement: here("./test/support/utils.ts") },
+      // The wired components and the guide's examples import the package by
+      // name, as an app does; here that name is this package's own source.
+      { find: /^@ubgo\/auth-react$/, replacement: here("./src/index.ts") },
     ],
   },
   test: {

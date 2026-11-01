@@ -58,6 +58,10 @@ The provider memoises its value on `client`, `baseURL`, the query client, `navig
 
 Where a part is commonly replaced, a component takes a prop for it rather than a full render-prop tree: `providerIcons` on SignInForm replaces the mark on any provider's button. Anything beyond that is the reason the components are copied in: the file is yours, edit it.
 
+## Views and wired components
+
+Every component is two files. The view (`sign-in-form-view.tsx`, exporting `SignInFormView`) is pure presentation: values, pending and error state, text, links and callbacks come in as props, events go out (`onSubmit(values)`, `onPasskey()`, `onProvider(id)`), and it imports nothing from this package, TanStack Query or a router. The wired component (`sign-in-form.tsx`, `SignInForm`) is the view connected to this package: the calls, the session, error messages by code, localization and navigation. The wired file re-exports the view's text, slot and value types, so importing from it keeps working. `test/views-guard.test.ts` fails when a view module imports the data layer. To put the screens on another API (the views alone, a translating `fetch`, or an adapter object as `client`), read [Put the React UI on another API](../../docs/client/custom-backend.md).
+
 ## Using your own generated client
 
 The package imports types and factories from `@ubgo/auth-client`. An app that generates its own client (`myapp auth client ts --out web/src/auth`) points that name at its folder, in `tsconfig.json` (`"paths": { "@ubgo/auth-client": ["./src/auth/index.ts"] }`) and in the bundler (`resolve.alias`).
