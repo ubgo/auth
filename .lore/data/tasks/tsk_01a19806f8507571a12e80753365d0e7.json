@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "Owner ask: can the React UI be used with any other API or a custom client? Split every registry/auth component into a pure View (props in, events out) plus the wired component (unchanged name and props), enforce with a source-scanning vitest, write docs/client/custom-backend.md with type-checked examples. Branch react-split.",
+  "commitment": "accepted",
+  "completed_at": null,
+  "created_at": "2026-11-01T16:52:36.048355651Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a19806f8507571a12e80753365d0e7",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-11-01T16:52:38.823371051Z",
+  "status": "in_progress",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "React kit: split registry components into pure views and wired components, guard test, custom-backend guide",
+  "updated_at": "2026-11-01T16:52:38.823372736Z"
+}

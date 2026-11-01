@@ -16,7 +16,12 @@
     "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "types": []
+    "types": [],
+    "paths": {
+      "@/components/ui/*": ["./registry/ui/*"],
+      "@/components/auth/*": ["./registry/auth/*"],
+      "@/lib/utils": ["./test/support/utils.ts"]
+    }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "registry/auth/*-view.tsx", "registry/auth/auth-view.tsx"]
 }
