@@ -40,6 +40,7 @@ Read in this order to go from nothing to a production setup. Each step is one gu
 | Serve a React, Vue or Svelte app on another origin | [SPA frontends](integrations/spa-frontends.md) | [spa-cross-origin](../examples/spa-cross-origin/) |
 | Drop in sign-in, sign-up, two-factor and account pages in a React app | [React UI kit](client/react.md) | [react-demo](../examples/react-demo/) (`task demo`) |
 | Call the routes from TypeScript with types, including my own plugins | [TypeScript client](client/README.md), [your own plugins](client/custom-plugins.md) | [ts-client-custom](../examples/ts-client-custom/) |
+| Use the React auth screens on another API or identity SDK | [Put the React UI on another API](client/custom-backend.md) | [examples/custom-backend](../clients/react/examples/custom-backend/) |
 | Build React auth screens in my own design system, with hooks only | [React hooks](client/react-hooks.md) | [react-headless](../examples/react-headless/) |
 | Sign a CLI or Node script in from TypeScript and keep it signed in | [Bearer mode and other runtimes](client/bearer-and-mobile.md) | [ts-client-bearer](../examples/ts-client-bearer/) |
 | Run verification, reset, magic link and second factor from TypeScript | [Client flows](client/flows.md) | [ts-client-flows](../examples/ts-client-flows/) |

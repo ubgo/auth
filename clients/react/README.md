@@ -9,13 +9,14 @@ Not published to npm. How every component is customised is in [CONTRACT.md](CONT
 
 ## Use it in an app
 
-The guide is in four pages:
+The guide is in five pages:
 
 | Page | What it covers |
 |---|---|
 | [React UI kit](../../docs/client/react.md) | The quickstart: link the packages, serve `/auth` on the page's origin, install components from the registry, mount the provider, add the pages mailed links open, run the demo and its headless check |
 | [React components](../../docs/client/react-components.md) | Every component: when to use it, what it installs, props, slots, text key, result, errors, demo route; the account sections on their own and re-authentication |
 | [React hooks](../../docs/client/react-hooks.md) | Every export of this package, with a headless sign-in form, gates, sign-out, OAuth buttons and passkeys |
+| [Put the React UI on another API](../../docs/client/custom-backend.md) | The pure views (`SignInFormView`, ...) with handlers of your own, a translating `fetch`, or an adapter object passed to the provider |
 | [React with your router](../../docs/client/react-routers.md) | `navigate` and `Link` for TanStack Router, React Router, the Next.js App Router and no router; server rendering |
 
 In short: link `@ubgo/auth-client` and `@ubgo/auth-react` from a checkout (`pnpm add @ubgo/auth-react@link:../ubgo-auth/clients/react`), dedupe React and TanStack Query in the bundler, serve the registry JSON that `task ui:registry` builds into `registry/r` over HTTP, `pnpm dlx shadcn@4.21.4 add @ubgo/sign-in-form`, and mount `<AuthProvider client={auth}>` inside your router. A component shows a method only when its plugin factory is in the client's `plugins`, so keep that list equal to the server's.

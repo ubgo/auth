@@ -2,7 +2,7 @@
 // cache the session lives in, the app's navigation and links, the routes the
 // components send people to, and the app-wide localization overrides.
 
-import { QueryClient, QueryClientContext } from "@tanstack/react-query";
+import { QueryClient, QueryClientContext, QueryClientProvider } from "@tanstack/react-query";
 import type { CoreOps, Methods } from "@ubgo/auth-client";
 import { createContext, useContext, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import type { AuthLocalization } from "./localization.ts";
@@ -170,7 +170,13 @@ export function AuthProvider({ client, baseURL, queryClient, navigate, Link, pat
     }),
     [client, baseURL, cache, navigate, Link, paths, localization, allowedRedirectOrigins],
   );
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const provided = <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // With no QueryClientProvider above, the cache is also provided to React
+  // Query itself, so a component's useMutation (which reads React Query's
+  // context, not this provider's) finds it. An app that has its own
+  // QueryClientProvider keeps it: replacing it here would hand the app's own
+  // queries below a different cache.
+  return inherited === undefined ? <QueryClientProvider client={cache}>{provided}</QueryClientProvider> : provided;
 }
 
 /**

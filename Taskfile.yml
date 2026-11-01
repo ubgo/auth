@@ -400,9 +400,13 @@ tasks:
     cmds: ['./scripts/registry-add.sh {{.ITEMS}}']
 
   ui:check:
-    desc: Type-check @ubgo/auth-react (strict), fail when a demo component differs from its registry source, then type-check and build the demo and the react-headless, react-router-app and nextjs-app examples
+    desc: Type-check @ubgo/auth-react, the registry views and the custom-backend examples (strict), run the views' tests, their data-layer guard and the examples (vitest), fail when a demo component differs from its registry source, then type-check and build the demo and the react-headless, react-router-app and nextjs-app examples
     cmds:
       - cd clients/react && pnpm exec tsc -p .
+      # The registry's pure views rendered with plain props (no provider, no
+      # query client), the guard that keeps every view module free of the
+      # data layer, and the custom-backend guide's three examples run.
+      - cd clients/react && pnpm exec vitest run
       # The open-redirect rule every component's redirectTo goes through.
       - cd clients/react && node test/redirect.ts
       # Passkey autofill: conditional mediation, and aborting before any other way in.
