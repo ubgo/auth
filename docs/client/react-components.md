@@ -8,6 +8,8 @@ A component is a finished screen: a card with fields, validation, error messages
 
 Use the [hooks](react-hooks.md) instead when the screen is entirely your own design, or for a flow the kit has no component for (organizations, API keys, admin screens). The components call the same hooks, so both can live in one app.
 
+Every component is also a pure view: `SignInForm` renders `SignInFormView` from `sign-in-form-view.tsx`, which takes its state, text and callbacks as props and needs no provider. Render the view yourself to put the same screen on another API or in a story; [Put the React UI on another API](custom-backend.md) shows how.
+
 ## Before you start
 
 - The quickstart's Steps 1 to 4 are done: the packages are linked, `/auth` is on the page's origin, the `@ubgo` registry is in `components.json`, and `AuthProvider` is mounted ([React UI kit](react.md)).

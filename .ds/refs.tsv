@@ -1,4 +1,4 @@
-# docsync refs format=2 extract=1 repo=auth commit=48bc43e scanned_at=2026-11-01T17:04:16Z
+# docsync refs format=2 extract=1 repo=auth commit=3d12c98 scanned_at=2026-11-01T17:54:43Z
 id	repo	doc	line	verb	carrier	acked_hash	seen_hash	sentence_hash	env	args
 defaultsessioncachettl-8knzqpgz	auth	README.md	170	block	link		cce38a4c4ea1c121549f0c91e33aba9d27a751ef86c84fde51749414341e364d	3def2e974af5e6d535aa9136a6dbab67a97e5c5c3ea88aa259dbf58014e2fdcd		id=defaultsessioncachettl-8knzqpgz
 maxsessioncachettl-2sh2x4n6	auth	README.md	170	block	link		dacb38de707bb81a9c0beb0a097ee7ce0bb5267d7ac576965643fe0b207a19a4	3def2e974af5e6d535aa9136a6dbab67a97e5c5c3ea88aa259dbf58014e2fdcd		id=maxsessioncachettl-2sh2x4n6
@@ -117,9 +117,9 @@ redis-defaultstoragekeyprefix-5kq2nw8d	auth	contrib/redis/README.md	86	block	lin
 maxsessioncachettl-2sh2x4n6	auth	docs/choosing/sessions.md	19	block	link		dacb38de707bb81a9c0beb0a097ee7ce0bb5267d7ac576965643fe0b207a19a4	0c5177daee350aa0dd4d77be23dbc2116c94a6c2437130d434dd340800267f52		id=maxsessioncachettl-2sh2x4n6
 maxsessionlifetime-pmz4mcbj	auth	docs/choosing/sessions.md	42	block	link		dd4ccd73cda461eac479ab8d68fb04acd893b18f86413ae9e13ac078d308c9d7	19c9805fda861d6d8f5aa9cee4394e0fa5a90011c62d6d7dc15858a024a3642b		id=maxsessionlifetime-pmz4mcbj
 core-defaultsessionconfig-nsrfps74	auth	docs/choosing/sessions.md	43	block	link		a080206ca1c01438a7214e96b81daf46afccf250330a857e3123c8418481efbf	aabce94da36fe4c117e18507056016f1b525b8d8a3b7ef9b0cf8ba7fb46574ed		id=core-defaultsessionconfig-nsrfps74
-authhttp-typescriptclient-4vn8kq2r	auth	docs/client/README.md	91	block	block	47607ed8fb1a71ebbbf31177bbf72b6f306427d281697db26640b0f39c74fe74	40f0ab21e54f0f2cc681acfe63aa7264ea1196ffcaea2876d0475949894f920c			id=authhttp-typescriptclient-4vn8kq2r lines=1-1
-authhttp-tsfiles-6qm2xw8k	auth	docs/client/README.md	103	block	block	632c063406f79232fa4773d3a2ca66e8122386684eec41edc09c0dd7c42d64cc	a074569ef7b99b56505065424c6709bf196b4f93db96b892a5f1ae410b92ef83			id=authhttp-tsfiles-6qm2xw8k
-auth-yaqm87ck	auth	docs/client/README.md	184	block	block		992ade9e40b5f1ad84632d418a285b36c5a204a878dcf5f9c3bb40179f78ef54			id=auth-yaqm87ck
+authhttp-typescriptclient-4vn8kq2r	auth	docs/client/README.md	92	block	block	47607ed8fb1a71ebbbf31177bbf72b6f306427d281697db26640b0f39c74fe74	40f0ab21e54f0f2cc681acfe63aa7264ea1196ffcaea2876d0475949894f920c			id=authhttp-typescriptclient-4vn8kq2r lines=1-1
+authhttp-tsfiles-6qm2xw8k	auth	docs/client/README.md	104	block	block	632c063406f79232fa4773d3a2ca66e8122386684eec41edc09c0dd7c42d64cc	a074569ef7b99b56505065424c6709bf196b4f93db96b892a5f1ae410b92ef83			id=authhttp-tsfiles-6qm2xw8k
+auth-yaqm87ck	auth	docs/client/README.md	185	block	block		992ade9e40b5f1ad84632d418a285b36c5a204a878dcf5f9c3bb40179f78ef54			id=auth-yaqm87ck
 native-8sm2nqdz	auth	docs/client/bearer-and-mobile.md	27	block	block		571daa64e30671599e855fd7705c947251bd02d8c52f542a77e9a4cf8eb537e4			id=native-8sm2nqdz
 tsx-keyvalue-store-3nw7qk2m	auth	docs/client/bearer-and-mobile.md	67	block	block		8b05aca6c45927cc03fc5f9ac29ee1f138b943863dd141fd5de482a19dbe0dcd			id=tsx-keyvalue-store-3nw7qk2m
 bearer-localstore-8wq2mk4z	auth	docs/client/bearer-and-mobile.md	82	block	block		7897bba657c18e949e58e281fb740f3cf5e7d9e181f10415dd56c6ea3115b39c			id=bearer-localstore-8wq2mk4z
@@ -223,9 +223,9 @@ spa-signup-7kx2nq4v	auth	docs/client/quickstart.md	42	block	block		bd2e4c4c13f7e
 spa-form-5hn7wq2c	auth	docs/client/quickstart.md	61	block	block		83f98664ca4d26f87b4b40b34c3fc519ec46dda93f37487aec0c4cadcb8f4589			id=spa-form-5hn7wq2c
 spa-currentuser-2mw9xk5q	auth	docs/client/quickstart.md	89	block	block		9f3453ae1915b105cef9429e8180bfb1d97bcfedaf9ab6c697fa17a329f620c5			id=spa-currentuser-2mw9xk5q
 spa-signout-9vq3kz8w	auth	docs/client/quickstart.md	105	block	block		a0a954267483512672e35c855feb740c2ef2c1368c872ce3bb1355b25852e70f			id=spa-signout-9vq3kz8w
-defaultfreshwindow-5mt8jqw7	auth	docs/client/react-components.md	379	block	link		1cfac6229d4d9a363b0d7a6e6a8b22c1bd356ce336094c13c1df96bb0a91d08e	d49afe383193f8044366913f57d19cb0c4588abbe1a11c43432229fe41315639		id=defaultfreshwindow-5mt8jqw7
-change-twfep354	auth	docs/client/react-components.md	387	block	block	bdb01990d1e4d84089529c2d16076cf7c01690f75edec340904468493a52c026	1265973e792f8bdece9ba0014ecb089559af944dc566e363927d59ddecdf28c7			id=change-twfep354
-password-reauthlimits-6wq3nx8p	auth	docs/client/react-components.md	647	block	link		cd307081ad57338e153c620685f1dc09c555ac82f633f22ed1361e67c1d88fd9	aee41bfffb042f938d722843a528c01c6c7a4a5d6b40526c82db6f004fb87a06		id=password-reauthlimits-6wq3nx8p
+defaultfreshwindow-5mt8jqw7	auth	docs/client/react-components.md	381	block	link		1cfac6229d4d9a363b0d7a6e6a8b22c1bd356ce336094c13c1df96bb0a91d08e	d49afe383193f8044366913f57d19cb0c4588abbe1a11c43432229fe41315639		id=defaultfreshwindow-5mt8jqw7
+change-twfep354	auth	docs/client/react-components.md	389	block	block	bdb01990d1e4d84089529c2d16076cf7c01690f75edec340904468493a52c026	1265973e792f8bdece9ba0014ecb089559af944dc566e363927d59ddecdf28c7			id=change-twfep354
+password-reauthlimits-6wq3nx8p	auth	docs/client/react-components.md	649	block	link		cd307081ad57338e153c620685f1dc09c555ac82f633f22ed1361e67c1d88fd9	aee41bfffb042f938d722843a528c01c6c7a4a5d6b40526c82db6f004fb87a06		id=password-reauthlimits-6wq3nx8p
 headless-client-kjnvsfqa	auth	docs/client/react-hooks.md	22	block	block		f0038f1f1af8b7f63991733df826254483a7b2f7f815085efb38e1fd18a9f657			id=headless-client-kjnvsfqa
 headless-paths-27arp6wu	auth	docs/client/react-hooks.md	35	block	block		08bb0087368f0600a79263b0c5bf8019c44db835ac05477774ad617b4f013e99			id=headless-paths-27arp6wu
 headless-app-ta8bvga4	auth	docs/client/react-hooks.md	50	block	block		299386efcb5d9808df6c0cb2ff87dd6fb95473e5ead85c2e8e16f1ffef93e038			id=headless-app-ta8bvga4
