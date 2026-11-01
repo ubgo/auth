@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "Owner ask (brief /space/tmp/auth-briefs/mock-demo.md): a static, mock-backed showcase of the React kit at https://ubgo.github.io/auth/ with one page per component, install line and usage snippet with copy buttons, the shadcn registry hosted under r/, and a Pages workflow. Branch mock-demo.",
+  "commitment": "accepted",
+  "completed_at": "2026-11-01T17:42:50.990435367Z",
+  "created_at": "2026-11-01T16:51:44.270891575Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a198062e0e7da684b6b4166e354ada",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-11-01T17:42:50.914935657Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "Mock-backed React kit showcase on GitHub Pages",
+  "updated_at": "2026-11-01T17:42:50.990436337Z"
+}

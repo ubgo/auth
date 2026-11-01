@@ -7,6 +7,8 @@ React bindings and copy-in UI components for [github.com/ubgo/auth](../../README
 
 Not published to npm. How every component is customised is in [CONTRACT.md](CONTRACT.md); how to add one is in [BUILDING.md](BUILDING.md); a working app is [examples/react-demo](../../examples/react-demo/README.md).
 
+See every component live, with its install line and a usage snippet, at [ubgo.github.io/auth](https://ubgo.github.io/auth/): a static showcase against a mock server, built from [showcase/](showcase/).
+
 ## Use it in an app
 
 The guide is in five pages:

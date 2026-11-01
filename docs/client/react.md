@@ -33,6 +33,8 @@ The package is imported; the components are copied. That split is why a componen
 | [`TaskSetupMFA`](react-components.md#tasksetupmfa) | The page a session must finish setting up two-factor on before it works |
 | [`OrganizationDomains`](react-components.md#organizationdomains), [`DomainSuggestions`](react-components.md#domainsuggestions) | Verified domains of an organization with requests to join; the organizations a user could ask to join |
 
+Every component is also live, with its `shadcn add` line and a usage snippet, at [ubgo.github.io/auth](https://ubgo.github.io/auth/), a static showcase that answers every call with a mock in the browser.
+
 What they look like out of the box, in the [react-demo](../../examples/react-demo/) with the default shadcn theme:
 
 | | | |

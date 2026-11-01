@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/components/ui/*": ["../registry/ui/*"],
+      "@/components/auth/*": ["../registry/auth/*"],
+      "@/*": ["./src/*"],
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "@tanstack/react-query": ["./node_modules/@tanstack/react-query"],
+      "@tanstack/react-form": ["./node_modules/@tanstack/react-form"],
+      "@base-ui/react/*": ["./node_modules/@base-ui/react/*"],
+      "class-variance-authority": ["./node_modules/class-variance-authority"],
+      "input-otp": ["./node_modules/input-otp"],
+      "lucide-react": ["./node_modules/lucide-react"],
+      "uqr": ["./node_modules/uqr"]
+    }
+  },
+  "include": ["src", "../registry/ui", "../registry/auth"]
+}
