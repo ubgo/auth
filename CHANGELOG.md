@@ -6,6 +6,14 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 Everything below is unreleased; the dated sections record the order the work landed in.
 
+### Added
+
+- React kit: every registry component is now a pure view plus its wired component. The view (`SignInFormView` in `sign-in-form-view.tsx`, and one per component) takes values, pending and error state, text, links and callbacks, and imports nothing from `@ubgo/auth-react`, TanStack Query or a router, so the same screens render against any backend; the wired component keeps its name, props, behaviour and exports, and `shadcn add` installs both files plus the shared `auth-view` item. `clients/react/test/views-guard.test.ts` reads every view module's syntax tree and fails on a data-layer import, and each view has a vitest test that renders it with plain props. [Put the React UI on another API](docs/client/custom-backend.md) shows three ways to use the screens on another API (the views alone, a translating `fetch`, an adapter client), each a type-checked example that `task ui:check` runs.
+
+### Fixed
+
+- React kit: `AuthProvider` with no `QueryClientProvider` above it now provides its private cache to React Query too, so a component's mutation no longer throws "No QueryClient set" on its first call; the contract always said the provider falls back to a private cache.
+
 ### Changed
 
 - Every module requires the core and its sibling modules through the module proxy; no `go.mod` carries a `replace` to a local path any more, so each module builds on its own. Development joins the modules through the committed root `go.work`, and the Taskfile no longer sets `-mod=mod`, which workspace mode rejects.

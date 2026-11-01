@@ -1,6 +1,6 @@
 # Building the next component
 
-How a component agent adds one component to the kit, end to end, without touching another agent's files. Read [CONTRACT.md](CONTRACT.md) first; [registry/auth/sign-in-form.tsx](registry/auth/sign-in-form.tsx) is the reference implementation to copy the shape from.
+How a component agent adds one component to the kit, end to end, without touching another agent's files. Read [CONTRACT.md](CONTRACT.md) first; [registry/auth/sign-in-form-view.tsx](registry/auth/sign-in-form-view.tsx) and [registry/auth/sign-in-form.tsx](registry/auth/sign-in-form.tsx) are the reference pair to copy the shape from.
 
 ## Who owns what
 
@@ -36,6 +36,8 @@ CHANGELOG line: (one bullet)
 Until the integrator has added your item, install your component into the demo yourself with a scratch copy of the item in your message only; do not edit `registry.json`. The integrator adds the item, runs `task ui:add ITEMS="@ubgo/<name>"`, wires the route, and runs `task ui:check`.
 
 ## Steps
+
+**Two files, view first.** `registry/auth/<name>-view.tsx` exports `<Name>View`: props in (values, `pending`, already-translated `formError`/`fieldErrors`, `text`, hrefs, `Link`), events out (`onSubmit(values)`, ...), and imports nothing from `@ubgo/auth-react`, TanStack Query or a router; shared helpers come from `@/components/auth/auth-view` (`fillText` instead of `format`, `AnchorLink`). The text type, the English defaults and the slot union live there. `registry/auth/<name>.tsx` is the wired component: the hooks, calls, error mapping and navigation of the steps below, rendering the view and re-exporting its types. Test the view in `clients/react/test/views/<name>.test.tsx` with plain props and no provider; `test/views-guard.test.ts` fails on a data-layer import in the view. `registry/auth/sign-in-form-view.tsx` and `sign-in-form.tsx` are the reference pair, and both files go in the item's `files`.
 
 1. **Write `registry/auth/<name>.tsx`.** Imports first, then a header comment saying what the component does (shadcn strips comments above the imports). Use only the primitives in `registry/ui/` (`@/components/ui/...`), `cn` from `@/lib/utils`, `lucide-react` icons, and `@ubgo/auth-react`. Need another shadcn primitive? Ask the integrator to add it to `registry/ui/` (it copies shadcn's Base UI version and applies the density pass); never hand-roll one.
 2. **Text.** Export `<Name>Text` (every string, `{name}` placeholders), `<NAME>_TEXT` (English defaults), and augment the map so the provider can override it:

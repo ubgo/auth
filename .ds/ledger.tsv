@@ -1,4 +1,4 @@
-# docsync ledger format=2 extract=1 repo=auth commit=48bc43e scanned_at=2026-11-01T17:04:16Z
+# docsync ledger format=2 extract=1 repo=auth commit=3d12c98 scanned_at=2026-11-01T17:54:43Z
 id	repo	kind	file	symbol	lines	hash	owner	stability	env	args
 accesstokeniplimit-x4wn8kqt	auth	const	plugin/oauth/clientaccess.go	accessTokenIPLimit	98	624b60c58c9d8bfb6ff1886c2fd605d2adeb6ea4da576068201b6c6958ce93f4	@khanakia	stable		id=accesstokeniplimit-x4wn8kqt owner=@khanakia stability=stable
 accesstokenipwindow-m7qk2xwn	auth	const	plugin/oauth/clientaccess.go	accessTokenIPWindow	100	9a24c52b7c6f8eb74643956369aba5ed0c892980a341c700ccb98ca61a12c23e	@khanakia	stable		id=accesstokenipwindow-m7qk2xwn owner=@khanakia stability=stable
