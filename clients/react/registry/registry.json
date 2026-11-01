@@ -315,6 +315,21 @@
       ]
     },
     {
+      "name": "auth-view",
+      "type": "registry:component",
+      "title": "Auth view helpers",
+      "description": "The link type, default anchor and text placeholder helper every presentational auth view shares. Imports nothing from @ubgo/auth-react, so a view renders against any backend.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "auth/auth-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/auth-view.tsx"
+        }
+      ]
+    },
+    {
       "name": "sign-in-form",
       "type": "registry:component",
       "title": "Sign in form",
@@ -331,9 +346,15 @@
         "@ubgo/card",
         "@ubgo/field",
         "@ubgo/input",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/sign-in-form-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/sign-in-form-view.tsx"
+        },
         {
           "path": "auth/sign-in-form.tsx",
           "type": "registry:component",
