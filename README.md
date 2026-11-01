@@ -116,6 +116,8 @@ The TypeScript client is generated from the Go operations, so a renamed field or
 
 ![The React kit's SignInForm in the react-demo, beside the demo's sidebar of flows and its What to try and Customise panels](docs/assets/screenshots/demo-sign-in.png)
 
+Try every component in the browser, with its install line, at [ubgo.github.io/auth](https://ubgo.github.io/auth/) (a mock-backed showcase; no server needed).
+
 - [Client learning path](docs/client/README.md#learning-path): thirteen steps from a first typed call to a production frontend, each with a guide and an example, and a [start from your goal](docs/client/README.md#start-from-your-goal) table (React on the same domain, hooks only, mobile, a Node backend, your own Go plugin).
 - [Choose a client setup](docs/choosing/client.md): prebuilt or app-generated client, cookie or bearer, same domain or another site, components or hooks or the plain client, which router, which plugins.
 - [Feature index](docs/reference/features.md#typescript-client): every client and React feature with its guide section and the example that runs it; [examples/ts-client-flows](examples/ts-client-flows), [ts-client-bearer](examples/ts-client-bearer), [react-headless](examples/react-headless) and [react-demo](examples/react-demo) are the runnable ones.

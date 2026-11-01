@@ -1,0 +1,153 @@
+// Drives the built site headless with Playwright, the way a visitor uses it:
+// every page renders with no console error and fits a 390px phone, the
+// sign-in flow works with the demo credentials and fails with a wrong
+// password, the two-factor step takes the demo code, a passkey button says
+// it is not available, the copy buttons copy, and the theme toggle works.
+// Screenshots go to SHOTS_DIR when it is set.
+//
+//   SHOWCASE_URL=http://127.0.0.1:4002/auth/ node scripts/check.mjs
+
+import { mkdirSync, readFileSync } from "node:fs"
+import { join, resolve } from "node:path"
+import { chromium } from "playwright"
+
+const BASE = (process.env.SHOWCASE_URL ?? "http://127.0.0.1:5230/auth/").replace(/\/?$/, "/")
+const SHOTS = process.env.SHOTS_DIR
+const PHONE_WIDTH = 390
+const DEMO_PASSWORD = "correct horse battery staple"
+
+const catalog = readFileSync(resolve(import.meta.dirname, "../src/catalog.tsx"), "utf8")
+const pages = [...catalog.matchAll(/^ {4}name: "([a-z0-9-]+)",$/gm)].map((m) => m[1])
+
+const failures = []
+function check(ok, what) {
+  console.log(`${ok ? "ok  " : "FAIL"} ${what}`)
+  if (!ok) failures.push(what)
+}
+
+const browser = await chromium.launch({ headless: true })
+const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: "light" })
+await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: new URL(BASE).origin })
+const page = await context.newPage()
+const errors = []
+page.on("console", (msg) => {
+  if (msg.type() === "error") errors.push(msg.text())
+})
+page.on("pageerror", (err) => errors.push(String(err)))
+
+async function open(path, width = 1280) {
+  await page.setViewportSize({ width, height: 900 })
+  await page.goto(BASE + path.replace(/^\//, ""))
+  await page.locator("main h1").first().waitFor()
+  // Let the variant's mock state settle and the component's first read answer.
+  await page.waitForTimeout(700)
+}
+
+async function shot(name) {
+  if (!SHOTS) return
+  mkdirSync(SHOTS, { recursive: true })
+  await page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage: true })
+}
+
+async function setTheme(theme) {
+  await page.evaluate((t) => {
+    localStorage.setItem("theme", t)
+    document.documentElement.classList.toggle("dark", t === "dark")
+  }, theme)
+}
+
+// Every page, desktop and phone.
+for (const path of ["/", ...pages.map((p) => `/${p}`)]) {
+  errors.length = 0
+  await open(path)
+  check(errors.length === 0, `${path} renders with no console error${errors.length ? `: ${errors.join(" | ")}` : ""}`)
+  await open(path, PHONE_WIDTH)
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+  check(overflow <= 0, `${path} fits ${PHONE_WIDTH}px (overflow ${overflow}px)`)
+}
+
+await open("/")
+await shot("home-light")
+
+// Sign in: wrong password, then the demo credentials.
+await setTheme("light")
+await open("/sign-in-form")
+await shot("sign-in-light")
+await page.getByLabel("Email").fill("ada@example.com")
+await page.getByLabel("Password", { exact: true }).fill("wrong password")
+await page.getByRole("button", { name: "Sign in", exact: true }).click()
+await page.getByText("The sign-in details are not right.").waitFor({ timeout: 5000 }).then(
+  () => check(true, "a wrong password shows password.invalid_credentials"),
+  () => check(false, "a wrong password shows password.invalid_credentials"),
+)
+await shot("sign-in-error")
+await page.getByLabel("Password", { exact: true }).fill(DEMO_PASSWORD)
+await page.getByRole("button", { name: "Sign in", exact: true }).click()
+await page.waitForURL(/\/account-settings$/, { timeout: 5000 }).then(
+  () => check(true, "the demo credentials sign in and open account settings"),
+  () => check(false, "the demo credentials sign in and open account settings"),
+)
+await page.waitForTimeout(800)
+await shot("account-settings")
+
+// Two-factor: Grace signs in, the challenge takes the demo code.
+await open("/sign-in-form")
+await page.getByLabel("Email").fill("grace@example.com")
+await page.getByLabel("Password", { exact: true }).fill(DEMO_PASSWORD)
+await page.getByRole("button", { name: "Sign in", exact: true }).click()
+await page.waitForURL(/\/two-factor-challenge/, { timeout: 5000 }).then(
+  () => check(true, "an account with a second factor goes to the two-factor step"),
+  () => check(false, "an account with a second factor goes to the two-factor step"),
+)
+await page.waitForTimeout(800)
+await shot("two-factor")
+await page.getByLabel("Authentication code").first().click()
+await page.keyboard.type("123456")
+await page.waitForURL(/\/account-settings$/, { timeout: 5000 }).then(
+  () => check(true, "the demo code finishes the two-factor sign-in"),
+  () => check(false, "the demo code finishes the two-factor sign-in"),
+)
+
+// Passkey: the mock says it cannot run the ceremony.
+await open("/passkey-list")
+await page.getByRole("button", { name: /add a passkey/i }).first().click()
+await page.getByText(/need a real server/).first().waitFor({ timeout: 5000 }).then(
+  () => check(true, "adding a passkey says the mock cannot run it"),
+  () => check(false, "adding a passkey says the mock cannot run it"),
+)
+
+// Copy buttons.
+await open("/sign-in-form")
+await page.getByRole("button", { name: "Copy command" }).click()
+const copied = await page.evaluate(() => navigator.clipboard.readText())
+check(copied === "npx shadcn@latest add https://ubgo.github.io/auth/r/sign-in-form.json", `the install line copies (${copied})`)
+await page.getByRole("button", { name: "Copy code" }).click()
+const snippet = await page.evaluate(() => navigator.clipboard.readText())
+check(snippet.includes("<SignInForm"), "the usage snippet copies")
+
+// Theme toggle.
+await setTheme("light")
+await page.getByRole("button", { name: "Switch to dark theme" }).first().click()
+check(await page.evaluate(() => document.documentElement.classList.contains("dark")), "the theme toggle turns dark mode on")
+await page.waitForTimeout(300)
+await shot("sign-in-dark")
+await open("/two-factor-challenge")
+await shot("two-factor-dark")
+await page.getByRole("button", { name: "Switch to light theme" }).first().click()
+check(await page.evaluate(() => !document.documentElement.classList.contains("dark")), "the theme toggle turns dark mode off")
+
+// The registry the install lines point at is served.
+const res = await page.request.get(`${BASE}r/sign-in-form.json`)
+check(res.ok(), "r/sign-in-form.json is served")
+
+// A deep link survives a reload.
+await page.goto(`${BASE}account-settings`)
+await page.locator("main h1").first().waitFor()
+check((await page.locator("main h1").first().textContent()) === "Account settings", "a deep link loads its page")
+
+await browser.close()
+if (failures.length > 0) {
+  console.error(`\n${failures.length} check(s) failed`)
+  process.exit(1)
+}
+console.log("\nall checks passed")

@@ -1,0 +1,58 @@
+# Publishes the React kit showcase (clients/react/showcase) to GitHub Pages at
+# https://ubgo.github.io/auth/: every registry component live against a mock
+# server, and the shadcn registry under r/. The repository is public, so
+# Actions minutes are free; it runs on a push to main that touches the kit,
+# the TypeScript client or this file, and by hand.
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "clients/react/**"
+      - "clients/ts/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push replaces a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+      - name: Install
+        run: |
+          cd clients/react && pnpm install --frozen-lockfile
+          cd showcase && pnpm install --frozen-lockfile
+      - name: Type-check and build
+        working-directory: clients/react/showcase
+        run: pnpm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: clients/react/showcase/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

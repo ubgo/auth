@@ -482,6 +482,35 @@ tasks:
     dir: examples/react-demo/web
     cmds: ['./scripts/with-servers.sh node scripts/shots.mjs']
 
+  # The hosted showcase (clients/react/showcase): every registry component
+  # live against a mock server in the browser, published to
+  # https://ubgo.github.io/auth/ by .github/workflows/pages.yml.
+  showcase:install:
+    desc: Install the node dependencies of the React kit and its hosted showcase (pnpm, frozen lockfiles)
+    cmds:
+      - cd clients/react && pnpm install --frozen-lockfile
+      - cd clients/react/showcase && pnpm install --frozen-lockfile
+
+  showcase:build:
+    desc: Strict type-check of the showcase and the registry files it renders, the shadcn registry into public/r, and the static site into clients/react/showcase/dist (task showcase:install once first)
+    dir: clients/react/showcase
+    cmds: ['pnpm run build']
+
+  showcase:dev:
+    desc: Run the showcase with Vite on 127.0.0.1:5230 at /auth/ (PORT moves it)
+    dir: clients/react/showcase
+    cmds: ['pnpm run dev']
+
+  showcase:preview:
+    desc: Serve the built showcase on 127.0.0.1:5230 at /auth/ (task showcase:build first; PORT moves it)
+    dir: clients/react/showcase
+    cmds: ['pnpm exec vite preview']
+
+  showcase:check:
+    desc: Drive the served showcase headless with Playwright (every page, both sign-in outcomes, two-factor, copy buttons, theme, 390px width); SHOWCASE_URL names the site, SHOTS_DIR saves screenshots
+    dir: clients/react/showcase
+    cmds: ['node scripts/check.mjs']
+
   docs:shots:
     desc: Retake the screenshots the docs embed (docs/assets/screenshots, committed) headless, from the React demo and the react-headless, react-router-app and nextjs-app examples against throwaway servers on 8140-8143/5220-5223, compressed with pngquant and optipng when on PATH (task ui:install once first)
     dir: examples/react-demo/web
