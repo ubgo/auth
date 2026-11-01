@@ -35,7 +35,7 @@ wait_for() {
   done
 }
 
-(cd "$EXAMPLES_DIR" && GOFLAGS=-mod=mod go build -o "$WORK/react-demo" ./react-demo)
+(cd "$EXAMPLES_DIR" && go build -o "$WORK/react-demo" ./react-demo)
 (cd "$WEB_DIR" && NEXT_API_PORT="$API_PORT" pnpm exec next build >"$WORK/build.log" 2>&1) || { cat "$WORK/build.log" >&2; exit 1; }
 (cd "$WORK" && PORT="$API_PORT" APP_URL="http://localhost:$WEB_PORT" exec ./react-demo >"$WORK/api.log" 2>&1) &
 API_PID=$!

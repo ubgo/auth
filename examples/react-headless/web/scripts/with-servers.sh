@@ -34,7 +34,7 @@ wait_for() {
   done
 }
 
-(cd "$EXAMPLES_DIR" && GOFLAGS=-mod=mod go build -o "$WORK/react-demo" ./react-demo)
+(cd "$EXAMPLES_DIR" && go build -o "$WORK/react-demo" ./react-demo)
 (cd "$WORK" && PORT="$API_PORT" APP_URL="http://localhost:$WEB_PORT" exec ./react-demo >"$WORK/api.log" 2>&1) &
 API_PID=$!
 (cd "$WEB_DIR" && HEADLESS_WEB_PORT="$WEB_PORT" HEADLESS_API_PORT="$API_PORT" exec pnpm exec vite --logLevel warn >"$WORK/web.log" 2>&1) &

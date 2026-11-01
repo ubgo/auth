@@ -32,7 +32,7 @@ wait_for() {
   done
 }
 
-(cd "$EXAMPLES_DIR" && GOFLAGS=-mod=mod go build -o "$WORK/react-demo" ./react-demo)
+(cd "$EXAMPLES_DIR" && go build -o "$WORK/react-demo" ./react-demo)
 # A short fresh window, so a script reaches "confirm it's you" in seconds
 # rather than the library's ten minutes; DEMO_FRESH_WINDOW in the caller's
 # environment wins.
