@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query"
 import {
-  format,
   useAdminActions,
   useAuth,
   useErrorMessage,
@@ -10,12 +9,14 @@ import {
   useSession,
   type AuthComponentProps,
 } from "@ubgo/auth-react"
-import { VenetianMaskIcon } from "lucide-react"
 import { useState } from "react"
 
-import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
-import { cn } from "@/lib/utils"
+import {
+  IMPERSONATION_BANNER_TEXT,
+  ImpersonationBannerView,
+  type ImpersonationBannerSlot,
+  type ImpersonationBannerText,
+} from "@/components/auth/impersonation-banner-view"
 
 // ImpersonationBanner: a strip that says an admin is acting as this user,
 // with the way back (admin.stop-impersonating). It renders nothing unless
@@ -23,30 +24,23 @@ import { cn } from "@/lib/utils"
 // layout. After stopping, the admin's own session is back (restored) or the
 // browser is signed out, and the banner navigates to redirectTo, else to the
 // admin's user list when restored and paths.signIn when not.
+//
+// The strip itself is ImpersonationBannerView (impersonation-banner-view.tsx):
+// this file only wires it to @ubgo/auth-react, the call and navigation.
 
-/** Every string ImpersonationBanner shows. */
-export type ImpersonationBannerText = {
-  /** `{name}` is the user being impersonated. */
-  message: string
-  stop: string
-  stopping: string
-}
+export {
+  IMPERSONATION_BANNER_TEXT,
+  ImpersonationBannerView,
+  type ImpersonationBannerSlot,
+  type ImpersonationBannerText,
+  type ImpersonationBannerViewProps,
+} from "@/components/auth/impersonation-banner-view"
 
 declare module "@ubgo/auth-react" {
   interface ComponentLocalizations {
     impersonationBanner: ImpersonationBannerText
   }
 }
-
-/** The English defaults. Override per app (AuthProvider localization.impersonationBanner) or per use (localization prop). */
-export const IMPERSONATION_BANNER_TEXT: ImpersonationBannerText = {
-  message: "You are acting as {name}. Everything you do is recorded as an admin action.",
-  stop: "Stop impersonating",
-  stopping: "Stopping…",
-}
-
-/** The named parts classNames can style. */
-export type ImpersonationBannerSlot = "root" | "message" | "button" | "error"
 
 /** What stopping hands to onSuccess: whether the admin's own session came back. */
 export type ImpersonationStopResult = { readonly restored: boolean }
@@ -90,26 +84,14 @@ export function ImpersonationBanner({
   const name = user.name.trim() === "" ? user.id : user.name
 
   return (
-    <div
-      role="region"
-      aria-label={t.stop}
-      className={cn(
-        "flex flex-wrap items-center gap-2 border-b bg-secondary px-3 py-1.5 text-[13px] text-secondary-foreground",
-        className,
-        classNames?.root,
-      )}
-    >
-      <VenetianMaskIcon aria-hidden className="size-3.5 shrink-0" />
-      <span className={cn("min-w-0 flex-1", classNames?.message)}>{format(t.message, { name })}</span>
-      {error !== null && (
-        <span role="alert" className={cn("text-xs text-destructive", classNames?.error)}>
-          {error}
-        </span>
-      )}
-      <Button type="button" variant="outline" size="sm" className={classNames?.button} disabled={stop.isPending} aria-busy={stop.isPending} onClick={() => stop.mutate()}>
-        {stop.isPending && <Spinner data-icon="inline-start" />}
-        {stop.isPending ? t.stopping : t.stop}
-      </Button>
-    </div>
+    <ImpersonationBannerView
+      className={className}
+      classNames={classNames}
+      text={t}
+      name={name}
+      pending={stop.isPending}
+      error={error}
+      onStop={() => stop.mutate()}
+    />
   )
 }

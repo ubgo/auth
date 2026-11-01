@@ -8,12 +8,9 @@ import {
   type AuthComponentProps,
   type HeadingLevel,
 } from "@ubgo/auth-react"
-import { ShieldCheckIcon } from "lucide-react"
 
+import { TASK_SETUP_MFA_TEXT, TaskSetupMfaView, type TaskSetupMfaSlot, type TaskSetupMfaText } from "@/components/auth/task-setup-mfa-view"
 import { TwoFactorSetup, type TwoFactorMethod, type TwoFactorSetupResult } from "@/components/auth/two-factor-setup"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
 
 // TaskSetupMFA: the page a session lands on when the server requires a
 // second factor before it works (twofactor.RequireEnrolment opens the
@@ -24,33 +21,24 @@ import { cn } from "@/lib/utils"
 // other way out, because every other page answers auth.session_task_pending.
 // Without that task open (an ordinary session) it says there is nothing to
 // do and links on.
+//
+// The card itself is TaskSetupMfaView (task-setup-mfa-view.tsx), with the
+// wired TwoFactorSetup in its setup slot: this file only wires it to
+// @ubgo/auth-react, the session and navigation.
 
-/** Every string TaskSetupMFA shows. */
-export type TaskSetupMfaText = {
-  title: string
-  description: string
-  notRequired: string
-  continue: string
-  signOut: string
-}
+export {
+  TASK_SETUP_MFA_TEXT,
+  TaskSetupMfaView,
+  type TaskSetupMfaSlot,
+  type TaskSetupMfaText,
+  type TaskSetupMfaViewProps,
+} from "@/components/auth/task-setup-mfa-view"
 
 declare module "@ubgo/auth-react" {
   interface ComponentLocalizations {
     taskSetupMfa: TaskSetupMfaText
   }
 }
-
-/** The English defaults. Override per app (AuthProvider localization.taskSetupMfa) or per use (localization prop). */
-export const TASK_SETUP_MFA_TEXT: TaskSetupMfaText = {
-  title: "Set up two-factor authentication",
-  description: "Your account needs a second factor before you can continue. Set one up now; it takes a minute.",
-  notRequired: "Your account has nothing to set up right now.",
-  continue: "Continue",
-  signOut: "Sign out instead",
-}
-
-/** The named parts classNames can style. */
-export type TaskSetupMfaSlot = "root" | "header" | "title" | "description" | "content" | "setup" | "signOut"
 
 export type TaskSetupMfaProps = AuthComponentProps<TaskSetupMfaSlot, "taskSetupMfa", TwoFactorSetupResult> & {
   /** Passed to TwoFactorSetup: ask for the password when turning the factor on. */
@@ -90,36 +78,27 @@ export function TaskSetupMFA({
   }
 
   return (
-    <Card className={cn("w-full max-w-md", className, classNames?.root)}>
-      <CardHeader className={classNames?.header}>
-        <CardTitle className={cn("flex items-center gap-2", classNames?.title)} role="heading" aria-level={headingLevel}>
-          <ShieldCheckIcon aria-hidden className="size-4 text-muted-foreground" />
-          {t.title}
-        </CardTitle>
-        <CardDescription className={classNames?.description}>{open ? t.description : t.notRequired}</CardDescription>
-      </CardHeader>
-      <CardContent className={cn("flex flex-col gap-3", classNames?.content)}>
-        {open ? (
-          <>
-            <TwoFactorSetup
-              variant="embedded"
-              headingLevel={NEXT_LEVEL[headingLevel]}
-              className={classNames?.setup}
-              onSuccess={(result) => void done(result)}
-              {...(requirePassword === undefined ? {} : { requirePassword })}
-              {...(digits === undefined ? {} : { digits })}
-              {...(method === undefined ? {} : { method })}
-            />
-            <Button type="button" variant="link" size="sm" className={cn("self-start px-0", classNames?.signOut)} onClick={() => void signOut()}>
-              {t.signOut}
-            </Button>
-          </>
-        ) : (
-          <Button type="button" className="self-start" onClick={() => navigate(redirectTo ?? paths.afterSignIn)}>
-            {t.continue}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+    <TaskSetupMfaView
+      className={className}
+      classNames={classNames}
+      text={t}
+      headingLevel={headingLevel}
+      open={open}
+      setup={
+        open && (
+          <TwoFactorSetup
+            variant="embedded"
+            headingLevel={NEXT_LEVEL[headingLevel]}
+            className={classNames?.setup}
+            onSuccess={(result) => void done(result)}
+            {...(requirePassword === undefined ? {} : { requirePassword })}
+            {...(digits === undefined ? {} : { digits })}
+            {...(method === undefined ? {} : { method })}
+          />
+        )
+      }
+      onSignOut={() => void signOut()}
+      onContinue={() => navigate(redirectTo ?? paths.afterSignIn)}
+    />
   )
 }

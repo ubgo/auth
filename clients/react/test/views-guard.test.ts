@@ -20,7 +20,13 @@ const AUTH_DIR = new URL("../registry/auth/", import.meta.url)
  * The fewest view modules the registry must hold. A glob or a matcher that
  * stopped finding views would otherwise pass with nothing checked.
  */
-const MIN_VIEW_MODULES = 1
+const MIN_VIEW_MODULES = 23
+
+/**
+ * Registry files that are not a wired component and so have no view of
+ * their own: the helpers every view shares.
+ */
+const NOT_A_COMPONENT: ReadonlySet<string> = new Set(["auth-view.tsx"])
 
 /** A module specifier a view may never import, even for its types. */
 function isForbiddenAlways(spec: string): boolean {
@@ -153,5 +159,13 @@ describe("view modules import no data layer", () => {
   })
   it.each(VIEW_MODULES)("%s", (file) => {
     expect(scan(file)).toEqual([])
+  })
+})
+
+describe("every wired component has its view", () => {
+  const wired = FILES.filter((f) => !f.endsWith("-view.tsx") && !NOT_A_COMPONENT.has(f))
+  it.each(wired)("%s", (file) => {
+    const view = file.replace(/\.tsx$/, "-view.tsx")
+    expect(VIEW_MODULES).toContain(view)
   })
 })

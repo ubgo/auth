@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query"
 import type { AuthError } from "@ubgo/auth-client"
 import {
   AUTH_QUERY_ROOT,
-  format,
   useAuth,
   useErrorMessage,
   useLocalization,
@@ -11,69 +10,42 @@ import {
   useSession,
   useSessionActions,
   type AuthComponentProps,
-  type HeadingLevel,
 } from "@ubgo/auth-react"
-import { CircleAlertIcon, CircleCheckIcon, LinkIcon, ShieldCheckIcon } from "lucide-react"
-import { useState, type ReactNode } from "react"
+import { useState } from "react"
 
+import {
+  CONFIRM_EMAIL_CHANGE_TEXT,
+  ConfirmEmailChangeView,
+  type ConfirmEmailChangeSlot,
+  type ConfirmEmailChangeStatus,
+  type ConfirmEmailChangeText,
+} from "@/components/auth/confirm-email-change-view"
 import { EMAIL_LIST_QUERY_KEY } from "@/components/auth/user-button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Spinner } from "@/components/ui/spinner"
-import { cn } from "@/lib/utils"
 
 // ConfirmEmailChange: the page an email-change mail opens. "confirm" (the
 // link sent to the new address) makes it the account's address; "undo" (the
 // link sent to the old address after a change) puts the old one back and
 // signs out every session, for the case where someone else made the change.
 // The token comes from ?token= and is posted exactly once, never on a GET.
+//
+// The card itself is ConfirmEmailChangeView (confirm-email-change-view.tsx):
+// this file only wires it to @ubgo/auth-react, the token, the call, the
+// session and the email list it refreshes.
 
-/** Every string ConfirmEmailChange shows, with `{name}` placeholders where a value is filled in. */
-export type ConfirmEmailChangeText = {
-  workingTitle: string
-  workingDescription: string
-  confirmedTitle: string
-  /** `{email}` is the new address. */
-  confirmedDescription: string
-  undoneTitle: string
-  undoneDescription: string
-  invalidTitle: string
-  invalidDescription: string
-  missingTitle: string
-  missingDescription: string
-  continue: string
-  signIn: string
-  account: string
-  retry: string
-}
+export {
+  CONFIRM_EMAIL_CHANGE_TEXT,
+  ConfirmEmailChangeView,
+  type ConfirmEmailChangeSlot,
+  type ConfirmEmailChangeStatus,
+  type ConfirmEmailChangeText,
+  type ConfirmEmailChangeViewProps,
+} from "@/components/auth/confirm-email-change-view"
 
 declare module "@ubgo/auth-react" {
   interface ComponentLocalizations {
     confirmEmailChange: ConfirmEmailChangeText
   }
 }
-
-/** The English defaults. Override per app (AuthProvider localization.confirmEmailChange) or per use (localization prop). */
-export const CONFIRM_EMAIL_CHANGE_TEXT: ConfirmEmailChangeText = {
-  workingTitle: "Updating your email",
-  workingDescription: "One moment…",
-  confirmedTitle: "Email changed",
-  confirmedDescription: "Your account now uses {email}.",
-  undoneTitle: "Change undone",
-  undoneDescription: "Your previous email address is back, and every session was signed out. Sign in, then change your password.",
-  invalidTitle: "This link has expired",
-  invalidDescription: "Email-change links work once and expire after a while. Start the change again from your account.",
-  missingTitle: "No link to open",
-  missingDescription: "Open this page from the link in your email.",
-  continue: "Continue",
-  signIn: "Sign in",
-  account: "Back to your account",
-  retry: "Try again",
-}
-
-/** The named parts classNames can style. */
-export type ConfirmEmailChangeSlot = "root" | "header" | "title" | "description" | "content" | "formError" | "action"
 
 /** What the link did, handed to onSuccess. */
 export type ConfirmEmailChangeSuccess = { readonly action: "confirm"; readonly email: string } | { readonly action: "undo" }
@@ -149,121 +121,43 @@ export function ConfirmEmailChange({
 
   if (email === null) return null
 
-  const root = cn("w-full max-w-sm", className, classNames?.root)
-  const actionClass = cn(buttonVariants({ size: "lg" }), "w-full", classNames?.action)
   const outcome = call.data
-
-  if (token === "") {
-    return (
-      <StateCard headingLevel={headingLevel} root={root} classNames={classNames} icon={<LinkIcon aria-hidden className="size-4 text-muted-foreground" />} title={t.missingTitle} description={t.missingDescription}>
-        <Link href={session === null ? paths.signIn : paths.account} className={actionClass}>
-          {session === null ? t.signIn : t.account}
-        </Link>
-      </StateCard>
-    )
-  }
-
-  if (outcome === undefined && call.error === null) {
-    return (
-      <Card className={root} aria-busy>
-        <CardHeader className={classNames?.header}>
-          <CardTitle className={cn("flex items-center gap-2", classNames?.title)} role="heading" aria-level={headingLevel}>
-            <Spinner aria-hidden className="text-muted-foreground" />
-            {t.workingTitle}
-          </CardTitle>
-          <CardDescription className={classNames?.description} role="status">
-            {t.workingDescription}
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
-
-  if (outcome?.ok === true) {
-    const undone = action === "undo"
-    const target = redirectTo ?? (undone || session === null ? paths.signIn : paths.account)
-    return (
-      <StateCard headingLevel={headingLevel}
-        root={root}
-        classNames={classNames}
-        icon={undone ? <ShieldCheckIcon aria-hidden className="size-4 text-muted-foreground" /> : <CircleCheckIcon aria-hidden className="size-4 text-muted-foreground" />}
-        title={undone ? t.undoneTitle : t.confirmedTitle}
-        description={undone ? t.undoneDescription : format(t.confirmedDescription, { email: outcome.email })}
-        status
-      >
-        <Link href={target} className={actionClass}>
-          {undone || session === null ? t.signIn : t.continue}
-        </Link>
-      </StateCard>
-    )
-  }
-
   const failure = outcome?.ok === false ? outcome.error : null
-  if (failure?.code === "auth.token_invalid") {
-    return (
-      <StateCard headingLevel={headingLevel} root={root} classNames={classNames} icon={<LinkIcon aria-hidden className="size-4 text-muted-foreground" />} title={t.invalidTitle} description={t.invalidDescription}>
-        <Link href={session === null ? paths.signIn : paths.account} className={actionClass}>
-          {session === null ? t.signIn : t.account}
-        </Link>
-      </StateCard>
-    )
-  }
+  const signedIn = session !== null
+  const status: ConfirmEmailChangeStatus =
+    token === ""
+      ? "missing"
+      : outcome === undefined && call.error === null
+        ? "working"
+        : outcome?.ok === true
+          ? action === "undo"
+            ? "undone"
+            : "confirmed"
+          : failure?.code === "auth.token_invalid"
+            ? "invalid"
+            : "failed"
+  // After a change: redirectTo, else sign-in (undo signed everyone out, or nobody was in) or the account page.
+  const actionHref =
+    status === "confirmed" || status === "undone"
+      ? (redirectTo ?? (status === "undone" || !signedIn ? paths.signIn : paths.account))
+      : signedIn
+        ? paths.account
+        : paths.signIn
 
-  // The network or a server fault: the token was not spent, so it can be retried.
   return (
-    <Card className={root}>
-      <CardHeader className={classNames?.header}>
-        <CardTitle className={classNames?.title} role="heading" aria-level={headingLevel}>
-          {t.workingTitle}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className={cn("flex flex-col gap-3.5", classNames?.content)}>
-        {failure !== null && (
-          <Alert variant="destructive" className={classNames?.formError}>
-            <CircleAlertIcon aria-hidden />
-            <AlertDescription>{messageFor(failure)}</AlertDescription>
-          </Alert>
-        )}
-        <Button type="button" size="lg" className={cn("w-full", classNames?.action)} disabled={call.isFetching} onClick={() => void call.refetch()}>
-          {call.isFetching && <Spinner data-icon="inline-start" />}
-          {t.retry}
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
-
-function StateCard({
-  root,
-  classNames,
-  icon,
-  title,
-  description,
-  status = false,
-  headingLevel,
-  children,
-}: {
-  headingLevel: HeadingLevel
-  root: string
-  classNames: ConfirmEmailChangeProps["classNames"]
-  icon: ReactNode
-  title: string
-  description: string
-  status?: boolean
-  children: ReactNode
-}) {
-  return (
-    <Card className={root}>
-      <CardHeader className={classNames?.header}>
-        <CardTitle className={cn("flex items-center gap-2", classNames?.title)} role="heading" aria-level={headingLevel}>
-          {icon}
-          {title}
-        </CardTitle>
-        <CardDescription className={classNames?.description} role={status ? "status" : undefined}>
-          {description}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className={classNames?.content}>{children}</CardContent>
-    </Card>
+    <ConfirmEmailChangeView
+      className={className}
+      classNames={classNames}
+      text={t}
+      headingLevel={headingLevel}
+      status={status}
+      email={outcome?.ok === true ? outcome.email : ""}
+      signedIn={signedIn}
+      actionHref={actionHref}
+      formError={failure === null ? null : messageFor(failure)}
+      pending={call.isFetching}
+      Link={Link}
+      onRetry={() => void call.refetch()}
+    />
   )
 }

@@ -10,62 +10,40 @@ import {
   useSessionActions,
   type AuthComponentProps,
 } from "@ubgo/auth-react"
-import { CircleAlertIcon, CircleCheckIcon, LinkIcon } from "lucide-react"
 import { useState } from "react"
 
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Spinner } from "@/components/ui/spinner"
-import { cn } from "@/lib/utils"
+import {
+  MAGIC_LINK_CALLBACK_TEXT,
+  MagicLinkCallbackView,
+  type MagicLinkCallbackSlot,
+  type MagicLinkCallbackStatus,
+  type MagicLinkCallbackText,
+} from "@/components/auth/magic-link-callback-view"
 
 // MagicLinkCallback: the page a magic link opens. It reads the token from the
 // address bar (?token=), signs in with it once, refreshes the session and
 // moves on: to onSuccess, redirectTo or paths.afterSignIn, or to the second
 // factor when the account has one. A used or expired link turns the card into
 // a way back to the sign-in page, where a new link can be asked for.
+//
+// The card itself is MagicLinkCallbackView (magic-link-callback-view.tsx):
+// this file only wires it to @ubgo/auth-react, the token, the call, the
+// session and navigation.
 
-/** Every string MagicLinkCallback shows. */
-export type MagicLinkCallbackText = {
-  signingInTitle: string
-  signingInDescription: string
-  signedInTitle: string
-  signedInDescription: string
-  continue: string
-  invalidTitle: string
-  invalidDescription: string
-  /** The title and text when the page was opened without a token at all. */
-  missingTitle: string
-  missingDescription: string
-  backToSignIn: string
-  errorTitle: string
-  retry: string
-}
+export {
+  MAGIC_LINK_CALLBACK_TEXT,
+  MagicLinkCallbackView,
+  type MagicLinkCallbackSlot,
+  type MagicLinkCallbackStatus,
+  type MagicLinkCallbackText,
+  type MagicLinkCallbackViewProps,
+} from "@/components/auth/magic-link-callback-view"
 
 declare module "@ubgo/auth-react" {
   interface ComponentLocalizations {
     magicLinkCallback: MagicLinkCallbackText
   }
 }
-
-/** The English defaults. Override per app (AuthProvider localization.magicLinkCallback) or per use (localization prop). */
-export const MAGIC_LINK_CALLBACK_TEXT: MagicLinkCallbackText = {
-  signingInTitle: "Signing you in",
-  signingInDescription: "One moment…",
-  signedInTitle: "You are signed in",
-  signedInDescription: "Taking you to the app…",
-  continue: "Continue",
-  invalidTitle: "This link has expired",
-  invalidDescription: "Sign-in links work once and expire after a few minutes. Ask for a new one from the sign-in page.",
-  missingTitle: "Open the link from your email",
-  missingDescription: "This page needs the link from your sign-in email. Open the link from the email, or ask for a new one.",
-  backToSignIn: "Back to sign in",
-  errorTitle: "Could not sign you in",
-  retry: "Try again",
-}
-
-/** The named parts classNames can style. */
-export type MagicLinkCallbackSlot = "root" | "header" | "title" | "description" | "content" | "formError" | "action"
 
 /** Who signed in, and whether the account was created by this link. Handed to onSuccess. */
 export type MagicLinkSuccess = {
@@ -137,91 +115,33 @@ export function MagicLinkCallback({ className, classNames, localization, onSucce
 
   if (magiclink === null) return null
 
-  const root = cn("w-full max-w-sm", className, classNames?.root)
-  const actionClass = cn(buttonVariants({ size: "lg" }), "w-full", classNames?.action)
   const outcome = signIn.data
-
-  if (token !== "" && outcome === undefined && signIn.error === null) {
-    return (
-      <Card className={root} aria-busy>
-        <CardHeader className={classNames?.header}>
-          <CardTitle className={cn("flex items-center gap-2", classNames?.title)} role="heading" aria-level={headingLevel}>
-            <Spinner aria-hidden className="text-muted-foreground" />
-            {t.signingInTitle}
-          </CardTitle>
-          <CardDescription className={classNames?.description} role="status">
-            {t.signingInDescription}
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
-
-  if (outcome?.ok === true) {
-    // Shown only for the moment before navigation, or for good when onSuccess chose to stay.
-    return (
-      <Card className={root}>
-        <CardHeader className={classNames?.header}>
-          <CardTitle className={cn("flex items-center gap-2", classNames?.title)} role="heading" aria-level={headingLevel}>
-            <CircleCheckIcon aria-hidden className="size-4 text-muted-foreground" />
-            {t.signedInTitle}
-          </CardTitle>
-          <CardDescription className={classNames?.description} role="status">
-            {t.signedInDescription}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className={classNames?.content}>
-          <Link href={target} className={actionClass}>
-            {t.continue}
-          </Link>
-        </CardContent>
-      </Card>
-    )
-  }
-
   const failure = outcome?.ok === false ? outcome.error : null
   // Anything but an expired link (the network, a server fault) left the token unspent, so it can be retried.
-  if (signIn.error !== null || (failure !== null && failure.code !== "auth.token_invalid")) {
-    return (
-      <Card className={root}>
-        <CardHeader className={classNames?.header}>
-          <CardTitle className={classNames?.title} role="heading" aria-level={headingLevel}>
-            {t.errorTitle}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className={cn("flex flex-col gap-3.5", classNames?.content)}>
-          {failure !== null && (
-            <Alert variant="destructive" className={classNames?.formError}>
-              <CircleAlertIcon aria-hidden />
-              <AlertDescription>{messageFor(failure)}</AlertDescription>
-            </Alert>
-          )}
-          <Button type="button" size="lg" className={cn("w-full", classNames?.action)} disabled={signIn.isFetching} onClick={() => void signIn.refetch()}>
-            {signIn.isFetching && <Spinner data-icon="inline-start" />}
-            {t.retry}
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
+  const status: MagicLinkCallbackStatus =
+    token !== "" && outcome === undefined && signIn.error === null
+      ? "signingIn"
+      : outcome?.ok === true
+        ? "signedIn"
+        : signIn.error !== null || (failure !== null && failure.code !== "auth.token_invalid")
+          ? "failed"
+          : token === ""
+            ? "missing"
+            : "invalid"
 
-  // No token, or a spent or expired one.
   return (
-    <Card className={root}>
-      <CardHeader className={classNames?.header}>
-        <CardTitle className={cn("flex items-center gap-2", classNames?.title)} role="heading" aria-level={headingLevel}>
-          <LinkIcon aria-hidden className="size-4 text-muted-foreground" />
-          {token === "" ? t.missingTitle : t.invalidTitle}
-        </CardTitle>
-        <CardDescription className={classNames?.description} role="status">
-          {token === "" ? t.missingDescription : t.invalidDescription}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className={classNames?.content}>
-        <Link href={withRedirect(paths.signIn, redirectTo)} className={actionClass}>
-          {t.backToSignIn}
-        </Link>
-      </CardContent>
-    </Card>
+    <MagicLinkCallbackView
+      className={className}
+      classNames={classNames}
+      text={t}
+      headingLevel={headingLevel}
+      status={status}
+      formError={failure === null ? null : messageFor(failure)}
+      pending={signIn.isFetching}
+      continueHref={target}
+      signInHref={withRedirect(paths.signIn, redirectTo)}
+      Link={Link}
+      onRetry={() => void signIn.refetch()}
+    />
   )
 }
