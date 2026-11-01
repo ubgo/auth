@@ -369,9 +369,15 @@
       "description": "A four-step strength meter and hint under a new-password field. Used by sign-up-form and reset-password-form. Needs @ubgo/auth-react.",
       "dependencies": [],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/password-strength-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/password-strength-view.tsx"
+        },
         {
           "path": "auth/password-strength.tsx",
           "type": "registry:component",
@@ -398,9 +404,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/spinner",
-        "@ubgo/password-strength"
+        "@ubgo/password-strength",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/sign-up-form-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/sign-up-form-view.tsx"
+        },
         {
           "path": "auth/sign-up-form.tsx",
           "type": "registry:component",
@@ -425,9 +437,15 @@
         "@ubgo/card",
         "@ubgo/field",
         "@ubgo/input",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/forgot-password-form-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/forgot-password-form-view.tsx"
+        },
         {
           "path": "auth/forgot-password-form.tsx",
           "type": "registry:component",
@@ -453,9 +471,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/spinner",
-        "@ubgo/password-strength"
+        "@ubgo/password-strength",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/reset-password-form-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/reset-password-form-view.tsx"
+        },
         {
           "path": "auth/reset-password-form.tsx",
           "type": "registry:component",
@@ -480,9 +504,15 @@
         "@ubgo/card",
         "@ubgo/field",
         "@ubgo/input",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/verify-email-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/verify-email-view.tsx"
+        },
         {
           "path": "auth/verify-email.tsx",
           "type": "registry:component",
@@ -504,9 +534,15 @@
         "@ubgo/alert",
         "@ubgo/button",
         "@ubgo/card",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/magic-link-callback-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/magic-link-callback-view.tsx"
+        },
         {
           "path": "auth/magic-link-callback.tsx",
           "type": "registry:component",
@@ -529,9 +565,15 @@
         "@ubgo/button",
         "@ubgo/dropdown-menu",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/user-button-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/user-button-view.tsx"
+        },
         {
           "path": "auth/user-button.tsx",
           "type": "registry:component",
@@ -560,9 +602,15 @@
         "@ubgo/input",
         "@ubgo/input-otp",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/two-factor-challenge-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/two-factor-challenge-view.tsx"
+        },
         {
           "path": "auth/two-factor-challenge.tsx",
           "type": "registry:component",
@@ -595,9 +643,15 @@
         "@ubgo/input-otp",
         "@ubgo/skeleton",
         "@ubgo/spinner",
-        "@ubgo/security-keys"
+        "@ubgo/security-keys",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/two-factor-setup-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/two-factor-setup-view.tsx"
+        },
         {
           "path": "auth/two-factor-setup.tsx",
           "type": "registry:component",
@@ -627,9 +681,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/passkey-list-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/passkey-list-view.tsx"
+        },
         {
           "path": "auth/passkey-list.tsx",
           "type": "registry:component",
@@ -662,9 +722,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/account-settings-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/account-settings-view.tsx"
+        },
         {
           "path": "auth/account-settings.tsx",
           "type": "registry:component",
@@ -687,9 +753,15 @@
         "@ubgo/alert",
         "@ubgo/button",
         "@ubgo/card",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/confirm-email-change-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/confirm-email-change-view.tsx"
+        },
         {
           "path": "auth/confirm-email-change.tsx",
           "type": "registry:component",
@@ -716,9 +788,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/organization-switcher-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-switcher-view.tsx"
+        },
         {
           "path": "auth/organization-switcher.tsx",
           "type": "registry:component",
@@ -748,9 +826,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/organization-members-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-members-view.tsx"
+        },
         {
           "path": "auth/organization-members.tsx",
           "type": "registry:component",
@@ -774,9 +858,15 @@
         "@ubgo/button",
         "@ubgo/card",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/organization-invitations-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-invitations-view.tsx"
+        },
         {
           "path": "auth/organization-invitations.tsx",
           "type": "registry:component",
@@ -819,9 +909,15 @@
         "@ubgo/input",
         "@ubgo/skeleton",
         "@ubgo/spinner",
-        "@ubgo/table"
+        "@ubgo/table",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/admin-users-table-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/admin-users-table-view.tsx"
+        },
         {
           "path": "auth/admin-users-table.tsx",
           "type": "registry:component",
@@ -852,9 +948,15 @@
         "@ubgo/input",
         "@ubgo/skeleton",
         "@ubgo/spinner",
-        "@ubgo/table"
+        "@ubgo/table",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/admin-user-detail-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/admin-user-detail-view.tsx"
+        },
         {
           "path": "auth/admin-user-detail.tsx",
           "type": "registry:component",
@@ -874,9 +976,15 @@
       "registryDependencies": [
         "utils",
         "@ubgo/button",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/impersonation-banner-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/impersonation-banner-view.tsx"
+        },
         {
           "path": "auth/impersonation-banner.tsx",
           "type": "registry:component",
@@ -896,9 +1004,15 @@
         "utils",
         "@ubgo/button",
         "@ubgo/card",
-        "@ubgo/two-factor-setup"
+        "@ubgo/two-factor-setup",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/task-setup-mfa-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/task-setup-mfa-view.tsx"
+        },
         {
           "path": "auth/task-setup-mfa.tsx",
           "type": "registry:component",
@@ -926,9 +1040,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/organization-domains-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/organization-domains-view.tsx"
+        },
         {
           "path": "auth/organization-domains.tsx",
           "type": "registry:component",
@@ -951,9 +1071,15 @@
         "@ubgo/button",
         "@ubgo/card",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/domain-suggestions-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/domain-suggestions-view.tsx"
+        },
         {
           "path": "auth/domain-suggestions.tsx",
           "type": "registry:component",
@@ -979,9 +1105,15 @@
         "@ubgo/field",
         "@ubgo/input",
         "@ubgo/skeleton",
-        "@ubgo/spinner"
+        "@ubgo/spinner",
+        "@ubgo/auth-view"
       ],
       "files": [
+        {
+          "path": "auth/security-keys-view.tsx",
+          "type": "registry:component",
+          "target": "components/auth/security-keys-view.tsx"
+        },
         {
           "path": "auth/security-keys.tsx",
           "type": "registry:component",
