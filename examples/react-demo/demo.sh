@@ -28,7 +28,7 @@ trap cleanup EXIT
 trap 'exit 130' INT TERM
 
 mkdir -p "$DIR/.bin"
-(cd "$DIR/.." && GOFLAGS=-mod=mod go build -o "$DIR/.bin/react-demo" ./react-demo)
+(cd "$DIR/.." && go build -o "$DIR/.bin/react-demo" ./react-demo)
 (cd "$DIR" && DEMO_DB="$DIR/react-demo.db" PORT="$API_PORT" APP_URL="$URL" exec ./.bin/react-demo) &
 API_PID=$!
 (cd "$DIR/web" && DEMO_WEB_PORT="$WEB_PORT" DEMO_API_PORT="$API_PORT" exec pnpm exec vite --logLevel warn) &
