@@ -39,7 +39,9 @@ wait_for() {
 FRESH_WINDOW="${DEMO_FRESH_WINDOW:-8s}"
 (cd "$WORK" && PORT="$API_PORT" APP_URL="http://localhost:$WEB_PORT" DEMO_FRESH_WINDOW="$FRESH_WINDOW" exec ./react-demo >"$WORK/api.log" 2>&1) &
 API_PID=$!
-(cd "$WEB_DIR" && DEMO_WEB_PORT="$WEB_PORT" DEMO_API_PORT="$API_PORT" exec pnpm exec vite --logLevel warn >"$WORK/web.log" 2>&1) &
+# The server's own bin, not pnpm exec: the pnpm shim catches SIGTERM without
+# passing it on, so cleanup's kill missed the server and its wait never ended.
+(cd "$WEB_DIR" && DEMO_WEB_PORT="$WEB_PORT" DEMO_API_PORT="$API_PORT" exec ./node_modules/.bin/vite --logLevel warn >"$WORK/web.log" 2>&1) &
 WEB_PID=$!
 
 wait_for "http://localhost:$API_PORT/auth/oauth/providers"
