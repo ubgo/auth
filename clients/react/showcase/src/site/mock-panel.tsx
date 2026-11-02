@@ -1,13 +1,26 @@
-// The stage's controls over the mock: who is signed in, the switches, a
-// reset, and the outbox of messages the mock pretended to send.
+// The stage's controls over the mock, limited to what changes the page in
+// view: a "pretend signed in as" row when the session matters there, a
+// "Mock settings" menu for the switches that matter and the reset, and the
+// outbox of messages the mock pretended to send.
 
 import { useQueryClient } from "@tanstack/react-query"
-import { Mail, RotateCcw } from "lucide-react"
+import { Mail, RotateCcw, SlidersHorizontal } from "lucide-react"
 import { useSyncExternalStore } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { reset, sessionKind, setSession, setSettings, state, subscribe, type MockSessionKind } from "@/mock/state"
+import type { MockControls, SessionChoice } from "@/catalog"
 
-/** A snapshot of the parts the panel shows, re-read on every change. */
+/** A snapshot of the parts the controls show, re-read on every change. */
 function snapshot(): string {
   return JSON.stringify([sessionKind(), state.settings, state.outbox])
 }
@@ -17,61 +30,100 @@ export function useMockState(): void {
   useSyncExternalStore(subscribe, snapshot)
 }
 
-const SESSIONS: readonly { kind: MockSessionKind; label: string }[] = [
-  { kind: "signed-out", label: "Signed out" },
-  { kind: "ada", label: "Ada (admin)" },
-  { kind: "grace", label: "Grace" },
-  { kind: "grace-pending", label: "Grace, 2FA pending" },
-]
-
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (next: boolean) => void }) {
-  return (
-    <label className="inline-flex h-6 cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
-      <input type="checkbox" className="size-3.5 accent-foreground" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      {label}
-    </label>
-  )
+/** What each demo session is called on every page; the page's own note says what it changes there. */
+const SESSION_LABELS: Readonly<Record<MockSessionKind, string>> = {
+  "signed-out": "Nobody",
+  ada: "Ada (admin)",
+  grace: "Grace (has 2FA)",
+  "grace-pending": "Grace (waiting for 2FA code)",
 }
 
-/** The bar above the stage. onChange remounts the stage so forms start clean. */
-export function MockPanel({ onChange }: { onChange: () => void }) {
-  useMockState()
+/**
+ * Applies a change to the mock, drops every cached answer and remounts the
+ * stage (onChange), so the component reads the new state from a clean start.
+ */
+function useApply(onChange: () => void): (action: () => void) => Promise<void> {
   const queryClient = useQueryClient()
-  const kind = sessionKind()
-  async function apply(action: () => void) {
+  return async (action) => {
     action()
     await queryClient.resetQueries()
     onChange()
   }
+}
+
+/** Whether a page shows any mock control at all. */
+export function hasMockControls(mock: MockControls): boolean {
+  return (mock.sessions?.length ?? 0) > 0 || mock.slow === true || mock.oauth === true
+}
+
+/**
+ * The "pretend signed in as" row, for a page the session changes. Each
+ * button's tooltip, and the line after the row for the chosen one, says what
+ * that session changes on this page.
+ */
+export function SessionBar({ choices, onChange }: { choices: readonly SessionChoice[]; onChange: () => void }) {
+  useMockState()
+  const apply = useApply(onChange)
+  const kind = sessionKind()
+  const current = choices.find((c) => c.kind === kind)
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b bg-muted/40 px-3 py-1.5">
-      <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Mock session">
-        <span className="mr-1 text-xs text-muted-foreground">Session</span>
-        {SESSIONS.map((s) => (
+    <div className="grid gap-0.5 border-b bg-muted/40 px-3 py-1.5">
+      <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Pretend signed in as">
+        <span className="mr-1 text-xs text-muted-foreground">Pretend signed in as:</span>
+        {choices.map((c) => (
           <button
-            key={s.kind}
+            key={c.kind}
             type="button"
-            aria-pressed={kind === s.kind}
-            onClick={() => apply(() => setSession(s.kind))}
+            title={c.note}
+            aria-pressed={kind === c.kind}
+            onClick={() => apply(() => setSession(c.kind))}
             className={cn(
               "h-6 rounded-md border px-2 text-xs",
-              kind === s.kind ? "border-foreground/30 bg-background font-medium text-foreground shadow-xs" : "border-transparent text-muted-foreground hover:bg-background",
+              kind === c.kind ? "border-foreground/30 bg-background font-medium text-foreground shadow-xs" : "border-transparent text-muted-foreground hover:bg-background",
             )}
           >
-            {s.label}
+            {SESSION_LABELS[c.kind]}
           </button>
         ))}
-        {kind === "other" ? <span className="text-xs text-muted-foreground">(another account)</span> : null}
       </div>
-      <div className="flex items-center gap-3">
-        <Toggle label="Slow network" checked={state.settings.slow} onChange={(slow) => setSettings({ slow })} />
-        <Toggle label="OAuth providers" checked={state.settings.oauth} onChange={(oauth) => apply(() => setSettings({ oauth }))} />
-        <button type="button" onClick={() => apply(reset)} className="inline-flex h-6 items-center gap-1 rounded-md px-1.5 text-xs text-muted-foreground hover:bg-background hover:text-foreground">
-          <RotateCcw className="size-3" aria-hidden />
-          Reset mock
-        </button>
-      </div>
+      <p className="text-xs text-muted-foreground" aria-live="polite">
+        {current?.note ?? (kind === "other" ? "Another account is signed in (one you created or are impersonating)." : "")}
+      </p>
     </div>
+  )
+}
+
+/** The switches that matter on this page, and the reset, in one compact menu on the stage toolbar. */
+export function MockSettingsMenu({ mock, onChange }: { mock: MockControls; onChange: () => void }) {
+  useMockState()
+  const apply = useApply(onChange)
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground">
+        <SlidersHorizontal className="size-3.5" aria-hidden />
+        Mock settings
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Fake server, in your browser</DropdownMenuLabel>
+          {mock.slow === true ? (
+            <DropdownMenuCheckboxItem checked={state.settings.slow} onCheckedChange={(slow) => setSettings({ slow })} closeOnClick={false}>
+              Slow network
+            </DropdownMenuCheckboxItem>
+          ) : null}
+          {mock.oauth === true ? (
+            <DropdownMenuCheckboxItem checked={state.settings.oauth} onCheckedChange={(oauth) => apply(() => setSettings({ oauth }))} closeOnClick={false}>
+              OAuth providers
+            </DropdownMenuCheckboxItem>
+          ) : null}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => apply(reset)}>
+          <RotateCcw aria-hidden />
+          Reset mock
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
