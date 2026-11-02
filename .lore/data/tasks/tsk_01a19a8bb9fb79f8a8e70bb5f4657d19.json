@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim):\n  Read /space/tmp/auth-briefs/navstage.md and do it without asking me anything.\nOwner report in the brief, verbatim: \"https://ubgo.github.io/auth/magic-link-callback not working it redirects back to https://ubgo.github.io/auth/user-button\".\n\nContext:\n  clients/react/showcase: a component's navigate inside the stage must not leave the page; show a result line with Go there and Run again. Report /space/tmp/auth-briefs/navstage-REPORT.md.\n\nAcceptance:\n  magic-link-callback renders on first visit, sign-in stays on its page with a result line, Go there navigates; check.mjs extended and green; preview restarted; pushed.",
+  "commitment": "accepted",
+  "completed_at": "2026-11-02T04:48:56.754051939Z",
+  "created_at": "2026-11-02T04:36:50.811649662Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a19a8bb9fb79f8a8e70bb5f4657d19",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "Showcase: components must not navigate the visitor off their own page",
+  "updated_at": "2026-11-02T04:48:56.754053186Z"
+}

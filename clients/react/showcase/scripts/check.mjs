@@ -3,7 +3,8 @@
 // sign-in flow works with the demo credentials and fails with a wrong
 // password, the two-factor step takes the demo code, a passkey button says
 // it is not available, the copy buttons copy, the theme toggle works, and
-// the mock controls show only what changes the page.
+// the mock controls show only what changes the page, and a component that
+// navigates after success stays on its page with a result line.
 // Screenshots go to SHOTS_DIR when it is set.
 //
 //   SHOWCASE_URL=http://127.0.0.1:4002/auth/ node scripts/check.mjs
@@ -50,6 +51,29 @@ async function shot(name) {
   await page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage: true })
 }
 
+/** The line a component page shows instead of following a component's navigation. */
+function stageResult() {
+  return page.getByRole("status").filter({ hasText: "Your app would now go to" })
+}
+
+/** Checks the page stayed on path and its result line contains text. */
+async function expectResult(path, text, what) {
+  const ok = await stageResult()
+    .filter({ hasText: text })
+    .waitFor({ timeout: 5000 })
+    .then(() => true, () => false)
+  check(ok && new URL(page.url()).pathname.endsWith(`/${path}`), `${what} (on ${new URL(page.url()).pathname})`)
+}
+
+/** Clicks the result line's "Go there" and checks the browser lands on url. */
+async function goThere(url, what) {
+  await stageResult().getByRole("link", { name: "Go there" }).click()
+  await page.waitForURL(url, { timeout: 5000 }).then(
+    () => check(true, what),
+    () => check(false, what),
+  )
+}
+
 async function setTheme(theme) {
   await page.evaluate((t) => {
     localStorage.setItem("theme", t)
@@ -84,11 +108,11 @@ await page.getByText("The sign-in details are not right.").waitFor({ timeout: 50
 await shot("sign-in-error")
 await page.getByLabel("Password", { exact: true }).fill(DEMO_PASSWORD)
 await page.getByRole("button", { name: "Sign in", exact: true }).click()
-await page.waitForURL(/\/account-settings$/, { timeout: 5000 }).then(
-  () => check(true, "the demo credentials sign in and open account settings"),
-  () => check(false, "the demo credentials sign in and open account settings"),
-)
+await expectResult("sign-in-form", "Signed in as Ada Lovelace. Your app would now go to /account-settings.", "the demo credentials sign in and the page shows where the app would go")
+await shot("sign-in-result")
+await goThere(/\/account-settings$/, "Go there opens account settings, still signed in")
 await page.waitForTimeout(800)
+check((await page.getByText("ada@example.com").count()) > 0, "account settings shows Ada after Go there")
 await shot("account-settings")
 
 // Two-factor: Grace signs in, the challenge takes the demo code.
@@ -96,18 +120,28 @@ await open("/sign-in-form")
 await page.getByLabel("Email").fill("grace@example.com")
 await page.getByLabel("Password", { exact: true }).fill(DEMO_PASSWORD)
 await page.getByRole("button", { name: "Sign in", exact: true }).click()
-await page.waitForURL(/\/two-factor-challenge/, { timeout: 5000 }).then(
-  () => check(true, "an account with a second factor goes to the two-factor step"),
-  () => check(false, "an account with a second factor goes to the two-factor step"),
-)
+await expectResult("sign-in-form", "/two-factor-challenge", "an account with a second factor is sent to the two-factor step")
+await goThere(/\/two-factor-challenge/, "Go there opens the two-factor step")
 await page.waitForTimeout(800)
 await shot("two-factor")
 await page.getByLabel("Authentication code").first().click()
 await page.keyboard.type("123456")
-await page.waitForURL(/\/account-settings$/, { timeout: 5000 }).then(
-  () => check(true, "the demo code finishes the two-factor sign-in"),
-  () => check(false, "the demo code finishes the two-factor sign-in"),
+await expectResult("two-factor-challenge", "Signed in as Grace Hopper. Your app would now go to /account-settings.", "the demo code finishes the two-factor sign-in")
+
+// Magic link: the valid link signs in on load and stays on its own page;
+// "Run again" starts it over; the expired link shows its own state.
+await open("/magic-link-callback")
+await expectResult("magic-link-callback", "Your app would now go to /user-button.", "the magic link page stays put and shows where the app would go")
+check((await page.getByText("You are signed in").count()) > 0, "the magic link page shows the component's signed-in state")
+await shot("magic-link-result")
+await page.getByRole("button", { name: "Run again" }).click()
+await expectResult("magic-link-callback", "Your app would now go to /user-button.", "Run again signs in with the link again")
+await page.getByRole("tab", { name: "Expired link" }).click()
+await page.getByText("This link has expired").waitFor({ timeout: 5000 }).then(
+  () => check(true, "the expired link shows its own state"),
+  () => check(false, "the expired link shows its own state"),
 )
+check((await stageResult().count()) === 0, "the expired link shows no navigation result")
 
 // Passkey: the mock says it cannot run the ceremony.
 await open("/passkey-list")

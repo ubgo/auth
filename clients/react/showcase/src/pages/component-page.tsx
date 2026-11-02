@@ -6,7 +6,8 @@ import { ExternalLink, Moon, Sun } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { CommandLine, CodeBlock } from "@/site/code"
 import { hasMockControls, MockSettingsMenu, Outbox, SessionBar } from "@/site/mock-panel"
-import { openedByFlow } from "@/site/router"
+import { interceptFlowNavigation, openedByFlow } from "@/site/router"
+import { StageResult } from "@/site/stage-result"
 import { setTheme, useTheme } from "@/site/theme"
 import { cn } from "@/lib/utils"
 import { installCommand, REPO_URL, type Entry } from "@/catalog"
@@ -21,27 +22,74 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
   // Bumped to remount the stage, so a form starts empty after a switch.
   const [mount, setMount] = useState(0)
   const [ready, setReady] = useState(false)
+  // Where the component asked to go after success, held here instead of
+  // leaving the page; null until it navigates.
+  const [result, setResult] = useState<string | null>(null)
   const variant = entry.variants.find((v) => v.id === variantId) ?? entry.variants[0]
+
+  // Restaging happens in two steps, because the old stage must be gone
+  // before the mock changes and the cache is reset: a reset refetches every
+  // query still on screen, so a stage left mounted would re-run its calls
+  // against the new state (a magic link signing in again as an "expired
+  // link" state opens). restage unmounts the stage and queues the change;
+  // the effect below applies it once that unmount is committed, resets the
+  // cache and mounts a fresh stage.
+  const [stageRequest, setStageRequest] = useState(0)
+  const pendingChanges = useRef<(() => void)[]>([])
+  // Whether a navigation comes from the stage on screen; false while it is
+  // being replaced, so a late call from the old one cannot show a result.
+  const acceptingNavigation = useRef(false)
+
+  /** Replaces the stage after applying change to the mock, so the component starts from that state. */
+  function restage(change: () => void) {
+    acceptingNavigation.current = false
+    pendingChanges.current.push(change)
+    setReady(false)
+    setStageRequest((n) => n + 1)
+  }
+
+  useEffect(() => {
+    if (stageRequest === 0) return
+    let live = true
+    for (const change of pendingChanges.current.splice(0)) change()
+    void queryClient.resetQueries().then(() => {
+      if (!live) return
+      setResult(null)
+      setMount((n) => n + 1)
+      setReady(true)
+      acceptingNavigation.current = true
+    })
+    return () => {
+      live = false
+    }
+  }, [stageRequest, queryClient])
+
+  // A component that navigates (signed in, link confirmed) would move the
+  // visitor to another page and its own could never be seen; the page holds
+  // those navigations and shows where the app would go.
+  useEffect(
+    () =>
+      interceptFlowNavigation((href) => {
+        if (acceptingNavigation.current) setResult(href)
+      }),
+    [],
+  )
 
   // Opening a page or a state puts the mock in that state first, so the
   // component's first read already sees it. A page a component's flow opened
   // (signed in, signed out) keeps the session that flow left.
   const keepSession = useRef(openedByFlow())
-  useEffect(() => {
-    let live = true
-    setReady(false)
-    if (keepSession.current) keepSession.current = false
-    else variant?.prepare()
-    void queryClient.resetQueries().then(() => {
-      if (live) {
-        setMount((n) => n + 1)
-        setReady(true)
-      }
+  /** Restages in the variant's starting state: on open, on a state tab and on "Run again". */
+  function startVariant() {
+    restage(() => {
+      if (keepSession.current) keepSession.current = false
+      else variant?.prepare()
     })
-    return () => {
-      live = false
-    }
-  }, [variant, queryClient])
+  }
+  // startVariant is rebuilt every render; the variant is what the effect follows.
+  const startRef = useRef(startVariant)
+  startRef.current = startVariant
+  useEffect(() => startRef.current(), [variant])
 
   return (
     <article className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
@@ -71,7 +119,7 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
             ))}
           </div>
           <div className="flex items-center gap-1.5">
-            {hasMockControls(entry.mock) ? <MockSettingsMenu mock={entry.mock} onChange={() => setMount((n) => n + 1)} /> : null}
+            {hasMockControls(entry.mock) ? <MockSettingsMenu mock={entry.mock} onApply={restage} /> : null}
             <button
               type="button"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -83,7 +131,8 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
             </button>
           </div>
         </div>
-        {entry.mock.sessions !== undefined && entry.mock.sessions.length > 0 ? <SessionBar choices={entry.mock.sessions} onChange={() => setMount((n) => n + 1)} /> : null}
+        {entry.mock.sessions !== undefined && entry.mock.sessions.length > 0 ? <SessionBar choices={entry.mock.sessions} onApply={restage} /> : null}
+        {result !== null ? <StageResult href={result} onRunAgain={startVariant} /> : null}
         <div
           className={cn(
             "flex min-h-80 justify-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:16px_16px] px-3 py-8 sm:px-6",
