@@ -14,6 +14,7 @@ Everything below is unreleased; the dated sections record the order the work lan
 
 - Examples: `examples/nextjs-app` moves from Next.js 16.4.0 to 16.4.3, the current release; 16.4.0 is inside the published range of three Next.js advisories (`>=16.0.0 <=16.4.0`: two rated critical, one high), and its `next build` stopped to say so.
 - Examples: the throwaway-server scripts (`with-servers.sh` of the React demo, react-headless, react-router-app and nextjs-app, and `demo.sh`) start Vite and `next start` from the package's own `node_modules/.bin` rather than through `pnpm exec`, whose shim swallowed the stop signal; `task ui:e2e` no longer hangs after its first script.
+- Examples: the test cookie jar of `ts-client-bearer` and `ts-client-custom` treats plain http as a secure origin only on 127.0.0.1, ::1 and localhost, as a browser does; before, it did so for every host, which could have hidden a Domain or Secure bug. `TestLoopbackJar` pins both sides.
 - React kit: `AuthProvider` with no `QueryClientProvider` above it now provides its private cache to React Query too, so a component's mutation no longer throws "No QueryClient set" on its first call; the contract always said the provider falls back to a private cache.
 
 ### Changed

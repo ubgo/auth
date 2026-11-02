@@ -163,13 +163,63 @@ func TestClient_GeneratedCopyIsCurrent(t *testing.T) {
 	}
 }
 
-// loopbackJar is a cookie jar that treats http://127.0.0.1 as the secure
-// origin a browser does, so a Secure __Host- cookie is kept and sent back on
-// every Go version; only Go's newer jars do this themselves, and the
-// examples declare an older minimum.
+// loopbackJar is a cookie jar that treats plain http on a loopback host as
+// the secure origin a browser does, so a Secure __Host- cookie is kept and
+// sent back on every Go version; only Go's newer jars do this themselves,
+// and the examples declare an older minimum. Any other host keeps the
+// standard jar's rules, so the jar cannot hide a Domain or Secure bug on a
+// real host (TestLoopbackJar pins both sides).
 type loopbackJar struct{ *cookiejar.Jar }
 
-func secure(u *url.URL) *url.URL { s := *u; s.Scheme = "https"; return &s }
+// loopbackHosts are the hosts a browser counts as a secure origin over plain
+// http: the IPv4 and IPv6 loopback addresses and the localhost name.
+var loopbackHosts = map[string]bool{"127.0.0.1": true, "::1": true, "localhost": true}
+
+// secure answers u as https when it is plain http on a loopback host, and u
+// unchanged otherwise.
+func secure(u *url.URL) *url.URL {
+	if u.Scheme != "http" || !loopbackHosts[u.Hostname()] {
+		return u
+	}
+	s := *u
+	s.Scheme = "https"
+	return &s
+}
 
 func (j loopbackJar) SetCookies(u *url.URL, c []*http.Cookie) { j.Jar.SetCookies(secure(u), c) }
 func (j loopbackJar) Cookies(u *url.URL) []*http.Cookie       { return j.Jar.Cookies(secure(u)) }
+
+// TestLoopbackJar pins loopbackJar's scope: a Secure cookie set over plain
+// http is kept on every loopback host and dropped on any other host, as the
+// standard jar drops it.
+func TestLoopbackJar(t *testing.T) {
+	cases := []struct {
+		rawURL string
+		kept   bool
+	}{
+		{"http://127.0.0.1:8080/", true},
+		{"http://[::1]:8080/", true},
+		{"http://localhost:8080/", true},
+		{"https://127.0.0.1:8080/", true},
+		{"http://example.test/", false},
+		{"http://192.0.2.1/", false},
+		{"http://localhost.example.test/", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.rawURL, func(t *testing.T) {
+			inner, err := cookiejar.New(nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			jar := loopbackJar{inner}
+			u, err := url.Parse(tc.rawURL)
+			if err != nil {
+				t.Fatal(err)
+			}
+			jar.SetCookies(u, []*http.Cookie{{Name: "__Host-s", Value: "v", Path: "/", Secure: true}})
+			if got := len(jar.Cookies(u)) == 1; got != tc.kept {
+				t.Fatalf("Secure cookie kept on %s = %v, want %v", tc.rawURL, got, tc.kept)
+			}
+		})
+	}
+}
