@@ -53,5 +53,5 @@ Everything in `src/` is generated: edit `authhttp/typescript.go`, `authhttp/tscl
 |---|---|
 | `task docs:api` | Regenerates `src/` (with the OpenAPI document and the error-code lists) from every built-in plugin |
 | `task ts:check` | `tsc` under `strict` (5.6 or later on `PATH`), then `ts:typecheck`; part of `task check`, which also fails when `src/` is stale |
-| `task ts:typecheck` | Fails unless `test/typecheck/bad.ts` fails to compile on exactly its 9 marked lines, each with its marked error |
+| `task ts:typecheck` | Fails unless `test/typecheck/bad.ts` fails to compile on exactly its 10 marked lines, each with its marked error (a line marked `expect TSaaaa|TSbbbb` accepts either code) |
 | `task ts:smoke` | Starts the `two-factor` example on port 8095 and runs `test/smoke.ts` against it with Node (22.18 or later, which runs `.ts` without a flag) |
