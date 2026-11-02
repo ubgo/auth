@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim):\n  Read /space/tmp/auth-briefs/codeprops.md and do it without asking me anything.\nOwner, verbatim in the brief: \"do it and alsl aivallbe props it can have etc\" (= add the Code view, and also list the available props).\n\nContext:\n  clients/react/showcase: Preview|Code tabs with every installed file from the built registry, highlighted at build time; Props tables for the wired component and its View generated with the TS compiler API; build check. Report /space/tmp/auth-briefs/codeprops-REPORT.md.\n\nAcceptance:\n  Build + check.mjs green, screenshots looked at, preview restarted, pushed to main.",
+  "commitment": "accepted",
+  "completed_at": "2026-11-02T05:22:26.322916552Z",
+  "created_at": "2026-11-02T05:14:20.468276539Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a19aae0db47440b66c07f9f1944638",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "Showcase: Code tab and Props reference on every component page",
+  "updated_at": "2026-11-02T05:22:26.322918352Z"
+}

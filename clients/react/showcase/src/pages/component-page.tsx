@@ -3,11 +3,12 @@
 
 import { useQueryClient } from "@tanstack/react-query"
 import { ExternalLink, Moon, Sun } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { CommandLine, CodeBlock } from "@/site/code"
 import { hasMockControls, MockSettingsMenu, Outbox, SessionBar } from "@/site/mock-panel"
 import { interceptFlowNavigation, openedByFlow } from "@/site/router"
 import { StageResult } from "@/site/stage-result"
+import { CodeTab, PropsSection } from "@/site/component-docs"
 import { setTheme, useTheme } from "@/site/theme"
 import { cn } from "@/lib/utils"
 import { installCommand, REPO_URL, type Entry } from "@/catalog"
@@ -19,6 +20,8 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
   const queryClient = useQueryClient()
   const theme = useTheme()
   const [variantId, setVariantId] = useState(entry.variants[0]?.id ?? "")
+  // The stage shows the live component or the files shadcn installs for it.
+  const [view, setView] = useState<"preview" | "code">("preview")
   // Bumped to remount the stage, so a form starts empty after a switch.
   const [mount, setMount] = useState(0)
   const [ready, setReady] = useState(false)
@@ -101,25 +104,41 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
 
       <section aria-label="Live component" className="min-w-0 overflow-hidden rounded-lg border">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-2 py-1.5">
-          <div className="flex flex-wrap gap-1" role="tablist" aria-label="States">
-            {entry.variants.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                role="tab"
-                aria-selected={v.id === variant?.id}
-                onClick={() => setVariantId(v.id)}
-                className={cn(
-                  "h-7 rounded-md px-2.5 text-xs font-medium",
-                  v.id === variant?.id ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                )}
-              >
-                {v.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex rounded-md border p-0.5" role="tablist" aria-label="Stage">
+              {(["preview", "code"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === v}
+                  onClick={() => setView(v)}
+                  className={cn("h-6 rounded px-2.5 text-xs font-medium", view === v ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+                >
+                  {v === "preview" ? "Preview" : "Code"}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1" role="tablist" aria-label="States" hidden={view !== "preview"}>
+              {entry.variants.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={v.id === variant?.id}
+                  onClick={() => setVariantId(v.id)}
+                  className={cn(
+                    "h-7 rounded-md px-2.5 text-xs font-medium",
+                    v.id === variant?.id ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  )}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {hasMockControls(entry.mock) ? <MockSettingsMenu mock={entry.mock} onApply={restage} /> : null}
+            {hasMockControls(entry.mock) && view === "preview" ? <MockSettingsMenu mock={entry.mock} onApply={restage} /> : null}
             <button
               type="button"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -131,19 +150,27 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
             </button>
           </div>
         </div>
-        {entry.mock.sessions !== undefined && entry.mock.sessions.length > 0 ? <SessionBar choices={entry.mock.sessions} onApply={restage} /> : null}
-        {result !== null ? <StageResult href={result} onRunAgain={startVariant} /> : null}
-        <div
-          className={cn(
-            "flex min-h-80 justify-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:16px_16px] px-3 py-8 sm:px-6",
-            entry.width === "narrow" ? "items-start" : "items-stretch",
-          )}
-        >
-          <div className={cn("w-full min-w-0", entry.width === "narrow" ? "max-w-sm" : "max-w-4xl")} key={mount}>
-            {ready && variant !== undefined ? variant.render(query) : null}
-          </div>
+        {/* The preview stays mounted while the code shows, so a half-filled form survives a look at the code. */}
+        <div hidden={view !== "preview"}>
+          {entry.mock.sessions !== undefined && entry.mock.sessions.length > 0 ? <SessionBar choices={entry.mock.sessions} onApply={restage} /> : null}
+          {result !== null ? <StageResult href={result} onRunAgain={startVariant} /> : null}
+          <div
+            className={cn(
+              "flex min-h-80 justify-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:16px_16px] px-3 py-8 sm:px-6",
+              entry.width === "narrow" ? "items-start" : "items-stretch",
+            )}
+          >
+            <div className={cn("w-full min-w-0", entry.width === "narrow" ? "max-w-sm" : "max-w-4xl")} key={mount}>
+              {ready && variant !== undefined ? variant.render(query) : null}
+            </div>
         </div>
         <Outbox />
+        </div>
+        {view === "code" ? (
+          <Suspense fallback={<p className="px-3 py-8 text-center text-xs text-muted-foreground">Loading the code…</p>}>
+            <CodeTab name={entry.name} />
+          </Suspense>
+        ) : null}
       </section>
 
       <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2" aria-labelledby="install">
@@ -163,6 +190,10 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
         </h2>
         <CodeBlock code={entry.usage} title={`${entry.name}.tsx`} />
       </section>
+
+      <Suspense fallback={null}>
+        <PropsSection name={entry.name} />
+      </Suspense>
 
       <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2" aria-labelledby="try">
         <h2 id="try" className="text-sm font-semibold">

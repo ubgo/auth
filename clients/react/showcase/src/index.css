@@ -134,3 +134,12 @@
     @apply font-sans;
     }
 }
+
+/* Highlighted code from scripts/build-docs.mjs: each token carries its light
+   and dark colour as variables; one with neither keeps the text colour. */
+.code-token {
+  color: var(--code-light, inherit);
+}
+.dark .code-token {
+  color: var(--code-dark, inherit);
+}
