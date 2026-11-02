@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim):\n  Read /space/tmp/auth-briefs/featref.md and do it without asking me anything.\n\nContext:\n  CI task check on main failed: integration/cmd/featref TestRun_CommittedPageIsCurrent: docs/reference/features.md is stale; run task docs:features. Also check docs:api, integration/cmd tests, docs:wrap, ds check. Report /space/tmp/auth-briefs/featref-REPORT.md.\n\nAcceptance:\n  Generated files current, checks green, pushed to main, report written.",
+  "commitment": "accepted",
+  "completed_at": "2026-11-02T03:23:06.192817209Z",
+  "created_at": "2026-11-02T03:22:20.993151307Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a19a4785c17255b112f2729ac191ea",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-11-02T03:22:23.645131620Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "CI fix: regenerate stale docs/reference/features.md",
+  "updated_at": "2026-11-02T03:23:06.192818528Z"
+}

@@ -433,6 +433,7 @@ var areas = []area{
 		Intro: "`@ubgo/auth-react` (provider, hooks, localization, the customisation contract) and the copy-in components of its shadcn registry.",
 		Rows: []row{
 			{Feature: "The hooks with your own markup: no registry components, no router", Package: "clients/react", Guide: "client/react-hooks.md|When you want the hooks", Example: "react-headless", Uses: `<SignedOut>`},
+			{Feature: "The components on another backend: pure views (`SignInFormView`, ...), a translating `fetch`, an adapter client", Package: "clients/react", Guide: "client/custom-backend.md", Example: "custom-backend", Uses: `<SignInFormView`},
 			{Feature: "Provider for the client, router, paths and text (`AuthProvider`, `useAuth`)", Package: "clients/react", Guide: "client/react-hooks.md|Step 1", Example: "react-demo", Uses: `<AuthProvider`},
 			{Feature: "Client-side navigation and router links (`navigate`, `Link`)", Package: "clients/react", Guide: "client/react-routers.md|What the provider needs", Example: "react-demo", Uses: `Link=\{`},
 			{Feature: "Routers and server rendering: TanStack Router, React Router, Next.js App Router, no router", Package: "clients/react", Guide: "client/react-routers.md", Example: "nextjs-app", Uses: `serverUser\(`},

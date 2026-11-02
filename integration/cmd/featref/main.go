@@ -56,8 +56,13 @@ const pagePath = "docs/reference/features.md"
 // exampleRoots maps an example name that does not live under examples/ to its
 // folder; gqlgen's example is generated code inside its adapter module, and
 // the TypeScript client's are TypeScript beside its package (type-checked by
-// task ts:check, run by task ts:smoke).
-var exampleRoots = map[string]string{"gqlgen": "contrib/gqlgen/example", "ts-client": "clients/ts"}
+// task ts:check, run by task ts:smoke); the React kit's custom-backend
+// examples sit beside its package too (type-checked and run by task ui:check).
+var exampleRoots = map[string]string{
+	"gqlgen":         "contrib/gqlgen/example",
+	"ts-client":      "clients/ts",
+	"custom-backend": "clients/react/examples/custom-backend",
+}
 
 // exampleSources are the file suffixes an example's Uses expression is
 // matched against: Go, and TypeScript (with JSX for the React demo) for the

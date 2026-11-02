@@ -446,7 +446,7 @@ One namespace per plugin factory passed to `createAuthClient`. Each row links th
 | Feature | Package | Guide | Example |
 |---|---|---|---|
 | The hooks with your own markup: no registry components, no router | `clients/react` | [react-hooks › When you want the hooks](../client/react-hooks.md#when-you-want-the-hooks) | [react-headless](../../examples/react-headless/) |
-| The components on another backend: pure views (`SignInFormView`, ...), a translating `fetch`, an adapter client | `clients/react` | [custom-backend](../client/custom-backend.md) | [examples/custom-backend](../../clients/react/examples/custom-backend/) |
+| The components on another backend: pure views (`SignInFormView`, ...), a translating `fetch`, an adapter client | `clients/react` | [custom-backend](../client/custom-backend.md) | [custom-backend](../../clients/react/examples/custom-backend/) |
 | Provider for the client, router, paths and text (`AuthProvider`, `useAuth`) | `clients/react` | [react-hooks › Step 1](../client/react-hooks.md#step-1--mount-the-provider) | [react-demo](../../examples/react-demo/) |
 | Client-side navigation and router links (`navigate`, `Link`) | `clients/react` | [react-routers › What the provider needs](../client/react-routers.md#what-the-provider-needs) | [react-demo](../../examples/react-demo/) |
 | Routers and server rendering: TanStack Router, React Router, Next.js App Router, no router | `clients/react` | [react-routers](../client/react-routers.md) | [nextjs-app](../../examples/nextjs-app/) |
