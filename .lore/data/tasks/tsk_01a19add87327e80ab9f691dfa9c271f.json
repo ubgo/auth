@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim):\n  Read /space/tmp/auth-briefs/jsdoc.md and do it without asking me anything.\n\nContext:\n  Brief /space/tmp/auth-briefs/jsdoc.md: JSDoc on localization in clients/react/registry/auth/password-strength.tsx matching other components; check the view's text prop; sync demo copies; rebuild showcase (zero undocumented props); quick ui:check parts; restart preview; push. Report /space/tmp/auth-briefs/jsdoc-REPORT.md.\n\nAcceptance:\n  build-docs reports zero props without JSDoc; checks green; pushed.",
+  "commitment": "accepted",
+  "completed_at": "2026-11-02T06:07:12.357301298Z",
+  "created_at": "2026-11-02T06:06:11.762947176Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a19add87327e80ab9f691dfa9c271f",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "low",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "Add the missing JSDoc on PasswordStrength's localization prop",
+  "updated_at": "2026-11-02T06:07:12.357302700Z"
+}
