@@ -1,0 +1,11 @@
+{
+  "_table": "comments",
+  "_v": 1,
+  "body": "Landed: main at dec4d30 (react-split f488f4f + rebased mock-demo). e2e 63/63 steps after fixing the pnpm-exec SIGTERM hang in with-servers.sh; auth-view retyped registry:lib so the showcase catalog check passes. Report: /space/tmp/auth-briefs/land-REPORT.md",
+  "created_at": "2026-11-02T03:09:55.438854154Z",
+  "created_by_actor_id": null,
+  "entity_id": "tsk_01a19a2c5b00730f9efa451b62a55ecf",
+  "entity_table": "tasks",
+  "id": "cmt_01a19a3c256e7d8ca68efae22c5552d7",
+  "updated_at": "2026-11-02T03:09:55.438854361Z"
+}
