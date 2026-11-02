@@ -29,6 +29,7 @@ declare module "@ubgo/auth-react" {
 
 /** The view's props, with `localization` (merged over the app's AuthProvider text) in place of `text`. */
 export type PasswordStrengthProps = Omit<PasswordStrengthViewProps, "text"> & {
+  /** Text overrides for this one use, over the provider's and the English defaults. */
   readonly localization?: Partial<PasswordStrengthText>
 }
 
