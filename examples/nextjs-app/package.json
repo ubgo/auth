@@ -13,7 +13,7 @@
     "@tanstack/react-query": "5.104.1",
     "@ubgo/auth-client": "link:../../clients/ts",
     "@ubgo/auth-react": "link:../../clients/react",
-    "next": "16.4.0",
+    "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

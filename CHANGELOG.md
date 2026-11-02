@@ -12,6 +12,8 @@ Everything below is unreleased; the dated sections record the order the work lan
 
 ### Fixed
 
+- Examples: `examples/nextjs-app` moves from Next.js 16.4.0 to 16.4.3, the current release; 16.4.0 is inside the published range of three Next.js advisories (`>=16.0.0 <=16.4.0`: two rated critical, one high), and its `next build` stopped to say so.
+- Examples: the throwaway-server scripts (`with-servers.sh` of the React demo, react-headless, react-router-app and nextjs-app, and `demo.sh`) start Vite and `next start` from the package's own `node_modules/.bin` rather than through `pnpm exec`, whose shim swallowed the stop signal; `task ui:e2e` no longer hangs after its first script.
 - React kit: `AuthProvider` with no `QueryClientProvider` above it now provides its private cache to React Query too, so a component's mutation no longer throws "No QueryClient set" on its first call; the contract always said the provider falls back to a private cache.
 
 ### Changed

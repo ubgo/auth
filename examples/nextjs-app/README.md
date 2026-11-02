@@ -1,6 +1,6 @@
 # The React kit with the Next.js App Router
 
-A Next.js 16.4.0 App Router app that wires `@ubgo/auth-react` to Next: the provider lives in a client component mounted from the root layout, its `navigate` is `router.push` and its `Link` is `next/link`. `/auth` is rewritten to the Go server, so the browser sees one origin. It also shows what server rendering does with the session: the kit's hooks never read it on the server, so a page that must be protected before it is sent asks the Go server itself, with the browser's cookie. The guide is [docs/client/react-routers.md](../../docs/client/react-routers.md#nextjs-app-router).
+A Next.js 16.4.3 App Router app that wires `@ubgo/auth-react` to Next: the provider lives in a client component mounted from the root layout, its `navigate` is `router.push` and its `Link` is `next/link`. `/auth` is rewritten to the Go server, so the browser sees one origin. It also shows what server rendering does with the session: the kit's hooks never read it on the server, so a page that must be protected before it is sent asks the Go server itself, with the browser's cookie. The guide is [docs/client/react-routers.md](../../docs/client/react-routers.md#nextjs-app-router).
 
 | What | Where |
 |---|---|
