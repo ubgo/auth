@@ -79,6 +79,36 @@ export function Link({ href, className, children, ...rest }: LinkProps) {
   )
 }
 
+/** Receives a component's navigation instead of the router, while a stage holds it. */
+type FlowInterceptor = (href: string) => void
+
+/** The stage currently holding components' navigations, if any. */
+let flowInterceptor: FlowInterceptor | null = null
+
+/**
+ * Hands every component navigation (AuthProvider's navigate) to receive
+ * instead of the router, until the returned function is called. A component
+ * page holds it so a component that navigates after success (sign-in, a
+ * magic link, a confirmed email change) shows the result on its own page
+ * rather than moving the visitor off it. Links the visitor clicks are not
+ * component navigations and still navigate.
+ */
+export function interceptFlowNavigation(receive: FlowInterceptor): () => void {
+  flowInterceptor = receive
+  return () => {
+    if (flowInterceptor === receive) flowInterceptor = null
+  }
+}
+
+/**
+ * A navigation a component made: given to the stage holding it, or else
+ * followed, and the page it opens keeps the session the flow left.
+ */
+export function flowNavigate(href: string): void {
+  if (flowInterceptor !== null) flowInterceptor(href)
+  else navigate(href, { flow: true })
+}
+
 /** Whether the current history entry was opened by a component's flow. */
 export function openedByFlow(): boolean {
   const entry: unknown = window.history.state

@@ -134,9 +134,9 @@ export const CATALOG: readonly Entry[] = [
       { id: "pending", label: "Slow network", prepare: as("signed-out", { slow: true }), render: () => <SignInForm headingLevel={2} autoFocus={false} /> },
     ],
     tryThis: [
-      "Sign in as ada@example.com with the demo password: you land on account settings.",
+      "Sign in as ada@example.com with the demo password: the page says where your app would go next, and “Go there” opens account settings.",
       "Type a wrong password: the server's password.invalid_credentials message shows above the form.",
-      "Sign in as grace@example.com: her account has an authenticator app, so the two-factor step opens (code 123456).",
+      "Sign in as grace@example.com: her account has an authenticator app, so the next stop is the two-factor step (“Go there”, then code 123456).",
       "Pick “Slow network” to see the pending button, or press a passkey or OAuth button to see what the mock answers.",
     ],
     usage: `import { SignInForm } from "@/components/auth/sign-in-form"
@@ -197,7 +197,7 @@ export function SignUpPage() {
       { id: "valid", label: "Valid link", prepare: as("signed-out"), render: () => <MagicLinkCallback headingLevel={2} token={DEMO_TOKEN} redirectTo="/user-button" /> },
       { id: "expired", label: "Expired link", prepare: as("signed-out"), render: () => <MagicLinkCallback headingLevel={2} token={EXPIRED_TOKEN} /> },
     ],
-    tryThis: ["“Valid link” signs Ada in and moves on to the user button page.", "“Expired link” shows the auth.token_invalid state with a way back to sign in."],
+    tryThis: ["“Valid link” signs Ada in; the page says your app would go to the user button page, “Go there” opens it, and “Run again” uses the link again.", "“Expired link” shows the auth.token_invalid state with a way back to sign in."],
     usage: `import { MagicLinkCallback } from "@/components/auth/magic-link-callback"
 
 // Route: /magic-link?token=… (the token is read from the URL)
@@ -276,7 +276,7 @@ export function VerifyEmailPage() {
       { id: "eight", label: "Eight digits", prepare: as("grace-pending"), render: () => <TwoFactorChallenge headingLevel={2} digits={8} autoFocus={false} autoSubmit={false} /> },
       { id: "expired", label: "Session expired", prepare: as("signed-out"), render: () => <TwoFactorChallenge headingLevel={2} autoFocus={false} /> },
     ],
-    tryThis: ["Type 123456: Grace's sign-in finishes and account settings open.", "Type any other code to see twofactor.code_invalid under the field.", "Switch to a recovery code and use ABCD-EFGH-IJKL."],
+    tryThis: ["Type 123456: Grace's sign-in finishes, and the page says your app would open account settings.", "Type any other code to see twofactor.code_invalid under the field.", "Switch to a recovery code and use ABCD-EFGH-IJKL."],
     usage: `import { TwoFactorChallenge } from "@/components/auth/two-factor-challenge"
 
 // The sign-in form navigates here when the account has a second factor.
@@ -358,7 +358,7 @@ export function SetupTwoFactorPage() {
       { id: "with-name", label: "With name", prepare: as("ada"), render: () => <UserButton showName accountHref="/account-settings" /> },
       { id: "signed-out", label: "Signed out", prepare: as("signed-out"), render: () => <UserButton /> },
     ],
-    tryThis: ["Open the menu and sign out: you land on the sign-in form.", "“Signed out” shows the sign-in button instead."],
+    tryThis: ["Open the menu and sign out: the page says your app would go to the sign-in form.", "“Signed out” shows the sign-in button instead."],
     usage: `import { UserButton } from "@/components/auth/user-button"
 
 <header className="flex items-center justify-between">

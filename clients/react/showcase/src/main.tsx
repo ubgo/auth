@@ -9,7 +9,7 @@ import { entryNamed } from "@/catalog"
 import { ComponentPage } from "@/pages/component-page"
 import { HomePage } from "@/pages/home"
 import { OAuthProviderPage } from "@/pages/oauth-provider"
-import { Link, navigate, useLocation } from "@/site/router"
+import { flowNavigate, Link, useLocation } from "@/site/router"
 import { Shell } from "@/site/shell"
 
 // The pages the components send people to, mapped onto this site's pages.
@@ -25,11 +25,6 @@ const PATHS: AuthPaths = {
 }
 
 const OAUTH_START = /^\/oauth\/([^/]+)\/start$/
-
-/** A navigation a component made: the next page keeps the session it left. */
-function flowNavigate(href: string): void {
-  navigate(href, { flow: true })
-}
 
 function FlowLink(props: AuthLinkProps) {
   return <Link {...props} />

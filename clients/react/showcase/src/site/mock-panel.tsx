@@ -3,7 +3,6 @@
 // "Mock settings" menu for the switches that matter and the reset, and the
 // outbox of messages the mock pretended to send.
 
-import { useQueryClient } from "@tanstack/react-query"
 import { Mail, RotateCcw, SlidersHorizontal } from "lucide-react"
 import { useSyncExternalStore } from "react"
 import {
@@ -39,17 +38,11 @@ const SESSION_LABELS: Readonly<Record<MockSessionKind, string>> = {
 }
 
 /**
- * Applies a change to the mock, drops every cached answer and remounts the
- * stage (onChange), so the component reads the new state from a clean start.
+ * Applies a change to the mock behind a fresh stage: the page unmounts the
+ * component, applies the change, resets the cache and mounts it again, so it
+ * reads the new state from a clean start.
  */
-function useApply(onChange: () => void): (action: () => void) => Promise<void> {
-  const queryClient = useQueryClient()
-  return async (action) => {
-    action()
-    await queryClient.resetQueries()
-    onChange()
-  }
-}
+type ApplyToStage = (change: () => void) => void
 
 /** Whether a page shows any mock control at all. */
 export function hasMockControls(mock: MockControls): boolean {
@@ -61,9 +54,8 @@ export function hasMockControls(mock: MockControls): boolean {
  * button's tooltip, and the line after the row for the chosen one, says what
  * that session changes on this page.
  */
-export function SessionBar({ choices, onChange }: { choices: readonly SessionChoice[]; onChange: () => void }) {
+export function SessionBar({ choices, onApply }: { choices: readonly SessionChoice[]; onApply: ApplyToStage }) {
   useMockState()
-  const apply = useApply(onChange)
   const kind = sessionKind()
   const current = choices.find((c) => c.kind === kind)
   return (
@@ -76,7 +68,7 @@ export function SessionBar({ choices, onChange }: { choices: readonly SessionCho
             type="button"
             title={c.note}
             aria-pressed={kind === c.kind}
-            onClick={() => apply(() => setSession(c.kind))}
+            onClick={() => onApply(() => setSession(c.kind))}
             className={cn(
               "h-6 rounded-md border px-2 text-xs",
               kind === c.kind ? "border-foreground/30 bg-background font-medium text-foreground shadow-xs" : "border-transparent text-muted-foreground hover:bg-background",
@@ -94,9 +86,8 @@ export function SessionBar({ choices, onChange }: { choices: readonly SessionCho
 }
 
 /** The switches that matter on this page, and the reset, in one compact menu on the stage toolbar. */
-export function MockSettingsMenu({ mock, onChange }: { mock: MockControls; onChange: () => void }) {
+export function MockSettingsMenu({ mock, onApply }: { mock: MockControls; onApply: ApplyToStage }) {
   useMockState()
-  const apply = useApply(onChange)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground">
@@ -112,13 +103,13 @@ export function MockSettingsMenu({ mock, onChange }: { mock: MockControls; onCha
             </DropdownMenuCheckboxItem>
           ) : null}
           {mock.oauth === true ? (
-            <DropdownMenuCheckboxItem checked={state.settings.oauth} onCheckedChange={(oauth) => apply(() => setSettings({ oauth }))} closeOnClick={false}>
+            <DropdownMenuCheckboxItem checked={state.settings.oauth} onCheckedChange={(oauth) => onApply(() => setSettings({ oauth }))} closeOnClick={false}>
               OAuth providers
             </DropdownMenuCheckboxItem>
           ) : null}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => apply(reset)}>
+        <DropdownMenuItem onClick={() => onApply(reset)}>
           <RotateCcw aria-hidden />
           Reset mock
         </DropdownMenuItem>
