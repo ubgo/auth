@@ -4,7 +4,7 @@
   "assigned_to_actor_id": null,
   "body": "User asked (verbatim):\n  Read /space/tmp/auth-briefs/land.md and do it start to finish without asking me anything. Report in /space/tmp/auth-briefs/land-REPORT.md.\n\nContext:\n  Brief: /space/tmp/auth-briefs/land.md (e2e with LD_LIBRARY_PATH, secret scan, merge react-split + rebased mock-demo into main, push, restart auth-showcase preview, report).\n\nAcceptance:\n  e2e run, scan clean, main pushed with both branches, preview serving merged build, report written.",
   "commitment": "accepted",
-  "completed_at": null,
+  "completed_at": "2026-11-02T03:09:55.354768096Z",
   "created_at": "2026-11-02T02:52:40.576199087Z",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "deferred_until": null,
@@ -16,8 +16,8 @@
   "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
   "repo_id": null,
   "started_at": "2026-11-02T02:52:43.782043534Z",
-  "status": "in_progress",
+  "status": "done",
   "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
   "title": "Land react-split and mock-demo on main",
-  "updated_at": "2026-11-02T02:52:43.782044606Z"
+  "updated_at": "2026-11-02T03:09:55.354769056Z"
 }
