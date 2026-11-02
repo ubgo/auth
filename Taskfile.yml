@@ -495,7 +495,7 @@ tasks:
       - cd clients/react/showcase && pnpm install --frozen-lockfile
 
   showcase:build:
-    desc: Strict type-check of the showcase and the registry files it renders, the shadcn registry into public/r, and the static site into clients/react/showcase/dist (task showcase:install once first)
+    desc: The shadcn registry into public/r, each page's Code tab and Props tables (generated from that registry and the TypeScript sources), a strict type-check of the showcase and the registry files it renders, and the static site into clients/react/showcase/dist (task showcase:install once first)
     dir: clients/react/showcase
     cmds: ['pnpm run build']
 

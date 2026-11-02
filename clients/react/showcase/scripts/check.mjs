@@ -4,7 +4,8 @@
 // password, the two-factor step takes the demo code, a passkey button says
 // it is not available, the copy buttons copy, the theme toggle works, and
 // the mock controls show only what changes the page, and a component that
-// navigates after success stays on its page with a result line.
+// navigates after success stays on its page with a result line, and the
+// Code tab and Props tables come from the registry and its sources.
 // Screenshots go to SHOTS_DIR when it is set.
 //
 //   SHOWCASE_URL=http://127.0.0.1:4002/auth/ node scripts/check.mjs
@@ -184,6 +185,35 @@ await page.keyboard.press("Escape")
 await open("/account-settings")
 const sessionRow = page.getByRole("group", { name: "Pretend signed in as" })
 check((await sessionRow.getByRole("button").allInnerTexts()).join(", ") === "Ada (admin), Grace (has 2FA), Nobody", "account settings offers Ada, Grace and Nobody")
+
+// Code tab and Props: the files shadcn installs, equal to the built
+// registry item, each with its own copy button; the props tables of the
+// wired component and its view; no sideways page scroll on a phone.
+const builtItem = JSON.parse(readFileSync(resolve(import.meta.dirname, "../public/r/verify-email.json"), "utf8"))
+const wiredFile = builtItem.files.find((f) => f.target === "components/auth/verify-email.tsx")
+await open("/verify-email")
+await page.getByRole("tablist", { name: "Stage" }).getByRole("tab", { name: "Code" }).click()
+const codeBox = page.locator('pre[aria-label="components/auth/verify-email.tsx"]')
+await codeBox.waitFor({ timeout: 5000 })
+const shown = await codeBox.innerText()
+check(wiredFile !== undefined && shown.replace(/\n+$/, "") === wiredFile.content.replace(/\n+$/, ""), "the Code tab shows verify-email.tsx exactly as the registry item installs it")
+const fileTabs = await page.getByRole("tablist", { name: "Files" }).getByRole("tab").allInnerTexts()
+check(fileTabs.join(", ") === "verify-email.tsx, verify-email-view.tsx, auth-view.tsx", `the Code tab lists the installed files (${fileTabs.join(", ")})`)
+await page.getByRole("button", { name: "Copy components/auth/verify-email.tsx" }).click()
+const copiedFile = await page.evaluate(() => navigator.clipboard.readText())
+check(wiredFile !== undefined && copiedFile === wiredFile.content, "the file's copy button copies verify-email.tsx")
+await shot("code-verify-email-light")
+for (const table of ["VerifyEmail props", "VerifyEmailView props"]) {
+  const rows = await page.getByRole("table", { name: table }).locator("tbody tr").count()
+  check(rows > 0, `the ${table} table has rows (${rows})`)
+}
+await page.getByRole("heading", { name: "Props" }).scrollIntoViewIfNeeded()
+await shot("code-verify-email-props")
+await page.setViewportSize({ width: PHONE_WIDTH, height: 900 })
+await page.waitForTimeout(300)
+const codeOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+check(codeOverflow <= 0, `verify email with Code open fits ${PHONE_WIDTH}px (overflow ${codeOverflow}px)`)
+await page.setViewportSize({ width: 1280, height: 900 })
 
 // The registry the install lines point at is served.
 const res = await page.request.get(`${BASE}r/sign-in-form.json`)
