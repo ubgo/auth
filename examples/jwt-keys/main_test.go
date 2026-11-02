@@ -23,9 +23,17 @@ const (
 	testPassword = "correct horse battery staple"
 )
 
-// beforeMidnight is a moment two minutes before a rotation boundary: periods
-// are counted from the Unix epoch, so a 24-hour period ends at 00:00 UTC.
-var beforeMidnight = time.Date(2026, 10, 9, 23, 58, 0, 0, time.UTC)
+// beforeMidnight returns a moment two minutes before the next rotation
+// boundary: periods are counted from the Unix epoch, so a 24-hour period
+// ends at 00:00 UTC. It is the next boundary after the real time, not a fixed
+// date, because the browser's cookie jar judges a cookie's Expires by the
+// real clock: a clock pinned to a calendar date sends cookies that are
+// already expired once that date has passed.
+func beforeMidnight() time.Time {
+	period := int64(rotationInterval / time.Second)
+	next := (time.Now().Unix()/period + 1) * period
+	return time.Unix(next, 0).UTC().Add(-2 * time.Minute)
+}
 
 // TestRotation_TheReportServiceFollowsANewKey: a token signed just before
 // midnight and one signed just after carry different key ids. The report
@@ -33,7 +41,7 @@ var beforeMidnight = time.Date(2026, 10, 9, 23, 58, 0, 0, time.UTC)
 // fetches again, and both tokens verify, because the old key stays published
 // for the grace period.
 func TestRotation_TheReportServiceFollowsANewKey(t *testing.T) {
-	clock := &fakeClock{now: beforeMidnight}
+	clock := &fakeClock{now: beforeMidnight()}
 	app := newTestApp(t, testSeed(), testRSAKey(t), clock)
 	b := newBrowser(t, newHandler(app.a))
 	post[password.SignInResult](t, b, "/auth/password/sign-up", fields{"identifier": testEmail, "password": testPassword}, http.StatusOK)
@@ -63,7 +71,7 @@ func TestRotation_TheReportServiceFollowsANewKey(t *testing.T) {
 // seed, on two databases, publish the same signing key, so a token from one
 // verifies at a service that fetched the other's key set.
 func TestRotation_EveryInstanceDerivesTheSameKey(t *testing.T) {
-	clock := &fakeClock{now: beforeMidnight}
+	clock := &fakeClock{now: beforeMidnight()}
 	one := newTestApp(t, testSeed(), testRSAKey(t), clock)
 	two := newTestApp(t, testSeed(), testRSAKey(t), clock)
 	if a, b := one.jw.PublicKeys().Keys[0].KeyID, two.jw.PublicKeys().Keys[0].KeyID; a != b {
@@ -83,7 +91,7 @@ func TestRotation_EveryInstanceDerivesTheSameKey(t *testing.T) {
 // TestJobToken_RS256WithoutASession: the job's token is signed with the RSA
 // key, names no session, carries its role, and is refused once it expires.
 func TestJobToken_RS256WithoutASession(t *testing.T) {
-	clock := &fakeClock{now: beforeMidnight}
+	clock := &fakeClock{now: beforeMidnight()}
 	app := newTestApp(t, testSeed(), testRSAKey(t), clock)
 	b := newBrowser(t, newHandler(app.a))
 	v, _ := newVerifier(b.srv.URL+jwksPath, baseURL, b.srv.Client(), clock.Now)

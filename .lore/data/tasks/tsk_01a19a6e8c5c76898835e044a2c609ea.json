@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim):\n  Read /space/tmp/auth-briefs/cijar.md and do it without asking me anything.\n\nContext:\n  CI run https://github.com/ubgo/auth/actions/runs/41382945380, job task check, step contrib:run fails in examples/account-settings and examples/jwt-keys (401 auth.signed_out; account cookies = 0). Likely the Secure/__Host- cookie dropped by net/http/cookiejar over http on httptest under CI's Go version. Fix the class across examples. Report /space/tmp/auth-briefs/cijar-REPORT.md.\n\nAcceptance:\n  examples go vet + go test pass under CI's Go and the server's Go; pushed to main.",
+  "commitment": "accepted",
+  "completed_at": "2026-11-02T04:09:16.145011528Z",
+  "created_at": "2026-11-02T04:04:58.588423854Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a19a6e8c5c76898835e044a2c609ea",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "high",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": "2026-11-02T04:05:01.774706874Z",
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "CI fix: example tests lose the session cookie on GitHub's runner",
+  "updated_at": "2026-11-02T04:09:16.145013053Z"
+}

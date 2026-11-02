@@ -36,8 +36,6 @@ const (
 	newTimezone = "Asia/Kolkata"
 	// paidPlan is the plan the app sets from its own code.
 	paidPlan = "pro"
-	// clockStart is where the test clock starts; any fixed time works.
-	clockStart = "2026-10-09T10:00:00Z"
 	// staleBy is how far past freshWindow the clock is moved so the sign-in
 	// is no longer recent enough to delete.
 	staleBy = time.Minute
@@ -292,11 +290,12 @@ func newTestAuth(t *testing.T, deletion auth.AccountDeletion) (*auth.Auth, *mail
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
-	start, err := time.Parse(time.RFC3339, clockStart)
-	if err != nil {
-		t.Fatal(err)
-	}
-	clk := &testClock{t: start}
+	// The test clock starts at the real time, not a fixed date: the browser's
+	// cookie jar judges a cookie's Expires by the real clock, so a clock
+	// pinned to a calendar date sends cookies that are already expired once
+	// that date plus the session lifetime has passed, and every signed-in
+	// request then answers auth.signed_out.
+	clk := &testClock{t: time.Now().UTC().Truncate(time.Second)}
 	box := &mailbox{}
 	a, err := newAuth(db, box, deletion, auth.WithClock(clk.now))
 	if err != nil {
