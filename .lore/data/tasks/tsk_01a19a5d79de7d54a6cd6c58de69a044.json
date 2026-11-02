@@ -1,0 +1,23 @@
+{
+  "_table": "tasks",
+  "_v": 1,
+  "assigned_to_actor_id": null,
+  "body": "User asked (verbatim):\n  Read /space/tmp/auth-briefs/mockbar.md and do it without asking me anything.\nOwner, verbatim in the brief: \"yes do not conrsue anywone\" (= do not confuse anyone).\n\nContext:\n  Brief /space/tmp/auth-briefs/mockbar.md: per-page mock controls in clients/react/showcase, plain session labels with tooltips, Mock settings menu, banner one line. Report /space/tmp/auth-briefs/mockbar-REPORT.md.\n\nAcceptance:\n  Build + check.mjs green, screenshots looked at, preview restarted, pushed to main.",
+  "commitment": "accepted",
+  "completed_at": "2026-11-02T04:02:24.670200395Z",
+  "created_at": "2026-11-02T03:46:19.742870431Z",
+  "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
+  "deferred_until": null,
+  "due_at": null,
+  "id": "tsk_01a19a5d79de7d54a6cd6c58de69a044",
+  "mission_id": null,
+  "plan_id": null,
+  "priority": "medium",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "repo_id": null,
+  "started_at": null,
+  "status": "done",
+  "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
+  "title": "Showcase: show only the mock controls that affect each page",
+  "updated_at": "2026-11-02T04:02:24.670201521Z"
+}

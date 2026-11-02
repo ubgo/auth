@@ -44,9 +44,9 @@ function MockBanner() {
   return (
     <div role="note" className="border-b bg-amber-50 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-1.5 text-xs">
-        <span className="font-medium">Mock: no server.</span>
+        <span className="font-medium">Everything here is fake data, kept in your browser: no server, nothing is sent.</span>
         <span>
-          Every call is answered in your browser. Sign in with <code className="font-mono">{DEMO_EMAIL}</code> or <code className="font-mono">{DEMO_2FA_EMAIL}</code> (code{" "}
+          Sign in with <code className="font-mono">{DEMO_EMAIL}</code> or <code className="font-mono">{DEMO_2FA_EMAIL}</code> (code{" "}
           <code className="font-mono">{DEMO_CODE}</code>), password <code className="font-mono">{DEMO_PASSWORD}</code>
         </span>
         <CopyButton text={DEMO_PASSWORD} label="Copy demo password" className="border-amber-300 bg-transparent text-amber-950 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-100 dark:hover:bg-amber-900/50" />

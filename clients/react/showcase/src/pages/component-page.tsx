@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { ExternalLink, Moon, Sun } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { CommandLine, CodeBlock } from "@/site/code"
-import { MockPanel, Outbox } from "@/site/mock-panel"
+import { hasMockControls, MockSettingsMenu, Outbox, SessionBar } from "@/site/mock-panel"
 import { openedByFlow } from "@/site/router"
 import { setTheme, useTheme } from "@/site/theme"
 import { cn } from "@/lib/utils"
@@ -70,17 +70,20 @@ export function ComponentPage({ entry, query }: { entry: Entry; query: URLSearch
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-            className="inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            {theme === "dark" ? <Sun className="size-3.5" aria-hidden /> : <Moon className="size-3.5" aria-hidden />}
-            {theme === "dark" ? "Light" : "Dark"}
-          </button>
+          <div className="flex items-center gap-1.5">
+            {hasMockControls(entry.mock) ? <MockSettingsMenu mock={entry.mock} onChange={() => setMount((n) => n + 1)} /> : null}
+            <button
+              type="button"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              {theme === "dark" ? <Sun className="size-3.5" aria-hidden /> : <Moon className="size-3.5" aria-hidden />}
+              {theme === "dark" ? "Light" : "Dark"}
+            </button>
+          </div>
         </div>
-        <MockPanel onChange={() => setMount((n) => n + 1)} />
+        {entry.mock.sessions !== undefined && entry.mock.sessions.length > 0 ? <SessionBar choices={entry.mock.sessions} onChange={() => setMount((n) => n + 1)} /> : null}
         <div
           className={cn(
             "flex min-h-80 justify-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:16px_16px] px-3 py-8 sm:px-6",

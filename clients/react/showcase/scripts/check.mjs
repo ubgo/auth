@@ -2,7 +2,8 @@
 // every page renders with no console error and fits a 390px phone, the
 // sign-in flow works with the demo credentials and fails with a wrong
 // password, the two-factor step takes the demo code, a passkey button says
-// it is not available, the copy buttons copy, and the theme toggle works.
+// it is not available, the copy buttons copy, the theme toggle works, and
+// the mock controls show only what changes the page.
 // Screenshots go to SHOTS_DIR when it is set.
 //
 //   SHOWCASE_URL=http://127.0.0.1:4002/auth/ node scripts/check.mjs
@@ -135,6 +136,20 @@ await open("/two-factor-challenge")
 await shot("two-factor-dark")
 await page.getByRole("button", { name: "Switch to light theme" }).first().click()
 check(await page.evaluate(() => !document.documentElement.classList.contains("dark")), "the theme toggle turns dark mode off")
+
+// The mock controls: only those that change the page. Verify email has no
+// session row; sign in's menu holds its two switches and the reset; a page
+// the session changes labels the row plainly.
+await open("/verify-email")
+check((await page.getByRole("group", { name: "Pretend signed in as" }).count()) === 0, "verify email shows no session row")
+await open("/sign-in-form")
+await page.getByRole("button", { name: "Mock settings" }).click()
+const menuItems = [...(await page.getByRole("menuitemcheckbox").allInnerTexts()), ...(await page.getByRole("menuitem").allInnerTexts())]
+check(menuItems.join(", ") === "Slow network, OAuth providers, Reset mock", `sign in's Mock settings menu lists its switches and the reset (${menuItems.join(", ")})`)
+await page.keyboard.press("Escape")
+await open("/account-settings")
+const sessionRow = page.getByRole("group", { name: "Pretend signed in as" })
+check((await sessionRow.getByRole("button").allInnerTexts()).join(", ") === "Ada (admin), Grace (has 2FA), Nobody", "account settings offers Ada, Grace and Nobody")
 
 // The registry the install lines point at is served.
 const res = await page.request.get(`${BASE}r/sign-in-form.json`)
