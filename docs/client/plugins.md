@@ -41,16 +41,17 @@ flowchart LR
 Nothing reaches the network: the code does not compile. The repository keeps a file of mistakes that must not compile, and `task ts:typecheck` fails unless each one fails with exactly the error it is marked with:
 
 <!-- ds:block id=typecheck-mistakes-6qw2kx9m -->
-**mistakes** · [`clients/ts/test/typecheck/bad.ts:17-33`](../../clients/ts/test/typecheck/bad.ts#L17-L33)
+**mistakes** · [`clients/ts/test/typecheck/bad.ts:17-34`](../../clients/ts/test/typecheck/bad.ts#L17-L34)
 
 ```typescript
 export async function mistakes(): Promise<void> {
   // A plugin that was not enabled has no namespace.
   await client.twofactor.verify({ code: "123456" }); // expect TS2339
-  // The required input left out. (An incomplete object literal is not used:
-  // tsc 5 reports it as TS2345 and tsc 7 as TS2741, so the marked code would
-  // depend on the compiler version; a missing argument is TS2554 in both.)
+  // The required input left out.
   await client.password.signIn(); // expect TS2554
+  // A required field left out of the input. tsc 5 reports it as TS2345 and
+  // tsc 7 as TS2741, so this one line accepts either code.
+  await client.password.signIn({ identifier: "a@example.com" }); // expect TS2741|TS2345
   // A field of the wrong type.
   await client.password.signIn({ identifier: 42, password: "x" }); // expect TS2322
   // A field the server would refuse as unknown.
@@ -62,22 +63,23 @@ export async function mistakes(): Promise<void> {
   console.log(r.data.user.id); // expect TS18047
 }
 ```
-<!-- /ds:block hash=3f7e13 -->
+<!-- /ds:block hash=8f8488 -->
 
 What `tsc` prints for it today (a real run of `tsc -p clients/ts/test/typecheck` with TypeScript 7.0.2, the version CI pins, cut to the lines of this block):
 
 ```text
 bad.ts(19,16): error TS2339: Property 'twofactor' does not exist on type 'AuthClient<CoreOps, readonly [Plugin<"password", PasswordOps, NoActions>], unknown>'.
-bad.ts(23,25): error TS2554: Expected 1-2 arguments, but got 0.
-bad.ts(25,34): error TS2322: Type 'number' is not assignable to type 'string'.
-bad.ts(27,78): error TS2353: Object literal may only specify known properties, and 'keepMeIn' does not exist in type 'PasswordSignInRequest'.
-bad.ts(30,7): error TS2367: This comparison appears to be unintentional because the types '"admin.admin_target" | "admin.bad_filter" | "admin.bad_filter_field" | "admin.bad_filter_operator" | "admin.bad_filter_value" | "admin.bad_role" | "admin.bad_search_field" | ... 428 more ... | undefined' and '"password.invalid_credential"' have no overlap.
-bad.ts(32,15): error TS18047: 'r.data' is possibly 'null'.
+bad.ts(21,25): error TS2554: Expected 1-2 arguments, but got 0.
+bad.ts(24,32): error TS2741: Property 'password' is missing in type '{ identifier: string; }' but required in type 'PasswordSignInRequest'.
+bad.ts(26,34): error TS2322: Type 'number' is not assignable to type 'string'.
+bad.ts(28,78): error TS2353: Object literal may only specify known properties, and 'keepMeIn' does not exist in type 'PasswordSignInRequest'.
+bad.ts(31,7): error TS2367: This comparison appears to be unintentional because the types '"admin.admin_target" | "admin.bad_filter" | "admin.bad_filter_field" | "admin.bad_filter_operator" | "admin.bad_filter_value" | "admin.bad_role" | "admin.bad_search_field" | ... 428 more ... | undefined' and '"password.invalid_credential"' have no overlap.
+bad.ts(33,15): error TS18047: 'r.data' is possibly 'null'.
 ```
 
 The first line is the one this step is about: the client's type names the plugins it has (`readonly [Plugin<"password", PasswordOps, NoActions>]`), and `twofactor` is not among them. In the editor the same thing shows as a red underline on `twofactor`, and autocomplete after `client.` lists only the core's methods and `password`. Add `twofactor()` to `plugins` and the error disappears.
 
-The other lines are the rest of what the types catch: the required input left out, a field of the wrong type, a field the server would refuse as unknown, a misspelt error code, and reading `data` before checking `error`.
+The other lines are the rest of what the types catch: the required input left out, a required field left out of it, a field of the wrong type, a field the server would refuse as unknown, a misspelt error code, and reading `data` before checking `error`.
 
 Passing the same plugin twice, or a plugin whose name is a core method, throws when the client is created (`auth client: "x" is given twice, or is also a core method`), because the namespaces would overwrite each other.
 
@@ -292,10 +294,10 @@ task ts:typecheck
 ```
 
 ```text
-ok: tsc rejected all 9 deliberately-wrong lines, each with its marked error
+ok: tsc rejected all 10 deliberately-wrong lines, each with its marked error
 ```
 
-The task fails if `bad.ts` compiles, if any marked line fails with a different error, or if a line fails that is not marked, so a change to the generator that loosens a type breaks `task check`. The verbatim compiler output for each line is in Step 2. To see Step 6 compile with every plugin enabled, run `task ts:check`; it type-checks `plugins.ts` with the rest of the examples.
+The task fails if `bad.ts` compiles, if any marked line fails with a different error, or if a line fails that is not marked (the missing-field line is marked `expect TS2741|TS2345` and accepts either, because TypeScript 5 reports that mistake as TS2345 and TypeScript 7 as TS2741), so a change to the generator that loosens a type breaks `task check`. The verbatim compiler output for each line is in Step 2. To see Step 6 compile with every plugin enabled, run `task ts:check`; it type-checks `plugins.ts` with the rest of the examples.
 
 Then open the [TypeScript client reference](../reference/ts-client.md): its first table lists every factory with its namespace, method count and plugin guide, and each section below lists the methods with their routes and types. It is generated from the same operation list as `client.ts` by `task docs:api`, and `task check` fails when it is stale, so it cannot disagree with the client.
 

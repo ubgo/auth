@@ -124,8 +124,10 @@ tasks:
     desc: Prove the typed client rejects wrong code (clients/ts/test/typecheck/bad.ts MUST fail to compile, each marked line with its marked error and no other)
     dir: clients/ts/test/typecheck
     vars:
-      # One per `expect TSnnnn` line in bad.ts.
-      TS_TYPECHECK_EXPECTED: 9
+      # One per `expect TSnnnn` line in bad.ts. A line marked
+      # `expect TSaaaa|TSbbbb` accepts either code: only the missing-field
+      # line uses it, because tsc 5 and tsc 7 report that mistake differently.
+      TS_TYPECHECK_EXPECTED: 10
     cmds:
       - |
         out=$(tsc -p . 2>&1) && { echo "FAIL: bad.ts compiled, so the client's types are not guarding"; exit 1; }
@@ -140,7 +142,8 @@ tasks:
         echo "$errs" | while IFS= read -r e; do
           line=$(echo "$e" | sed -E 's/^bad\.ts\(([0-9]+),.*/\1/')
           code=$(echo "$e" | sed -E 's/.*error (TS[0-9]+)$/\1/')
-          sed -n "${line}p" bad.ts | grep -q "expect $code" || { echo "FAIL: bad.ts:$line failed with $code, not the error it is marked with"; exit 1; }
+          marks=$(sed -n "${line}p" bad.ts | sed -nE 's/.*expect (TS[0-9]+(\|TS[0-9]+)*).*/\1/p')
+          echo "|$marks|" | grep -qF "|$code|" || { echo "FAIL: bad.ts:$line failed with $code, not the error it is marked with"; exit 1; }
         done || exit 1
         echo "ok: tsc rejected all {{.TS_TYPECHECK_EXPECTED}} deliberately-wrong lines, each with its marked error"
 
