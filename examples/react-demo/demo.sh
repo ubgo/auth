@@ -31,7 +31,9 @@ mkdir -p "$DIR/.bin"
 (cd "$DIR/.." && go build -o "$DIR/.bin/react-demo" ./react-demo)
 (cd "$DIR" && DEMO_DB="$DIR/react-demo.db" PORT="$API_PORT" APP_URL="$URL" exec ./.bin/react-demo) &
 API_PID=$!
-(cd "$DIR/web" && DEMO_WEB_PORT="$WEB_PORT" DEMO_API_PORT="$API_PORT" exec pnpm exec vite --logLevel warn) &
+# The server's own bin, not pnpm exec: the pnpm shim catches SIGTERM without
+# passing it on, so cleanup's kill missed the server and its wait never ended.
+(cd "$DIR/web" && DEMO_WEB_PORT="$WEB_PORT" DEMO_API_PORT="$API_PORT" exec ./node_modules/.bin/vite --logLevel warn) &
 WEB_PID=$!
 
 i=0

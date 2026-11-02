@@ -39,7 +39,9 @@ wait_for() {
 (cd "$WEB_DIR" && NEXT_API_PORT="$API_PORT" pnpm exec next build >"$WORK/build.log" 2>&1) || { cat "$WORK/build.log" >&2; exit 1; }
 (cd "$WORK" && PORT="$API_PORT" APP_URL="http://localhost:$WEB_PORT" exec ./react-demo >"$WORK/api.log" 2>&1) &
 API_PID=$!
-(cd "$WEB_DIR" && NEXT_API_PORT="$API_PORT" exec pnpm exec next start --port "$WEB_PORT" >"$WORK/web.log" 2>&1) &
+# The server's own bin, not pnpm exec: the pnpm shim catches SIGTERM without
+# passing it on, so cleanup's kill missed the server and its wait never ended.
+(cd "$WEB_DIR" && NEXT_API_PORT="$API_PORT" exec ./node_modules/.bin/next start --port "$WEB_PORT" >"$WORK/web.log" 2>&1) &
 WEB_PID=$!
 
 wait_for "http://localhost:$API_PORT/auth/oauth/providers"
