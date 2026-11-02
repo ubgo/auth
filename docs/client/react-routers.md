@@ -196,7 +196,7 @@ That guard runs in the browser, so the page's code and data reach a signed-out v
 
 ## Next.js App Router
 
-Next.js renders client components on the server too, so the provider lives in a client component of its own (`app/providers.tsx`, whose first line is `"use client"`), mounted from the root layout. Navigation is `useRouter().push` from `next/navigation`, and `next/link` takes `href`, so the wrapper only narrows its props. This is [examples/nextjs-app](../../examples/nextjs-app/) (Next.js 16.4.0, Turbopack):
+Next.js renders client components on the server too, so the provider lives in a client component of its own (`app/providers.tsx`, whose first line is `"use client"`), mounted from the root layout. Navigation is `useRouter().push` from `next/navigation`, and `next/link` takes `href`, so the wrapper only narrows its props. This is [examples/nextjs-app](../../examples/nextjs-app/) (Next.js 16.4.3, Turbopack):
 
 <!-- ds:block id=nextjs-link-b84mtjxj -->
 **Link** · [`examples/nextjs-app/app/providers.tsx:16-22`](../../examples/nextjs-app/app/providers.tsx#L16-L22)
