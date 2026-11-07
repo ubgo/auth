@@ -17,8 +17,9 @@
 // pending approval, and a code is found by its hash alone. The approved row is
 // spent by a conditional delete, so two polls racing for one approval end with
 // one session. The error codes RFC 8628 names are answered in its own shape by
-// CodeHandler and TokenHandler; the default authhttp.Handler answers the same
-// operations in the library's error JSON.
+// CodeHandler and TokenHandler, which authhttp.Handler serves on /device/code
+// and /device/token (ServeOperation); the other routes answer the library's
+// error JSON.
 package deviceauth
 
 import (

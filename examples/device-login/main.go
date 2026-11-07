@@ -41,9 +41,10 @@ const (
 	dbFile = "device-login.db"
 	// authPrefix is where the library's routes are mounted.
 	authPrefix = "/auth"
-	// codePath and tokenPath are the two RFC 8628 endpoints the CLI calls,
-	// served by the plugin's RFC handlers so a stock client (this one,
-	// golang.org/x/oauth2, any other) reads the errors it expects.
+	// codePath and tokenPath are the two RFC 8628 endpoints the CLI calls.
+	// authhttp.Handler serves them with the plugin's RFC handlers, so a stock
+	// client (this one, golang.org/x/oauth2, any other) reads the errors it
+	// expects.
 	codePath  = authPrefix + "/device/code"
 	tokenPath = authPrefix + "/device/token"
 	// readHeaderTimeout bounds how long a client may take to send headers.
@@ -93,7 +94,7 @@ func main() {
 	}
 	defer db.Close()
 
-	a, dp, err := newAuth(db, logMailer{})
+	a, err := newAuth(db, logMailer{})
 	if err != nil {
 		log.Fatal(err) // a broken plugin combination fails here, not in production
 	}
@@ -103,7 +104,7 @@ func main() {
 	}
 
 	log.Printf("listening on %s", baseURL)
-	srv := &http.Server{Addr: addr, Handler: newHandler(a, dp), ReadHeaderTimeout: readHeaderTimeout}
+	srv := &http.Server{Addr: addr, Handler: newHandler(a), ReadHeaderTimeout: readHeaderTimeout}
 	log.Fatal(srv.ListenAndServe())
 }
 
@@ -114,7 +115,7 @@ func main() {
 // app with the same function.
 //
 //ds:def id=devicelogin-newauth-7q2mx9kd
-func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *deviceauth.Plugin, error) {
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, error) {
 	dp := deviceauth.New(
 		deviceauth.ValidateClient(func(_ context.Context, id string) (bool, error) { return id == clientID, nil }),
 	)
@@ -127,18 +128,17 @@ func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *deviceauth.Plugin, error)
 			dp,
 		),
 	)
-	return a, dp, err
+	return a, err
 }
 
-// newHandler mounts the two RFC endpoints, the library's other routes and
-// /me. The RFC handlers are registered on their exact paths, which win over
-// the /auth/ prefix.
+// newHandler mounts the library's routes and /me. The two RFC endpoints need
+// nothing of their own: authhttp.Handler answers /auth/device/code and
+// /auth/device/token with the plugin's RFC handlers (deviceauth's
+// ServeOperation).
 //
 //ds:def id=newhandler-47ztnykv owner=@khanakia stability=stable
-func newHandler(a *auth.Auth, dp *deviceauth.Plugin) http.Handler {
+func newHandler(a *auth.Auth) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("POST "+codePath, dp.CodeHandler())
-	mux.Handle("POST "+tokenPath, dp.TokenHandler())
 	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
 	mux.Handle("/me", authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(me))))
 	return mux

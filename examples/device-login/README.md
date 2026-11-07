@@ -78,15 +78,13 @@ curl -s -X POST localhost:8081/auth/device/code -d client_id=someone-else
 
 ## The code
 
-The web app accepts one client and mounts the plugin's RFC handlers on the two endpoints the CLI calls, so the errors come back in the RFC's shape (`authorization_pending`, `slow_down`, `access_denied`, `expired_token`) that any device client understands:
+The web app accepts one client and mounts `authhttp.Handler`, which answers the two endpoints the CLI calls with the plugin's RFC handlers, so the errors come back in the RFC's shape (`authorization_pending`, `slow_down`, `access_denied`, `expired_token`) that any device client understands, with no extra mounting and no `authhttp.AcceptForms`:
 
 ```go
 dp := deviceauth.New(
 	deviceauth.ValidateClient(func(_ context.Context, id string) (bool, error) { return id == clientID, nil }),
 )
 ...
-mux.Handle("POST "+codePath, dp.CodeHandler())
-mux.Handle("POST "+tokenPath, dp.TokenHandler())
 mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
 ```
 

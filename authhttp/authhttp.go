@@ -795,7 +795,11 @@ func Handler(a *auth.Auth, opts ...Option) http.Handler {
 		if routes[path] == nil {
 			routes[path] = map[string]http.Handler{}
 		}
-		routes[path][MethodOf(op.Info().Kind)] = serveOp(a, op, cfg)
+		h := pluginHandler(a, op, opts)
+		if h == nil {
+			h = serveOp(a, op, cfg)
+		}
+		routes[path][MethodOf(op.Info().Kind)] = h
 	}
 	if cfg.health {
 		routes[cfg.prefix+HealthPath] = map[string]http.Handler{http.MethodGet: http.HandlerFunc(serveHealth)}
@@ -852,14 +856,18 @@ var ErrMethodNotAllowed = auth.NewError("auth.method_not_allowed", http.StatusMe
 
 // OperationHandler serves one operation, for a router that registers each
 // route itself, as the gin and echo adapters do. It answers the same way as
-// Handler: same decoding, same effects, same error JSON.
+// Handler: same decoding, same effects, same error JSON, and the plugin's own
+// handler for an operation an OperationServer serves.
 func OperationHandler(a *auth.Auth, op auth.Operation, opts ...Option) http.Handler {
+	if h := pluginHandler(a, op, opts); h != nil {
+		return h
+	}
 	return serveOp(a, op, newConfig(opts))
 }
 
 func serveOp(a *auth.Auth, op auth.Operation, cfg config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := cfg.withErrorEncoder(withHTTPRequest(withMultiSession(a.WithRequest(r.Context(), requestOf(r, cfg)), a), r))
+		ctx := requestContext(a, r, cfg)
 		r = r.WithContext(ctx)
 		out, err := op.Invoke(ctx, func(dst any) error { return decode(r, op.Info(), dst, cfg) })
 		if err != nil {
@@ -1724,11 +1732,18 @@ func Begin(a *auth.Auth, r *http.Request, opts ...Option) (*http.Request, error)
 }
 
 func begin(a *auth.Auth, r *http.Request, cfg config) (*http.Request, error) {
-	ctx := cfg.withErrorEncoder(withHTTPRequest(withMultiSession(a.WithRequest(r.Context(), requestOf(r, cfg)), a), r))
+	ctx := requestContext(a, r, cfg)
 	if err := a.Resolve(ctx); err != nil {
 		return nil, err
 	}
 	return r.WithContext(ctx), nil
+}
+
+// requestContext is the context every request this package serves runs
+// with: the auth request, the multi-session flag, the raw request and the
+// error encoder.
+func requestContext(a *auth.Auth, r *http.Request, cfg config) context.Context {
+	return cfg.withErrorEncoder(withHTTPRequest(withMultiSession(a.WithRequest(r.Context(), requestOf(r, cfg)), a), r))
 }
 
 type httpRequestKey struct{}

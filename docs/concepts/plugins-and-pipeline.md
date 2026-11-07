@@ -127,7 +127,7 @@ func newHandler(a *auth.Auth) http.Handler {
 <!-- /ds:block hash=9e6587 -->
 
 <!-- ds:block id=authhttp-handler-3xrumz2e lines=1-18 -->
-**Handler** · [`authhttp/authhttp.go:789-839`](../../authhttp/authhttp.go#L789-L839)
+**Handler** · [`authhttp/authhttp.go:789-843`](../../authhttp/authhttp.go#L789-L843)
 
 ```go
 func Handler(a *auth.Auth, opts ...Option) http.Handler {
@@ -139,20 +139,20 @@ func Handler(a *auth.Auth, opts ...Option) http.Handler {
 		if routes[path] == nil {
 			routes[path] = map[string]http.Handler{}
 		}
-		routes[path][MethodOf(op.Info().Kind)] = serveOp(a, op, cfg)
+		h := pluginHandler(a, op, opts)
+		if h == nil {
+			h = serveOp(a, op, cfg)
+		}
+		routes[path][MethodOf(op.Info().Kind)] = h
 	}
 	if cfg.health {
 		routes[cfg.prefix+HealthPath] = map[string]http.Handler{http.MethodGet: http.HandlerFunc(serveHealth)}
 	}
-	if cfg.openapi != nil {
-		// Built once: the operation list is fixed for the life of the Auth.
-		routes[cfg.prefix+OpenAPIPath] = map[string]http.Handler{http.MethodGet: serveOpenAPI(marshalOpenAPI(buildOpenAPI(a, *cfg.openapi, cfg)))}
-	}
 ```
-<!-- /ds:block hash=8dfb61 -->
+<!-- /ds:block hash=f022d0 -->
 
 <!-- ds:block id=authhttp-middleware-j6kn46zp -->
-**Middleware** · [`authhttp/authhttp.go:1692-1717`](../../authhttp/authhttp.go#L1692-L1717)
+**Middleware** · [`authhttp/authhttp.go:1700-1725`](../../authhttp/authhttp.go#L1700-L1725)
 
 ```go
 func Middleware(a *auth.Auth, opts ...Option) func(http.Handler) http.Handler {
@@ -185,7 +185,7 @@ func Middleware(a *auth.Auth, opts ...Option) func(http.Handler) http.Handler {
 <!-- /ds:block hash=4e9b1e -->
 
 <!-- ds:block id=authhttp-requireuser-7tfua9sp -->
-**RequireUser** · [`authhttp/authhttp.go:1829-1844`](../../authhttp/authhttp.go#L1829-L1844)
+**RequireUser** · [`authhttp/authhttp.go:1844-1859`](../../authhttp/authhttp.go#L1844-L1859)
 
 ```go
 func RequireUser(next http.Handler) http.Handler {
