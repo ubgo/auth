@@ -58,7 +58,7 @@ Check: `auth.New` returns no error. With neither `Scopes` nor `WithPermissions` 
 A route for keys needs a valid credential and then its scope. `authhttp.RequireScope` does both: no credential (or a revoked, expired or unknown key) is `401 auth.signed_out`; a browser session or a key without the scope is `403 auth.missing_scope`.
 
 <!-- ds:block id=requirescope-4aee4fww -->
-**RequireScope** · [`authhttp/authhttp.go:1929-1939`](../../authhttp/authhttp.go#L1929-L1939)
+**RequireScope** · [`authhttp/authhttp.go:1944-1954`](../../authhttp/authhttp.go#L1944-L1954)
 
 ```go
 func RequireScope(scope string) func(http.Handler) http.Handler {
@@ -380,6 +380,12 @@ One key by id, for a detail page, is `GET /auth/apikey/get?id=key_…` (`Plugin.
 
 Check: `TestTokensAPIKey_GetAndListPaging`.
 
+### Another user's keys, from Go
+
+The routes act on the signed-in user's own keys and refuse a request signed with an API key, so a key cannot manage keys. When the app itself manages someone's keys (a parent account looking after its bot user's keys, or the app's own route answering a CLI that holds a key and lists its owner's keys), it calls the Go-only twins of `CreateFor`: [`ListFor(ctx, userID, ListRequest)`](ds:block?id=plugin-listfor-4kq8wm2v) with the same paging and sorting, [`GetFor(ctx, userID, id)`](ds:block?id=plugin-getfor-7n3xq5kd), [`UpdateFor(ctx, userID, UpdateRequest)`](ds:block?id=plugin-updatefor-2wm9kq4x) (rename, disable or resume, a new expiry, scopes, and metadata without `AllowMetadata`) and [`RevokeFor(ctx, userID, id)`](ds:block?id=plugin-revokefor-6q2nw8kt). No session or fresh sign-in is asked for, because the caller is the app; deciding who may manage whose keys is the app's job before the call. The ownership rules are the routes' own: another user's key is `ErrNotFound`, and for an organization-owned key `userID` is the member acting, whose role must grant the action. Update and revoke drop the key's cache entry, so the change holds on the next request.
+
+Check: `TestAPIKeyFor`.
+
 ## Step 6 — Rename, pause, re-expire, and label a key
 
 A key that is wrong in one detail no longer has to be revoked and made again. `POST /auth/apikey/update` renames it, gives it a new expiry (under the same `WithExpiry` rules as create), pauses and resumes it, and replaces its metadata. A paused key is refused exactly like an unknown one, so a script whose key was paused sees `401 auth.signed_out`, nothing more (unless the app opted into `apikey.DistinctErrors`, Step 9). Like create, update needs a fresh sign-in: resuming a key or extending its expiry hands out access that outlives the session.
@@ -566,7 +572,7 @@ Check: `TestLifecycle_TestKeysAreThrottled` and `TestLifecycle_ProvisionedKeyHas
 Not every key arrives in an `Authorization` header: a webhook signs its payload with one, a websocket message carries one, a CLI passes one as a flag. `Plugin.Verify(ctx, secret, scopes...)` checks such a key from Go, through the same resolution a bearer request gets, so the key's expiry, disabled flag, rate limit, quota and its owner's standing all apply and the use is counted:
 
 <!-- ds:block id=verification-k9zr4wtm -->
-**Verification** · [`plugin/apikey/apikey.go:1186-1194`](../../plugin/apikey/apikey.go#L1186-L1194)
+**Verification** · [`plugin/apikey/apikey.go:1248-1256`](../../plugin/apikey/apikey.go#L1248-L1256)
 
 ```go
 type Verification struct {

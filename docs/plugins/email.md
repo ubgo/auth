@@ -12,10 +12,10 @@ Use this plugin in almost every app: the address is how most users sign in and t
 
 ## Step 1 — Wire the plugin
 
-`email.New` takes options that say what an address may do. With none, an address is unique among verified rows and can be verified, but it neither signs in nor recovers: `Login()` and `Recover()` are the two you almost always want. `WithMailer` is required; you implement one method over SMTP, an API or a queue.
+`email.New` takes options that say what an address may do. With none, an address is unique among verified rows and can be verified, but it neither signs in nor recovers: `Login()` and `Recover()` are the two you almost always want. `WithMailer` is required; you implement one method over SMTP, an API or a queue. The exception is an app that only stores addresses it verified itself, such as the verified email of an OAuth sign-in: `email.NoMail()` needs no mailer, serves only `list`, `make-primary` and `remove`, never mails, and is refused beside any option that would (`Recover`, codes, `Welcome`, and the rest).
 
 <!-- ds:block id=mailer-2eb6h2qx -->
-**Mailer** · [`plugin/email/email.go:270-272`](../../plugin/email/email.go#L270-L272)
+**Mailer** · [`plugin/email/email.go:275-277`](../../plugin/email/email.go#L275-L277)
 
 ```go
 type Mailer interface {
@@ -25,7 +25,7 @@ type Mailer interface {
 <!-- /ds:block hash=33e86c -->
 
 <!-- ds:block id=mail-gke5vh6e -->
-**Mail** · [`plugin/email/email.go:256-265`](../../plugin/email/email.go#L256-L265)
+**Mail** · [`plugin/email/email.go:261-270`](../../plugin/email/email.go#L261-L270)
 
 ```go
 type Mail struct {
@@ -66,7 +66,8 @@ Links in mail open pages of your app: `DefaultVerifyPage` ([`/verify-email`](ds:
 
 | Error | Cause |
 |---|---|
-| `email: no mailer; pass email.WithMailer` | `WithMailer` missing |
+| `email: no mailer; pass email.WithMailer, or email.NoMail for an app that only stores addresses it verified itself` | neither `WithMailer` nor `NoMail` |
+| `email: NoMail sends no mail, so it cannot be combined with an option that does: email.Recover` | `NoMail` beside an option that mails, named at the end |
 | `email: links need auth.WithBaseURL or email.Links` | neither `auth.WithBaseURL` nor `Links` set |
 | `email: SignInWithCode needs Login()` | code sign-in on an address that cannot sign in |
 | `email: SignInOnVerify needs Login()` | a verify link that signs in, on an address that cannot sign in |
@@ -122,7 +123,7 @@ curl -s -X POST localhost:8081/auth/email/verify -H "$O" -d '{"token":"LqvEUwt9r
 From Go, the same operations:
 
 <!-- ds:block id=plugin-verify-eyd3s3ph -->
-**Plugin.Verify** · [`plugin/email/email.go:1117-1119`](../../plugin/email/email.go#L1117-L1119)
+**Plugin.Verify** · [`plugin/email/email.go:1185-1187`](../../plugin/email/email.go#L1185-L1187)
 
 ```go
 func (p *Plugin) Verify(ctx context.Context, t auth.Token) (VerifyResult, error) {
@@ -132,7 +133,7 @@ func (p *Plugin) Verify(ctx context.Context, t auth.Token) (VerifyResult, error)
 <!-- /ds:block hash=a376da -->
 
 <!-- ds:block id=plugin-resend-p773mqmd -->
-**Plugin.Resend** · [`plugin/email/email.go:1223-1226`](../../plugin/email/email.go#L1223-L1226)
+**Plugin.Resend** · [`plugin/email/email.go:1292-1295`](../../plugin/email/email.go#L1292-L1295)
 
 ```go
 func (p *Plugin) Resend(ctx context.Context, address string) error {
@@ -219,7 +220,7 @@ If you did not ask for this, ignore this email.
 Check: `TestEmailVerifyCode_SignedOut` verifies with no session and gets the wrong-code answer for an unknown address; `TestEmailVerifyCode_GuessesSpendTheCode` refuses the right code after `maxAttempts` wrong ones.
 
 <!-- ds:block id=verifybycode-8n4tr2mq -->
-**VerifyByCode** · [`plugin/email/email.go:392`](../../plugin/email/email.go#L392-L392)
+**VerifyByCode** · [`plugin/email/email.go:399`](../../plugin/email/email.go#L399-L399)
 
 ```go
 func VerifyByCode() Option { return func(p *Plugin) { p.byCode = true } }
@@ -227,7 +228,7 @@ func VerifyByCode() Option { return func(p *Plugin) { p.byCode = true } }
 <!-- /ds:block hash=6f379a -->
 
 <!-- ds:block id=plugin-verifycode-3w9kp6rt -->
-**Plugin.VerifyCode** · [`plugin/email/email.go:1127-1129`](../../plugin/email/email.go#L1127-L1129)
+**Plugin.VerifyCode** · [`plugin/email/email.go:1195-1197`](../../plugin/email/email.go#L1195-L1197)
 
 ```go
 func (p *Plugin) VerifyCode(ctx context.Context, address, code string) (VerifyResult, error) {
@@ -237,7 +238,7 @@ func (p *Plugin) VerifyCode(ctx context.Context, address, code string) (VerifyRe
 <!-- /ds:block hash=fbde26 -->
 
 <!-- ds:block id=plugin-confirmchangecode-6z2mv8kq -->
-**Plugin.ConfirmChangeCode** · [`plugin/email/email.go:1136-1138`](../../plugin/email/email.go#L1136-L1138)
+**Plugin.ConfirmChangeCode** · [`plugin/email/email.go:1204-1206`](../../plugin/email/email.go#L1204-L1206)
 
 ```go
 func (p *Plugin) ConfirmChangeCode(ctx context.Context, address, code string) (VerifyResult, error) {
@@ -251,7 +252,7 @@ func (p *Plugin) ConfirmChangeCode(ctx context.Context, address, code string) (V
 With `email.Multiple()` an account holds many addresses, one of them primary. `add` creates an unverified address and mails it a verify link; `make-primary` needs a verified address and a fresh sign-in; `remove` refuses to take the last way into the account. Without `Multiple()`, `add` of a second address is `email.single_address`, and `change` (Step 4) is the way to move to a new one.
 
 <!-- ds:block id=multiple-epxe5zae -->
-**Multiple** · [`plugin/email/email.go:403`](../../plugin/email/email.go#L403-L403)
+**Multiple** · [`plugin/email/email.go:410`](../../plugin/email/email.go#L410-L410)
 
 ```go
 func Multiple() Option { return func(p *Plugin) { p.multiple = true } }
@@ -293,7 +294,7 @@ curl -s -b alice.txt -X POST localhost:8081/auth/email/remove -H "$O" -d '{"emai
 The Go methods behind these routes:
 
 <!-- ds:block id=plugin-list-xqu67ksd -->
-**Plugin.List** · [`plugin/email/email.go:1231-1234`](../../plugin/email/email.go#L1231-L1234)
+**Plugin.List** · [`plugin/email/email.go:1300-1303`](../../plugin/email/email.go#L1300-L1303)
 
 ```go
 func (p *Plugin) List(ctx context.Context) ([]Address, error) {
@@ -304,7 +305,7 @@ func (p *Plugin) List(ctx context.Context) ([]Address, error) {
 <!-- /ds:block hash=e8efbd -->
 
 <!-- ds:block id=plugin-add-tg8gzc4e -->
-**Plugin.Add** · [`plugin/email/email.go:1240-1243`](../../plugin/email/email.go#L1240-L1243)
+**Plugin.Add** · [`plugin/email/email.go:1309-1312`](../../plugin/email/email.go#L1309-L1312)
 
 ```go
 func (p *Plugin) Add(ctx context.Context, address string) error {
@@ -315,7 +316,7 @@ func (p *Plugin) Add(ctx context.Context, address string) error {
 <!-- /ds:block hash=21aea6 -->
 
 <!-- ds:block id=plugin-makeprimary-7bpn7cqu -->
-**Plugin.MakePrimary** · [`plugin/email/email.go:1249-1252`](../../plugin/email/email.go#L1249-L1252)
+**Plugin.MakePrimary** · [`plugin/email/email.go:1318-1321`](../../plugin/email/email.go#L1318-L1321)
 
 ```go
 func (p *Plugin) MakePrimary(ctx context.Context, address string) error {
@@ -326,7 +327,7 @@ func (p *Plugin) MakePrimary(ctx context.Context, address string) error {
 <!-- /ds:block hash=76703e -->
 
 <!-- ds:block id=plugin-remove-2wyf2vx8 -->
-**Plugin.Remove** · [`plugin/email/email.go:1257-1260`](../../plugin/email/email.go#L1257-L1260)
+**Plugin.Remove** · [`plugin/email/email.go:1326-1329`](../../plugin/email/email.go#L1326-L1329)
 
 ```go
 func (p *Plugin) Remove(ctx context.Context, address string) error {
@@ -339,7 +340,7 @@ func (p *Plugin) Remove(ctx context.Context, address string) error {
 Each row of the list is an `Address`:
 
 <!-- ds:block id=address-rpwjw8k5 -->
-**Address** · [`plugin/email/email.go:1101-1105`](../../plugin/email/email.go#L1101-L1105)
+**Address** · [`plugin/email/email.go:1169-1173`](../../plugin/email/email.go#L1169-L1173)
 
 ```go
 type Address struct {
@@ -417,7 +418,7 @@ curl -s -X POST localhost:8081/auth/email/undo-change -H "$O" -d '{"token":"bGky
 The Go methods:
 
 <!-- ds:block id=plugin-change-scvhtqjv -->
-**Plugin.Change** · [`plugin/email/email.go:1266-1269`](../../plugin/email/email.go#L1266-L1269)
+**Plugin.Change** · [`plugin/email/email.go:1335-1338`](../../plugin/email/email.go#L1335-L1338)
 
 ```go
 func (p *Plugin) Change(ctx context.Context, address string) error {
@@ -428,7 +429,7 @@ func (p *Plugin) Change(ctx context.Context, address string) error {
 <!-- /ds:block hash=1ba586 -->
 
 <!-- ds:block id=plugin-confirmchange-nnwjd6cx -->
-**Plugin.ConfirmChange** · [`plugin/email/email.go:1294-1296`](../../plugin/email/email.go#L1294-L1296)
+**Plugin.ConfirmChange** · [`plugin/email/email.go:1363-1365`](../../plugin/email/email.go#L1363-L1365)
 
 ```go
 func (p *Plugin) ConfirmChange(ctx context.Context, t auth.Token) (VerifyResult, error) {
@@ -438,7 +439,7 @@ func (p *Plugin) ConfirmChange(ctx context.Context, t auth.Token) (VerifyResult,
 <!-- /ds:block hash=b6380a -->
 
 <!-- ds:block id=plugin-undochange-dfs5h6pe -->
-**Plugin.UndoChange** · [`plugin/email/email.go:1302-1305`](../../plugin/email/email.go#L1302-L1305)
+**Plugin.UndoChange** · [`plugin/email/email.go:1371-1374`](../../plugin/email/email.go#L1371-L1374)
 
 ```go
 func (p *Plugin) UndoChange(ctx context.Context, t auth.Token) error {
@@ -457,7 +458,7 @@ Check: the undo link lives [7 days](ds:block?id=defaultundottl-f64c6t59) (`Defau
 `SignInWithCode()` adds two routes: `send-code` mails a six-digit code to a verified owner, and `sign-in-code` spends it and starts a session. `SignUpWithCode()` also lets a code create the account for an address nobody has verified: the code just proved control of the inbox. With it, email alone is a complete sign-in method and no password plugin is needed.
 
 <!-- ds:block id=signupwithcode-9w3kx5mx -->
-**SignUpWithCode** · [`plugin/email/email.go:379`](../../plugin/email/email.go#L379-L379)
+**SignUpWithCode** · [`plugin/email/email.go:386`](../../plugin/email/email.go#L386-L386)
 
 ```go
 func SignUpWithCode() Option { return func(p *Plugin) { p.codes, p.codeUp = true, true } }
@@ -539,7 +540,7 @@ curl -s -c alice.txt -X POST localhost:8081/auth/email/sign-in-code -H "$O" -d '
 The Go methods and the result:
 
 <!-- ds:block id=plugin-sendcode-fym6bpqv -->
-**Plugin.SendCode** · [`plugin/email/email.go:1961-1964`](../../plugin/email/email.go#L1961-L1964)
+**Plugin.SendCode** · [`plugin/email/email.go:2030-2033`](../../plugin/email/email.go#L2030-L2033)
 
 ```go
 func (p *Plugin) SendCode(ctx context.Context, address string) error {
@@ -550,7 +551,7 @@ func (p *Plugin) SendCode(ctx context.Context, address string) error {
 <!-- /ds:block hash=b27884 -->
 
 <!-- ds:block id=plugin-signincode-huj2ynaq -->
-**Plugin.SignInCode** · [`plugin/email/email.go:1976-1978`](../../plugin/email/email.go#L1976-L1978)
+**Plugin.SignInCode** · [`plugin/email/email.go:2045-2047`](../../plugin/email/email.go#L2045-L2047)
 
 ```go
 func (p *Plugin) SignInCode(ctx context.Context, address, code string) (CodeSignInResult, error) {
@@ -560,7 +561,7 @@ func (p *Plugin) SignInCode(ctx context.Context, address, code string) (CodeSign
 <!-- /ds:block hash=4cbf55 -->
 
 <!-- ds:block id=codesigninresult-w7mbekyk -->
-**CodeSignInResult** · [`plugin/email/email.go:1950-1955`](../../plugin/email/email.go#L1950-L1955)
+**CodeSignInResult** · [`plugin/email/email.go:2019-2024`](../../plugin/email/email.go#L2019-L2024)
 
 ```go
 type CodeSignInResult struct {
@@ -778,7 +779,7 @@ The locale is the one of the request that causes the mail: the welcome follows t
 Wording. `Templates` replaces the English subjects and bodies; `TemplatesByLocale` adds translations picked by the request's language, falling back to `Templates` and then to the defaults; [Step 8](#step-8--word-the-mail-your-templates-the-readers-language-a-welcome) runs both. A template is a function of the message:
 
 <!-- ds:block id=templates-63cjtwhk -->
-**Templates** · [`plugin/email/email.go:606-613`](../../plugin/email/email.go#L606-L613)
+**Templates** · [`plugin/email/email.go:631-638`](../../plugin/email/email.go#L631-L638)
 
 ```go
 func Templates(fn func(m auth.Message) (subject, text string)) Option {
@@ -793,7 +794,7 @@ func Templates(fn func(m auth.Message) (subject, text string)) Option {
 <!-- /ds:block hash=5b249d -->
 
 <!-- ds:block id=templatesbylocale-mexdnb77 -->
-**TemplatesByLocale** · [`plugin/email/email.go:598-600`](../../plugin/email/email.go#L598-L600)
+**TemplatesByLocale** · [`plugin/email/email.go:623-625`](../../plugin/email/email.go#L623-L625)
 
 ```go
 func TemplatesByLocale(byLocale map[string]TemplateFunc) Option {
@@ -805,7 +806,7 @@ func TemplatesByLocale(byLocale map[string]TemplateFunc) Option {
 The defaults are short and put every link on a line of its own, so each mail client makes it clickable. A message of another plugin's purpose, an organization invite say, uses that plugin's own wording through `Message.DefaultSubject` and `DefaultText`, and falls back to "A message about your account" with the bare link:
 
 <!-- ds:block id=defaulttemplates-57x3ftqb -->
-**DefaultTemplates** · [`plugin/email/email.go:881-919`](../../plugin/email/email.go#L881-L919)
+**DefaultTemplates** · [`plugin/email/email.go:946-984`](../../plugin/email/email.go#L946-L984)
 
 ```go
 func DefaultTemplates(m auth.Message) (subject, text string) {

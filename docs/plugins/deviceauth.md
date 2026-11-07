@@ -18,10 +18,10 @@ Add the plugin to `auth.WithPlugins`. Its routes live under the plugin name `dev
 The example accepts one client id, its own CLI's:
 
 <!-- ds:block id=devicelogin-newauth-7q2mx9kd -->
-**newAuth** · [`examples/device-login/main.go:117-131`](../../examples/device-login/main.go#L117-L131)
+**newAuth** · [`examples/device-login/main.go:118-132`](../../examples/device-login/main.go#L118-L132)
 
 ```go
-func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *deviceauth.Plugin, error) {
+func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, error) {
 	dp := deviceauth.New(
 		deviceauth.ValidateClient(func(_ context.Context, id string) (bool, error) { return id == clientID, nil }),
 	)
@@ -34,32 +34,30 @@ func newAuth(db *sql.DB, m email.Mailer) (*auth.Auth, *deviceauth.Plugin, error)
 			dp,
 		),
 	)
-	return a, dp, err
+	return a, err
 }
 ```
-<!-- /ds:block hash=7d80eb -->
+<!-- /ds:block hash=b59f65 -->
 
-The two RFC handlers are mounted on their exact paths, which win over the `/auth/` prefix the rest of the library is served under:
+Mount `authhttp.Handler` as usual. It serves `/auth/device/code` and `/auth/device/token` with the plugin's RFC handlers (the plugin implements `authhttp.OperationServer`), so nothing else is mounted for them and `authhttp.AcceptForms` is not needed:
 
 <!-- ds:block id=newhandler-47ztnykv -->
-**newHandler** · [`examples/device-login/main.go:138-145`](../../examples/device-login/main.go#L138-L145)
+**newHandler** · [`examples/device-login/main.go:140-145`](../../examples/device-login/main.go#L140-L145)
 
 ```go
-func newHandler(a *auth.Auth, dp *deviceauth.Plugin) http.Handler {
+func newHandler(a *auth.Auth) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("POST "+codePath, dp.CodeHandler())
-	mux.Handle("POST "+tokenPath, dp.TokenHandler())
 	mux.Handle(authPrefix+"/", authhttp.Handler(a, authhttp.Prefix(authPrefix)))
 	mux.Handle("/me", authhttp.Middleware(a)(authhttp.RequireUser(http.HandlerFunc(me))))
 	return mux
 }
 ```
-<!-- /ds:block hash=796ac6 -->
+<!-- /ds:block hash=9e6587 -->
 
-The two handlers serve the client-facing routes in RFC 8628's own shape (a form body, `{"error":"authorization_pending"}`), which a stock device client such as `golang.org/x/oauth2`'s `DeviceAccessToken` expects; they run the same operation as `authhttp.Handler`, with the same rate limits and hooks:
+The two handlers serve the client-facing routes in RFC 8628's own shape (a form body, `{"error":"authorization_pending"}`), which a stock device client such as `golang.org/x/oauth2`'s `DeviceAccessToken` and the plugin's own `deviceauth.Client` expect; they run the same operation, with the same rate limits and hooks. On a router that does not go through authhttp, mount `dp.CodeHandler()` and `dp.TokenHandler()` on those two paths yourself:
 
 <!-- ds:block id=deviceauth-tokenhandler-3m7xv9qw -->
-**Plugin.TokenHandler** · [`plugin/deviceauth/rfc.go:124-126`](../../plugin/deviceauth/rfc.go#L124-L126)
+**Plugin.TokenHandler** · [`plugin/deviceauth/rfc.go:125-127`](../../plugin/deviceauth/rfc.go#L125-L127)
 
 ```go
 func (p *Plugin) TokenHandler(opts ...authhttp.Option) http.Handler {
@@ -81,7 +79,7 @@ curl -s -X POST https://app.example.com/auth/device/code -d client_id=my-cli -d 
 The answer is RFC 8628 §3.2's:
 
 <!-- ds:block id=deviceauth-coderesult-8k2xm4wr -->
-**CodeResult** · [`plugin/deviceauth/deviceauth.go:503-510`](../../plugin/deviceauth/deviceauth.go#L503-L510)
+**CodeResult** · [`plugin/deviceauth/deviceauth.go:504-511`](../../plugin/deviceauth/deviceauth.go#L504-L511)
 
 ```go
 type CodeResult struct {
@@ -102,7 +100,7 @@ The user code is [8](ds:block?id=deviceauth-defaultusercodelength-2n7kv4xp) char
 Your page at `/device` reads `user_code` from its query (or asks the user to type it), makes sure the user is signed in, then calls the lookup. A signed-in caller claims a pending code that nobody claimed yet, and only the code's owner sees which client asked and for what:
 
 <!-- ds:block id=deviceauth-verifyresult-5m8qz3wn -->
-**VerifyResult** · [`plugin/deviceauth/deviceauth.go:546-556`](../../plugin/deviceauth/deviceauth.go#L546-L556)
+**VerifyResult** · [`plugin/deviceauth/deviceauth.go:547-557`](../../plugin/deviceauth/deviceauth.go#L547-L557)
 
 ```go
 type VerifyResult struct {
@@ -143,7 +141,7 @@ curl -s -X POST https://app.example.com/auth/device/token \
 Until the user decides it answers `400 {"error":"authorization_pending"}`; a poll inside the interval answers `slow_down` and adds [5 seconds](ds:block?id=deviceauth-slowdownstep-3k8xq2nv) to the interval for every later poll. After the approval, one poll receives the session:
 
 <!-- ds:block id=deviceauth-tokenresult-2v9kt5xq -->
-**TokenResult** · [`plugin/deviceauth/deviceauth.go:527-534`](../../plugin/deviceauth/deviceauth.go#L527-L534)
+**TokenResult** · [`plugin/deviceauth/deviceauth.go:528-535`](../../plugin/deviceauth/deviceauth.go#L528-L535)
 
 ```go
 type TokenResult struct {
@@ -224,7 +222,7 @@ func login(ctx context.Context, out io.Writer, c *deviceauth.Client) error {
 Steps 1 to 4 end with a session of the web app. A CLI that calls other services, or one registered as a client of your [OAuth provider](oauthprovider.md), wants OAuth tokens instead: an access token, a refresh token and an ID token. The [`oauthdevice`](../../plugin/deviceauth/oauthdevice/README.md) module is a `deviceauth.Grant`, the hook a grant uses to bind each new code:
 
 <!-- ds:block id=deviceauth-grant-7k3qm9wv -->
-**Grant** · [`plugin/deviceauth/deviceauth.go:340-342`](../../plugin/deviceauth/deviceauth.go#L340-L342)
+**Grant** · [`plugin/deviceauth/deviceauth.go:341-343`](../../plugin/deviceauth/deviceauth.go#L341-L343)
 
 ```go
 type Grant interface {
@@ -236,7 +234,7 @@ type Grant interface {
 Wire it into both plugins: deviceauth gets it with `WithGrant`, the provider gets its token-endpoint half with `oauthprovider.WithGrant(dev.ExtensionGrant())` and advertises the device endpoint in discovery. The grant is a plugin too, listed after both:
 
 <!-- ds:block id=newauth-deviceoauth-example -->
-**newAuth** · [`examples/device-oauth-tokens/main.go:150-166`](../../examples/device-oauth-tokens/main.go#L150-L166)
+**newAuth** · [`examples/device-oauth-tokens/main.go:151-167`](../../examples/device-oauth-tokens/main.go#L151-L167)
 
 ```go
 func newAuth(db *sql.DB, m email.Mailer, key ed25519.PrivateKey) (app, error) {
@@ -254,15 +252,15 @@ func newAuth(db *sql.DB, m email.Mailer, key ed25519.PrivateKey) (app, error) {
 		auth.WithBaseURL(baseURL),
 		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), password.New(), jw, op, dp, dev),
 	)
-	return app{a: a, op: op, dp: dp}, err
+	return app{a: a, op: op}, err
 }
 ```
-<!-- /ds:block hash=5c4a9e -->
+<!-- /ds:block hash=115794 -->
 
 Register the CLI as a public client whose grant types name the device grant, and `refresh_token` if it should get refresh tokens:
 
 <!-- ds:block id=registercli-deviceoauth-example -->
-**registerCLI** · [`examples/device-oauth-tokens/main.go:188-197`](../../examples/device-oauth-tokens/main.go#L188-L197)
+**registerCLI** · [`examples/device-oauth-tokens/main.go:189-198`](../../examples/device-oauth-tokens/main.go#L189-L198)
 
 ```go
 func registerCLI(ctx context.Context, op *oauthprovider.Plugin) (oauthprovider.Registration, error) {
@@ -281,7 +279,7 @@ func registerCLI(ctx context.Context, op *oauthprovider.Plugin) (oauthprovider.R
 The CLI asks for its code with `deviceauth.Client.RequestCode` as before, but polls the provider's token endpoint itself. `deviceauth.Client.Poll` cannot be used here: its answer type has no refresh or ID token, so both would be lost.
 
 <!-- ds:block id=cli-login-deviceoauth-example -->
-**cli.login** · [`examples/device-oauth-tokens/main.go:216-240`](../../examples/device-oauth-tokens/main.go#L216-L240)
+**cli.login** · [`examples/device-oauth-tokens/main.go:217-241`](../../examples/device-oauth-tokens/main.go#L217-L241)
 
 ```go
 func (c cli) login(ctx context.Context, out io.Writer) (oauthprovider.TokenResponse, error) {
@@ -379,7 +377,7 @@ There is no runnable TypeScript example for device sign-in; the blocks above are
 
 Pitfalls:
 
-- **The block above works with or without the RFC handlers of Step 1.** `CodeHandler` and `TokenHandler` answer RFC 8628's own shape, `{"error":"authorization_pending","error_description":"…"}`, and put the library's error beside it under `auth_error` (`{"code":"device.authorization_pending","message":"…"}`), a member RFC clients ignore. The typed client reads that member, so `device.token` resolves to the same codes it gets from the library's own handler: `device.authorization_pending`, `device.polling_too_frequently`, `device.access_denied`, `device.expired_device_code`, and `auth.rate_limited` with `retryAfter`. A body with only the RFC `error` (another server's device endpoint) still resolves to `client.invalid_response`.
+- **The block above reads the RFC handlers' answers.** `CodeHandler` and `TokenHandler`, which `authhttp.Handler` serves on the two device routes, answer RFC 8628's own shape, `{"error":"authorization_pending","error_description":"…"}`, and put the library's error beside it under `auth_error` (`{"code":"device.authorization_pending","message":"…"}`), a member RFC clients ignore. The typed client reads that member, so `device.token` resolves to the same codes it gets from the library's own handler: `device.authorization_pending`, `device.polling_too_frequently`, `device.access_denied`, `device.expired_device_code`, and `auth.rate_limited` with `retryAfter`. A body with only the RFC `error` (another server's device endpoint) still resolves to `client.invalid_response`.
 - **Field names are RFC 8628's snake_case** (`client_id`, `device_code`, `user_code`), except the approval page's `userCode`.
 - **`access_token` is the session token.** Keep it in the client's token store and send it as `Authorization: Bearer`; it is a full session, because the approving session already passed any second factor.
 

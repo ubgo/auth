@@ -49,7 +49,7 @@ func ErrorOf(err error) ErrorInfo {
 <!-- /ds:block hash=719f55 -->
 
 <!-- ds:block id=authhttp-writeerror-bdjg7zqy -->
-**WriteError** · [`authhttp/authhttp.go:1565-1569`](../../authhttp/authhttp.go#L1565-L1569)
+**WriteError** · [`authhttp/authhttp.go:1573-1577`](../../authhttp/authhttp.go#L1573-L1577)
 
 ```go
 func WriteError(w http.ResponseWriter, err error) {

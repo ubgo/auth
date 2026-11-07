@@ -628,6 +628,53 @@ func (p *Plugin) Revoke(ctx context.Context, id string) error {
 	return err
 }
 
+// The ...For functions manage the keys of a user the app names, from Go
+// only, as CreateFor makes one: a parent account managing its bot user's
+// keys, or the app's own route answering a request signed with an API key,
+// which the HTTP operations refuse (a key cannot manage keys). The caller is
+// trusted code, so neither a session nor a fresh sign-in is required; the
+// ownership rules are the operations' own. userID is the owner of a
+// user-owned key, and for an organization-owned key the member acting,
+// whose role must grant the apiKey action, exactly as for the signed-in
+// user. Another user's key id is ErrNotFound, the same as an unknown one.
+
+// ListFor returns one page of userID's keys, sorted as asked, with the
+// total; with in.OrganizationID set, that organization's keys, when
+// userID's role there grants the apiKey "read" permission.
+//
+//ds:def id=plugin-listfor-4kq8wm2v owner=@khanakia stability=stable
+func (p *Plugin) ListFor(ctx context.Context, userID string, in ListRequest) (ListResult, error) {
+	return p.listFor(ctx, userID, in)
+}
+
+// GetFor returns one key userID may read; ErrNotFound for another user's or
+// an unknown id.
+//
+//ds:def id=plugin-getfor-7n3xq5kd owner=@khanakia stability=stable
+func (p *Plugin) GetFor(ctx context.Context, userID, id string) (Key, error) {
+	r, err := p.ownedKey(ctx, id, userID, "", ActionRead)
+	return r.k, err
+}
+
+// UpdateFor changes a key userID may update, under the key configuration's
+// name, expiry and scope rules, as Update does: rename it, disable or resume
+// it, set a new expiry, replace its scopes or its metadata (accepted without
+// AllowMetadata, as in CreateFor, because the caller is the app). The key's
+// cache entry is dropped, so a disabled key is refused on its next request.
+//
+//ds:def id=plugin-updatefor-2wm9kq4x owner=@khanakia stability=stable
+func (p *Plugin) UpdateFor(ctx context.Context, userID string, in UpdateRequest) (Key, error) {
+	return p.updateFor(ctx, userID, in, true)
+}
+
+// RevokeFor deletes a key userID may delete and drops its cache entry; the
+// next request with it is signed out.
+//
+//ds:def id=plugin-revokefor-6q2nw8kt owner=@khanakia stability=stable
+func (p *Plugin) RevokeFor(ctx context.Context, userID, id string) error {
+	return p.revokeFor(ctx, userID, RevokeRequest{ID: id})
+}
+
 func (p *Plugin) doCreate(ctx context.Context, c *auth.Call, in CreateRequest) (CreateResult, error) {
 	s, ok := p.config(in.Config)
 	if !ok {
@@ -965,15 +1012,21 @@ func parseCount(s string) (int, error) {
 }
 
 func (p *Plugin) doList(ctx context.Context, c *auth.Call, in ListRequest) (ListResult, error) {
+	return p.listFor(ctx, c.User.ID, in)
+}
+
+// listFor is list for userID, whoever asks: the operation passes the
+// signed-in user, ListFor the user the app names.
+func (p *Plugin) listFor(ctx context.Context, userID string, in ListRequest) (ListResult, error) {
 	pg, err := parseList(in)
 	if err != nil {
 		return ListResult{}, err
 	}
-	o := owner{userID: c.User.ID}
+	o := owner{userID: userID}
 	if in.OrganizationID != "" {
 		// Only an organization's keys, which every OrganizationOwned
 		// configuration makes and no other can.
-		if err := p.orgAllows(ctx, in.OrganizationID, c.User.ID, ActionRead); err != nil {
+		if err := p.orgAllows(ctx, in.OrganizationID, userID, ActionRead); err != nil {
 			return ListResult{}, err
 		}
 		o = owner{orgID: in.OrganizationID}
@@ -1049,23 +1102,32 @@ func (p *Plugin) doGet(ctx context.Context, c *auth.Call, in GetRequest) (Key, e
 }
 
 func (p *Plugin) doRevoke(ctx context.Context, c *auth.Call, in RevokeRequest) (auth.Done, error) {
-	// Read first: the owner decides who may delete, and the cache entry is
-	// named by the key's hash, so it is dropped before the row goes.
-	r, err := p.ownedKey(ctx, in.ID, c.User.ID, in.Config, ActionDelete)
-	if err != nil {
+	if err := p.revokeFor(ctx, c.User.ID, in); err != nil {
 		return auth.Done{}, err
-	}
-	if err := p.cacheDrop(ctx, r.hash); err != nil {
-		return auth.Done{}, err
-	}
-	n, err := p.core.Exec(ctx, sqlb.NewDelete(c.Auth.Dialect()).From(TableKey).Where(owned(r)...))
-	if err != nil {
-		return auth.Done{}, err
-	}
-	if n == 0 {
-		return auth.Done{}, ErrNotFound
 	}
 	return auth.Done{OK: true}, nil
+}
+
+// revokeFor deletes a key userID may delete, whoever asks: the operation
+// passes the signed-in user, RevokeFor the user the app names.
+func (p *Plugin) revokeFor(ctx context.Context, userID string, in RevokeRequest) error {
+	// Read first: the owner decides who may delete, and the cache entry is
+	// named by the key's hash, so it is dropped before the row goes.
+	r, err := p.ownedKey(ctx, in.ID, userID, in.Config, ActionDelete)
+	if err != nil {
+		return err
+	}
+	if err := p.cacheDrop(ctx, r.hash); err != nil {
+		return err
+	}
+	n, err := p.core.Exec(ctx, sqlb.NewDelete(p.core.Dialect()).From(TableKey).Where(owned(r)...))
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // expectConfigKey carries VerifyFor's configuration to resolve, so a key of

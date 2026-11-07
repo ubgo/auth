@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ubgo/auth"
+	"github.com/ubgo/auth/authhttp"
 	"github.com/ubgo/auth/plugin/apikey"
 	"github.com/ubgo/auth/plugin/deviceauth"
 	"github.com/ubgo/auth/plugin/email"
@@ -94,57 +95,84 @@ func TestP3Tokens_APIKeyStampEveryUse(t *testing.T) {
 }
 
 // TestP3Tokens_DeviceClient: deviceauth.Client walks the flow against the
-// real CodeHandler and TokenHandler: it is pending until the user claims and
-// approves the code, and the token it ends with is a session; a denied code
-// ends the poll with access_denied.
+// real CodeHandler and TokenHandler, mounted by hand and served by the plain
+// authhttp.Handler (no AcceptForms, nothing mounted beside it) and by
+// authhttp.OperationHandler, as the router adapters mount it: it is pending
+// until the user claims and approves the code, and the token it ends with is
+// a session; a denied code ends the poll with access_denied.
 func TestP3Tokens_DeviceClient(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		w := newDeviceWorld(t, e)
-		mux := http.NewServeMux()
-		mux.Handle("POST /auth/device/code", w.dp.CodeHandler())
-		mux.Handle("POST /auth/device/token", w.dp.TokenHandler())
-		srv := httptest.NewServer(mux)
-		defer srv.Close()
-		for _, approve := range []bool{true, false} {
-			var userCode string
-			polls := 0
-			c := &deviceauth.Client{CodeURL: srv.URL + "/auth/device/code", TokenURL: srv.URL + "/auth/device/token", ClientID: "cli", HTTP: srv.Client(),
-				// The wait moves the server's clock instead of sleeping; the
-				// user decides after the second poll.
-				Sleep: func(_ context.Context, d time.Duration) error {
-					e.clock.Advance(d)
-					if polls++; polls == 3 {
-						if _, err := w.dp.Verify(request(w.a, w.aliceTok), userCode); err != nil {
-							return err
-						}
-						if approve {
-							return w.dp.Approve(request(w.a, w.aliceTok), userCode)
-						}
-						return w.dp.Deny(request(w.a, w.aliceTok), userCode)
-					}
-					return nil
-				}}
-			code, err := c.RequestCode(context.Background(), "read")
-			if err != nil {
-				t.Fatal(err)
-			}
-			userCode = code.UserCode
-			tok, err := c.Poll(context.Background(), code)
-			if !approve {
-				var ce *deviceauth.ClientError
-				if !errors.As(err, &ce) || ce.ErrorName != deviceauth.RFCAccessDenied {
-					t.Fatalf("denied = %v", err)
+		mounts := map[string]func(*http.ServeMux){
+			"rfc handlers": func(mux *http.ServeMux) {
+				mux.Handle("POST /auth/device/code", w.dp.CodeHandler())
+				mux.Handle("POST /auth/device/token", w.dp.TokenHandler())
+			},
+			"default handler": func(mux *http.ServeMux) {
+				mux.Handle("/auth/", authhttp.Handler(w.a, authhttp.Prefix("/auth")))
+			},
+			"operation handler": func(mux *http.ServeMux) {
+				for _, op := range w.a.Operations() {
+					mux.Handle(authhttp.MethodOf(op.Info().Kind)+" /auth"+op.Route(), authhttp.OperationHandler(w.a, op))
 				}
-				continue
-			}
-			if err != nil || tok.AccessToken == "" || polls != 3 {
-				t.Fatalf("approved = %+v %v after %d waits", tok, err, polls)
-			}
-			if !identSignedIn(t, w.a, auth.Token(tok.AccessToken)) {
-				t.Fatal("the device's token signs nobody in")
-			}
+			},
+		}
+		for name, mount := range mounts {
+			// Each run makes two lookups of the approval page; a fresh code
+			// lifetime keeps the runs inside its rate rule.
+			e.clock.Advance(deviceauth.DefaultExpiresIn)
+			t.Run(name, func(t *testing.T) { deviceClientFlow(t, e, w, mount) })
 		}
 	})
+}
+
+// deviceClientFlow runs one approved and one denied device login through
+// deviceauth.Client against the routes mount registers.
+func deviceClientFlow(t *testing.T, e *env, w *deviceWorld, mount func(*http.ServeMux)) {
+	t.Helper()
+	mux := http.NewServeMux()
+	mount(mux)
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	for _, approve := range []bool{true, false} {
+		var userCode string
+		polls := 0
+		c := &deviceauth.Client{CodeURL: srv.URL + "/auth/device/code", TokenURL: srv.URL + "/auth/device/token", ClientID: "cli", HTTP: srv.Client(),
+			// The wait moves the server's clock instead of sleeping; the
+			// user decides after the second poll.
+			Sleep: func(_ context.Context, d time.Duration) error {
+				e.clock.Advance(d)
+				if polls++; polls == 3 {
+					if _, err := w.dp.Verify(request(w.a, w.aliceTok), userCode); err != nil {
+						return err
+					}
+					if approve {
+						return w.dp.Approve(request(w.a, w.aliceTok), userCode)
+					}
+					return w.dp.Deny(request(w.a, w.aliceTok), userCode)
+				}
+				return nil
+			}}
+		code, err := c.RequestCode(context.Background(), "read")
+		if err != nil {
+			t.Fatal(err)
+		}
+		userCode = code.UserCode
+		tok, err := c.Poll(context.Background(), code)
+		if !approve {
+			var ce *deviceauth.ClientError
+			if !errors.As(err, &ce) || ce.ErrorName != deviceauth.RFCAccessDenied {
+				t.Fatalf("denied = %v", err)
+			}
+			continue
+		}
+		if err != nil || tok.AccessToken == "" || polls != 3 {
+			t.Fatalf("approved = %+v %v after %d waits", tok, err, polls)
+		}
+		if !identSignedIn(t, w.a, auth.Token(tok.AccessToken)) {
+			t.Fatal("the device's token signs nobody in")
+		}
+	}
 }
 
 // TestP3Tokens_SCIMProfileSource: the profile authority. A link

@@ -11,10 +11,10 @@ dp := deviceauth.New(
 a, err := auth.New(auth.WithDB(db, dialect), auth.WithBaseURL("https://app.example.com"),
 	auth.WithPlugins(email.New(...), password.New(), dp))
 
-mux.Handle("POST /auth/device/code", dp.CodeHandler())   // RFC 8628 error shape for stock clients
-mux.Handle("POST /auth/device/token", dp.TokenHandler())
 mux.Handle("/auth/", authhttp.Handler(a, authhttp.Prefix("/auth")))
 ```
+
+`authhttp.Handler` serves `/device/code` and `/device/token` with `CodeHandler` and `TokenHandler` (the plugin implements `authhttp.OperationServer`), so a stock RFC 8628 client and this package's own `Client` work against the default mounting: a form body is accepted without `authhttp.AcceptForms`, and a refusal is the RFC's `{"error":"authorization_pending"}`. The router adapters (`contrib/gin`, `echo`, `fiber`) mount through `authhttp.OperationHandler` and get the same. Mount `CodeHandler()` and `TokenHandler()` yourself only on a router that does not go through authhttp.
 
 ## Routes
 
@@ -82,7 +82,7 @@ A default-alphabet user code is matched ignoring case, spaces and dashes (`Norma
 | `device.not_claimed` | 400 | `invalid_request` |
 | `device.server_error` | 500 | `server_error` |
 
-`authhttp.Handler` answers these in the library's error JSON. `CodeHandler` and `TokenHandler` answer `{"error":"…","error_description":"…","auth_error":{"code":"device.…","message":"…"}}` with status 400 (`auth_error`, `authhttp.ProtocolErrorMember`, is the library's own error, which RFC clients ignore and the generated TypeScript client reads) (a rate limit keeps 429 and `Retry-After`, a failure keeps 500), take a form or JSON body, and refuse a parameter sent twice with two non-empty values. `RFCErrorCode(err)` gives the mapping to an app with its own handler.
+`/device/verify`, `/device/approve` and `/device/deny` answer these in the library's error JSON. `/device/code` and `/device/token` (`CodeHandler` and `TokenHandler`, which `authhttp.Handler` serves there) answer `{"error":"…","error_description":"…","auth_error":{"code":"device.…","message":"…"}}` with status 400 (`auth_error`, `authhttp.ProtocolErrorMember`, is the library's own error, which RFC clients ignore and the generated TypeScript client reads) (a rate limit keeps 429 and `Retry-After`, a failure keeps 500), take a form or JSON body, and refuse a parameter sent twice with two non-empty values. `RFCErrorCode(err)` gives the mapping to an app with its own handler.
 
 ## Security notes
 
