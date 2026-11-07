@@ -105,9 +105,11 @@ func TestWire_OAuthClientMetadata(t *testing.T) {
 }
 
 // TestWire_DeviceCodeUserID: CodeRequest.UserID is Go-only. It is absent
-// from the OpenAPI document and the TypeScript client, the JSON route
-// refuses it as an unknown field, Code from Go still binds the code, and an
-// operation reached through Invoke with a decoder that sets it is refused.
+// from the OpenAPI document and the TypeScript client, the route Handler
+// serves (CodeHandler, RFC 8628's decoding) ignores it as an unrecognized
+// parameter, so the code it issues is bound to nobody, Code from Go still
+// binds the code, and an operation reached through Invoke with a decoder that
+// sets it is refused.
 func TestWire_DeviceCodeUserID(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		w := newDeviceWorld(t, e)
@@ -123,8 +125,13 @@ func TestWire_DeviceCodeUserID(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
-		if rec.Code != http.StatusBadRequest {
+		var sent deviceauth.CodeResult
+		if rec.Code != http.StatusOK || json.Unmarshal(rec.Body.Bytes(), &sent) != nil {
 			t.Fatalf("user_id over the JSON route = %d %s", rec.Code, rec.Body)
+		}
+		// Bound to alice, bob's lookup could not claim it.
+		if v := must[deviceauth.VerifyResult](t)(w.dp.Verify(request(w.a, w.bobTok), sent.UserCode)); !v.Owned {
+			t.Fatal("user_id over HTTP bound the code to alice")
 		}
 
 		bound := must[deviceauth.CodeResult](t)(w.dp.Code(anon(w.a), deviceauth.CodeRequest{ClientID: "cli", UserID: w.bob}))

@@ -108,10 +108,11 @@ func newRFCError(ctx context.Context, code string, err error) rfcError {
 
 // CodeHandler serves /device/code in RFC 8628's own shape: a form or JSON
 // body, the RFC error body ({"error":"invalid_client"}, with the library's
-// own error beside it under "auth_error"), Cache-Control: no-store. Mount it
-// where authhttp.Handler would serve the route, so a stock device client
-// and the library's TypeScript client both work unchanged; both run the
-// same operation.
+// own error beside it under "auth_error"), Cache-Control: no-store.
+// authhttp.Handler already serves it on /device/code (ServeOperation); mount
+// it yourself only on a router that does not go through authhttp. A stock
+// device client and the library's TypeScript client both work against it;
+// both run the same operation.
 //
 //ds:def id=deviceauth-codehandler-8w2nq6kt owner=@khanakia stability=stable
 func (p *Plugin) CodeHandler(opts ...authhttp.Option) http.Handler { return p.rfcHandler(p.code, opts) }
@@ -123,6 +124,27 @@ func (p *Plugin) CodeHandler(opts ...authhttp.Option) http.Handler { return p.rf
 //ds:def id=deviceauth-tokenhandler-3m7xv9qw owner=@khanakia stability=stable
 func (p *Plugin) TokenHandler(opts ...authhttp.Option) http.Handler {
 	return p.rfcHandler(p.token, opts)
+}
+
+// ServeOperation makes authhttp.Handler (and every adapter built on
+// authhttp.OperationHandler) answer /device/code and /device/token with
+// CodeHandler and TokenHandler, so an RFC 8628 client, this package's own
+// Client included, works against the default mounting: a form body is
+// accepted without authhttp.AcceptForms, and a refusal is
+// {"error":"authorization_pending"} with the library's error under
+// "auth_error", which the generated TypeScript client reads. The other three
+// routes keep the library's own handler. It implements
+// authhttp.OperationServer.
+//
+//ds:def id=deviceauth-serveoperation-9r4wm2kt owner=@khanakia stability=stable
+func (p *Plugin) ServeOperation(id auth.EndpointID, opts ...authhttp.Option) http.Handler {
+	switch id {
+	case EndpointCode:
+		return p.CodeHandler(opts...)
+	case EndpointToken:
+		return p.TokenHandler(opts...)
+	}
+	return nil
 }
 
 // rfcHandler runs op through the pipeline with the RFC's decoding and error
@@ -139,8 +161,8 @@ func (p *Plugin) rfcHandler(op auth.Operation, opts []authhttp.Option) http.Hand
 			writeRFC(w, http.StatusMethodNotAllowed, e)
 			return
 		}
-		ctx := p.core.WithRequest(r.Context(), authhttp.RequestOf(r, opts...))
-		r = r.WithContext(ctx)
+		r = authhttp.RequestContext(p.core, r, opts...)
+		ctx := r.Context()
 		out, err := op.Invoke(ctx, func(dst any) error { return decodeRFC(r, dst) })
 		if err != nil {
 			authhttp.SetRetryAfter(w, err)

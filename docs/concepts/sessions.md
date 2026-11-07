@@ -133,7 +133,7 @@ Check: `select token_hash from auth_session` shows 32-byte hashes and nothing th
 A browser gets a cookie: `__Host-auth_session`, `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`, with the session's expiry. The `__Host-` prefix means the browser refuses the cookie from any other host, port or scheme, and `HttpOnly` keeps it from scripts. The transport's options only add to this: `authhttp.SameSiteStrict()` for `Strict` on every cookie but the flow cookie, `authhttp.PartitionedCookies()` for CHIPS, and `authhttp.CookiePrefix("myapp")` to rename the cookies behind the `__Host-` part; see [security](security.md#step-2--the-cookie). A sign-in without "remember me" gets a cookie with no expiry, which the browser drops when it closes; the server still ends it after [twelve hours](ds:block?id=core-defaulttransientidle-7mhdjdth) unused.
 
 <!-- ds:block id=authhttp-cookie-hnq6pz4u -->
-**config.cookie** · [`authhttp/authhttp.go:1440-1467`](../../authhttp/authhttp.go#L1440-L1467)
+**config.cookie** · [`authhttp/authhttp.go:1448-1475`](../../authhttp/authhttp.go#L1448-L1475)
 
 ```go
 func (cfg config) cookie(name, value string, expiresAt time.Time) *http.Cookie {

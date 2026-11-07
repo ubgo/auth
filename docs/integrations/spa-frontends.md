@@ -280,6 +280,7 @@ react-headless: all 8 steps passed
 Pitfalls with the client:
 
 - A Vite proxy with `changeOrigin: true` rewrites the `Host` the Go server sees, and the origin check then compares the page's `Origin` with another host. Leave it off, as the example does.
+- Under TanStack Start (and any Vite setup whose framework plugin adds its own dev middleware, such as nitro's), `server.proxy` never fires: the framework's middleware is registered ahead of Vite's proxy and answers `/auth/...` itself, usually with its own 404. Forward the API's paths from a small Vite plugin instead: give it `enforce: "pre"`, list it before the framework's plugin, and in `configureServer(server)` call `server.middlewares.use(...)` directly (not from a returned function, which runs after Vite's own middleware), forwarding every request whose path starts with `/auth/` to the Go server with `node:http`'s `request`, the method, path and headers unchanged, and piping the answer back with its status and headers. Passing the headers through keeps `Host`, `Origin` and `Cookie` as the browser sent them, which is what `changeOrigin` left off gives you, so the origin check and the first-party cookie work as with `server.proxy`.
 - A linked React kit brings its own `node_modules`: without `resolve.dedupe` for `react`, `react-dom` and `@tanstack/react-query`, the hooks see two contexts ([React UI kit › Pitfalls](../client/react.md#pitfalls)).
 - A plugin in the client's `plugins` that the server does not wire compiles, and answers `auth.unknown_operation` (404) when called ([Plugins › Pitfalls](../client/plugins.md#pitfalls)).
 - Which mode, origin and React layer to pick is the subject of [Choose a client setup](../choosing/client.md).
@@ -308,6 +309,7 @@ Pitfalls with the client:
 | `res.headers.get("Set-Auth-Token")` is `null` in the browser but curl shows the header | The header is not exposed to scripts. | Keep `Set-Auth-Token` in `Access-Control-Expose-Headers`. |
 | The cookie is set with `SameSite=Lax` but never sent to the API | The two origins are different sites, not just different origins. | Bearer mode, or put both under one registrable domain. |
 | A preview deployment is refused with `auth.origin_not_trusted` although a pattern lists it | A first label `*` spans one label or more, but any other wildcard label matches within one label only: `https://preview-*.example.com` does not match `preview-42.eu.example.com`. | Add a pattern for the deeper level, or decide in `WithTrustedOriginFunc`. |
+| Under `vite dev` every `/auth/...` call is a 404 page from the framework, and the Go server never logs it, although `server.proxy` lists `/auth` | TanStack Start's dev middleware (nitro) answers before Vite's proxy runs. | Forward `/auth` from an `enforce: "pre"` Vite plugin that registers its middleware directly in `configureServer`, listed before the framework's plugin ([Pitfalls](#step-6--call-it-with-the-typed-client)). |
 | `auth.New` fails on a trusted origin such as `https://*.com` | A pattern must name a domain the app owns: two fixed labels after the last wildcard. | Name your own domain. |
 
 ## Next

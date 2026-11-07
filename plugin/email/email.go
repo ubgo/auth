@@ -235,8 +235,13 @@ const (
 // are configuration errors auth.New returns, so a broken setup fails at start
 // rather than at the first sign-up.
 var (
-	ErrSingleAddress            = auth.NewError("email.single_address", http.StatusConflict, "This account can have one email address. Change it instead.")
-	ErrNoMailer                 = errors.New("email: no mailer; pass email.WithMailer")
+	ErrSingleAddress = auth.NewError("email.single_address", http.StatusConflict, "This account can have one email address. Change it instead.")
+	ErrNoMailer      = errors.New("email: no mailer; pass email.WithMailer, or email.NoMail for an app that only stores addresses it verified itself")
+	// ErrNeedsMail is an option that sends mail given together with
+	// NoMail; the error names the option. NoMail with WithMailer is the
+	// same contradiction.
+	//ds:def id=email-errneedsmail-8q3kw5nd owner=@khanakia stability=stable
+	ErrNeedsMail                = errors.New("email: NoMail sends no mail, so it cannot be combined with an option that does")
 	ErrNoBaseURL                = errors.New("email: links need auth.WithBaseURL or email.Links")
 	ErrCodesNeedLogin           = errors.New("email: SignInWithCode needs Login()")
 	ErrSignInOnVerifyNeedsLogin = errors.New("email: SignInOnVerify needs Login()")
@@ -283,14 +288,16 @@ func (f MailerFunc) Send(ctx context.Context, m Mail) error { return f(ctx, m) }
 type Plugin struct {
 	// optErrs collects what the options found while they ran, such as a
 	// nil func or interface (auth.ErrNilOption); see OptionErr.
-	optErrs   auth.OptionErrors
-	kind      auth.IdentifierKind
-	multiple  bool
-	codes     bool
-	welcome   bool
-	codeUp    bool
-	byCode    bool
-	mailer    Mailer
+	optErrs  auth.OptionErrors
+	kind     auth.IdentifierKind
+	multiple bool
+	codes    bool
+	welcome  bool
+	codeUp   bool
+	byCode   bool
+	mailer   Mailer
+	// noMail is NoMail: no mailer, and no operation or hook that mails.
+	noMail    bool
 	verifyTTL time.Duration
 	undoTTL   time.Duration
 	// codeTTL, codeTries and the two code limits are the sign-in code
@@ -402,8 +409,9 @@ func Welcome() Option { return func(p *Plugin) { p.welcome = true } }
 //ds:def id=multiple-epxe5zae
 func Multiple() Option { return func(p *Plugin) { p.multiple = true } }
 
-// WithMailer sets how mail is sent. Required: auth.New fails with
-// ErrNoMailer without it, because verification is impossible without mail.
+// WithMailer sets how mail is sent. Required unless NoMail is given:
+// auth.New fails with ErrNoMailer without it, because an address the app
+// does not verify itself can only be verified by mail.
 func WithMailer(m Mailer) Option {
 	return func(p *Plugin) {
 		if p.optErrs.RefuseNil("email.WithMailer", m) {
@@ -412,6 +420,23 @@ func WithMailer(m Mailer) Option {
 		p.mailer = m
 	}
 }
+
+// NoMail declares that the app sends this plugin no mail: it only stores
+// addresses it verified itself, such as an OAuth provider's verified email
+// or one given to SetFor with verified true, and reads them back (list,
+// make-primary, remove, the auth_user copy of the primary address). No
+// mailer is needed, and nothing is ever mailed: the routes that mail (verify,
+// resend, add, change and its confirm and undo links) are not served, an
+// unverified address is stored without a verify link and stays unverified
+// until the app verifies it, and Deliver answers ErrNoMailer to a plugin
+// that asks for mail. auth.New refuses NoMail together with WithMailer or an
+// option that mails (Recover, SignInWithCode, SignUpWithCode, VerifyByCode,
+// Welcome, SignInOnVerify, ApproveChangeFirst, VerifyByGET, ResendOnSignIn)
+// with ErrNeedsMail naming it, so the choice is explicit and a missing
+// mailer is never mistaken for it.
+//
+//ds:def id=email-nomail-5wk2nq8d owner=@khanakia stability=stable
+func NoMail() Option { return func(p *Plugin) { p.noMail = true } }
 
 // WithNormalizer replaces Normalize, for an app that folds dots or +tags.
 func WithNormalizer(fn func(raw string) (string, error)) Option {
@@ -679,10 +704,15 @@ func (p *Plugin) Identifiers() []auth.IdentifierKind { return []auth.IdentifierK
 // Validate checks that messages can be sent and linked, so a setup that
 // could never verify an address fails in auth.New, not at the first sign-up.
 func (p *Plugin) Validate(c *auth.Config) error {
-	if p.mailer == nil {
+	if p.noMail {
+		if err := p.validateNoMail(); err != nil {
+			return err
+		}
+	} else if p.mailer == nil {
 		return ErrNoMailer
 	}
-	if p.links == nil && c.BaseURL == "" {
+	// Links exist only in mail.
+	if !p.noMail && p.links == nil && c.BaseURL == "" {
 		return ErrNoBaseURL
 	}
 	if p.codes && !p.kind.CanLogin {
@@ -695,6 +725,31 @@ func (p *Plugin) Validate(c *auth.Config) error {
 		// A reused code is derived or sealed under a key from the secret.
 		if _, err := c.DeriveKeys(reuseKeyProbe); err != nil {
 			return fmt.Errorf("email: ReuseCodeOnResend: %w", err)
+		}
+	}
+	return nil
+}
+
+// validateNoMail refuses NoMail beside a mailer or an option that mails,
+// naming the option, because each of them would otherwise fail at its first
+// use instead of in auth.New.
+func (p *Plugin) validateNoMail() error {
+	for _, o := range []struct {
+		on   bool
+		name string
+	}{
+		{p.mailer != nil, "email.WithMailer"},
+		{p.kind.CanRecover, "email.Recover"},
+		{p.codes, "email.SignInWithCode or email.SignUpWithCode"},
+		{p.byCode, "email.VerifyByCode"},
+		{p.welcome, "email.Welcome"},
+		{p.signInOnVerify, "email.SignInOnVerify"},
+		{p.approveFirst, "email.ApproveChangeFirst"},
+		{p.getVerify, "email.VerifyByGET"},
+		{p.resendOnSignIn, "email.ResendOnSignIn"},
+	} {
+		if o.on {
+			return fmt.Errorf("%w: %s", ErrNeedsMail, o.name)
 		}
 	}
 	return nil
@@ -780,6 +835,9 @@ func (p *Plugin) Columns() []auth.ColumnExtension {
 // RateLimits bounds the operations that send mail, per address, so none can
 // be used to flood an inbox.
 func (p *Plugin) RateLimits() []auth.RateRule {
+	if p.noMail {
+		return nil // every rule bounds a route that mails, none served
+	}
 	rules := []auth.RateRule{
 		{Match: EndpointResend, Key: auth.ByIdentifier, Limit: resendLimit, Window: resendWindow},
 		{Match: EndpointChange, Key: auth.ByIdentifier, Limit: changeLimit, Window: changeWindow},
@@ -809,6 +867,10 @@ func (p *Plugin) RateLimits() []auth.RateRule {
 // Operations lists every operation; the code ones only when SignsIn, so an
 // app without codes exposes no route that mails them.
 func (p *Plugin) Operations() []auth.Operation {
+	if p.noMail {
+		// Every other route mails or spends a mailed token.
+		return []auth.Operation{p.list, p.makePrimary, p.remove}
+	}
 	ops := []auth.Operation{p.verify, p.resend, p.list, p.add, p.makePrimary, p.remove, p.change, p.confirmChange, p.undoChange}
 	if p.getVerify {
 		ops = append(ops, p.verifyLink)
@@ -862,6 +924,9 @@ func Validate(v string) error {
 // Deliver renders m in its locale's template and sends it. The core calls it
 // after the transaction commits, so mail never goes out for a rolled-back row.
 func (p *Plugin) Deliver(ctx context.Context, to auth.Identity, m auth.Message) error {
+	if p.noMail {
+		return ErrNoMailer
+	}
 	render := p.templates
 	if t, ok := auth.PickLocale(p.localized, m.Locale); ok {
 		render = t
@@ -936,6 +1001,9 @@ func (p *Plugin) DataHooks() auth.DataHooks {
 				return nil
 			}
 			if !row.Verified() {
+				if p.noMail {
+					return nil // stays unverified until the app verifies it
+				}
 				return p.sendVerify(ctx, *row)
 			}
 			if err := p.sendWelcome(ctx, *row); err != nil {
@@ -1145,7 +1213,8 @@ func (p *Plugin) ConfirmChangeCode(ctx context.Context, address, code string) (V
 // the user's other addresses are replaced, with it the address is added.
 // verified creates the address verified and primary at once (the data hooks
 // copy it to auth_user); otherwise it is created unverified and the data
-// hooks mail the verify link as for any new address. An unknown user is
+// hooks mail the verify link as for any new address (under NoMail, nothing
+// is mailed and it stays unverified). An unknown user is
 // auth.ErrUserNotFound. Everything runs in one transaction, or joins the one
 // in ctx.
 //

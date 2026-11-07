@@ -328,12 +328,19 @@ func checkMetadata(raw json.RawMessage, allowed bool) (*string, error) {
 }
 
 func (p *Plugin) doUpdate(ctx context.Context, c *auth.Call, in UpdateRequest) (Key, error) {
+	return p.updateFor(ctx, c.User.ID, in, false)
+}
+
+// updateFor is update for userID, whoever asks: the operation passes the
+// signed-in user, UpdateFor the user the app names. trusted lets metadata
+// through without AllowMetadata, as CreateFor does.
+func (p *Plugin) updateFor(ctx context.Context, userID string, in UpdateRequest, trusted bool) (Key, error) {
 	if in.Name == nil && in.ExpiresInDays == nil && in.ExpiresIn == nil && in.Disabled == nil && len(in.Metadata) == 0 && in.Scopes == nil {
 		return Key{}, ErrNoChanges
 	}
 	// The key's own configuration decides which names, expiries, scopes and
 	// metadata it may take.
-	old, err := p.ownedKey(ctx, in.ID, c.User.ID, in.Config, ActionUpdate)
+	old, err := p.ownedKey(ctx, in.ID, userID, in.Config, ActionUpdate)
 	if err != nil {
 		return Key{}, err
 	}
@@ -341,7 +348,7 @@ func (p *Plugin) doUpdate(ctx context.Context, c *auth.Call, in UpdateRequest) (
 	if !ok {
 		return Key{}, ErrUnknownConfig
 	}
-	now := c.Auth.Now()
+	now := p.core.Now()
 	set := []sqlb.Assignment{sqlb.Set(KeyUpdated, &now)}
 	if in.Scopes != nil {
 		if err := cfg.checkScopes(in.Scopes); err != nil {
@@ -380,12 +387,12 @@ func (p *Plugin) doUpdate(ctx context.Context, c *auth.Call, in UpdateRequest) (
 		}
 		set = append(set, sqlb.Set(KeyDisabledAt, at))
 	}
-	if meta, err := checkMetadata(in.Metadata, cfg.allowMeta); err != nil {
+	if meta, err := checkMetadata(in.Metadata, cfg.allowMeta || trusted); err != nil {
 		return Key{}, err
 	} else if meta != nil {
 		set = append(set, sqlb.Set(KeyMetadata, meta))
 	}
-	n, err := p.core.Exec(ctx, sqlb.NewUpdate(c.Auth.Dialect()).Table(TableKey).Set(set...).Where(owned(old)...))
+	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableKey).Set(set...).Where(owned(old)...))
 	if err != nil {
 		return Key{}, err
 	}

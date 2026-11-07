@@ -46,7 +46,8 @@ const (
 	// authPrefix is where the library's routes are mounted.
 	authPrefix = "/auth"
 	// codePath is the device authorization endpoint: deviceauth's
-	// CodeHandler, which the oauthdevice grant extends for OAuth clients.
+	// CodeHandler, which authhttp.Handler serves there and the oauthdevice
+	// grant extends for OAuth clients.
 	codePath = authPrefix + "/device/code"
 	// loginPath is the app's login page, which the provider needs even
 	// though the device grant never redirects a browser to it.
@@ -133,11 +134,11 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
-// app is the wired library and the two plugins the handler mounts.
+// app is the wired library and the provider plugin, whose handler is
+// mounted beside the library's.
 type app struct {
 	a  *auth.Auth
 	op *oauthprovider.Plugin
-	dp *deviceauth.Plugin
 }
 
 // newAuth wires the device grant into both plugins. oauthdevice.New takes
@@ -162,18 +163,18 @@ func newAuth(db *sql.DB, m email.Mailer, key ed25519.PrivateKey) (app, error) {
 		auth.WithBaseURL(baseURL),
 		auth.WithPlugins(email.New(email.Login(), email.Recover(), email.WithMailer(m)), password.New(), jw, op, dp, dev),
 	)
-	return app{a: a, op: op, dp: dp}, err
+	return app{a: a, op: op}, err
 }
 
-// newHandler mounts the device authorization endpoint on its exact path
-// (which wins over the /auth/ prefix), the library's routes, which include
-// the approval page's /auth/device/verify and /auth/device/approve, and the
-// provider's endpoints, where the CLI redeems its code.
+// newHandler mounts the library's routes, which include the device
+// authorization endpoint (served in RFC 8628's shape by deviceauth's
+// CodeHandler) and the approval page's /auth/device/verify and
+// /auth/device/approve, and the provider's endpoints, where the CLI redeems
+// its code.
 //
 //ds:def id=newhandler-deviceoauth-example
 func newHandler(app app) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("POST "+codePath, app.dp.CodeHandler())
 	mux.Handle(authPrefix+"/", authhttp.Handler(app.a, authhttp.Prefix(authPrefix)))
 	mux.Handle("/.well-known/", app.op.Handler())
 	mux.Handle(oauthprovider.DefaultBasePath+"/", app.op.Handler())

@@ -89,7 +89,7 @@ An app that generates its own client ([Way 2](README.md#two-ways-to-get-the-clie
 
 ## Step 2 — Serve the API on the same origin
 
-The kit uses cookie mode, so the page and `/auth` must share an origin: the session cookie is then first-party, and the browser's `Origin` header is the app's own, which the server checks on every POST. In development, proxy `/auth` from the dev server to the Go app, as the demo's `vite.config.ts` does (`server.proxy`), and leave `changeOrigin` off so the Go server sees the app's host. In production, serve both from one host. A frontend on another site needs bearer mode, see [Bearer mode](bearer-and-mobile.md).
+The kit uses cookie mode, so the page and `/auth` must share an origin: the session cookie is then first-party, and the browser's `Origin` header is the app's own, which the server checks on every POST. In development, proxy `/auth` from the dev server to the Go app, as the demo's `vite.config.ts` does (`server.proxy`), and leave `changeOrigin` off so the Go server sees the app's host. Under TanStack Start, whose dev middleware answers before Vite's proxy, `server.proxy` never fires; forward `/auth` from a small `enforce: "pre"` plugin's `configureServer` instead ([SPA frontends › Pitfalls](../integrations/spa-frontends.md#step-6--call-it-with-the-typed-client)). In production, serve both from one host. A frontend on another site needs bearer mode, see [Bearer mode](bearer-and-mobile.md).
 
 The server must trust the page's origin and build mailed links on it. The demo passes it as `APP_URL`, which the server uses as its base URL:
 
