@@ -10,10 +10,10 @@ You will have the library's routes served by the standard mux, chi or gorilla/mu
 
 ## Step 1 — Mount the handler
 
-`authhttp.Handler` serves every registered operation at the prefix plus the operation's route: a Query as GET with its input in the query string, a Mutation as POST with a JSON body. It owns its own route table, so an unknown path answers 404 `auth.unknown_operation` and a known path with the wrong method 405 `auth.method_not_allowed` with an `Allow` header, as JSON like every other error. `Prefix` must match the pattern you register. With `Health()` the table also holds `GET <prefix>/ok`, a database-free liveness answer.
+`authhttp.Handler` serves every registered operation at the prefix plus the operation's route: a Query as GET with its input in the query string, a Mutation as POST with a JSON body. It owns its own route table, so an unknown path answers 404 `auth.unknown_operation` and a known path with the wrong method 405 `auth.method_not_allowed` with an `Allow` header, as JSON like every other error. `Prefix` must match the pattern you register. With `Health()` the table also holds `GET <prefix>/ok`, a database-free liveness answer. A plugin whose routes a standard's wire format fixes serves them with its own handler on the same path through `authhttp.OperationServer` (deviceauth answers `/device/code` and `/device/token` in RFC 8628's form-body and `{"error":…}` shape), and `OperationHandler` does the same for a router that registers each route itself.
 
 <!-- ds:block id=authhttp-handler-3xrumz2e lines=1-10 -->
-**Handler** · [`authhttp/authhttp.go:789-839`](../../authhttp/authhttp.go#L789-L839)
+**Handler** · [`authhttp/authhttp.go:789-843`](../../authhttp/authhttp.go#L789-L843)
 
 ```go
 func Handler(a *auth.Auth, opts ...Option) http.Handler {
@@ -25,9 +25,9 @@ func Handler(a *auth.Auth, opts ...Option) http.Handler {
 		if routes[path] == nil {
 			routes[path] = map[string]http.Handler{}
 		}
-		routes[path][MethodOf(op.Info().Kind)] = serveOp(a, op, cfg)
+		h := pluginHandler(a, op, opts)
 ```
-<!-- /ds:block hash=8dfb61 -->
+<!-- /ds:block hash=f022d0 -->
 
 On the standard mux, the quick start registers it under `/auth/` and puts `/me` behind `Middleware` and `RequireUser`:
 
@@ -87,7 +87,7 @@ HTTP/1.1 404 Not Found
 `Middleware` attaches the request to the core and resolves the session once, lazily and at most once per request, for your own handlers and for a GraphQL handler. A lookup that fails for a reason other than "signed out" (a database that is down) answers 500 rather than running the handler as if nobody were signed in; a coded refusal from a token plugin (a disabled, expired or rate-limited API key) answers its own code and status instead. Effects recorded by operations called inside the handler, such as the cookie of a sign-in you ran from your own form, become headers before the handler's first byte.
 
 <!-- ds:block id=authhttp-middleware-j6kn46zp lines=1-12 -->
-**Middleware** · [`authhttp/authhttp.go:1692-1717`](../../authhttp/authhttp.go#L1692-L1717)
+**Middleware** · [`authhttp/authhttp.go:1700-1725`](../../authhttp/authhttp.go#L1700-L1725)
 
 ```go
 func Middleware(a *auth.Auth, opts ...Option) func(http.Handler) http.Handler {
@@ -141,7 +141,7 @@ curl -s -b cookies.txt localhost:8081/me
 `RequireUser` is opt-in per route, which fits an API with a few protected routes. An app where almost every page needs a user turns it around with `RequireUserExcept`: every path needs a signed-in user except the ones listed, so a page added next month is protected until someone opens it by name. An entry ending in `/` opens a subtree (`"/auth/"` for the library's own routes), any other entry exactly that path.
 
 <!-- ds:block id=authhttp-requireuserexcept-7fjw2qsd -->
-**RequireUserExcept** · [`authhttp/authhttp.go:1853-1862`](../../authhttp/authhttp.go#L1853-L1862)
+**RequireUserExcept** · [`authhttp/authhttp.go:1868-1877`](../../authhttp/authhttp.go#L1868-L1877)
 
 ```go
 func RequireUserExcept(next http.Handler, allow ...string) http.Handler {
@@ -160,7 +160,7 @@ func RequireUserExcept(next http.Handler, allow ...string) http.Handler {
 For a redirect to the sign-in page before a page renders, where a database call per request is not wanted, `HasCredential(r)` reports whether the request carries a session cookie or a bearer token at all. Presence is not validity: a forged or expired cookie passes, so the check only decides where to send the visitor, never what they may do.
 
 <!-- ds:block id=authhttp-hascredential-m8rt4kzb -->
-**HasCredential** · [`authhttp/authhttp.go:1214-1216`](../../authhttp/authhttp.go#L1214-L1216)
+**HasCredential** · [`authhttp/authhttp.go:1222-1224`](../../authhttp/authhttp.go#L1222-L1224)
 
 ```go
 func HasCredential(r *http.Request, opts ...Option) bool {
@@ -176,7 +176,7 @@ Check: `TestHTTP_HealthAndDenyByDefault` (integration) serves `/login` to a visi
 `RequireScope(scope)` is for routes that programs call with an API key (the [apikey plugin](../plugins/apikey.md)). It answers 401 `auth.signed_out` when there is no principal at all (no credential, or a key that is revoked, expired or unknown), so a script knows to get a new key, and 403 `auth.missing_scope` when a principal lacks the scope, a browser session included, because a scope-guarded route is a route for keys. No `RequireUser` is needed in front of it.
 
 <!-- ds:block id=requirescope-4aee4fww -->
-**RequireScope** · [`authhttp/authhttp.go:1929-1939`](../../authhttp/authhttp.go#L1929-L1939)
+**RequireScope** · [`authhttp/authhttp.go:1944-1954`](../../authhttp/authhttp.go#L1944-L1954)
 
 ```go
 func RequireScope(scope string) func(http.Handler) http.Handler {

@@ -58,7 +58,7 @@ Check: `auth.New` returns no error. With neither `Scopes` nor `WithPermissions` 
 A route for keys needs a valid credential and then its scope. `authhttp.RequireScope` does both: no credential (or a revoked, expired or unknown key) is `401 auth.signed_out`; a browser session or a key without the scope is `403 auth.missing_scope`.
 
 <!-- ds:block id=requirescope-4aee4fww -->
-**RequireScope** · [`authhttp/authhttp.go:1929-1939`](../../authhttp/authhttp.go#L1929-L1939)
+**RequireScope** · [`authhttp/authhttp.go:1944-1954`](../../authhttp/authhttp.go#L1944-L1954)
 
 ```go
 func RequireScope(scope string) func(http.Handler) http.Handler {

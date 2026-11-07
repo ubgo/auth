@@ -134,7 +134,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *browser) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
-	a, dp, err := newAuth(db, logMailer{})
+	a, err := newAuth(db, logMailer{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *browser) {
 	if _, err := a.Migrate(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	srv := httptest.NewTLSServer(newHandler(a, dp))
+	srv := httptest.NewTLSServer(newHandler(a))
 	t.Cleanup(srv.Close)
 	jar, err := cookiejar.New(nil)
 	if err != nil {

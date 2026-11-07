@@ -150,7 +150,7 @@ None has a production use that a safer switch does not cover: `WithTrustedOrigin
 `__Host-auth_session`, `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/`. `__Host-` makes the browser refuse the cookie from any other host, port or scheme and forbids a `Domain`; `HttpOnly` keeps it from scripts; `Secure` keeps it off plain HTTP; `Lax` keeps it off cross-site `POST`s while letting a link to your site work. The value is a random token, never anything a client could decode; the database holds its hash, so a backup contains no live session.
 
 <!-- ds:block id=authhttp-cookie-hnq6pz4u -->
-**config.cookie** · [`authhttp/authhttp.go:1440-1467`](../../authhttp/authhttp.go#L1440-L1467)
+**config.cookie** · [`authhttp/authhttp.go:1448-1475`](../../authhttp/authhttp.go#L1448-L1475)
 
 ```go
 func (cfg config) cookie(name, value string, expiresAt time.Time) *http.Cookie {
