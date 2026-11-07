@@ -33,8 +33,9 @@ Email is a sign-in method only with `SignInWithCode()` or `SignUpWithCode()`. Ot
 
 | Error | Text | Cause |
 |---|---|---|
-| `ErrNoMailer` | `email: no mailer; pass email.WithMailer` | `WithMailer` missing |
-| `ErrNoBaseURL` | `email: links need auth.WithBaseURL or email.Links` | neither `auth.WithBaseURL` nor `Links` set |
+| `ErrNoMailer` | `email: no mailer; pass email.WithMailer, or email.NoMail for an app that only stores addresses it verified itself` | neither `WithMailer` nor `NoMail` |
+| [`ErrNeedsMail`](ds:block?id=email-errneedsmail-8q3kw5nd) | `email: NoMail sends no mail, so it cannot be combined with an option that does: <option>` | `NoMail` beside `WithMailer`, `Recover`, `SignInWithCode`/`SignUpWithCode`, `VerifyByCode`, `Welcome`, `SignInOnVerify`, `ApproveChangeFirst`, `VerifyByGET` or `ResendOnSignIn` |
+| `ErrNoBaseURL` | `email: links need auth.WithBaseURL or email.Links` | neither `auth.WithBaseURL` nor `Links` set (not checked under `NoMail`, which makes no links) |
 | `ErrCodesNeedLogin` | `email: SignInWithCode needs Login()` | code sign-in on a kind that cannot sign in |
 | `ErrSignInOnVerifyNeedsLogin` | `email: SignInOnVerify needs Login()` | a verify link that signs in, on a kind that cannot sign in |
 | `ErrBadCallback` | `email: VerifyByGET's callback must be a path of this site or a URL on a trusted origin` | `VerifyByGET` given a page `TrustsReturnURL` refuses (checked at `Init`) |
@@ -54,7 +55,8 @@ Links point at pages of your app, not at API routes. Each page reads `?token=` a
 | `SignInWithCode()` | Adds `send-code` and `sign-in-code`, which sign in a verified owner with a mailed code; needs `Login()` | off |
 | `SignUpWithCode()` | Like `SignInWithCode`, and a code also creates an account for an address nobody has verified | off |
 | `Welcome()` | Mails [`auth.PurposeWelcome`](ds:block?id=purposewelcome-addygcmp) once per user, when their first address is verified | off |
-| `WithMailer(m)` | How mail is sent. Required | none |
+| `WithMailer(m)` | How mail is sent. Required unless `NoMail` | none |
+| [`NoMail()`](ds:block?id=email-nomail-5wk2nq8d) | For an app that only stores addresses it verified itself (an OAuth provider's verified email, `SetFor(ctx, user, addr, true)`): no mailer, and nothing is ever mailed. Only `list`, `make-primary` and `remove` are served; an unverified address is stored without a verify link and stays unverified; `Deliver` answers `ErrNoMailer`. Refused beside an option that mails (`ErrNeedsMail`) | off |
 | `WithNormalizer(fn)` | Replaces `Normalize` (trim + lowercase), e.g. to fold dots or `+tags` | `Normalize` |
 | `AllowDomains(domains...)` | The allow-list: refuses every new address whose domain the list does not name, with the same `ErrAddressRejected`, when an address check would run. Each entry matches exactly, so `acme.com` allows neither `eu.acme.com` nor `notacme.com`; `*.acme.com` allows every subdomain and not `acme.com` itself, so list both for both; case-insensitive. Its check joins `CheckAddresses`' and runs where it stands among the options, so give it first to skip a DNS lookup for an outside address. An empty list or an entry naming no domain fails `auth.New` with `ErrBadDomainList`, naming the option and the entry | none |
 | `CheckAddresses(checks...)` | Runs each `AddressCheck` on a new address (created at sign-up, add, change or an OAuth sign-up, and before a change's confirm mail; never at sign-in); a refusal is `ErrAddressRejected`. Built in: `BlockDomains(domains...)` (a domain and its subdomains, case-insensitive; `ParseDomainList` reads a one-per-line list) and `RequireMX(resolver, timeout)` (refuses a domain that does not exist, the RFC 7505 null MX, or no MX and no address record; any other lookup failure lets the address through; timeout 0 is [`DefaultMXTimeout`](ds:block?id=email-defaultmxtimeout-p3q7mx2v), 3s, because the check runs inside the write's transaction). No domain list ships with the library | none |
@@ -152,7 +154,7 @@ Read them with the typed columns `email.PrimaryEmail` and `email.EmailVerifiedAt
 | `auth.ErrLastSignInMethod` | `auth.last_sign_in_method` | 409 | `remove` of the user's last way in |
 | `auth.ErrRateLimited` | `auth.rate_limited` | 429 | a limit in the table above |
 
-`ErrNoMailer`, `ErrNoBaseURL`, `ErrCodesNeedLogin` and `ErrSignInOnVerifyNeedsLogin` are configuration errors from `auth.New`, never returned to a user.
+`ErrNoMailer`, `ErrNeedsMail`, `ErrNoBaseURL`, `ErrCodesNeedLogin` and `ErrSignInOnVerifyNeedsLogin` are configuration errors from `auth.New`, never returned to a user.
 
 ## Security notes
 

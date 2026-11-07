@@ -314,6 +314,7 @@ var edgeRegistry = map[string]any{
 	"email.Links":                                    email.Links,
 	"email.Login":                                    email.Login,
 	"email.Multiple":                                 email.Multiple,
+	"email.NoMail":                                   email.NoMail,
 	"email.Recover":                                  email.Recover,
 	"email.ReplaceUnverified":                        email.ReplaceUnverified,
 	"email.RequireVerified":                          email.RequireVerified,
