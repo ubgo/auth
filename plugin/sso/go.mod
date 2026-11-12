@@ -10,7 +10,7 @@ require (
 	github.com/beevik/etree v1.7.0
 	github.com/russellhaering/gosaml2 v0.12.0
 	github.com/russellhaering/goxmldsig v1.6.1
-	github.com/ubgo/auth v0.1.0
+	github.com/ubgo/auth v0.1.1
 	github.com/ubgo/sqlb v0.1.1
 )
 
