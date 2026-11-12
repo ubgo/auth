@@ -9,7 +9,7 @@ module github.com/ubgo/auth/contrib/otel
 go 1.24.0
 
 require (
-	github.com/ubgo/auth v0.1.0
+	github.com/ubgo/auth v0.1.1
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/metric v1.38.0
 	go.opentelemetry.io/otel/sdk v1.38.0
