@@ -4,7 +4,9 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 ## [Unreleased]
 
-Everything below is unreleased; the dated sections record the order the work landed in.
+## v0.1.1, 2026-11-12
+
+The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social` starts at v0.1.0); the dated sections below record the order the work landed in.
 
 ### Added
 
