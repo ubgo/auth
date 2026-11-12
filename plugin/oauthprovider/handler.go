@@ -84,7 +84,7 @@ func rfcCode(err error) string {
 	case errors.Is(err, ErrBadRedirectTarget):
 		// The name for an unregistered redirect URI.
 		return "invalid_redirect"
-	case errors.Is(err, ErrRegistrationClosed):
+	case errors.Is(err, ErrRegistrationClosed), errors.Is(err, ErrNoAccess):
 		return "access_denied"
 	case strings.HasPrefix(info.Code, PluginName+"."):
 		return strings.TrimPrefix(info.Code, PluginName+".")

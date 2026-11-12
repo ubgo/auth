@@ -18,6 +18,7 @@ require (
 	github.com/russellhaering/goxmldsig v1.6.1
 	github.com/ubgo/auth v0.1.0
 	github.com/ubgo/auth/authui v0.1.0
+	github.com/ubgo/auth/authui/social v0.1.0
 	github.com/ubgo/auth/contrib/echo v0.1.0
 	github.com/ubgo/auth/contrib/fiber v0.1.0
 	github.com/ubgo/auth/contrib/gin v0.1.0

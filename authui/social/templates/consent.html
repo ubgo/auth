@@ -1,0 +1,12 @@
+{{define "body"}}
+{{if .Address}}<p class="muted">{{.T "social.signed_in_as"}} <strong>{{.Address}}</strong></p>{{end}}
+<p>{{.Named "social.consent_wants" .ClientName}}</p>
+<ul class="scopes">{{range .Scopes}}<li>{{$.T .}}</li>{{else}}<li>{{.T "social.consent_no_scopes"}}</li>{{end}}</ul>
+<form method="post" action="{{.Action}}">
+<input type="hidden" name="oauth_query" value="{{.Query}}">
+<div class="actions">
+<button type="submit" name="decision" value="deny" class="secondary">{{.T "social.deny"}}</button>
+<button type="submit" name="decision" value="allow">{{.T "social.allow"}}</button>
+</div>
+</form>
+{{end}}

@@ -238,6 +238,7 @@ Every error code the core and the built-in plugins can answer, with its HTTP sta
 | `oauthprovider.invalid_token` | 401 | The access token is invalid, expired or revoked. | oauthprovider |
 | `oauthprovider.invalid_user` | 400 | The user of this grant no longer exists. | oauthprovider |
 | `oauthprovider.login_required` | 401 | The user must sign in. | oauthprovider |
+| `oauthprovider.no_access` | 403 | This account has no access to this app. | oauthprovider |
 | `oauthprovider.not_found` | 404 | Not found. | oauthprovider |
 | `oauthprovider.registration_closed` | 403 | Dynamic client registration is not open. | oauthprovider |
 | `oauthprovider.request_not_supported` | 400 | Request objects are not supported. | oauthprovider |

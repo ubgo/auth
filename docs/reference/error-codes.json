@@ -1404,6 +1404,12 @@
     "plugin": "oauthprovider"
   },
   {
+    "code": "oauthprovider.no_access",
+    "status": 403,
+    "message": "This account has no access to this app.",
+    "plugin": "oauthprovider"
+  },
+  {
     "code": "oauthprovider.not_found",
     "status": 404,
     "message": "Not found.",

@@ -45,7 +45,12 @@ type SelectAccountGate struct {
 type PostLoginGate struct {
 	// Page is the post-login page, a same-site path or a trusted URL.
 	Page string
-	// ShouldRedirect decides whether the user must pass Page; required.
+	// ShouldRedirect decides whether the user must pass Page; required. It
+	// is asked on every route that can issue a code (authorize, continue
+	// and consent), so it must answer false once the page has done its work
+	// (an organization chosen): a Continue claiming the page was passed is
+	// not believed while it still answers true. A gate that refuses some
+	// users keeps answering true for them; see also ClientAccess.
 	ShouldRedirect func(ctx context.Context, info GateInfo) bool
 	// ConsentReferenceID, when set, is the reference (an organization id)
 	// a consent is given for: a consent for another reference asks again,
@@ -56,7 +61,8 @@ type PostLoginGate struct {
 
 // SignupRedirectFunc decides the signup gate: true sends a
 // signed-in user to more registration steps, at page or, when page is "",
-// SignupPage.
+// SignupPage. Like PostLoginGate.ShouldRedirect it is asked again on
+// continue, so it answers false once the steps are complete.
 type SignupRedirectFunc func(ctx context.Context, info GateInfo) (redirect bool, page string)
 
 // SelectAccount installs the select-account gate.
@@ -160,8 +166,8 @@ func (p *Plugin) postLoginRequired(ctx context.Context, c *auth.Call, z authzCon
 }
 
 // gate answers the page a signed-in user must pass before consent, or "":
-// the picker, the sign-up steps, then the post-login page, skipping the
-// ones Continue passed.
+// the picker (skipped once Continue passed it), the sign-up steps, then the
+// post-login page.
 func (p *Plugin) gate(ctx context.Context, c *auth.Call, z authzContext, done passed) (string, error) {
 	info := gateInfo(c, z)
 	if g := p.selectAccount; g != nil && !done.selected {
@@ -169,7 +175,12 @@ func (p *Plugin) gate(ctx context.Context, c *auth.Call, z authzContext, done pa
 			return g.Page, nil
 		}
 	}
-	if p.signupRedirect != nil && !done.created {
+	// The sign-up and post-login decisions are asked again even after a
+	// Continue claims their page was passed: the claim comes from the
+	// browser, so only the decision itself can let the user on. A page that
+	// did its work (the steps completed, an organization chosen) makes its
+	// decision answer false.
+	if p.signupRedirect != nil {
 		if redirect, page := p.signupRedirect(ctx, info); redirect {
 			if page == "" {
 				page = p.signupPage
@@ -180,7 +191,7 @@ func (p *Plugin) gate(ctx context.Context, c *auth.Call, z authzContext, done pa
 			return page, nil
 		}
 	}
-	if !done.postLogin && p.postLoginRequired(ctx, c, z) {
+	if p.postLoginRequired(ctx, c, z) {
 		return p.postLogin.Page, nil
 	}
 	return "", nil

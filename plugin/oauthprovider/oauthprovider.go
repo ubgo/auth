@@ -260,6 +260,9 @@ type Plugin struct {
 	selectAccount  *SelectAccountGate
 	postLogin      *PostLoginGate
 	signupRedirect SignupRedirectFunc
+	// clientAccess is ClientAccess; noAccessPage is NoAccessPage (access.go).
+	clientAccess ClientAccessFunc
+	noAccessPage string
 	// trustedSpecs are TrustedClients; trusted their rows, built by Init.
 	trustedSpecs   []TrustedClient
 	trusted        map[string]clientRow
@@ -716,6 +719,9 @@ func (p *Plugin) Init(a *auth.Auth) error {
 	}
 	if p.consentPage != "" && !a.TrustsReturnURL(p.consentPage) {
 		return fmt.Errorf("oauthprovider: ConsentPage %q is neither a same-site path nor on a trusted origin", p.consentPage)
+	}
+	if p.noAccessPage != "" && !a.TrustsReturnURL(p.noAccessPage) {
+		return fmt.Errorf("oauthprovider: NoAccessPage %q is neither a same-site path nor on a trusted origin", p.noAccessPage)
 	}
 	if err := p.initGates(a); err != nil {
 		return err

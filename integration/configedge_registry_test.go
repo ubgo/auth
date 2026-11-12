@@ -24,6 +24,7 @@ import (
 	"github.com/ubgo/auth/authhttp"
 	"github.com/ubgo/auth/authtest"
 	"github.com/ubgo/auth/authui"
+	"github.com/ubgo/auth/authui/social"
 	"github.com/ubgo/auth/plugin/admin"
 	"github.com/ubgo/auth/plugin/agentauth"
 	"github.com/ubgo/auth/plugin/agentauth/agentclient"
@@ -274,6 +275,14 @@ var edgeRegistry = map[string]any{
 	"authtest.WithOptions":                           authtest.WithOptions,
 	"authtest.WithPlugins":                           authtest.WithPlugins,
 	"authtest.WithSQLite":                            authtest.WithSQLite,
+	"social.AuthPrefix":                              social.AuthPrefix,
+	"social.Brand":                                   social.Brand,
+	"social.ConsentPath":                             social.ConsentPath,
+	"social.HTTPOptions":                             social.HTTPOptions,
+	"social.LoginPath":                               social.LoginPath,
+	"social.NoAccessPath":                            social.NoAccessPath,
+	"social.Templates":                               social.Templates,
+	"social.Texts":                                   social.Texts,
 	"authui.APIPrefix":                               authui.APIPrefix,
 	"authui.AfterSignIn":                             authui.AfterSignIn,
 	"authui.AppName":                                 authui.AppName,
@@ -475,6 +484,8 @@ var edgeRegistry = map[string]any{
 	"oauthprovider.NoDefaultRateLimits":              oauthprovider.NoDefaultRateLimits,
 	"oauthprovider.PairwiseSecret":                   oauthprovider.PairwiseSecret,
 	"oauthprovider.PostLogin":                        oauthprovider.PostLogin,
+	"oauthprovider.ClientAccess":                     oauthprovider.ClientAccess,
+	"oauthprovider.NoAccessPage":                     oauthprovider.NoAccessPage,
 	"oauthprovider.ProtectedResource":                oauthprovider.ProtectedResource,
 	"oauthprovider.RateLimit":                        oauthprovider.RateLimit,
 	"oauthprovider.RefreshReplay":                    oauthprovider.RefreshReplay,

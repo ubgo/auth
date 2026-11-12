@@ -65,11 +65,11 @@ tasks:
     vars:
       COVER_MIN: '{{.COVER_MIN | default "0"}}'
       OUT: '{{.ROOT_DIR}}/.cover'
-      PKGS: github.com/ubgo/auth/...,github.com/ubgo/auth/plugin/password/...,github.com/ubgo/auth/plugin/passkey/...,github.com/ubgo/auth/plugin/organization/...,github.com/ubgo/auth/plugin/deviceauth/...,github.com/ubgo/auth/plugin/deviceauth/oauthdevice/...,github.com/ubgo/auth/plugin/scim/...,github.com/ubgo/auth/plugin/oauthproxy/...,github.com/ubgo/auth/plugin/sso/...,github.com/ubgo/auth/plugin/samlidp/...,github.com/ubgo/auth/plugin/oauthprovider/...,github.com/ubgo/auth/plugin/agentauth/...,github.com/ubgo/auth/plugin/referral/...,github.com/ubgo/auth/plugin/access/...,github.com/ubgo/auth/authui/...
+      PKGS: github.com/ubgo/auth/...,github.com/ubgo/auth/plugin/password/...,github.com/ubgo/auth/plugin/passkey/...,github.com/ubgo/auth/plugin/organization/...,github.com/ubgo/auth/plugin/deviceauth/...,github.com/ubgo/auth/plugin/deviceauth/oauthdevice/...,github.com/ubgo/auth/plugin/scim/...,github.com/ubgo/auth/plugin/oauthproxy/...,github.com/ubgo/auth/plugin/sso/...,github.com/ubgo/auth/plugin/samlidp/...,github.com/ubgo/auth/plugin/oauthprovider/...,github.com/ubgo/auth/plugin/agentauth/...,github.com/ubgo/auth/plugin/referral/...,github.com/ubgo/auth/plugin/access/...,github.com/ubgo/auth/authui/...,github.com/ubgo/auth/authui/social/...
     cmds:
       - /bin/rm -rf {{.OUT}} && mkdir -p {{.OUT}}
       - go test -coverprofile={{.OUT}}/core.out ./... > /dev/null
-      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
+      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, authui/social, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
         # contrib/redis talks to a live Redis, so only it skips the test cache.
         cmd: 'cd {{.ITEM}} && go test {{if eq .ITEM "contrib/redis"}}-count=1 {{end}}-coverprofile={{.OUT}}/{{replace "/" "-" .ITEM}}.out ./... > /dev/null'
       # plugin/ldap and plugin/siwe need a database and a driver, which their own
@@ -233,7 +233,7 @@ tasks:
   # Called through testlock by the public task above; no desc keeps it off task --list.
   contrib:run:
     cmds:
-      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, examples, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
+      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, authui/social, examples, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
         cmd: 'cd {{.ITEM}} && go vet ./... && go test ./...'
 
   gqlgen:example:

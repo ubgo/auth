@@ -23,6 +23,7 @@ import (
 	"github.com/ubgo/auth/authgate"
 	"github.com/ubgo/auth/authhttp"
 	"github.com/ubgo/auth/authui"
+	"github.com/ubgo/auth/authui/social"
 	"github.com/ubgo/auth/plugin/admin"
 	"github.com/ubgo/auth/plugin/agentauth"
 	"github.com/ubgo/auth/plugin/agentauth/agentclient"
@@ -454,6 +455,7 @@ func edgeProvider(ee *edgeEnv, opts ...oauthprovider.Option) []auth.Plugin {
 var edgeOwnPath = map[string]string{
 	"authhttp.Option":    "applied to authhttp.Handler, which then serves a sign-up and a session read",
 	"authui.Option":      "applied to authui.Handler, which then serves the sign-in page",
+	"social.Option":      "applied to social.New over an OAuth-only provider, which must refuse naming the option or serve its sign-in page",
 	"authgate.Option":    "applied to authgate.New with a minimal gate, which must refuse naming the option or serve its sign-in route",
 	"agentclient.Option": "applied to agentclient.New, which must not panic; the client has no server side to serve",
 	"authtest.Option":    "skipped: the test harness fails its test on a bad option (authtest/options_nil_test.go pins nil)",
@@ -499,6 +501,27 @@ func (ee *edgeEnv) run(name, result string, opt reflect.Value) (verdict string) 
 		g.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, edgeBaseURL+"/", nil))
 		if rec.Code >= http.StatusInternalServerError {
 			return fmt.Sprintf("gate answered %d", rec.Code)
+		}
+		return ""
+	case "social.Option":
+		jw := jwt.New(jwt.WithSigningKey(ee.sig), jwt.Issuer(edgeBaseURL))
+		op := oauthprovider.New(jw, oauthprovider.Issuer(edgeBaseURL), oauthprovider.LoginPage(social.DefaultLoginPath))
+		a, err := ee.newAuth([]auth.Plugin{oauth.New(oauth.WithProviders(oauth.Google("client-id", "client-secret"))), jw, op}, nil)
+		if err != nil {
+			return "base configuration failed: " + err.Error()
+		}
+		defer a.Close()
+		pages, err := social.New(a, op, opt.Interface().(social.Option))
+		if err != nil {
+			if named(err) {
+				return ""
+			}
+			return edgeUnnamed + " (social.New): " + err.Error()
+		}
+		rec := httptest.NewRecorder()
+		pages.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, edgeBaseURL+social.DefaultLoginPath, nil))
+		if rec.Code >= http.StatusInternalServerError && rec.Code != http.StatusServiceUnavailable {
+			return fmt.Sprintf("sign-in page answered %d", rec.Code)
 		}
 		return ""
 	case "agentclient.Option":

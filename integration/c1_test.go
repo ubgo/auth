@@ -1212,14 +1212,16 @@ func TestOAuthProvider_IDGeneratorFailures(t *testing.T) {
 // user said last.
 func TestOAuthProvider_ConsentReferenceReplaced(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
-		ref := "org_1"
+		ref, pending := "org_1", true
 		o := newOPEnv(t, e, oauthprovider.PostLogin(oauthprovider.PostLoginGate{Page: "/org",
-			ShouldRedirect:     func(context.Context, oauthprovider.GateInfo) bool { return true },
+			ShouldRedirect:     func(context.Context, oauthprovider.GateInfo) bool { return pending },
 			ConsentReferenceID: func(context.Context, oauthprovider.GateInfo) string { return ref }}))
 		reg := o.client(t, oauthprovider.ClientSpec{})
 		ctx := request(o.a, o.token)
 		consent := func(scope string) {
+			pending = true
 			q := pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Authorize(ctx, authzReq(reg.ClientID))), "/org")
+			pending = false // the page chose the organization
 			cq := pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Continue(ctx, oauthprovider.ContinueRequest{Query: q, PostLogin: true})), "/consent")
 			must[oauthprovider.AuthorizeResult](t)(o.op.Consent(ctx, oauthprovider.ConsentRequest{Query: cq, Accept: true, Scope: scope}))
 		}

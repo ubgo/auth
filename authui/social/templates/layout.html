@@ -1,0 +1,17 @@
+{{define "layout"}}<!doctype html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.T .Title}} · {{.Brand}}</title>
+<style nonce="{{.Nonce}}">{{.Style}}</style>
+</head>
+<body>
+<main class="card">
+<p class="brand">{{.Brand}}</p>
+<h1>{{.T .Title}}</h1>
+{{if .Error}}<p class="error" role="alert">{{.Error}}</p>{{end}}
+{{template "body" .}}
+</main>
+</body>
+</html>{{end}}
