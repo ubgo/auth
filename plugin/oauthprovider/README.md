@@ -142,7 +142,7 @@ oauthprovider.ClientAccess(oauthprovider.AllowListAccess(func(_ context.Context,
 }))
 ```
 
-An app that signs users in only through `plugin/oauth` still registers `plugin/email`, with `email.NoMail()` (no mailer, no mail routes), or no address is stored and the lists see none. [examples/sso-server](../../examples/sso-server) wires the whole setup.
+An app that signs users in only through `plugin/oauth` still registers `plugin/email`, with `email.NoMail()` (no mailer, no mail routes), or no address is stored and the lists see none. [examples/sso-server](../../examples/sso-server) wires the whole setup, and the [SSO login server guide](../../docs/integrations/sso-server.md) builds it step by step.
 
 The gates are decided on every route too: `PostLoginGate.ShouldRedirect` and the `SignupRedirect` decision are asked again on continue and consent, so a `Continue` that claims a gate was passed is not believed while its decision still sends the user to the page. A decision answers false once its page has done its work (an organization chosen, the sign-up steps complete).
 

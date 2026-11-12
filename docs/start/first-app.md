@@ -278,3 +278,4 @@ res, err := pw.SignIn(ctx, password.SignInRequest{Identifier: "alice@example.com
 - [Production](production.md): secrets, environment configuration, migrations in deploys, sweeping, several instances, real mail.
 - [Ready-made pages](../integrations/ready-made-pages.md) if you would rather not write the forms, or the same app on [gin](../integrations/gin.md), [echo](../integrations/echo.md) or [fiber](../integrations/fiber.md).
 - Add [two-factor](../plugins/twofactor.md), [passkeys](../plugins/passkey.md) or [social sign-in](../plugins/oauth.md).
+- Building one login for several of your own apps instead? Follow the [SSO login server](../integrations/sso-server.md) guide.

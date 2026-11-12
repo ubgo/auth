@@ -17,6 +17,8 @@ import (
 // provider plugin adds the command with no wiring, create shows the secret
 // once or writes it to a new 0600 file, names stay unambiguous, update
 // changes only the flags given, and delete has a dry run.
+//
+//ds:def id=testoauthclientcli-3zqydh5j owner=@khanakia stability=stable
 func TestOAuthClientCLI(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		o := newOPEnv(t, e)

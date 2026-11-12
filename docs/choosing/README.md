@@ -8,7 +8,7 @@ Decision guides for the questions every app answers before it writes code. Each 
 | [Choose sign-in methods](sign-in-methods.md) | Which ways in should I offer: password, magic link, mailed code, email challenge, passkey, OAuth, phone, guest, SSO, device code or hand-off? |
 | [Choose a session strategy](sessions.md) | Where does a session live (database, Redis, a key-value store, memory, stateless), what caches the lookup, and how does each client hold it? |
 | [Choose a database and storage](storage.md) | Postgres, MySQL or SQLite; table names and column types; and which state (rate counters, verification tokens, outgoing mail) should live elsewhere? |
-| [Choose by kind of app](app-types.md) | Which plugins and options for a SaaS with organizations, an internal tool, a public API, a mobile or CLI backend, serverless, an OAuth provider or MCP server, or agents? |
+| [Choose by kind of app](app-types.md) | Which plugins and options for a SaaS with organizations, an internal tool, a public API, a mobile or CLI backend, serverless, an OAuth provider or MCP server, a company login (SSO server) for your own apps, or agents? |
 | [Choose a client setup](client.md) | How does my frontend call it: the prebuilt or an app-generated TypeScript client, cookie or bearer, same domain or another site, React components or hooks or the plain client, which router, which plugins? |
 
 Once the choices are made, the [learning path](../README.md) takes you from the first app to production, and the [feature index](../reference/features.md) lists every feature with its guide and example.

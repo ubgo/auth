@@ -1,4 +1,4 @@
-# docsync refs format=2 extract=1 repo=auth commit=d231395 scanned_at=2026-11-12T15:52:10Z
+# docsync refs format=2 extract=1 repo=auth commit=52f8961 scanned_at=2026-11-12T17:11:24Z
 id	repo	doc	line	verb	carrier	acked_hash	seen_hash	sentence_hash	env	args
 defaultsessioncachettl-8knzqpgz	auth	README.md	172	block	link		cce38a4c4ea1c121549f0c91e33aba9d27a751ef86c84fde51749414341e364d	3def2e974af5e6d535aa9136a6dbab67a97e5c5c3ea88aa259dbf58014e2fdcd		id=defaultsessioncachettl-8knzqpgz
 maxsessioncachettl-2sh2x4n6	auth	README.md	172	block	link		dacb38de707bb81a9c0beb0a097ee7ce0bb5267d7ac576965643fe0b207a19a4	3def2e974af5e6d535aa9136a6dbab67a97e5c5c3ea88aa259dbf58014e2fdcd		id=maxsessioncachettl-2sh2x4n6
@@ -896,6 +896,8 @@ core-maintain-6wx9nq3v	auth	docs/integrations/cli.md	190	block	link		96d998968a4
 exitfailed-ssu2cn9e	auth	docs/integrations/cli.md	190	block	link		6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b	1450c60d0e9d0f7a7b1dbdce8365a4fa69cd81666df2676762716747d27c4cc9		id=exitfailed-ssu2cn9e
 exitusage-d43sp75x	auth	docs/integrations/cli.md	284	block	link		d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35	3809dd248d285a1f33d6290fc41e2220e82ad83176eade2d2cd770204ce5fb56		id=exitusage-d43sp75x
 exitfailed-ssu2cn9e	auth	docs/integrations/cli.md	288	block	link		6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b	d9e73bca807908fb5c64571510ae99608651007b797ee0a563878471c0be0fe6		id=exitfailed-ssu2cn9e
+authcli-commandprovider-9487n422	auth	docs/integrations/cli.md	305	block	block		5aa814e9bb5703a662624c51c17b5192d3726bee2d4438e2b679caf32e28ae4e			id=authcli-commandprovider-9487n422
+authcli-command-avck6vee	auth	docs/integrations/cli.md	318	block	block		3137fa3d9460b6d06dfecff75f51fcc2667543e19b4eb1f6cf2d61cdaaa34132			id=authcli-command-avck6vee
 desktop-newauth-4w7mk2qr	auth	docs/integrations/desktop-apps.md	15	block	block	e4a773392545fe110d9b8f36a69f5169bea4b04f6ef57649aba4efd1d0483d61	e03e02ef673ae74535f5337864c04ef3f8cd913cc17c856d34066bcd5a1b4cb4			id=desktop-newauth-4w7mk2qr
 opt-withloopbackreturn-6tn4wq8k	auth	docs/integrations/desktop-apps.md	37	block	link		b7c70f713a1c22b1b24480cca7c34a34091f4fc08ff63b3a57eb6484e102fb50	3254f4898d2357ee01ef7f6804110e61d2de949ac5b220ded2edea3c169caa15		id=opt-withloopbackreturn-6tn4wq8k
 desktop-openinapp-8n3xv5tp	auth	docs/integrations/desktop-apps.md	45	block	block	6cf9cb6ffc8bac8aa5dd65a021865552dac403ffc702958460d0169c49da0dc6	1784f0eba79f53ae3e5e63ed428f22abb281dfdf631851496596b5914caaecda			id=desktop-openinapp-8n3xv5tp
@@ -1047,6 +1049,15 @@ spa-corsheaders-m4ny7sbx	auth	docs/integrations/spa-frontends.md	81	block	block	
 spa-cors-r2ve6hna	auth	docs/integrations/spa-frontends.md	92	block	block		e5d6d7ef46d114f3004bdef55329f7d40a4787aad14d49e62b34774b91c2b088			id=spa-cors-r2ve6hna
 headless-client-kjnvsfqa	auth	docs/integrations/spa-frontends.md	238	block	block		f0038f1f1af8b7f63991733df826254483a7b2f7f815085efb38e1fd18a9f657			id=headless-client-kjnvsfqa
 bearer-client-2xq7kw9n	auth	docs/integrations/spa-frontends.md	251	block	block		9849c8373832d471185712bc4f1f211188e8ebe7283776b3145c85157133645f			id=bearer-client-2xq7kw9n
+minsecretsize-7wq2kx9m	auth	docs/integrations/sso-server.md	56	block	link		e29c9c180c6279b0b02abd6a1801c7c04082cf486ec027aa13515e4f3884bb6b	658d939920a08c5104a27c5df2eba5462b65a311c2019fa19388c80869f69b98		id=minsecretsize-7wq2kx9m
+ssoserver-allowlists-2vjtavt3	auth	docs/integrations/sso-server.md	62	block	block		87692f7b4212382ec668fe5babb4dd796314538ffe1e345225fbbf3696c67bf5			id=ssoserver-allowlists-2vjtavt3
+ssoserver-newauth-6zux32wb	auth	docs/integrations/sso-server.md	86	block	block		aecf55b1583645740c4806bdc231592b7f8fb1207c683d1e9b0a02e20e19311f			id=ssoserver-newauth-6zux32wb
+ssoserver-newhandler-p8y5z28q	auth	docs/integrations/sso-server.md	120	block	block		63b7ec8c83dcd73df5e1560a6b2d0716d3044936e3588f9f3bca080f2b88fd10			id=ssoserver-newhandler-p8y5z28q
+testoauthclientcli-3zqydh5j	auth	docs/integrations/sso-server.md	165	block	link		46cbd876667e55eecf069adc27423739c99a50fac88decf5a4d71219d1907769	86cf5e0c0215341e1e5de59249e401abfa10094f31d174ee5d5e44da38d783d7		assert=true id=testoauthclientcli-3zqydh5j
+testoauthprovider-patchclient-ctwjkqxc	auth	docs/integrations/sso-server.md	179	block	link		e11aa41a2444b6674d80b267d41df004f0405cf996ef9fa4f7d29482003910fe	d7767791fe0c470e1d91d639879d55f162d0e0520a580c236283bf5311ddf596		assert=true id=testoauthprovider-patchclient-ctwjkqxc
+testssoserver-listedusergetsacode-u9qre9x6	auth	docs/integrations/sso-server.md	198	block	link		db5746a29e5d29cb6b5e650430a7abf9b3fe6439a9e6c6499e6b010d7e078515	87c4e78b7c2a83d6236a89d71d569fb606742a3e26492bc159a33a3ef6619bef		assert=true id=testssoserver-listedusergetsacode-u9qre9x6
+testoauthprovider-clientaccess-fyceyruw	auth	docs/integrations/sso-server.md	208	block	link		92ce93501dd347cfb711629cb954bfba3288b1654830dbe292f7bd6be09cc722	0fa2a1b7c4a757b79e997be8ba5e71d87050139922cee7762bf7e4b167506110		assert=true id=testoauthprovider-clientaccess-fyceyruw
+testssoserver-unlisteduserseesnoaccess-cy9q45e9	auth	docs/integrations/sso-server.md	208	block	link		0485e3be1fbb328f208b2f5d397b6980adfe5362993c050672212e57848e7b7c	b4b2e829c3da0f51a77d33234fccf34227b11cf1b2ebb46c5a5655a1791e4856		assert=true id=testssoserver-unlisteduserseesnoaccess-cy9q45e9
 core-importusers-9zk3wq6p	auth	docs/migrating/README.md	17	block	link		4e557a0115e2ff34b5ccb03bf3b627002887b4e37810b9f3d09edafa8d5628c4	32d5bfddfb5e1fbf95fedeee619a3620731fab8b02755b816d7089d74ab33965		id=core-importusers-9zk3wq6p
 plugin-importhash-k2v7mq3x	auth	docs/migrating/README.md	18	block	link		b0b2c476786bcf5ef2e1f23ddff904967352bb839fdf52149fc66e09b01f60ca	de437c71a97214a5dbee097f6a30b96f7787291ff91a55019481689db5ad5651		id=plugin-importhash-k2v7mq3x
 plugin-importtotp-h8n4rw2c	auth	docs/migrating/README.md	20	block	link	55d01649a255f9a61fa4b83ac087e8efd3304291220ec4c49630f137f0fdb400	7ef403a4dfcd53ed51492107b6714579f15ed4fe9bdc8b5fc2ca489067f0ab85	6f9c390754a122f4f1b00dad02b48ce3ebb6a9be18d3cb836593995a7cafcc6f		id=plugin-importtotp-h8n4rw2c
@@ -1866,7 +1877,7 @@ main-7mrnbhrx	auth	docs/start/first-app.md	126	block	block	219834a516b615ae54d2e
 signinaccountlimit-yz756w5r	auth	docs/start/first-app.md	272	block	link		ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d	1952086f01cdeb809cd6b14b4bb4d13e5699ea5cafcf8ee8307e36248fe55c6e		id=signinaccountlimit-yz756w5r
 signiniplimit-a4yqscxz	auth	docs/start/first-app.md	272	block	link		f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b	1952086f01cdeb809cd6b14b4bb4d13e5699ea5cafcf8ee8307e36248fe55c6e		id=signiniplimit-a4yqscxz
 defaultminlength-8nyr776x	auth	docs/start/first-app.md	273	block	link		2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3	0c8fd33261a5124fad1ccfe9684bf631c358e68fe7849f2ffc4536924a70f6b5		id=defaultminlength-8nyr776x
-postgresmigrationsql-3nd8kq5v	auth	docs/start/install.md	84	block	block		e3d9feddda3afa3c180508dbeae96e1528520d71260ed9c37743ac008c40088d			id=postgresmigrationsql-3nd8kq5v
+postgresmigrationsql-3nd8kq5v	auth	docs/start/install.md	85	block	block		e3d9feddda3afa3c180508dbeae96e1528520d71260ed9c37743ac008c40088d			id=postgresmigrationsql-3nd8kq5v
 envbaseurl-k7cmqg4h	auth	docs/start/production.md	14	block	block	0d932f887c1dd1025c30ab81c695124626c07130560ee3d39ed56bb1bcfeab8c	4901f8075494ea3404dc3e58990d94d7134aba6ebb0a9d007b39809b5a03221f			id=envbaseurl-k7cmqg4h
 cli-envoptions-9423x8e8	auth	docs/start/production.md	35	block	block		7a33653415b7d835ce19c279d722c84f88606ddb5b13c2e2dc265f9033d29487			id=cli-envoptions-9423x8e8
 minsecretsize-7wq2kx9m	auth	docs/start/production.md	98	block	link		e29c9c180c6279b0b02abd6a1801c7c04082cf486ec027aa13515e4f3884bb6b	c623882a1e4f1ac0b92f250a36fa202e0f9a68ce8cf12ce160e0e6df5bf55504		id=minsecretsize-7wq2kx9m
