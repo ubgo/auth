@@ -287,6 +287,55 @@ Run it whenever a plugin, an operation, an input or output type, or an error cod
 
 Check: `git diff --exit-code -- web/src/auth` right after the command exits 0 when the committed copy is current. The command refuses to write a client whose names would collide (two operations of one plugin that differ only in punctuation, a plugin named after a TypeScript keyword or a core method, a Go type named like a runtime export) and exits [`ExitFailed`](ds:block?id=exitfailed-ssu2cn9e) (1) with `auth client ts: authhttp: TypeScript name collision: ...` naming both sides, before it writes anything.
 
+## Step 9 — Commands a plugin adds
+
+A plugin can add its own words to `auth`. Registering the plugin is all the app does; `authcli` finds the commands among the registered plugins, so it never imports an optional module. `plugin/oauthprovider` adds `auth oauth-client` this way:
+
+```sh
+myapp auth oauth-client create --name wiki --redirect-uri https://wiki.example.com/callback --skip-consent --secret-file wiki.secret
+myapp auth oauth-client list
+myapp auth oauth-client update wiki --post-logout-uri https://wiki.example.com/signed-out
+myapp auth oauth-client delete wiki --dry-run
+```
+
+The usage text lists every plugin command under "plugin commands:". The [SSO login server](sso-server.md#step-4--register-an-app) guide walks through these.
+
+A plugin of your own adds a command by implementing `CommandProvider`:
+
+<!-- ds:block id=authcli-commandprovider-9487n422 -->
+**CommandProvider** · [`authcli/plugincmd.go:50-53`](../../authcli/plugincmd.go#L50-L53)
+
+```go
+type CommandProvider interface {
+	auth.Plugin
+	Commands() []Command
+}
+```
+<!-- /ds:block hash=5aa814 -->
+
+Each `Command` has its word, its usage lines and the function that runs it:
+
+<!-- ds:block id=authcli-command-avck6vee -->
+**Command** · [`authcli/plugincmd.go:27-36`](../../authcli/plugincmd.go#L27-L36)
+
+```go
+type Command struct {
+	// Name is the word Main routes on; it never shadows a built-in command
+	// (Main refuses to run with a clash rather than pick one).
+	Name string
+	// Usage is the command's lines in the usage text, each starting with
+	// "auth <Name>", as the built-in lines do.
+	Usage string
+	// Run runs the command.
+	Run func(ctx context.Context, a *auth.Auth, args []string, io IO) int
+}
+```
+<!-- /ds:block hash=3137fa -->
+
+`authcli.NewFlagSet` and `authcli.ParseFlags` give the command the same `-h` and bad-flag handling as the built-in commands. A command never shadows a built-in one or another plugin's: `Main` refuses with `authcli.ErrCommandClash` (exit 1) instead of picking one.
+
+Check: `myapp auth` with no arguments prints the usage with your command under "plugin commands:".
+
 ## Options you may want
 
 | Need | Do |

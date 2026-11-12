@@ -298,6 +298,11 @@ The app issues tokens to other clients and to agents.
 | Serve an MCP server | `plugin/oauthprovider` | [oauthprovider › Step 6](../plugins/oauthprovider.md#step-6--guard-an-mcp-server) | [oauth-provider](../../examples/oauth-provider/) |
 | Tokens for one API, verified elsewhere | `plugin/oauthprovider` | [oauthprovider › Step 8](../plugins/oauthprovider.md#step-8--tokens-for-an-api-verified-elsewhere) | [oauth-provider](../../examples/oauth-provider/) |
 | Client ID metadata documents (CIMD) | `plugin/oauthprovider` | [oauthprovider › Step 10](../plugins/oauthprovider.md#step-10--let-clients-describe-themselves-cimd) | [oauth-provider](../../examples/oauth-provider/) |
+| One company login for your own apps (an SSO / OIDC server) | `plugin/oauthprovider`, `authui/social` | [sso-server › How a sign-in goes](../integrations/sso-server.md#how-a-sign-in-goes) | [sso-server](../../examples/sso-server/) |
+| Who may use which client (`ClientAccess`, `AllowList`, `AllowListAccess`), checked at every code and refresh | `plugin/oauthprovider` | [sso-server › Step 1](../integrations/sso-server.md#step-1--write-down-who-may-use-each-app) | [sso-server](../../examples/sso-server/) |
+| A page for a refused user (`NoAccessPage`) | `plugin/oauthprovider` | [sso-server › Step 2](../integrations/sso-server.md#step-2--wire-the-server) | [sso-server](../../examples/sso-server/) |
+| Register, list, change and delete clients from the command line (`auth oauth-client`) | `plugin/oauthprovider`, `authcli` | [sso-server › Step 4](../integrations/sso-server.md#step-4--register-an-app) | [sso-server](../../examples/sso-server/) |
+| Change some fields of a client (`PatchClient`), list every client (`AllClients`) | `plugin/oauthprovider` | [sso-server › Step 5](../integrations/sso-server.md#step-5--change-an-app-later) | — |
 | Agent authentication: hosts, agents, approval | `plugin/agentauth` | [agentauth › Step 1](../plugins/agentauth.md#step-1--wire-the-plugin) | [agent-auth](../../examples/agent-auth/) |
 | Approval without a code (CIBA) and with a passkey | `plugin/agentauth` | [agentauth › Without a code: CIBA](../plugins/agentauth.md#without-a-code-ciba) | [agent-ciba](../../examples/agent-ciba/) |
 | Agent capabilities from an OpenAPI document | `plugin/agentauth` | [agentauth › Wrap an existing API: OpenAPI](../plugins/agentauth.md#wrap-an-existing-api-openapi) | [agent-openapi](../../examples/agent-openapi/) |
@@ -355,6 +360,7 @@ Server-rendered pages, if you do not want to write your own.
 | Pages follow your plugins; plugin sign-in buttons (`UIMethod`) | `authui`, `authhttp` | [ready-made-pages › Step 2](../integrations/ready-made-pages.md#step-2--let-the-pages-follow-your-plugins) | [ready-made-pages](../../examples/ready-made-pages/) |
 | Origin-checked forms (login CSRF) | `authui` | [ready-made-pages › Step 5](../integrations/ready-made-pages.md#step-5--know-what-protects-the-forms) | [custom-pages](../../examples/custom-pages/) |
 | Your own templates and texts (`Templates`, `Texts`) | `authui` | [ready-made-pages › Step 6](../integrations/ready-made-pages.md#step-6--make-the-pages-yours) | [custom-pages](../../examples/custom-pages/) |
+| Sign-in buttons, no-access and consent pages for a login with only provider sign-in | `authui/social` | [sso-server › Step 3](../integrations/sso-server.md#step-3--mount-the-endpoints-and-the-pages) | [sso-server](../../examples/sso-server/) |
 
 ## TypeScript client
 
@@ -515,6 +521,7 @@ What the operator runs, and how the app is tested.
 | Signed outgoing webhooks (Standard Webhooks) with retries, dead letters and replay | `plugin/webhook` | [webhook › Step 1](../plugins/webhook.md#step-1--wire-the-plugin) | [webhooks](../../examples/webhooks/) |
 | Print the wiring for a support request (`auth info`) | `authcli` | [cli › Step 6](../integrations/cli.md#step-6--print-the-wiring-for-a-support-request) | [cli](../../examples/cli/) |
 | Make the first admin from the command line | `authcli`, `plugin/admin` | [cli › Step 7](../integrations/cli.md#step-7--make-the-first-admin) | [admin-ops](../../examples/admin-ops/) |
+| Commands a plugin adds (`CommandProvider`) | `authcli` | [cli › Step 9](../integrations/cli.md#step-9--commands-a-plugin-adds) | [sso-server](../../examples/sso-server/) |
 | Configure from the environment | `auth` | [production › Step 1](../start/production.md#step-1--configure-from-the-environment) | [cli](../../examples/cli/) |
 | Production security checklist | `auth` | [production › Step 9](../start/production.md#step-9--the-security-checklist) | — |
 | Import users from Auth0, Clerk, Supabase, Auth.js or WorkOS | `auth`, `plugins` | [migrating › How every import works](../migrating/README.md#how-every-import-works) | [import-users](../../examples/import-users/) |

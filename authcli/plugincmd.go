@@ -22,6 +22,8 @@ import (
 // Command is one word a plugin adds to the command line: `auth <Name> ...`.
 // Run receives the arguments after Name and returns an exit code (ExitOK,
 // ExitFailed or ExitUsage, the library-wide convention).
+//
+//ds:def id=authcli-command-avck6vee owner=@khanakia stability=stable
 type Command struct {
 	// Name is the word Main routes on; it never shadows a built-in command
 	// (Main refuses to run with a clash rather than pick one).
@@ -43,6 +45,8 @@ type IO struct {
 
 // CommandProvider is a plugin that adds commands. It is found through the
 // Auth's plugin list, so registering the plugin is all an app does.
+//
+//ds:def id=authcli-commandprovider-9487n422 owner=@khanakia stability=stable
 type CommandProvider interface {
 	auth.Plugin
 	Commands() []Command

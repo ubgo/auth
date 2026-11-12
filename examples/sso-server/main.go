@@ -53,6 +53,8 @@ var (
 // allowLists says who may use each app, by client name. Load it from your
 // own configuration; the lookup runs on every decision, so a reloaded list
 // applies at once, including to the next refresh token.
+//
+//ds:def id=ssoserver-allowlists-2vjtavt3 owner=@khanakia stability=stable
 var allowLists = map[string]oauthprovider.AllowList{
 	"wiki": {Domains: []string{"example.com"}},
 	"ops":  {Emails: []string{"alice@example.com"}},
@@ -61,6 +63,8 @@ var allowLists = map[string]oauthprovider.AllowList{
 // newAuth wires Google sign-in (addresses stored by the email plugin
 // under NoMail: no mailer, nothing mailed), the jwt signer, and the provider with
 // its access rule and the social pages' paths.
+//
+//ds:def id=ssoserver-newauth-6zux32wb owner=@khanakia stability=stable
 func newAuth(db *sql.DB, secret []byte, key ed25519.PrivateKey, upstream oauth.Provider) (*auth.Auth, *oauthprovider.Plugin, error) {
 	jw := jwt.New(jwt.WithSigningKey(key), jwt.Issuer(baseURL))
 	op := oauthprovider.New(jw,
@@ -80,6 +84,8 @@ func newAuth(db *sql.DB, secret []byte, key ed25519.PrivateKey, upstream oauth.P
 
 // newHandler mounts the library's routes, the provider's endpoints and the
 // sign-in, no-access and consent pages.
+//
+//ds:def id=ssoserver-newhandler-p8y5z28q owner=@khanakia stability=stable
 func newHandler(a *auth.Auth, op *oauthprovider.Plugin) (http.Handler, error) {
 	pages, err := social.New(a, op, social.Brand("Example login"))
 	if err != nil {

@@ -20,6 +20,8 @@ import (
 // a client: authorize (the no-access page, or prompt=none's access_denied),
 // continue and consent with the page's signed query, the code exchange and
 // the refresh. Withdrawing access stops the next refresh.
+//
+//ds:def id=testoauthprovider-clientaccess-fyceyruw owner=@khanakia stability=stable
 func TestOAuthProvider_ClientAccess(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		lists := map[string]oauthprovider.AllowList{}
@@ -113,6 +115,8 @@ func TestOAuthProvider_ClientAccessWithoutPage(t *testing.T) {
 
 // PatchClient changes the named fields and keeps every other one, refuses
 // an unknown client, and stores only what a whole update could.
+//
+//ds:def id=testoauthprovider-patchclient-ctwjkqxc owner=@khanakia stability=stable
 func TestOAuthProvider_PatchClient(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		o := newOPEnv(t, e)

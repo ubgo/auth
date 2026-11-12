@@ -26,11 +26,12 @@ go get github.com/ubgo/auth github.com/ubgo/auth/plugin/password
 | SCIM provisioning from Okta, Entra ID and other IdPs | `github.com/ubgo/auth/plugin/scim` |
 | Device codes for CLIs and TVs | `github.com/ubgo/auth/plugin/deviceauth` (and `plugin/deviceauth/oauthdevice` for OAuth tokens) |
 | Sign-in on preview deployments, or from a popup | `github.com/ubgo/auth/plugin/oauthproxy` |
-| Your app as an OAuth 2.1 / OpenID Connect provider | `github.com/ubgo/auth/plugin/oauthprovider` |
+| Your app as an OAuth 2.1 / OpenID Connect provider, or a company login for your own apps | `github.com/ubgo/auth/plugin/oauthprovider` (with `authui/social` for the pages of a login that has only provider sign-in; see the [SSO login server](../integrations/sso-server.md) guide) |
 | AI agents acting for users | `github.com/ubgo/auth/plugin/agentauth` |
 | Sign-in with an LDAP directory (OpenLDAP, Active Directory, FreeIPA) | `github.com/ubgo/auth/plugin/ldap` (go-ldap) |
 | Sign-In with Ethereum | `github.com/ubgo/auth/plugin/siwe` (secp256k1, no go-ethereum) |
 | Ready-made HTML pages | `github.com/ubgo/auth/authui` |
+| Sign-in, no-access and consent pages for a login with only provider sign-in (no password plugin) | `github.com/ubgo/auth/authui/social` |
 | gin, echo, fiber, gqlgen | `github.com/ubgo/auth/contrib/gin`, `contrib/echo`, `contrib/fiber`, `contrib/gqlgen` |
 | Rate limits or sessions shared through Redis | `github.com/ubgo/auth/contrib/redis` |
 | Phone numbers typed without the country code | `github.com/ubgo/auth/contrib/phonenumbers` |
@@ -118,3 +119,4 @@ Check: the poc output starts with `wired plugins:` and a list of routes; `go run
 
 - [Your first app](first-app.md): from an empty folder to sign-up, verification, sign-in, a protected page and sign-out.
 - [Configuration](../concepts/configuration.md): every `auth.With*` option.
+- [SSO login server](../integrations/sso-server.md): if what you are building is one login for several of your own apps.

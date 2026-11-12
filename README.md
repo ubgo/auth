@@ -47,6 +47,7 @@ Everything is a plugin, including password sign-in and email addresses. The list
 - **One pipeline for every entry point.** Each feature is one typed operation. A Go call, an HTTP route and a GraphQL resolver all run the same code, so none can skip the rate limit, the CSRF origin check, the session requirement or a hook.
 - **Security pinned by tests.** Constant-time comparison of every secret is a source guard that fails the build; one password hash on every sign-in path, known account or not, is a timing test; only verified identities ever match a person; tokens are single-use under concurrency.
 - **Three engines, one behaviour.** Values are normalized in Go and compared byte for byte, and one integration suite runs on Postgres, MySQL and SQLite.
+- **A login server for your other apps, when you need one.** `oauthprovider` makes the app an OpenID Connect provider for your own internal apps, with a per-app access rule (`ClientAccess`, `AllowList`) checked at every code and refresh, provider-only sign-in pages in `authui/social`, and `auth oauth-client` to register apps ([SSO login server](docs/integrations/sso-server.md)).
 - **A dependency-free core.** The core module depends on the standard library and sqlb only, enforced by a test; argon2, WebAuthn and each framework adapter are separate modules you download only if you import them.
 
 | | **auth** | Hosted identity service | Self-hosted identity server | Hand-written on a session library |
@@ -139,6 +140,7 @@ Every recipe in [examples/](examples) is a complete program with a README that w
 | [passkeys](examples/passkeys) | Register a passkey and sign in with it alone |
 | [oauth](examples/oauth) | GitHub, Google or any OpenID Connect issuer |
 | [login-gate](examples/login-gate) | An internal dashboard for one email domain with no database: `authgate`, the sign-in in a sealed cookie |
+| [sso-server](examples/sso-server) | One company login for your own apps: Google as the only way in, an OIDC provider, a per-app allow list, provider-only pages |
 | [api-keys-and-jwt](examples/api-keys-and-jwt) | Scoped API keys for scripts; short-lived JWTs for another service |
 | [organizations](examples/organizations) | Organizations, invitations by email, role checks |
 | [sso](examples/sso) | Enterprise SSO: OIDC and SAML identity providers per customer |

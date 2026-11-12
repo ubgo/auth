@@ -56,6 +56,7 @@ Read in this order to go from nothing to a production setup. Each step is one gu
 | Let other services verify my users | [JWT](plugins/jwt.md), [other services](integrations/other-services.md) | [jwt-keys](../examples/jwt-keys/), [auth-server](../examples/auth-server/) |
 | Hand my users tokens Supabase, Hasura, Convex or Firebase accept | [JWT › Step 14](plugins/jwt.md#step-14--tokens-shaped-for-another-service-by-name) | [jwt-templates](../examples/jwt-templates/) |
 | Tell other services when users sign up, sign in or change | [Webhooks](plugins/webhook.md) | [webhooks](../examples/webhooks/) |
+| Run one company login for my own internal apps, with a list of who may use each app | [SSO login server](integrations/sso-server.md) | [sso-server](../examples/sso-server/) |
 | Be an OAuth / OpenID Connect provider or guard an MCP server | [OAuth provider](plugins/oauthprovider.md) | [oauth-provider](../examples/oauth-provider/) |
 | Let SAML services (wikis, ticketing, vendor tools) sign in with your app | [SAML identity provider](plugins/samlidp.md) | [saml-idp](../examples/saml-idp/) |
 | Let agents act for my users | [Agent auth](plugins/agentauth.md) | [agent-auth](../examples/agent-auth/) |
@@ -138,7 +139,7 @@ Read in this order to go from nothing to a production setup. Each step is one gu
 | Warn the owners of dormant accounts, and delete the ones that never answer | [stale](plugins/stale.md) |
 | Signed outgoing webhooks (Standard Webhooks) on sign-up, sign-in, profile, identity and security events, with retries, dead letters and replay | [webhook](plugins/webhook.md) |
 | Sign a CLI or TV in with a device code (RFC 8628) | [deviceauth](plugins/deviceauth.md) |
-| Let other apps sign in with your app: OAuth 2.1 / OpenID Connect provider, MCP servers | [oauthprovider](plugins/oauthprovider.md) |
+| Let other apps sign in with your app: OAuth 2.1 / OpenID Connect provider, MCP servers, per-client access | [oauthprovider](plugins/oauthprovider.md) |
 | Let SAML 2.0 service providers sign in with your app: be the identity provider | [samlidp](plugins/samlidp.md) |
 | Provision users and groups from Okta, Entra ID and other IdPs (SCIM 2.0) | [scim](plugins/scim.md) |
 | Provider sign-in on preview deployments through production's callback | [oauthproxy](plugins/oauthproxy.md) |
@@ -180,9 +181,10 @@ A typed TypeScript client generated from the same operations the Go server serve
 | Redis and several app instances | [Redis](integrations/redis.md) |
 | ent for your own tables beside the library's | [ent](integrations/ent.md) |
 | Phone numbers typed the local way | [phone numbers](integrations/phone-numbers.md) |
-| `myapp auth migrate`, `auth sweep` and `auth maintain` | [CLI](integrations/cli.md) |
+| `myapp auth migrate`, `auth sweep`, `auth maintain` and the commands plugins add (`auth oauth-client`) | [CLI](integrations/cli.md) |
 | Other services that verify your users | [other services](integrations/other-services.md) |
 | A login gate with no database: internal tools, prototypes, serverless | [login gate](integrations/login-gate.md) |
+| One company login (an SSO / OpenID Connect server) for your own apps, with per-app access and provider-only sign-in pages | [SSO login server](integrations/sso-server.md) |
 
 ## Migrating from another system
 

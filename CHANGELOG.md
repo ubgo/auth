@@ -2,11 +2,9 @@
 
 Every entry that changes a security property is tagged **[security]**, so an app can see what an update fixes.
 
-## [Unreleased]
-
 ## v0.1.1, 2026-11-12
 
-The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social` starts at v0.1.0); the dated sections below record the order the work landed in.
+The core and every module changed since v0.1.0 are tagged v0.1.1; `authui/social` is new and starts at v0.1.0.
 
 ### Added
 
@@ -36,9 +34,13 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 
 - Every module requires the core and its sibling modules through the module proxy; no `go.mod` carries a `replace` to a local path any more, so each module builds on its own. Development joins the modules through the committed root `go.work`, and the Taskfile no longer sets `-mod=mod`, which workspace mode rejects.
 
-## 2026-10-13, auth batch 5
+## v0.1.0, 2026-10-14
 
-### Added
+The first tagged release of the core and every module. The sections below are the batches it is made of, newest first.
+
+### 2026-10-13, auth batch 5
+
+#### Added
 
 - auth: `DataHooks.SessionEnded`, a hook for every session ending, with a typed `SessionEndReason` (closed set: sign-out, revoke, revoke others and all, admin, impersonation stopped, ban, password changed/reset/set, credential changed, token reuse, provider logout, user deleted, expired). `Auth.EndSession` and `Auth.EndUserSessions` take the reason (`DeleteSession`/`DeleteUserSessions` report `SessionEndUnspecified`); the hook runs once per session inside the ending transaction. A hook cannot refuse an ending: on an error the attempt is rolled back, the session ends again without hooks, and security kind `session.end_hook_failed` (`SecuritySessionEndHookFailed`, attrs `session_id`, `reason`, `error`) reports the lost hook. The expiry sweep reports per batch of 500 through the optional store upgrade the SQL and memory stores implement; Redis/TTL stores and stateless mode have the gaps documented in `docs/concepts/sessions.md`. Core, admin, password, twofactor, email, scim, sso and oauthprovider pass their reasons.
 - plugin/webhook: `session.revoked` now covers every session ending (admin revoke, sign-out everywhere, ban, password change, token-reuse theft, user deletion, expiry sweep) with a `reason` in `webhook.SessionRevokedData`, and a self sign-out sends exactly one event; the earlier operation-hook path is removed.
@@ -63,17 +65,17 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - React demo: wires security keys, forced two-factor setup for `mfa@example.com`, organization domains (verified through the admin's own address, no DNS) and user metadata.
 - integration: `TestWireContract` walks the new operations (metadata, organization domains, two-factor security keys and remove-factor, jwt templates) and gives a `json.RawMessage` field an object; `TestConfigEdge` covers the new options, with builders for `metadata.Option`, `webhook.Option` and `orgjwt.Option`.
 
-### Changed
+#### Changed
 
-- orgjwt: `orgjwt.Claims` returns `(jwt.ClaimsFunc, error)` and refuses `orgjwt.Permissions(nil)` (or a nil source) when the app starts (and returns a func that fails every token, so ignoring the error is still loud), naming the option, instead of failing every token call at request time (unreleased API).
+- orgjwt: `orgjwt.Claims` returns `(jwt.ClaimsFunc, error)` and refuses `orgjwt.Permissions(nil)` (or a nil source) when the app starts (and returns a func that fails every token, so ignoring the error is still loud), naming the option, instead of failing every token call at request time (the API was new in this release, so no app relied on the old behaviour).
 - [security] auth: under `WithTokenRotation`, a replaced session token presented after its grace window revokes the session for every holder and emits `session.token_reuse` at alert.
 - [security] authhttp/auth: under `WithMultiSession`, a token re-issued for the same sign-in is no longer kept as a second account cookie and no longer counts against the device cap. The re-issues covered are a refresh that changed the token, a second-factor promotion, a completed session task and a stateless reseal.
 - [security] Two-factor: adding a second method while two-factor is on now needs a current factor as `proof` (a code, a recovery code or a security-key assertion), on `enroll` and on `security-key-register-finish`; without it the answer is `twofactor.proof_required` (400). Before, enroll over a factor that was on was refused outright, and a stolen fresh session could otherwise plant a factor of its own. `enroll` of the method the user already has still answers `twofactor.already_enabled`.
 - jwt: `JWKSPath("/template")` is refused, and `Operations()` lists three operations (two under `RemoteJWKS`).
 
-## 2026-10-12, TypeScript client
+### 2026-10-12, TypeScript client
 
-### Added
+#### Added
 
 - [security] Bearer mode: the server now tells the client its token is dead by answering `Set-Auth-Token` with an empty value, both when the call ended the session (sign-out, revoking the current session, deleting the account, a password reset) and when the token sent names no session (expired, revoked elsewhere, older than `sessions_valid_after`); a pending second-factor token is never cleared. New `auth.RequestTokenRejected` and `authhttp.ForgetRejectedToken`; the TypeScript client empties its `TokenStore` on that header, and keeps its sign-out fallback for older servers. `contrib/fiber` no longer answers two `Set-Auth-Token` values when a route behind its middleware issues a session.
 - React kit: OrganizationMembers gains a menu on each member to change their role (`memberRoles`), remove them and, on your own row, leave the organization, each gated by has-permission (`member: ["update"]` / `["delete"]`; leave for every member). Remove and leave are confirmed in an alert dialog, and refusals such as `organization.last_owner` show on the row. useOrganizationActions gains `removeMember`, `leave` and `setRole`.
@@ -125,14 +127,14 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - auth: `ErrTokenExists`, `ExclusiveVerificationStore` and `SetIfAbsenter`. The SQL verification store reports a duplicate token as `ErrTokenExists`; the key-value store refuses duplicates over storage with `SetIfAbsent` (memory, and contrib/redis `Storage.SetIfAbsent` via SET NX); `verificationtest` checks the promise.
 - auth: `SecurityTokenReplay` (`token.replay`), `AttrProvider` and `(*Auth).EmitSecurityOf(call, event)`.
 
-### Changed
+#### Changed
 
 - plugin/oauthprovider: `ClientMetadata` is the registration input only; `client_name`, `grant_types`, `response_types`, `token_endpoint_auth_method` and `scope` are now `omitempty`, so the OpenAPI document and the TypeScript client (`OauthproviderClientMetadata`) leave them optional, as the provider defaults them. `Client` now embeds the new `RegisteredMetadata`, the same fields with those five always present, so the RFC 7591 registration answer still carries every registered value. Promoted fields (`c.Name`, `c.GrantTypes`, …) are unchanged; code that named the embedded field (`Client{ClientMetadata: m}`, `c.ClientMetadata`) now uses `RegisteredMetadata` and converts with `oauthprovider.RegisteredMetadata(m)`.
 - plugin/deviceauth: `CodeRequest.UserID` is Go-only (`json:"-"`): the OpenAPI document and the TypeScript client no longer offer `user_id`, which every transport refused. `dp.Code` from Go still binds the code; the JSON route refuses `user_id` as an unknown field, and the RFC handler now ignores it as an unrecognized parameter (RFC 6749 section 3.2) instead of answering `invalid_request`. An operation reached through `Operation.Invoke` with a decoder that sets it is still `device.invalid_request`.
 - clients/react registry: `SignInForm` no longer sends an empty `name` with `passkey.loginFinish`.
 - plugin/oauth: a native ID token that already signed someone in, or re-authenticated a session, is now refused; clients ask the provider's SDK for a fresh token for each sign-in and each re-authentication.
 
-### Fixed
+#### Fixed
 
 - plugin/audit: `oauth.reauthenticate-id-token` is no longer typed `user_signed_in` by the "-id-token" suffix rule; the event keeps the operation id as its type, like `password.reauthenticate`.
 - deviceauth: `CodeHandler` and `TokenHandler` add the library's own error to the RFC 8628 error body under `auth_error` (`authhttp.ProtocolErrorMember`); RFC clients ignore it, and the TypeScript client now reports `device.authorization_pending`, `device.polling_too_frequently`, `device.access_denied`, `device.expired_device_code` and `auth.rate_limited` instead of `client.invalid_response` when those handlers are mounted on the operation's route. The client runtime's `errorOf` reads `auth_error` when a standard's body owns `error`.
@@ -148,27 +150,27 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - authhttp: the OpenAPI document marked every query parameter required. Optional query fields of `admin` (users, search-users, all-sessions), `audit` (the admin log and my-events), `apikey` (get, list), `oauth` (start, callback) and `organization` (get, get-full, get-role and the list operations) now carry `omitempty`, the same declaration the request bodies use, so 144 of 161 query parameters are optional. `password.SignUpRequest.Image` is optional too.
 - authhttp: the OpenAPI schemas follow `encoding/json` more closely: a `,string` field is a string, a `json.RawMessage` or a struct with its own `MarshalJSON` is any JSON instead of base64 text or its Go fields, and a field name two embedded structs share resolves the way the encoder resolves it instead of appearing twice.
 
-### Documentation
+#### Documentation
 
 - docs/client: the client docs now teach every feature from GitHub alone. [docs/client/README.md](docs/client/README.md) opens with a 13-step learning path (first call, plugins, errors, flows, bearer mode, options, your own plugins, then the React quickstart, hooks, components and routers, and a production checklist), a "start from your goal" table and a diagram of one sign-in from a click in React to a row in the database ([`docs/assets/client-architecture.svg`](docs/assets/client-architecture.svg), generated by `docs/assets/client-architecture.gen.py`). New pages: [React hooks](docs/client/react-hooks.md), [React components](docs/client/react-components.md) (one section per component and per account section) and [React with your router](docs/client/react-routers.md) (TanStack Router, React Router, Next.js App Router, no router, server rendering); the TypeScript client pages gained Try it sections with real output from the new examples, and Pitfalls taken from the runtime and its tests.
 - docs/choosing: [Choose a client setup](docs/choosing/client.md), decision tables for the prebuilt or an app-generated client, cookie or bearer, same domain or another site, registry components or hooks or the plain client, the router, and which plugins to list.
 - examples: [ts-client-flows](examples/ts-client-flows/) runs email verification, password reset, a magic link, sign out everywhere, a second factor by mailed code and an organization from Node in bearer mode; [ts-client-bearer](examples/ts-client-bearer/) is a Node CLI whose token lives in a `0600` file across restarts and a Node server forwarding a browser's cookie; [react-headless](examples/react-headless/) uses only `@ubgo/auth-react`'s provider and hooks with markup of its own and no router (`task ui:headless`). The two Node examples are run by their Go tests, which fail rather than skip without Node 22.18 or later.
 - docs: [SPA frontends](docs/integrations/spa-frontends.md) and [Mobile apps](docs/integrations/mobile-apps.md) have a step for the typed client; the feature index has 98 client rows, 90 of them with an example; the root README has a Frontend client section; `.auth-token` is ignored.
 
-## 2026-10-10
+### 2026-10-10
 
-### Changed
+#### Changed
 
 - deps: every module now requires `github.com/ubgo/sqlb` v0.1.1, the first public release, instead of a pre-release pseudo-version.
 - tests: coverage is now deterministic (166 statements missed). Direct tests cover the second page of the stale-account scan, a lost outbox claim and a full flush batch, and the invite-only example test waits for delivery instead of racing it.
 
-### Documentation
+#### Documentation
 
 - A recipe for using ent alongside auth (`docs/integrations/ent.md`, example `ent-alongside`): ent on the library's `*sql.DB`, one shared transaction with `a.Tx`, and reading `auth_user` with sqlb handles. `docs/concepts/databases.md` now says to query plugin tables through the exported sqlb column handles rather than raw SQL.
 
-## 2026-10-10, auth batch 4
+### 2026-10-10, auth batch 4
 
-### Added
+#### Added
 
 - **[security]** auth: risk-signal interfaces, off by default, with no detector and no vendor client built in. `WithIPReputation(check, auth.RiskPolicy{})` asks an `auth.IPReputation` (`CheckIP(ctx, netip.Addr)`) about the client address, `WithBotCheck(check, policy)` an `auth.BotChecker` (`CheckBot(ctx, auth.BotSignals)`, which sees the operation, transport, client and `Header(name)`, never a credential or the input), and `WithTrialAbuseCheck(check, policy)` an `auth.TrialAbuseChecker` (`CheckSignUp(ctx, auth.SignUpInfo)`: the new user's id, normalized identifier and client). `...Func` adapters exist for each. A check answers an `auth.RiskVerdict{Flagged, Reason}`. The address and bot checks run in the pipeline before the credentials are read, for every signed-out mutation and every `OpInfo.SignIn` operation (a Go call is not judged); the trial check runs in `CreateIdentity` when the user's first identifier is stored, so a block fails the sign-up and rolls the new user back. `auth.RiskPolicy{Action, OnError}`: `Action` is `RateBlock` (default; `403 auth.ip_blocked`, `auth.bot_blocked`, `auth.signup_blocked`), `RateLog` or `RateChallenge` (the registered `RateChallenger`, refused at `New` when there is none); `OnError` is `RiskFailOpen` (default: let the call through and log a warning) or `RiskFailClosed` (`503 auth.risk_check_unavailable`). Each flag is exactly one security event of kind `ip.suspicious`, `bot` or `trial.abuse` with the cause under the new `auth.AttrReason` (cut to `MaxRiskReasonLen` bytes); a failed check emits none. Every option refuses a nil check, an unknown action and an unknown error mode at `New`. The block, log and challenge tail is now shared with the geo rules as `applyRiskAction`. Guide: [docs/concepts/risk-signals.md](docs/concepts/risk-signals.md).
 - audit: every event has a severity (`info`, `warn`, `alert`; `auth.SecuritySeverity`), stored in `audit_event.severity` (migration 0003, existing rows read as `info`), filtered by `Query.Severity` and `Query.MinSeverity` (also on `GET /admin/audit`), defaulted by `audit.DefaultSeverity` and overridden with `audit.Severities` or `audit.SeverityFunc`. `audit.Redact` installs a `Redactor` on every write path; `audit.MaskPIIRedactor` truncates the IP to /24 or /48 and masks an email's local part. Off by default. Guide: [docs/plugins/audit.md](docs/plugins/audit.md).
@@ -177,9 +179,9 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - examples: `risk-signals`, a tested walkthrough of the three checks.
 - tests: `TestRisk_*` in the core (actions, fail open and closed, the signals a bot check sees, which calls are judged, refused configurations) and on every engine `TestRisk_*` in the integration module (a flagged password sign-in blocked with one event, the log action, fail open and closed, a trial-abuse sign-up refused with no user left behind). The block decision and the fail-closed switch were each broken to see the tests fail.
 
-## 2026-10-10, auth batch 3
+### 2026-10-10, auth batch 3
 
-### Added
+#### Added
 
 - auth: the security event stream, off by default. `WithSecuritySink(sink, auth.SecurityQueue{Name, Buffer, BatchSize, FlushEvery})` registers an `auth.SecuritySink` (`SecuritySinkFunc` adapts a function); each sink has its own bounded queue (default 1024 events) and goroutine, gets batches of at most 100 events or whatever waited 2 seconds, and each `WriteSecurity` call is bounded by 10 seconds. Emitting never blocks a request: a full queue drops the NEW event, counted and logged; a failing or panicking sink is logged and counted, and the batch is not offered again. `Close` drains the queues (bounded), `a.FlushSecurity(ctx)` waits for everything emitted so far, `a.SecurityStats()` reports `Queued`, `Delivered`, `Dropped` and `Failed` per sink. `WithSecurityLog(q)` writes each event to the logger at Info, Warn or Error by severity; `auth.MemorySecuritySink` collects events for tests; `a.EmitSecurity(e)` lets a plugin or the app add its own kinds. An `auth.SecurityEvent` carries `ID` (`sev_` and 24 hex digits), `At`, `Kind`, `Severity` (`info`, `warn`, `alert`), `Outcome` (the four `RateOutcome` values), the operation, plugin and transport, `UserID`, `IP` (empty under `WithoutIPTracking`) and `Attrs` under the `auth.Attr*` keys, and never a password, token or code. Kinds emitted: `rate.limit` (a rate rule over its limit, once per rule window), `credential.stuffing`, `lockout`, `geo.country` and `geo.impossible_travel`. `New` refuses a nil sink and a negative queue setting. Guide: [docs/concepts/security-events.md](docs/concepts/security-events.md).
 - **[security]** auth: country rules at sign-in (geo-blocking), off by default. `WithGeoRules(auth.GeoRules{Allow, Deny, DenyUnknown, Action})` judges every sign-in operation (`OpInfo.SignIn`) that arrives over a transport by the country of the client address, before the credentials are read, so a refusal says nothing about a guess. Where an address is comes from the app's `auth.GeoLocator` (`WithGeoLocator`, `GeoLocatorFunc`; no GeoIP database is bundled). A country in `Deny`, or outside a non-empty `Allow`, gets the action: `RateBlock` (default, `403 auth.geo_blocked`, `auth.ErrGeoBlocked`), `RateLog` or `RateChallenge` (the registered `auth.RateChallenger` decides). An address the locator does not know passes unless `DenyUnknown`; a locator error never denies, it logs and lets the sign-in through. Codes are ISO 3166-1 alpha-2 in any case; `New` refuses a malformed code, rules that check nothing, a locator with no rule, a rule with no locator, and a challenge with no challenger. Guide: [docs/concepts/geo-rules.md](docs/concepts/geo-rules.md).
@@ -195,16 +197,16 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - tests: `TestSecurityStream_*`, `TestSecurityLog_*`, `TestGeoRules_*`, `TestGeo_*`, `TestImpossibleTravel_*`, `TestGreatCircle_KnownDistances` and `TestMaintain_*` in the core; `TestMain_Maintain*` in authcli; the pow and stale packages' unit tests; on every engine, `TestPoW_*` (the flow over HTTP, refused proofs, the stricter difficulty, a proof spent in a rolled-back sign-in, one proof for two rules, Go calls), `TestGeo_CountryRuleRefusesBeforeTheCredentialsAreChecked`, `TestImpossibleTravel_*` (no session left behind, a second factor judged once), `TestSecurityEvents_*` (one event per stuffing crossing and per lockout) and `TestStale_*` (warning, clearing, deletion and its grace, exemptions, dry run, batch size, `Since`, impersonation, long sessions, `Maintain`). `TestWireContract_ProofOfWork` walks every operation with proof of work as the challenger, and `TestConfigEdge` covers the 14 new options.
 - tests: `TestStale_EveryDatabaseFailureSurfaces` and `TestPoW_EveryDatabaseFailureSurfaces` fail the database at each call of a run (`authtest.SweepFaults`) and require an error or a counted failure; the one swallowed step is the core's best-effort outbox status update, named in the test.
 
-### Changed
+#### Changed
 
 - auth: `Config.DeliveryOutbox` reports whether `WithDeliveryOutbox` is on, so a plugin whose step must not happen without its message (`plugin/stale`'s deletion) can refuse in `Validate`.
 - password and twofactor: `GuardCredentialStuffing` and the two-factor lockout now emit security events (above); with no sink registered nothing changes.
 - auth: the pipeline puts the running call in the context of the operation's body, so the session it creates can ask the `RateChallenger` about the same call (impossible travel's challenge action). A session created from Go outside an operation has no call, and a challenge there refuses like a block.
 - auth: every rate event (`auth.RateEvent`) also feeds the security event stream, as `rate.limit`, once per rule window, beside the logger, the observer and `plugin/audit`.
 
-## 2026-10-09, auth batch 2
+### 2026-10-09, auth batch 2
 
-### Added
+#### Added
 
 - plugin/ldap (its own module, go-ldap): sign-in with a username and password checked against an LDAP directory, `POST /auth/ldap/sign-in` and `Plugin.SignIn`. The directory is reached through the `ldap.Directory` interface (`DirectoryFunc` adapts a function); the default `ldap.NewClient` binds a service account, searches with an escaped filter, binds as the user and closes, and refuses `ldap://` without StartTLS unless `AllowInsecure`. An unknown user and a wrong password are the same error after the same work (a decoy bind); an empty password never reaches the directory. A first sign-in links the entry to the user holding its verified email, or creates one (`auth_ldap_account`, keyed by `AttributeMap.Subject`, the DN unless `entryUUID`, `objectGUID` or `ipaUniqueID` is mapped). Options: `WithDirectory`, `MapAttributes`, `MapProfile`, `NoSignUp`, `UntrustedEmail`. Sign-in is limited to 20 a minute per address and 5 per 15 minutes per username. Errors: `ldap.credentials_invalid`, `ldap.directory_unavailable`, `ldap.account_exists`, `ldap.sign_up_disabled`, `ldap.profile_refused`, `ldap.sign_in_conflict`. `task test:ldap` (opt-in) runs the client against a throwaway lldap container over LDAPS.
 - plugin/siwe (its own module, decred secp256k1, no go-ethereum): Sign-In with Ethereum (ERC-4361). `POST /auth/siwe/nonce` and `POST /auth/siwe/verify`, plus `link`, `wallets` and `unlink` for several wallets per user (`auth_siwe_wallet`). The nonce is a single-use, expiring verification token bound to the wallet and chain; verify checks the site (URI origin and domain), the chain, the time window and the signature, and spends the nonce only when sign-in happens. Signature checking is the `siwe.Verifier` interface (default `PersonalSign`, EIP-191, high-s refused); ENS is the optional `siwe.NameResolver`. Options: `RequireEmail`, `NoSignUp`, `WithVerifier`, `WithNameResolver`, `WithNonceTTL`, `Origins`, `Chains`. `siwe/siwetest` signs with a fixed key for tests. Errors: `siwe.message_invalid`, `siwe.domain_invalid`, `siwe.chain_invalid`, `siwe.message_expired`, `siwe.nonce_invalid`, `siwe.signature_invalid`, `siwe.address_invalid`, `siwe.email_required`, `siwe.email_not_accepted`, `siwe.sign_up_disabled`, `siwe.wallet_linked_elsewhere`, `siwe.wallet_not_found`.
@@ -217,27 +219,27 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - integration: `TestUnknownDevice_*` (a known device, a browser update, a new device, a second sign-in from it, a failing recognizer, a custom one, the option off) and `TestRateAction_*` (block, log, challenge and a challenge on a captcha-guarded operation, each with the observer, the audit log and the logger) on every engine.
 - examples: the ldap and siwe example tests run every typed method once per database call with that call failing (`authtest.SweepFaults`), plus the races of two first sign-ins, a failed id, a name-service outage and a verifier outage; `task cover` counts `plugin/ldap` and `plugin/siwe` through them (0 and 2 statements missed).
 
-### Changed
+#### Changed
 
 - Every option refusal now names its option. The 72 refusals the config edge test had pinned as unnamed (`edgeUnnamedRefusals`) read `auth.WithSecret: secret 0 has 3 bytes`, `auth.WithIPv6Prefix: ...`, `discovery ...` and so on, and the list is empty: a new unnamed refusal fails `TestConfigEdge`. Error codes and sentinel errors are unchanged, so `errors.Is` keeps matching.
 
-## 2026-10-09, safety nets
+### 2026-10-09, safety nets
 
-### Added
+#### Added
 
 - integration: `TestWireContract` sends every operation of an Auth with every built-in plugin through `authhttp.Handler`, inputs built from each operation's Go type, on every engine, and fails on a decode refusal of a legal value, a listed route the handler does not serve, any 500, and `"[redacted]"` in any JSON answer; scripted flows drive 148 of the 185 operations to success and the test logs the rest.
 - integration: `TestConfigEdge` calls every exported option constructor (565, found in the source) with nil, 0, -1, empty and one-field-set values, and requires `auth.New` to refuse naming the option or to serve a sign-up, sign-in and session read with no panic and no session shorter than a minute.
 
-### Fixed
+#### Fixed
 
 - password: `Argon2` with a `Time` or `Threads` of 0 made `auth.New` panic inside argon2 (the dummy hash in `Init`); `Argon2id.Hash` now returns `password.ErrBadArgon2` and `auth.New` fails with it.
 - password: `MaxLength(0)` (or under `MinLength`) answered `password.too_long` to every sign-up, and a negative `MinLength` was accepted; `auth.New` now refuses both with `password.ErrBadLengths`.
 - auth: `WithDBAuto(nil)` panicked in dialect detection; it is now `auth.ErrNilOption` naming `auth.WithDBAuto`.
 - authui: the panics for a bad `Methods` entry now start `authui.Methods:`, naming the option.
 
-## 2026-10-09, auth batch 1
+### 2026-10-09, auth batch 1
 
-### Added
+#### Added
 
 - **[security]** admin: control of another user's second factor. `GET /admin/two-factor?userId=` (`TwoFactor`) answers `{enrolled, enabled, method}`; `POST /admin/disable-two-factor` (`DisableTwoFactor`) pauses the factor (sign-in stops asking; the factor, recovery codes and sessions stay); `POST /admin/enable-two-factor` (`EnableTwoFactor`) switches a paused factor back on and ends the user's sessions; `POST /admin/reset-two-factor` (`ResetTwoFactor`) removes the factor, recovery codes and trusted devices so the user enrols again. Each asks the `Authorizer` first, before the target is looked up, for a permission of the new `two-factor` resource (`ResourceTwoFactor`: `get`, `disable`, `enable`, `reset`; the built-in admin role holds all four); pause and reset refuse an admin target (`admin.admin_target`). The plugin finds the factor plugin by method set (`admin.TwoFactorManager`, through `auth.PluginOf`), so it imports no second-factor package; without one the routes answer `409 admin.no_two_factor_plugin`. `ResetTwoFactorFor(ctx, userID)` resets from Go with no signed-in admin, an admin included, recorded in the audit log with no actor through `EventRecorder`.
 - twofactor: `FactorOf(ctx, userID)`, `DisableFor(ctx, userID)` and `EnableFor(ctx, userID)`, the server-side calls beside `Reset` and `Unlock` that `admin.TwoFactorManager` names.
@@ -246,7 +248,7 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - twofactor: migration `0005_two_factor_recovery_seq` adds `seq` to `auth_two_factor_recovery` (`ColRecoverySeq`, `RecoverySeq`), 0 for existing rows.
 - organization: `WithHooksFrom(func(a *auth.Auth) Hooks)` builds the lifecycle hooks in `Init` with the `*auth.Auth`, so a hook writes the app's own rows through `a.Conn(ctx)` in the organization's transaction without a variable bound after start-up. Giving both `WithHooks` and `WithHooksFrom` is refused by `auth.New`; `WithHooksFrom(nil)` is `auth.ErrNilOption`.
 
-### Fixed
+#### Fixed
 
 - **[security]** twofactor: a stored secret that does not open (a key dropped from the ring, a changed app secret, a `Sealer` whose key service is down) answered verify, check, disable, recovery-codes, totp-uri and view-recovery-codes with a bare `500 auth.internal`. It now answers `503 twofactor.secret_unreadable`, logs the cause at error level with the user id, and keeps the cause wrapped for `errors.Is` (`auth.ErrSealedCorrupt`, the `Sealer`'s error). It is still never counted as a wrong code, and recovery codes still pass.
 - twofactor: view-recovery-codes answered the codes in the order of their random ids. It now answers them in the order they were handed out (`seq`); codes made before the migration come back in id order, which is stable.
@@ -254,34 +256,34 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - oauthprovider: `CreateClient` and `UpdateClient` refuse `EnableEndSession` without `auth.WithSecret` (`ErrNoSecret`). Without a secret, discovery leaves out `end_session_endpoint` and `/oauth2/end-session` answers `400 invalid_request` instead of 500.
 - scim: a managed credential of a decommissioned connection now answers 401 "SCIM connection is decommissioned", as static tokens and the `DecommissionConnection` doc say. A revoked credential still answers "Invalid SCIM bearer token". Both are told only after the token's digest matched.
 
-### Changed
+#### Changed
 
 - **Behaviour change** twofactor: a factor paused with `DisableFor` reads as off to its user: `status` answers `enabled: false`, and `enroll` replaces it (and forgets its trusted devices) instead of answering `twofactor.already_enabled`. A factor that is on behaves as before.
 - examples/org-workspace: the hooks use `organization.WithHooksFrom`; the projects store and its bind after `auth.New` are gone.
 - **Behaviour change** admin: `DefaultStatements` and `DefaultRoles()` gain the `two-factor` resource, so the built-in admin role and an `accessadmin` role built from `DefaultStatements` now grant the four new permissions.
 
-## 2026-10-09, sweep
+### 2026-10-09, sweep
 
-### Added
+#### Added
 
 - `auth.OptionErrors`, `auth.RefuseNilEach` and `auth.OptionChecker`: the one helper every option that takes a func or an interface uses to refuse nil. A plugin or a store keeps an `OptionErrors`, its options start with `if p.optErrs.RefuseNil("pkg.WithX", v) { return }`, and it exposes `OptionErr() error`. `auth.New` calls `OptionErr` on every plugin and on every component given to it through an option (rate store, session store, session cache, revocations, secondary storage, verification store, sealer, observer, tracer, message catalogue), and the core's storage wrappers pass on the wrapped storage's. New guard `TestGuard_OptionsRefuseNil` walks every option in every module that takes a func or an interface and fails unless it refuses nil first and its package's `options_nil_test.go` proves it at run time.
 - oauthprovider: `CacheResources(ttl)`, opt-in: the resource policies issuance, refresh and introspection read stay in this process for `ttl` (0 is `DefaultResourceCacheTTL`, one minute; at most `MaxResourceCacheTTL`, 15 minutes, else `ErrBadResourceCacheTTL`). `CreateResource`, `UpdateResource`, `PatchResource`, `SeedResources` and `DeleteResource` drop the entry on the instance that wrote; another instance's change is seen when the entry expires. `CacheResourcesIn(kv, ttl)` keeps the same entries in any `auth.SecondaryStorage` (contrib/redis's `NewStorage`, the app's `WithSecondaryStorage` store), so every instance shares one cache and a write on any of them drops the entry; entries carry their own expiry on the core's clock, a failing store is logged and the database read instead, and `CacheResourcesIn(nil, ttl)` is refused with `auth.ErrNilOption`. The default in-process cache now runs on `auth.NewMemoryStorage` behind the same code. Off, every issuance reads the resource's row as before.
 - invite: `PublicOnly()` turns private (addressed) invites off; a create naming an `email` is `403 invite.forbidden`.
 
-### Changed
+#### Changed
 
 - **Breaking (wire)** The three core error codes without the `auth.` prefix are renamed: `internal` is `auth.internal`, `origin_not_trusted` is `auth.origin_not_trusted` and `rate_limited` is `auth.rate_limited`, in JSON bodies, GraphQL `extensions.code`, the error page's `?error=` and the OpenTelemetry `auth.error.code`. A client that matches the old strings must match the new ones; `docs/reference/error-codes.ts` and `.json` are regenerated, and the `i18n` catalogue's keys follow, so translations keep working. Every core code now carries the prefix, pinned by `TestGuard_CoreErrorCodesArePrefixed`.
 - **Behaviour change** Every plugin, contrib and helper option that takes a func or an interface refuses nil with `auth.ErrNilOption` naming the option (`email.WithMailer(nil)`), instead of panicking at the first request that called it: 127 options across `plugin/*`, `authgate`, `authtest`, `contrib/redis` (`redisrate.Clock`), `agentauth/agentclient` (`WithClock`, returned by every signed call) and `oauth/oauthtest`, plus the core's `auth.Options` (a nil entry) and `auth.WithDB` (a nil dialect). The core's own messages now name the option with its package, `auth.WithIDs(nil)`. Kept as before, with nil meaning the default, because they have no error path: `authhttp`'s `APIKeyFrom`, `ClientIPFunc`, `EncodeErrors` and `LocaleFunc`, `authui`'s `Templates`, `Texts` and `HTTPOptions`, and `oauthpopup.HTTPOptions`; `authhttp` now skips a nil `Option` too. `apikey.WithPermissions(nil)` keeps turning permissions off.
 - **Behaviour change** Options that already refused nil with their own error now return `auth.ErrNilOption`: `admin.WithAuthorizer(nil)` and `organization.WithAuthorizer(nil)` (was `ErrNoAuthorizer`, now deprecated and never returned), `sso.WithSAMLEngine(nil)` (was `ErrNoSAMLEngine`, deprecated), `authgate.Allow(nil)` (was `authgate.ErrBadOption`), `jwt.WithSigningKey(nil)` (was `jwt.ErrNoKey`) and a nil key in `jwt.AlgorithmKeys` (was `jwt.ErrAlgorithmKeys`).
 - **Behaviour change** invite: `auth.New` refuses the plugin with `invite.ErrNoEmail` when no plugin delivers email (`auth.Config.CanDeliver`), because a private invite is mailed; it used to fail at the first private invite. Pass `invite.PublicOnly()` for an app without the email plugin.
 
-### Documentation
+#### Documentation
 
 - 12 new tested examples for features that had none: `signup-fields`, `email-verify-code`, `phone-options`, `two-factor-manage`, `oauth-rules`, `jwt-session`, `session-revocation`, `kms-sealer`, `org-workspace` (with `orgtest` fixtures), `scim-connections`, `agent-ciba` and `agent-openapi`; `oauth-provider` gained end-session, a resource API that verifies tokens offline and client metadata documents, `cli` gained `AUTH_*` configuration and `auth info`, and `spa-cross-origin` gained preview origins through `WithTrustedOriginFunc`. Their guide sections now copy the tested code. 256 of the 261 rows in `docs/reference/features.md` have an example; the five without one are properties or reference lists (no foreign keys, every error code, uniform answers and timing, the production checklist, shipping a plugin as its own module), and the guides cite the tests that prove the first three.
 
-## 2026-10-09, fixes
+### 2026-10-09, fixes
 
-### Fixed
+#### Fixed
 
 - **Breaking (Go API)** `auth.WireToken`, a new secret type that encodes as its value in JSON and still prints `[redacted]` through every formatting path and `slog`. A response field meant to hand a token to the caller carried an `auth.Token`, which encodes as `"[redacted]"`, so `POST /auth/invite/create` answered `"token":"[redacted]"` and `POST /auth/emailchallenge/start` answered `"pollToken":"[redacted]"`, and a client without cookies could never finish an email challenge. These fields are now `auth.WireToken`: `invite.Created.Token`, `emailchallenge.Result.PollToken`, and the token fields of the request types a client sends back (`invite.TokenRequest`, `email.TokenRequest`, `email.VerifyLinkRequest`, `emailchallenge.StartOrToken` and `TokenRequest`, `magiclink.VerifyRequest` and `SignInRequest`, `handoff.VerifyRequest`, `password.ResetRequest.Token`, `auth.ConfirmDeleteAccountRequest`), so a Go client that JSON-encodes them sends the real token. Go code that sets these fields converts with `tok.Wire()` and reads them with `.Token()` or `.Reveal()`. Passwords (`password.Secret`, the `Password` fields of twofactor and admin) stay `auth.Token` and stay redacted in JSON.
 - **Behaviour change** `auth.New` refuses an operation whose output carries an `auth.Token` in a field JSON writes (`auth.ErrBadOperation`, naming the field), so a new response field that would answer `"[redacted]"` fails at start-up.
@@ -294,19 +296,19 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - authhttp: the built-in error page's title, heading and link translate through `auth.WithMessages` under the new codes `authhttp.ErrorPageTitleCode`, `ErrorPageHeadingCode` and `ErrorPageBackCode`, and its `lang` attribute follows the request's locale when the heading is translated (`en` otherwise). It was `lang="en"` with English text whatever the request asked for. `ErrorPageData` gains `Lang`, `Title`, `Heading` and `Back`. New `auth.Auth.Translate(ctx, code)` looks up any catalogue text in the request's locale.
 - apikey: a configuration may declare permissions only (`WithPermissions`) without `Scopes`; its keys carry no scope, and a request for one is refused with `apikey.unknown_scope`. A configuration with neither still fails `auth.New` with `ErrNoScopes`, whose message now names both options.
 
-## 2026-10-08, round 3
+### 2026-10-08, round 3
 
-### Changed
+#### Changed
 
 - **Behaviour change** passkey + twofactor: a passkey sign-in whose authenticator did not verify the user (the UV flag off, possible only under a lowered `passkey.AuthenticatorSelection`) now counts as one factor, so `twofactor.DefaultPolicy` asks a user with a confirmed factor for it and the sign-in returns a pending session with `secondFactorRequired: true`. Before, only `twofactor.AskEverySignIn` did. A user-verified passkey stays a full session **[security]**.
 
 - **Behaviour change** apikey: `Vocabulary.Grants` now denies a check naming a resource or action the vocabulary does not declare, even when the held permissions include it, and `accessapikey.Checker.Grants` skips held resources and actions the statements no longer declare instead of denying everything; the two checkers now give the same answer on every case, including after the vocabulary shrinks. The plugin's request path is unchanged: a key whose stored permissions fail `Check` is still refused every check **[security]**.
 
-### Added
+#### Added
 
 - `auth.SessionOptions.SingleFactor` and `auth.SignInAttempt.SingleFactor`: a sign-in method reports through `CreateSessionWithOptions` that this sign-in proved one factor whatever its operation, and every `SecondFactorForSignIn` policy sees it.
 
-### Documentation
+#### Documentation
 
 - Every feature is now taught from GitHub alone: [docs/README.md](docs/README.md) opens with an ordered learning path and a "start from your goal" table, new decision guides in [docs/choosing/](docs/choosing/README.md) say which transport, sign-in methods, session strategy, database options and app-shape options to pick, and [docs/reference/features.md](docs/reference/features.md) indexes every feature with its guide section and example. The architecture diagram (`docs/assets/architecture.svg`) heads the root README and the docs index.
 - 28 new tested examples, each with a README and an end-to-end test: core and sessions (`core-options`, `account-settings`, `session-tuning`, `translated-errors`, `observability`, `delivery-outbox`), identity (`email-rules`, `password-lifecycle`, `email-challenge`, `two-factor-options`, `passkey-first`), OAuth and tokens (`oauth-providers`, `oauth-popup`, `oauth-preview`, `api-key-lifecycle`, `jwt-keys`), provider and agents (`oauth-provider`, `agent-auth`, `device-oauth-tokens`), small plugins (`invite-only`, `referral`, `audit-history`, and a row for the existing `device-login`), organizations and enterprise (`org-teams`, `authorizer`, `sso-domains`), and integrations and extending (`behind-proxy`, `custom-pages`, `plugin-sweeper`).
@@ -321,11 +323,11 @@ The core and every module changed since v0.1.0 are tagged v0.1.1 (`authui/social
 - `examples/oauth-preview` reads its port from `PORT` like every other example.
 - The generated HTTP API reference links the five `/auth/device/*` routes to `plugins/deviceauth.md` instead of a `device.md` that does not exist; `apiref` tests that every guide link resolves.
 
-## 2026-10-08, round 2
+### 2026-10-08, round 2
 
 No hard-wired models: every policy the library used to fix in code (who may act, how errors look, how secrets are sealed, how ids are typed, how rates are counted, which sign-ins need a second factor) is now an interface or an option with the old behaviour as the default. Behaviour changes and API breaks are marked **Breaking** or **Behaviour change**.
 
-### Changed
+#### Changed
 
 - **Behaviour change** twofactor: the default policy now asks for the second factor only after password sign-ins (`password.sign-in` for email, username or phone, and `password.change-expired`) and direct Go `CreateSession` calls, no longer after OAuth, SSO, magic link, passkey, or email/SMS code sign-ins. `twofactor.WithPolicy(twofactor.AskEverySignIn)` keeps the previous behaviour. New: `twofactor.CredentialSignIns`, `twofactor.AskEverySignIn` **[security]**.
 - **Breaking** every built-in plugin with tables implements `auth.TypedMigrator`: `Migrations(engine)` became `TypedMigrations(engine, t)`, so `auth.WithSQLTypes` reaches all of them. Plugins writing DDL should type id columns with `t.ID` (a guard enforces this for built-ins).
@@ -336,7 +338,7 @@ No hard-wired models: every policy the library used to fix in code (who may act,
 - `auth.ErrNoDeliverer`'s message is now "auth: the identifier kind's plugin cannot deliver messages" (same error value).
 - admin finds the audit log by interface (`admin.EventRecorder`, `admin.EventQuerier`) instead of `*audit.Plugin`; password claims a sign-up username through `password.UsernameClaimer` instead of `*username.Plugin`.
 
-### Added
+#### Added
 
 - `auth.ByFunc` rate rules (`RateRule.KeyFunc`) count by any key the app derives from the call (user, tenant, API key, device); values are hashed like every other key, and a key-function error fails the call.
 - `auth.RateDecider`, an optional rate-store upgrade for token-bucket, GCRA or external limiters; its errors fail the call.
@@ -354,20 +356,20 @@ No hard-wired models: every policy the library used to fix in code (who may act,
 - authhttp: the `UIMethod` plugin interface and `SignInMethod` let a plugin offer sign-in buttons to pages; the oauth plugin implements it (one "Continue with <provider>" button per provider).
 - authui: `Templates(fsys)` and `DefaultTemplates()` replace pages and static files, validated at start-up; `APIPrefix` and `Methods` render plugin and app sign-in buttons, and a `Methods` entry with a plugin method's ID replaces it instead of panicking.
 
-### Fixed
+#### Fixed
 
 - SAML AuthnRequests take `IssueInstant` from `auth.WithClock`.
 - `oauthprovider.RegistrationSecretExpiresAt` is judged against the app clock.
 
-### Tests
+#### Tests
 
 - The failure paths the seams opened are tested: a key service failing midway through sealing OAuth tokens, a TOTP import and recovery codes, an unreadable replacement asset in `authui.Templates`, an encoder reaching an unreadable fiber request, an ambiguous invite or remove-member address, a skipped OAuth provider offering no button, and both permission checkers denying an empty want. Merged coverage 99.5%; the one new uncovered statement (`authui.DefaultTemplates`' `fs.Sub` error on a constant path) is explained in COVERAGE.md.
 
-## 2026-10-08
+### 2026-10-08
 
 The remaining partial features in the core, OAuth-concepts and transport areas, finished.
 
-### Core
+#### Core
 
 - `auth.WithoutServerCallRateLimits()`: direct Go calls skip per-account rate limits too as an escape hatch `auth.New` warns about at every start **[security]**.
 - Trusted-origin patterns take `?` and `*` inside any label left of a fixed domain of two labels or more (`https://preview-*.example.com`, `https://app-?.example.com`); `https://*`, `https://*.com` and `https://api.*` stay refused.
@@ -379,14 +381,14 @@ The remaining partial features in the core, OAuth-concepts and transport areas, 
 - `auth.WithUserLocale(column)`: a signed-in user's stored locale wins over the client's for messages and errors.
 - `auth.TableSchema` and `a.SchemaMigration`: a plugin table described once, its DDL written per engine (no foreign keys, by ADR-0002).
 
-### Transports
+#### Transports
 
 - `authhttp.HTTPRequest(ctx)`: the raw `*http.Request` inside an operation, a hook or a handler behind `Middleware`, set by `Handler`, `OperationHandler` and `Begin`.
 - `authhttp.RenameCookie(role, name)` names one cookie (session, flow, cache, device); the browser prefix and the attributes stay, and two cookies with one name refuse to start.
 - `authhttp.ReferenceOptions.Theme`: one of the viewer's themes (`authhttp.ReferenceThemeValues`).
 - `authhttp.WeakenCookies` / `authhttp.WeakenCookie` with `authhttp.CookieAttributes`: turn `HttpOnly`, `Secure` and the browser prefix, `SameSite` or `Path=/` off, as escape hatches logged as a warning at every start **[security]**.
 
-### OAuth
+#### OAuth
 
 - Provider calls never follow a redirect (`oauth.ErrRedirectRefused`), on the default client and on an app client without its own `CheckRedirect` **[security]**.
 - `oauth.RequireEmail()` (`oauth.email_not_found`) and `oauth.VerifyEmailBeforeSignIn()` (the user is created, no session until the address is verified, `?error=oauth.email_not_verified`, `CallbackResult.EmailVerificationRequired`).
@@ -398,21 +400,21 @@ The remaining partial features in the core, OAuth-concepts and transport areas, 
 - Every OAuth sign-in annotates its call with `oauth.AnnotationAction` (`oauth.AccountSignIn`, `AccountSignUp`, `AccountLinked`, `AccountLinkedByEmail`), for the audit log.
 - `oauth.StateInCookie()`: the flow state sealed in the flow cookie instead of a verification row.
 
-### Identifiers
+#### Identifiers
 
 - `auth.Message.Data`: a sending plugin's typed payload for templates (type-safe template variables), restored through the delivery outbox by the sender's `auth.MessageDataDecoder`; data nobody decodes is refused at enqueue (`auth.ErrMessageDataUndecodable`).
 - `email.ChangeWithoutVerification()`: change a verified address without verification, an escape hatch warned about at start **[security]**.
 - `(*password.Plugin).Hasher()`: the plugin's own hasher for a hook.
 - The audit list's default page size follows `auth.WithDefaultPageSize`.
 
-### JWT
+#### JWT
 
 - Every RFC 7518 asymmetric algorithm: `ES384`, `ES512` (the curve of an ECDSA key decides), and `RS384`, `RS512`, `PS256`, `PS384`, `PS512` through `jwt.RSAKey(key, alg)`, which binds an RSA signer (a KMS key included) to one algorithm with its own key id; `jwt.GenerateKey` makes any of the ten. Verifiers still pin the algorithm to the key.
 - `jwt.PublicKeyForAlg(jwk, alg)`: another party's JWK with no `alg` read for a header's algorithm within its key family only (an RSA key any RSA algorithm, an EC key its curve's), so a header can never turn a public key into an HMAC secret **[security]**.
 - `jwt.SignRequest.KeyID` picks a signing key by key id (`jwt.ErrNoSigningKey`), and `jwt.AlgorithmKeys` accepts several keys of one algorithm (the first answers `Alg`); one key given twice is still `ErrAlgorithmKeys`.
 - `jwt.HashOf(alg)`, the algorithm's hash (OpenID Connect's `at_hash` size), and `jwt.Payload(fn)`, claims from the user and the session.
 
-### OAuth provider
+#### OAuth provider
 
 - Client keys at `jwks_uri` (`ClientMetadata.JWKSURI`, migration `0013`): https on a trusted origin (a CIMD client's own origin), mutually exclusive with `jwks`, fetched from public addresses only, cached 5 minutes, stale up to 10 while the host fails, and refetched after a failed assertion at most every 30 seconds **[security]**. `ClientJWKSFetch` replaces the fetcher.
 - `private_key_jwt` assertions in every `jwt.AlgValues` algorithm and without a `typ` header; discovery lists `*_endpoint_auth_signing_alg_values_supported`. `ConsumeClientAssertion` exposes the check.
@@ -434,7 +436,7 @@ The remaining partial features in the core, OAuth-concepts and transport areas, 
 - Migration `0014` adds the columns for the above.
 - CIMD: `CIMDOriginBoundFields`, camel-case spellings of server fields refused, grant union (one served grant is enough), documents without redirect URIs keep only grants that need none, a same-origin `jwks_uri`, and `IsCIMDClientID`, `ValidCIMDClientID`, `ValidateCIMDDocument`.
 
-### Plugins
+#### Plugins
 
 - Authorization is an interface. `plugin/admin` asks an `admin.Authorizer` for every permission (each operation's first check, `impersonate-admins`, `has-permission`, `CheckRolePermission`) with an `admin.AccessRequest` (user, resolved roles, permissions, connector, target user, operation, call); `admin.WithAuthorizer` plugs in a policy engine, a relationship store or rules of your own, any error refuses, and the default is the built-in `admin` and `user` roles, unchanged. `plugin/organization` does the same with `organization.Authorizer`, `WithAuthorizer` and `RoleAuthorizer()` for every role check, `Can`, `RequirePermission`, `has-permission`, the dynamic-role grant check and `APIKeyPermission`. `plugin/access` moved out of the core into its own module; its new `accessadmin` adapter replaces `admin.WithAccessControl`, `admin.WithRoles` and `admin.DefaultAccessControl` (`admin.WithAuthorizer(accessadmin.MustNew(ac, roles))`). Breaking: `admin.DefaultStatements` and `DefaultRoles()` use `admin.Permissions`, `CheckRolePermission(ctx, role, perms)`, `PermissionRequest` takes `admin.Permissions`/`admin.Connector`, and `plugin/apikey` has its own `apikey.Permissions`, with `WithPermissions` taking an `apikey.PermissionChecker` (the built-in `apikey.Vocabulary`, or `accessapikey.New(ac)` from the access module; same error codes and messages). Guide: docs/extending/11-authorization.md **[security]**.
 - admin: `users` and `search-users` take `filterField`/`filterOperator`/`filterValue` (10 fields, operators per type) and `sortBy`/`sortDirection`.
@@ -462,16 +464,16 @@ The remaining partial features in the core, OAuth-concepts and transport areas, 
 - invite (new): invite codes with usage tracking, private mailed invites, and invite-only sign-up through `invite.Required()` (better-invite).
 - referral (new, own module): codes, referral steps, a dashboard and a list.
 
-### Tests
+#### Tests
 
 - Three tamper tests (the sealed OAuth flow cookie, a signed cookie, a JWT) replaced characters with fixed ones and so left the value unchanged when it already held them, failing about one run in 64; they now always change it.
 - The failure paths the full coverage run found open are tested (`integration/f1_cover_test.go`): rate stores failing under `GuardCredentialStuffing` and in `RateHit`/`RatePeek`, database faults in the user-locale read, the profile-field write and `RequireOwnerRow`, and message data that cannot be queued or restored; `orgtest` has a test per helper. Merged coverage 99.5%.
 
-## 2026-10-07
+### 2026-10-07
 
 Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow-up tasks. Not yet committed; listed here so the next release notes start complete.
 
-### Core
+#### Core
 
 - `auth.WithSecondaryStorage` with `auth.NewStorageSessionStore` and `auth.NewStorageRateStore`: sessions and rate counters in one key-value store.
 - `auth.VerificationStore` and `auth.WithVerificationStore`: verification tokens (email, reset and magic links, OAuth state, passkey ceremonies) can live outside `auth_verification`; `auth.NewStorageVerificationStore`, `auth.NewMemoryVerificationStore` and the `verificationtest` contract suite. It is a separate opt-in: `WithSecondaryStorage` moves sessions and rate counters only and leaves verification tokens in SQL. A store outside the database gives up the transaction that a SQL store shares with the sign-in. A key-value store cannot list a user's tokens, so `ConsumeAll` and `DeleteIdentifiers` write a cutoff instant that outlives every token it guards: its life is the longer of `auth.MinVerificationCutoffTTL` (7 days) and the longest token lifetime that store has issued. The one gap is a token issued by another process with a lifetime longer than both, which no plugin's default reaches; cutoffs also compare the core's clock across instances, so clock skew shifts the line by the skew **[security]**.
@@ -492,14 +494,14 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - `authtest` exports the fault-injecting driver (`authtest.NewFaults`, `Faults.Connector`, `authtest.DSNConnector`) and `SweepFaults` for plugin authors.
 - Every rate store gets the limited value (an email, a phone number, an IP) hashed, never in clear; `contrib/redis` keys no longer hold identifiers **[security]**.
 
-### Transports
+#### Transports
 
 - `authhttp`: `ErrorPage` serves an error page at `<prefix>/error`, where a failed browser flow lands when it is the `auth.WithErrorURL`; plugins can wrap requests with their own middleware (`authhttp.HTTPMiddlewarer`, traced by `contrib/otel`).
 - `authhttp`: a response that ends the session no longer carries a cached copy, neither `Set-Auth-Session-Cache` in bearer mode nor a cache cookie set only to be deleted; a copy recorded after the clear, by a sign-in that follows, is still sent.
 - `authui`: `Texts` translates every page heading, label, button and notice into the request's locale, and `lang` follows it (`authui.DefaultTexts()` is the English template).
 - `contrib/redis`: `NewStorage` (an `auth.SecondaryStorage`), `NewVerificationStore` (tokens spent with `GETDEL`, Redis 6.2 or later), `NewSessionRevocations`, and the session cache's per-user index for eviction (Redis 7 or later).
 
-### OAuth
+#### OAuth
 
 - General logout `POST /auth/oauth/logout {provider, returnTo}`; provider display names and public `GET /auth/oauth/providers` (`Plugin.Providers`); `OIDCProvider.Fallback` endpoints while discovery is unreachable; opt-in `oauth.SkipBrokenProviders()`; `OAuth2.GetToken` replaces the code exchange.
 - Opt-in `oauth.AllowProviderInitiated` (OIDC only, the ID token fully verified, never links by email) **[security]**, and `oauth.RestartProviderInitiated`, which discards the code and starting a normal flow.
@@ -512,7 +514,7 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - A failed native callback falls back to `auth.WithErrorURL`.
 - Typed Go methods `Plugin.Start(ctx, provider, StartRequest)` and `Plugin.Callback(ctx, provider, CallbackRequest)`, the same pipeline as the routes; a provider not in use is `ErrProviderUnknown`.
 
-### JWT
+#### JWT
 
 - P-256 JWK hardening in `plugin/jwt` and `plugin/oauth`: both parsers keep the on-curve check before building the key, now pinned by an off-curve (y+1) test and a round trip, `plugin/oauth` takes only exact 32-byte coordinates (RFC 7518), and `jwkOf` reads the point through `ECDH().Bytes()` instead of the deprecated `X`/`Y` fields **[security]**.
 - Opt-in `jwt.IssueOnSession`: `GET /session` hands out a fresh JWT in `Set-Auth-JWT`; `jwt.SessionJWT(ctx)` from Go.
@@ -521,7 +523,7 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - RS256 and ES256 beside EdDSA, chosen by the key; verifiers refuse `none` and HS* and pin the algorithm to the key id **[security]**.
 - **[breaking]** Key types are `crypto.PublicKey` and `crypto.Signer`; `Algorithm` became `DefaultAlgorithm`; `Verify` requires `typ` JWT.
 
-### Identifiers and factors
+#### Identifiers and factors
 
 - `email`: a resend revokes every earlier verify link of the address **[security]**; `GenerateCode` and the opt-in `ReuseCodeOnResend`: a resend mails the open code again and extends its life by the code TTL instead of replacing it, a wrong guess already made still counts (a resend never refills the attempt budget), and a code with no attempts left or past its expiry is replaced as usual. It needs `auth.WithSecret` (`auth.New` refuses it otherwise). The core's digits are derived, not stored readable: HMAC-SHA256 of the row id under the key `auth.KeyLabelCodes`, reduced to the code length; a `GenerateCode` code cannot be recomputed, so it is also stored sealed (AES-256-GCM, bound to its row id) in `auth_code.code_sealed`. Anyone holding the database AND the secret can read every open code, and a longer-lived code gives a guesser more time across the attempt budget **[security]**. New core API `auth.CodeOptions` (`Reuse`, `MaxAttempts`, `Generate`) with `a.IssueCodeWith`. **Run `auth migrate` after upgrading:** migration `core/0006_code_sealed` adds `auth_code.code_sealed`.
 - `email`: adding, changing to or resending for an address another account has verified mails that owner the duplicate sign-up notice instead of a verify or confirm link or code, and answers the requester as for a free address **[security]**.
@@ -538,7 +540,7 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - `handoff`: `IssueOnNewSession()` hands a token for every new full session in `Set-OTT`.
 - `captcha`: `ProtectPaths(patterns...)` with wildcards.
 
-### Organizations and access control
+#### Organizations and access control
 
 - New module `plugin/access`: permission statements, roles built from them, `Role.Authorize` with AND/OR connectors and fixed denial messages.
 - `plugin/organization` gains logo and metadata, `get-organization`, `get-full-organization`, `update`, `delete`; an active organization per session (`set-active`, `active`, `ActiveOrgID`) used when `orgId` is left out; invitation states with `reject-invitation`, `cancel-invitation` and `list-invitations`; several roles per member; `CreatorRole`, `InvitationLimit` (default 100 pending), `RejectExistingMembers`; members sort and filter; permission checks on every operation with `DefaultStatements`/`DefaultRoles`, `WithAccessControl`, `WithRoles`, `has-permission`, `Can` and `RequirePermission`; teams (`Teams`); per-organization roles (`DynamicRoles`); typed lifecycle hooks (`WithHooks`) inside the operation's transaction.
@@ -549,7 +551,7 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - `plugin/audit`: every event has a `type` and, when the request names one, its `orgId` (new column, migration `0002_audit_event_org`); `audit.Query` filters by both, also on `GET /auth/admin/audit`; `GET /auth/audit/my-events` serves a user's own history with the other party's details left out **[security]**.
 - `AddMember` and `CreateFor` run in one transaction, so a failing hook leaves nothing behind; a database error while checking for an existing member is reported instead of being taken as "not a member".
 
-### Enterprise, device and provider plugins
+#### Enterprise, device and provider plugins
 
 - New module `plugin/sso`: enterprise single sign-on with OpenID Connect and SAML 2.0 identity providers registered at run time, per organization or email domain; a person types a work email and is routed to the company's IdP. SAML runs on gosaml2, goxmldsig and etree, which keep settings per provider and return only signed content. One shared OIDC callback and SAML ACS path. Domain verification tokens are stable HMACs with no expiry. SAML logout requests and responses must be signed by default **[security]**.
 - New module `plugin/scim`: a SCIM 2.0 service provider (RFC 7643, 7644) through which Okta, Entra ID, Google Workspace or JumpCloud create, update, deactivate and delete users and groups. It is its own HTTP handler, not `auth.Define` operations. Managed connections keep their credentials and an event log. Provisioned emails start unverified unless `TrustEmails()` **[security]**.
@@ -560,7 +562,7 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - `plugin/agentauth`: `RevokeHost` (`/host/revoke`), `RevokeCapability` (`/agent/revoke-capability`), `Claim` (`/agent/claim`, approved with its own code through `approve_capability`) and `UpdateAgent` (`update_agent`, name and metadata), with the `host.revoked`, `capability.revoked`, `agent.claimed` and `agent.updated` events. Migration `0002_agent_approval_kind` adds `auth_agent_approval.kind`. A user revokes only a host they own, a revoked host's key stays refused, and only a claim request's own code claims an agent **[security]**.
 - Core: `auth.OpInfo.SelfServed` marks an operation whose wire format a standard fixes. Its plugin serves the route itself and still runs the whole pipeline. `oauth.RequestAuthURLer` lets a plugin change the authorization URL for each request.
 
-### Fixes from the coverage pass
+#### Fixes from the coverage pass
 
 - `oauthprovider`: a database read failure is now returned as an error everywhere instead of being turned into a protocol answer. Before, back-channel logout skipped a client's notice, introspection and verification read a live token as inactive, resource checks dropped custom claims, the pairwise subject fell back to the real user id, grant checks answered `invalid_grant`, userinfo answered `invalid_token`, logout answered `invalid_client` or dropped the redirect, and client discovery logged a refusal **[security]**.
 - `sso`: a public client with PKCE off is refused at registration; before, it was accepted and could never sign in.
@@ -571,13 +573,13 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - `passkey`: extensions that cannot be encoded as JSON fail `auth.New` with `ErrExtensionsInvalid` instead of failing each ceremony.
 - `organization.APIKeyPermission` answers the apikey plugin's organization check.
 
-### Admin and API keys
+#### Admin and API keys
 
 - `admin`: `GET /auth/admin/search-users` (email, ignoring case, or name; contains, starts or ends with), with its own rate rule `SearchRate`; opt-in `AllowImpersonatingAdmins()`. An admin's impersonation session is refused every admin operation (`auth.impersonation_refused`), so impersonations cannot chain **[security]**.
 - `apikey`: organization-owned keys under an `OrganizationOwned()` configuration (`organizationId` on create and list, checked against the organization's `apiKey` permissions through `WithOrganizations`; `DeleteOrganizationKeys` for the organization's delete hook), and key permissions from `plugin/access` (`WithPermissions`, `DefaultPermissions`, `SetPermissions`, `VerifyPermissions`, `Authorize`, and `apikey.Statements()` for organization roles). Permissions are never read from a request body **[security]**. Migration `apikey/0004_api_key_org`: run `auth migrate` after upgrading.
 - `apikey`: several configurations (`Configuration(id, …)`, `configId` on every route, `VerifyFor`), `AllowKeyPrefix`, `DefaultScopes`, `PreCheck`, `DeleteSpentKeys`, `DistinctErrors`, `WithCache` and `DeferUpdates`. Migration `apikey/0003_api_key_config`: run `auth migrate` after upgrading.
 
-### Examples and tooling
+#### Examples and tooling
 
 - Every example server reads its port from `PORT` (default 8081), and the second servers from `REPORT_PORT`, `API_PORT`, `PORT_B` and `ISSUER_PORT`, so two examples, or a capture and a test run, can run side by side; `examples/ports_test.go` fails on a fixed port.
 - The agent skill `skills/ubgo-auth/SKILL.md`.
@@ -585,11 +587,11 @@ Rounds 6 and 11 to 25 of the feature work, the owner's decisions, and the follow
 - `task gomin` (part of `task check`) vets every module, test files included, under the Go toolchain its go.mod declares, so a stated minimum is proven. `plugin/oauthprovider`, `plugin/agentauth` and `plugin/deviceauth/oauthdevice` need Go 1.24; `plugin/sso` needs 1.25 because gosaml2 does.
 - `task cover` now measures `plugin/sso`, `plugin/oauthprovider` and `plugin/agentauth`, which it had left out.
 
-## Earlier
+### Earlier
 
 The first version of the library.
 
-### Core
+#### Core
 
 - Users, identities (email, phone, handle and any plugin kind in one `auth_identity` table), sessions (opaque 32-byte tokens, SHA-256 at rest, sliding expiry with a hard stop) and single-use verification tokens.
 - One typed operation per feature (`auth.Define`), run through one pipeline for Go, HTTP and GraphQL: rate limit by IP, origin check for cookie mutations, session, requirement, decoding and the per-account limit, then one transaction for hooks and logic. Effects (issue session, clear session, redirect, bind flow) are applied by the transport.
@@ -605,7 +607,7 @@ The first version of the library.
 - One-time codes (`a.IssueCode`, `a.CheckCode`) shared by every plugin that texts or mails a code.
 - Plugin-owned bearer tokens (`TokenResolver`), with scopes (`auth.HasScope`).
 
-### Transports
+#### Transports
 
 - `authui`: ready-made pages for sign-in, sign-up, password reset, email verification, two-factor and settings; plain forms, mobile-first, every POST origin-checked.
 
@@ -613,19 +615,19 @@ The first version of the library.
 - `contrib/gin`, `contrib/echo`, `contrib/fiber` (v3), `contrib/gqlgen` (error presenter, `@signedIn`, schema).
 - `contrib/redis`: a rate store on Redis 7+. `contrib/phonenumbers`: national numbers through libphonenumber.
 
-### Plugins
+#### Plugins
 
 - `email`, `password` (argon2id), `phone` (SMS codes and code sign-in), `username`, `oauth` (Google, GitHub, any OIDC issuer, optional sealed provider tokens refreshed before expiry), `organization`, `twofactor` (TOTP with recovery codes), `passkey` (WebAuthn, its own module), `magiclink`, `admin` (find, ban, revoke, grant, impersonate), `apikey`, `jwt` (EdDSA, JWKS, a Go verifier), `terms`, `password/hibp`. `password` gains `Policy` and `RequireClasses`; `email` gains `Welcome`. `email` signs in with one-time codes too. `phone` gains `AllowPrefixes` and `LimitRange` against SMS pumping.
 
-### Modules
+#### Modules
 
 - The core module requires only `github.com/ubgo/sqlb`, and `deps_test.go` fails the build if it gains another requirement. `plugin/password` (x/crypto), `plugin/passkey`, `plugin/organization`, `authui`, the `contrib/*` adapters, `examples` and `integration` are separate modules. **[breaking]** for anyone who imported `plugin/password`, `plugin/organization` or `authui` from the core module: add their modules. `plugin/organization` (2026-10-02) needs no dependency; it is separate because grouping users is not authentication, and roles, permissions and nested groups will be designed there later.
 
-### Stability
+#### Stability
 
 - The columns an app may read across a major version are pinned by `stability_test.go`; changing them is a **[breaking]** change.
 
-### From the won't-do review, continued (2026-10-05)
+#### From the won't-do review, continued (2026-10-05)
 
 - **New `authgate`:** a login gate with no database, for internal tools, prototypes and serverless apps. Sign in with any `plugin/oauth` provider, the profile in a sealed `__Host-` cookie, Allow rules checked at sign-in and on every request (`AllowEmailDomain` and `AllowEmails` need a verified address), revocation by `SessionVersion` and absolute expiry, provider tokens opt-in (`KeepTokens`) and refused past 4096 bytes. Limits stated up front: no per-device sign-out, passwords, bans or admin. Example `examples/login-gate`.
 - **`oauth`:** the provider logout accepts an optional `returnTo`, checked by `TrustsReturnURL` like sign-in and sent as `post_logout_redirect_uri`; an untrusted one is `oauth.bad_return_to` and the session is not ended. `oauth.ValidateProvider` and `oauth.PKCEChallenge` exported.
@@ -633,7 +635,7 @@ The first version of the library.
 - **New module `contrib/goth`:** `authgoth.Wrap` adapts any goth provider as an `oauth.Provider`, with no goth type in our API, so it can be swapped for another package (no PKCE, declared; email verified only on goth's `email_verified`).
 - **Core:** `auth.DeriveSecretKeys` and `auth.KeyLabelAuthGate`.
 
-### From the won't-do review (2026-10-03)
+#### From the won't-do review (2026-10-03)
 
 The owner reviewed the won't-do rows; these were built.
 
@@ -642,7 +644,7 @@ The owner reviewed the won't-do rows; these were built.
 - **Per-session data:** `Session.Data` (JSON) typed through `auth.SessionData[T]` and `auth.SetSessionData`, kept by every session store, the stateless token and the caches, bounded by `auth.MaxSessionDataSize`; migration `0005_session_data`. **[breaking]** `SessionStore.SetData` joins the store contract, and `sessiontest` enforces it. `auth.SessionLifecycle` tells plugins when sessions end or are promoted. New `plugin/sessiondata` keeps the same typed data in a table of its own.
 - **`email`:** `ReplaceUnverified` replaces only the address being changed under `Multiple()`.
 
-### The last rows (2026-10-03)
+#### The last rows (2026-10-03)
 
 Round 5: the last 14 open rows of the core of authentication. Every row of the core is now built, partial with its deliberate choice stated, or won't do with a reason.
 
@@ -650,7 +652,7 @@ Round 5: the last 14 open rows of the core of authentication. Every row of the c
 - **`email`:** `ReplaceUnverified` replaces a still-unverified address in one step; a verified address keeps the two-step change with undo.
 - **`authcli`:** `auth admin grant --email x` and `auth admin create --email x --name y --password-stdin` make the first admin through the plugins found by interface, with `--json` and `--dry-run`; the password is read only from stdin. `MainWithStdin` for apps that pass their own input.
 
-### The partial rows (2026-10-03)
+#### The partial rows (2026-10-03)
 
 Round 4 of the feature work: every partial feature of the core of authentication is now built, kept partial with the deliberate choice stated, or marked won't do with a reason.
 
@@ -660,7 +662,7 @@ Round 4 of the feature work: every partial feature of the core of authentication
 - **`email`:** under `VerifyByCode`, `ApproveChangeFirst` mails a code to the current address, checked at `POST /auth/email/approve-change-code`.
 - **`authhttp`:** `Reference` serves an interactive API reference page (Scalar) over the OpenAPI document; `LocaleFunc` lets the app decide the request locale. **`authui`:** form errors follow `auth.WithMessages` in the request's locale. **`contrib/redis`:** `Clear` deletes every key under a store's prefix by SCAN.
 
-### The remaining rows (2026-10-03)
+#### The remaining rows (2026-10-03)
 
 Round 3 of the feature work: every remaining feature of the core of authentication now ends built, partial with the exact gap written down, or "won't do" with a reason. Organizations, roles and permissions stay out, to be designed later as separate modules.
 
@@ -677,7 +679,7 @@ Changed:
 - A refillable API-key quota now starts full rather than empty.
 - Migration `oauth/0003_account_token_scope` adds the token scope and refresh-expiry columns: run `auth migrate` after upgrading.
 
-### Features (2026-10-03)
+#### Features (2026-10-03)
 
 Round 2 of the feature work: features an app on this library needs, built with their tests and guides. Organizations, roles and permissions are not part of it: they are not authentication and will be designed later as separate modules. Every new plugin is opt-in, and every new option keeps the earlier behaviour by default.
 
@@ -708,7 +710,7 @@ Changed:
 - Migration `core/0004_session_revoked_at` adds `auth_session.revoked_at` for every app: run `auth migrate` (or `a.Migrate`) after upgrading. An app that calls `a.RequireSchema` at startup refuses to start until it has run.
 - Every example opens SQLite through `sqliteDSN`, which escapes the file path, so a `#` or `?` in it can no longer open a different file. `apikey.ErrKeyRateLimited` is removed in favour of the core's `rate_limited`.
 
-### Configuration switches (2026-10-01)
+#### Configuration switches (2026-10-01)
 
 Round 1 of the feature work: options, routes and fields on features that already existed. Every option defaults to the behaviour before it, so an app that changes nothing behaves the same, with the two exceptions under Changed.
 
@@ -733,13 +735,13 @@ Changed:
 - IP rate-limit keys are canonicalized, so `::1` and its long form share one counter **[security]**.
 - A passkey whose authenticator sends an all-zero AAGUID records no authenticator model.
 
-### Guides (2026-10-01)
+#### Guides (2026-10-01)
 
 - `docs/`: the complete user guide. Getting started (install, a first app end to end, production), eleven concept pages, a usage guide for each of the 13 plugins, 12 integration guides (net/http and chi, gin, echo, fiber, GraphQL, ready-made pages, mobile apps, single-page frontends, Redis, phone numbers, the CLI, other services), ten guides on extending the library, troubleshooting, and an HTTP API reference generated from the code (`task docs:api`, checked by `task check`). Every Go snippet is copied by docsync from an example that `task check` compiles and tests; every transcript comes from a real run.
 - New examples behind them: `plugin-tables` (a plugin that owns a table), `plugin-hooks` (operation and data hooks, a session check, a second factor) and `plugin-delivery` (a new identifier kind and a delivery channel).
 - READMEs for `plugin/`, `contrib/` and `integration/`.
 
-### Pluggable sessions (2026-09-30)
+#### Pluggable sessions (2026-09-30)
 
 - `auth.SessionStore`: sessions go through one interface. The `auth_session` table stays the default (still one query per lookup, still inside `a.Tx`); `auth.NewMemorySessionStore()`, `redisrate.NewSessionStore` in `contrib/redis`, or any custom store plug in with `auth.WithSessionStore`. A store sees only token hashes. `github.com/ubgo/auth/sessiontest` is the conformance suite every store passes.
 - `auth.SessionCache` with `auth.WithSessionCache`: skips the lookup for a short time. `auth.NewSnapshotCache` (an AES-256-GCM copy the client carries in `__Host-auth_session_cache` or `Auth-Session-Cache`, bound to its token), `auth.NewMemorySessionCache`, `redisrate.NewSessionCache`. One minute by default, fifteen at most, never renewed without the store; a second-factor session is never cached. New effects `EffectCacheSession` and `EffectClearCache`, and `Request.CachedSession`.
@@ -748,7 +750,7 @@ Changed:
 - Migration `core/0003_session_lifetimes` adds those columns and `auth_user.sessions_valid_after`.
 - `authui` applied no effects on `GET /settings` or a failed form, so a sliding refresh or a cache copy from those pages was lost; both now apply them.
 
-### Pre-release audit (2026-09-29)
+#### Pre-release audit (2026-09-29)
 
 Every package was brought to full statement coverage, merged across the unit and integration suites (`task cover`), and every database failure of every operation is now proven to reach the caller (`sweepFaults` in the integration suite fails each database call in turn). The pass found and fixed these defects before any release:
 
@@ -770,7 +772,7 @@ Every package was brought to full statement coverage, merged across the unit and
 - The phone plugin's default text always said the code expires in 10 minutes, whatever `WithCodeTTL` set.
 - The per-process rate-limit warning printed on every `auth migrate` and `auth sweep`; it now prints on the first counted request. `a.Sweep` now clears the database rate store whenever its table exists, and `auth sweep` reports it.
 
-### Added in the audit
+#### Added in the audit
 
 - `a.Exec`, `a.One`, `a.Each` and `auth.Statement`: the core's statement helpers, exported so plugins run their own tables' SQL through one path.
 - `Call.SignInProven` and `ProvenSignIn`: sign in the verified owner of an identifier, or create them, then start the session; used by email codes, phone codes and magic links.
@@ -780,7 +782,7 @@ Every package was brought to full statement coverage, merged across the unit and
 - `authui` picks the identifier field (type, autocomplete, label) from the registered sign-in kinds, so username and phone apps can use the pages.
 - A cookbook of runnable examples, each with a README and an end-to-end test; a README for every package; `task cover`, and `task docs:wrap` in the gate.
 
-### Security properties this version holds
+#### Security properties this version holds
 
 - **[security]** Every secret comparison is constant-time; a source guard fails the build otherwise.
 - **[security]** Sign-in runs one argon2 check on every path, known account or not; pinned by a source guard and a timing test.

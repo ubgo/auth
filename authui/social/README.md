@@ -58,3 +58,7 @@ mux.Handle("/", pages.Handler())
 ## Tests
 
 The unit tests here need no database (rendering, options, no providers, CSRF refusal, dependency graph). The flows that read clients, sessions and consents run on real databases in the integration suite, `integration/socialui_test.go`.
+
+## See also
+
+The [SSO login server](../../docs/integrations/sso-server.md) guide builds a whole login around these pages, and [examples/sso-server](../../examples/sso-server) runs it.

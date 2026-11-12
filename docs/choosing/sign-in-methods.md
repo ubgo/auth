@@ -31,6 +31,7 @@ Around any of them: [`twofactor`](../plugins/twofactor.md) adds a second step ([
 | A passwordless consumer app | `email` + `magiclink`, or `emailchallenge` when people switch devices | `passkey` with `WithSignUp` |
 | A B2B SaaS | `email` + `password`, `oauth` (Google), `organization` | `sso` and `scim` per customer, `twofactor` |
 | A mobile app | `email` codes or `phone`, `oauth` with ID tokens from the native SDKs | `passkey` |
+| A company login for several internal apps | `oauth` (Google) as the only method, `email` with `NoMail()`, `oauthprovider` with `ClientAccess`, `authui/social` pages ([SSO login server](../integrations/sso-server.md)) | `twofactor`, more providers |
 | An internal tool | `oauth` restricted to the company domain, or [`authgate`](../integrations/login-gate.md) with no database | `admin`, `audit` |
 | A CLI or TV companion | the web app's own methods, plus `deviceauth` or `handoff` | `oauthdevice` for OAuth tokens instead of sessions |
 
@@ -43,6 +44,7 @@ Around any of them: [`twofactor`](../plugins/twofactor.md) adds a second step ([
 - If you add `twofactor`, know who is asked: the default policy asks after password sign-ins only; `twofactor.WithPolicy(twofactor.AskEverySignIn)` asks after every method ([who is asked](../plugins/twofactor.md#who-is-asked-for-the-code)).
 - If you add OAuth, decide whether a provider may create accounts at all: `ExplicitSignUp` and `NoSignUp` separate sign-up from sign-in ([Step 12](../plugins/oauth.md#step-12--separate-sign-up-from-sign-in)), and the linking rules decide when a provider's verified email joins an existing account ([Step 5](../plugins/oauth.md#step-5--understand-who-the-callback-signs-in)).
 - If you send SMS, set `phone.AllowPrefixes` before going live: a code is sent to any valid number, and the rate limits are the only other bound on what a stranger can make you spend ([Step 4](../plugins/phone.md#step-4--limit-what-sms-can-cost-you)).
+- If people sign in only with Google or another provider and you keep no passwords, still register `email` with `email.NoMail()`: it stores the address the provider verified, which ID tokens and access lists read, and sends no mail ([SSO login server › Step 2](../integrations/sso-server.md#step-2--wire-the-server)).
 - If a customer brings their own identity provider, use `sso` with domain verification and the organization plugin ([organizations](../plugins/sso.md#organizations), [domain verification](../plugins/sso.md#domain-verification)), not one `oauth` provider per customer.
 
 ## Pitfalls

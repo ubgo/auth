@@ -103,6 +103,8 @@ func signIn(t *testing.T, email, client string) (*http.Response, oauthprovider.R
 
 // A listed address signs in with Google and the app gets a code whose ID
 // token names the address.
+//
+//ds:def id=testssoserver-listedusergetsacode-u9qre9x6 owner=@khanakia stability=stable
 func TestSSOServer_ListedUserGetsACode(t *testing.T) {
 	res, reg, op := signIn(t, "Bob@Example.com", "wiki")
 	loc, _ := url.Parse(res.Header.Get("Location"))
@@ -122,6 +124,8 @@ func TestSSOServer_ListedUserGetsACode(t *testing.T) {
 
 // An address the app's list does not name ends on the no-access page,
 // which names the app; no code reaches the app.
+//
+//ds:def id=testssoserver-unlisteduserseesnoaccess-cy9q45e9 owner=@khanakia stability=stable
 func TestSSOServer_UnlistedUserSeesNoAccess(t *testing.T) {
 	res, _, _ := signIn(t, "bob@example.com", "ops")
 	body, _ := io.ReadAll(res.Body)
