@@ -481,6 +481,11 @@ func (p *Plugin) authorizeFlow(ctx context.Context, c *auth.Call, in AuthorizeRe
 		}
 		return AuthorizeResult{RedirectTo: p.pageURL(p.loginPage, in, true, nil)}, nil
 	}
+	// ClientAccess before any gate or consent: a refused user is shown the
+	// no-access page (or ErrNoAccess), never a step that could lead on.
+	if err := p.accessAllowed(ctx, z.client.c, c.User.ID); err != nil {
+		return p.refuseAccess(z, in, none, err)
+	}
 	page, err := p.gate(ctx, c, z, done)
 	if err != nil {
 		return AuthorizeResult{}, err
@@ -574,9 +579,15 @@ func (p *Plugin) doConsent(ctx context.Context, c *auth.Call, in ConsentRequest)
 	if err != nil {
 		return AuthorizeResult{}, err
 	}
-	// A query from before the post-login gate (the login page's) cannot
-	// skip it: the consent page's carries the session's marker.
-	if p.postLoginRequired(ctx, c, z) && !p.markerValid(q, c.Session.ID) {
+	if err := p.accessAllowed(ctx, z.client.c, c.User.ID); err != nil {
+		return p.refuseAccess(z, req, false, err)
+	}
+	// The post-login decision is asked again here, as on authorize and
+	// continue: a user it still sends to the page gets no code, whatever
+	// query the browser posts. A query from before the gate (the login
+	// page's) cannot skip it either: the consent page's carries the
+	// session's marker.
+	if p.postLogin != nil && (p.postLoginRequired(ctx, c, z) || !p.markerValid(q, c.Session.ID)) {
 		return AuthorizeResult{}, ErrInvalidSignature
 	}
 	if !in.Accept {
@@ -689,6 +700,11 @@ func (p *Plugin) recordConsent(ctx context.Context, userID, clientID string, sco
 // issueCode stores a new code for the signed-in user and answers the
 // client's redirect URI with it.
 func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, scopes []string, ref string) (AuthorizeResult, error) {
+	// The last word before a code exists: whatever route led here, a user
+	// ClientAccess refuses gets none.
+	if err := p.accessAllowed(ctx, z.client.c, c.User.ID); err != nil {
+		return AuthorizeResult{}, err
+	}
 	code := PrefixCode + auth.NewToken().Reveal()
 	id, err := p.core.NewID(codeIDPrefix)
 	if err != nil {

@@ -14,6 +14,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/ubgo/auth v0.1.0
 	github.com/ubgo/auth/authui v0.1.0
+	github.com/ubgo/auth/authui/social v0.1.0
 	github.com/ubgo/auth/plugin/deviceauth v0.1.0
 	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.1.0
 	github.com/ubgo/auth/plugin/oauthproxy v0.1.0

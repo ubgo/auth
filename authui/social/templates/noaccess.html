@@ -1,0 +1,5 @@
+{{define "body"}}
+<p>{{.Named "social.no_access" .ClientName}}</p>
+{{if .Address}}<p class="muted">{{.T "social.signed_in_as"}} <strong>{{.Address}}</strong></p>{{end}}
+<p class="muted">{{.T "social.no_access_help"}}</p>
+{{end}}

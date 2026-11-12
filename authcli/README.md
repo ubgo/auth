@@ -27,7 +27,7 @@ func main() {
 }
 ```
 
-`args` excludes the program name and the word the app routed on. Output meant for a pipe (the SQL, the status table) goes to stdout; usage and errors go to stderr. `Main` reads the process's standard input when a command asks for it (`admin create --password-stdin`); [`MainWithStdin`](ds:block?id=mainwithstdin-6kp3rq2w) takes another reader, for an app that embeds the command line behind its own and for tests.
+`args` excludes the program name and the word the app routed on. Output meant for a pipe (the SQL, the status table) goes to stdout; usage and errors go to stderr. `Main` reads the process's standard input when a command asks for it (`admin create --password-stdin`, or a plugin command that says so), and a word that is no built-in command runs the registered plugin's command of that name (see [Commands a plugin adds](#commands-a-plugin-adds)); [`MainWithStdin`](ds:block?id=mainwithstdin-6kp3rq2w) takes another reader, for an app that embeds the command line behind its own and for tests.
 
 ## Options
 
@@ -58,6 +58,10 @@ The command names are exported as [`CmdMigrate`](ds:block?id=cmdmigrate-mr367qab
 ### Plugins found by interface
 
 `auth admin` imports no plugin. It finds, through `auth.PluginOf`, the registered plugin with each method it needs, so an app registers nothing extra and the core module stays free of the password module: `AdminGranter` (`Grant(ctx, userID)`, which `*admin.Plugin` has), `AddressSetter` (`Identifiers()` for the kind to look up and `SetFor(ctx, userID, address, verified)`, which `*email.Plugin` has) and `PasswordSetter` (`SetPassword(ctx, userID, password)`, which `*password.Plugin` has; needed only under `--password-stdin`). A missing one fails with exit 1 and names the plugin to register (`ErrNoAdminPlugin`, `ErrNoAddressPlugin`, `ErrNoPasswordPlugin`). `authcli.InfoOf(a)` returns the [`Info`](ds:block?id=cli-info-4jrw9p2d) that `auth info` prints, for an app that wants the same report on a status page.
+
+### Commands a plugin adds
+
+A plugin that implements `CommandProvider` (`Commands() []Command`) adds its own words to `auth`, so an optional module gives operators a command line without this package importing it: register the plugin and the command is there. `plugin/oauthprovider` adds `auth oauth-client create|list|show|update|delete` this way. A `Command` has a `Name`, its `Usage` lines (shown under "plugin commands:" in the usage text) and `Run(ctx, a, args, IO)`, which returns an exit code below; `NewFlagSet` and `ParseFlags` give it the built-in commands' flag handling. A plugin command never shadows a built-in one or another plugin's: `Main` refuses with `ErrCommandClash` (exit 1) rather than pick one.
 
 ### Exit codes
 

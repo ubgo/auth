@@ -24,6 +24,7 @@ func TestOptions_RefuseNil(t *testing.T) {
 		"oauthprovider.CIMDOnClientRefreshed":      oauthprovider.ClientIDMetadataDocuments(oauthprovider.CIMDOnClientRefreshed(nil)),
 		"oauthprovider.CIMDTransport":              oauthprovider.ClientIDMetadataDocuments(oauthprovider.CIMDTransport(nil)),
 		"oauthprovider.Claims":                     oauthprovider.Claims(nil),
+		"oauthprovider.ClientAccess":               oauthprovider.ClientAccess(nil),
 		"oauthprovider.ClientIDMetadataDocuments":  oauthprovider.ClientIDMetadataDocuments(nil),
 		"oauthprovider.ClientJWKSFetch":            oauthprovider.ClientJWKSFetch(nil),
 		"oauthprovider.ClientPrivileges":           oauthprovider.ClientPrivileges(nil),

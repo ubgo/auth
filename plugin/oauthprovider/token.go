@@ -379,6 +379,18 @@ func (is issuance) x5t() string {
 // refresh token when offline_access was granted and the client may refresh,
 // and an ID token when openid was granted.
 func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) {
+	// Every token for a user asks ClientAccess again (the code exchange, a
+	// refresh, an extension grant), so access withdrawn stops the next
+	// refresh. The refusal is invalid_grant, the token endpoint's word for a
+	// grant that no longer holds.
+	if is.userID != "" {
+		if err := p.accessAllowed(ctx, is.client.c, is.userID); err != nil {
+			if errors.Is(err, ErrNoAccess) {
+				return TokenResponse{}, ErrInvalidGrant
+			}
+			return TokenResponse{}, err
+		}
+	}
 	// The resource is resolved again at every issuance (a code exchange, a
 	// refresh, client credentials): a resource disabled since, or a link
 	// removed, stops new tokens (invalid_target), and its policy applies.

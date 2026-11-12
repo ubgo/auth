@@ -100,6 +100,8 @@ Each rule has a test in `integration/r33_test.go` that was broken once to prove 
 | `ScopeExpirations(map)` | none | Shorter access-token lifetimes per scope; a token gets the earliest |
 | `CacheResources(ttl)`, `CacheResourcesIn(kv, ttl)` | off | Keeps resource policies for `ttl` ([1m](ds:block?id=oauthprovider-resourcecache-ttl-5vq8mz2k) for 0, at most 15m), in this process or in any `auth.SecondaryStorage`; see Resources below |
 | `SignupPage(url)` | none | Where `prompt=create` goes; the login page without it |
+| `ClientAccess(fn)` | everyone | Who may use each client; see [Per-client access](#per-client-access) |
+| `NoAccessPage(url)` | none | Where a user `ClientAccess` refuses is sent, with the signed query; without it the refusal is a 403 (`oauthprovider.no_access`) |
 | `ValidateRedirectURI(fn)` | exact match | Replaces the redirect decision (gets the URI, the registered ones and the exact-match result); relaxes RFC 9700, so accept only hosts you control |
 | `AccessTokenClaims(fn)` | none | Extra claims in JWT access tokens; provider claims cannot be replaced |
 | `AdvertisedScopes(...)`, `AdvertisedClaims(...)` | every scope, the built-in claims | What discovery lists |
@@ -126,6 +128,39 @@ Each rule has a test in `integration/r33_test.go` that was broken once to prove 
 | `RefuseJWTRevocation()` | off, warns at start | A live JWT access token's revocation answers `unsupported_token_type`. Risk: the token stays usable everywhere until it expires |
 | `EncryptClientSecrets(enc)` | off, warns at start | Encrypted client secrets: a recoverable copy beside the hash, read with `RevealClientSecret`. Risk: the key plus the database yields every secret |
 | `RefreshReplay(enc)` | off, warns at start | Replays the first response to a refresh token reused inside `RefreshReuseInterval` (required). Risk: issued tokens are stored recoverable for the window |
+
+## Per-client access
+
+`ClientAccess(fn)` decides which signed-in users may use which client: an identity provider for a company's internal apps lets everyone in the company into one app and only a few people into another. `fn` gets the client and an `AccessUser` (the stored user and their verified email addresses; an unverified address is never there) and refuses with any error. It is asked at authorize, on continue and consent, when a code is issued, and at every token grant for a user (the code exchange, a refresh, an extension grant), so withdrawing access stops the next refresh, not only the next sign-in. A refused user gets no code and no token: authorize, continue and consent send the browser to `NoAccessPage` (or answer `ErrNoAccess`, 403), `prompt=none` answers `access_denied` at the client, and the token endpoint answers `invalid_grant`.
+
+`AllowList{Domains, Emails}` is a plain list for one client: any verified address at exactly one of `Domains` (not a subdomain) or one of `Emails`, both without regard to case. `AllowListAccess(lookup)` turns a lookup of each client's list into a `ClientAccessFunc`; a client the lookup does not know lets nobody in. The lookup runs on every decision, so a list the app reloads applies at once. The values are plain Go, loaded from whatever the app keeps its configuration in:
+
+```go
+oauthprovider.ClientAccess(oauthprovider.AllowListAccess(func(_ context.Context, c oauthprovider.Client) (oauthprovider.AllowList, bool) {
+	l, ok := lists.Load()[c.Name]
+	return l, ok
+}))
+```
+
+An app that signs users in only through `plugin/oauth` still registers `plugin/email`, with `email.NoMail()` (no mailer, no mail routes), or no address is stored and the lists see none. [examples/sso-server](../../examples/sso-server) wires the whole setup.
+
+The gates are decided on every route too: `PostLoginGate.ShouldRedirect` and the `SignupRedirect` decision are asked again on continue and consent, so a `Continue` that claims a gate was passed is not believed while its decision still sends the user to the page. A decision answers false once its page has done its work (an organization chosen, the sign-up steps complete).
+
+## Managing clients
+
+`CreateClient`, `Client`, `UpdateClient` (the whole client), `PatchClient` and `DeleteClient` manage any client from Go; `AllClients` lists every stored client, whoever owns it, for an admin command or page. `PatchClient(ctx, id, ClientPatch{...})` changes only the non-nil fields (a pointer to an empty list clears one) and checks the result exactly as `UpdateClient` does; the authentication method never changes. The owner operations (`CreateOwnedClient`, `Clients`, `UpdateOwnedClient`, ...) are the same for a signed-in user's own clients.
+
+With [authcli](../../authcli) wired, the plugin adds `auth oauth-client` to the app's command line (it implements `authcli.CommandProvider`), with no code:
+
+```sh
+myapp auth oauth-client create --name wiki --redirect-uri https://wiki.example.com/callback --skip-consent --secret-file wiki.secret
+myapp auth oauth-client list
+myapp auth oauth-client show wiki --json
+myapp auth oauth-client update wiki --post-logout-uri https://wiki.example.com/signed-out --disabled=false
+myapp auth oauth-client delete wiki --dry-run
+```
+
+A client is named by its id or its name; `create` refuses a name another client has, and a name two clients share (made from Go) is `ErrAmbiguousClient`. The secret is printed once, or with `--secret-file` written to a new file with mode 0600 and never printed. `update` changes only the flags given; a list flag given as `""` clears the list.
 
 ## Resource servers and MCP
 

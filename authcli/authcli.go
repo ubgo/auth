@@ -128,7 +128,9 @@ func Main(ctx context.Context, a *auth.Auth, args []string, stdout, stderr io.Wr
 
 // MainWithStdin is Main with an explicit standard input, for an app that
 // embeds the command line behind its own and for tests. Only `admin create
-// --password-stdin` reads it.
+// --password-stdin` and a plugin command that says so read it. A word that
+// is no built-in command runs the registered plugin's command of that name
+// (CommandProvider).
 //
 //ds:def id=mainwithstdin-6kp3rq2w owner=@khanakia stability=stable
 func MainWithStdin(ctx context.Context, a *auth.Auth, args []string, stdin io.Reader, stdout, stderr io.Writer) int {
@@ -148,10 +150,14 @@ func MainWithStdin(ctx context.Context, a *auth.Auth, args []string, stdin io.Re
 			return client(a, args[1:], stdout, stderr)
 		case CmdGenerate:
 			args = append([]string{CmdMigrate, CmdSQL}, args[1:]...)
+		default:
+			if code, found := runPlugin(ctx, a, args, IO{Stdin: stdin, Stdout: stdout, Stderr: stderr}); found {
+				return code
+			}
 		}
 	}
 	if len(args) == 0 || args[0] != CmdMigrate {
-		fmt.Fprint(stderr, usage)
+		fmt.Fprint(stderr, fullUsage(a))
 		return ExitUsage
 	}
 	fs := newFlags(CmdMigrate, stderr)

@@ -236,6 +236,7 @@ export const AUTH_ERROR_CODES = {
   "oauthprovider.invalid_token": { status: 401, message: "The access token is invalid, expired or revoked.", plugin: "oauthprovider" },
   "oauthprovider.invalid_user": { status: 400, message: "The user of this grant no longer exists.", plugin: "oauthprovider" },
   "oauthprovider.login_required": { status: 401, message: "The user must sign in.", plugin: "oauthprovider" },
+  "oauthprovider.no_access": { status: 403, message: "This account has no access to this app.", plugin: "oauthprovider" },
   "oauthprovider.not_found": { status: 404, message: "Not found.", plugin: "oauthprovider" },
   "oauthprovider.registration_closed": { status: 403, message: "Dynamic client registration is not open.", plugin: "oauthprovider" },
   "oauthprovider.request_not_supported": { status: 400, message: "Request objects are not supported.", plugin: "oauthprovider" },

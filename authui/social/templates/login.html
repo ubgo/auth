@@ -1,0 +1,6 @@
+{{define "body"}}
+{{if .Unavailable}}<p class="muted">{{.T "social.unavailable"}}</p>
+{{else if .NoRequest}}<p class="muted">{{.T "social.open_app"}}</p>
+{{else}}<div class="providers">{{range .Providers}}<a class="provider provider-{{.ID}}" href="{{.Href}}">{{$.Named "social.continue_with" .Name}}</a>{{end}}</div>
+{{end}}
+{{end}}

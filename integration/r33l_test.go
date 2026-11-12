@@ -51,12 +51,12 @@ func pageQuery(t *testing.T, res oauthprovider.AuthorizeResult, path string) str
 // and tokens.
 func TestOAuthProvider_GatesAndContinue(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
-		ref, onboard, pick := "org_1", true, false
+		ref, onboard, pick, orgPending := "org_1", true, false, true
 		o := newOPEnv(t, e,
 			oauthprovider.SelectAccount(oauthprovider.SelectAccountGate{Page: "/select", ShouldRedirect: func(context.Context, oauthprovider.GateInfo) bool { return pick }}),
 			oauthprovider.SignupRedirect(func(context.Context, oauthprovider.GateInfo) (bool, string) { return onboard, "/onboard" }),
 			oauthprovider.PostLogin(oauthprovider.PostLoginGate{Page: "/org",
-				ShouldRedirect:     func(context.Context, oauthprovider.GateInfo) bool { return true },
+				ShouldRedirect:     func(context.Context, oauthprovider.GateInfo) bool { return orgPending },
 				ConsentReferenceID: func(context.Context, oauthprovider.GateInfo) string { return ref }}))
 		reg := o.client(t, oauthprovider.ClientSpec{})
 		ctx := request(o.a, o.token)
@@ -64,6 +64,8 @@ func TestOAuthProvider_GatesAndContinue(t *testing.T) {
 		in.Prompt = "select_account"
 		q := pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Authorize(ctx, in)), "/select")
 		q = pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Continue(ctx, oauthprovider.ContinueRequest{Query: q, Selected: true})), "/onboard")
+		// The sign-up steps are complete: the decision now lets the user on.
+		onboard = false
 		q = pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Continue(ctx, oauthprovider.ContinueRequest{Query: q, Created: true})), "/org")
 		// The post-login page's own query cannot skip to consent.
 		if _, err := o.op.Consent(ctx, oauthprovider.ConsentRequest{Query: q, Accept: true}); !errors.Is(err, oauthprovider.ErrInvalidSignature) {
@@ -75,7 +77,9 @@ func TestOAuthProvider_GatesAndContinue(t *testing.T) {
 		if _, err := o.op.Continue(ctx, oauthprovider.ContinueRequest{Query: q + "&scope=admin", PostLogin: true}); !errors.Is(err, oauthprovider.ErrInvalidSignature) {
 			t.Fatalf("continue with a tampered query: %v", err)
 		}
-		onboard = false
+		// The page chose the organization: the post-login decision lets the
+		// user on.
+		orgPending = false
 		cq := pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Continue(ctx, oauthprovider.ContinueRequest{Query: q, PostLogin: true})), "/consent")
 		// The marker is this session's: another user's session is refused.
 		bob := must[password.SignInResult](t)(o.pw.SignUp(anon(o.a), password.SignUpRequest{Identifier: "bob@example.com", Password: secret}))
@@ -95,7 +99,9 @@ func TestOAuthProvider_GatesAndContinue(t *testing.T) {
 		}
 		// Same reference: the consent covers it, so the post-login gate leads
 		// straight to the code. Another reference asks again.
+		orgPending = true
 		q = pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Authorize(ctx, authzReq(reg.ClientID))), "/org")
+		orgPending = false
 		res = must[oauthprovider.AuthorizeResult](t)(o.op.Continue(ctx, oauthprovider.ContinueRequest{Query: q, PostLogin: true}))
 		if !strings.HasPrefix(res.RedirectTo, opRedirect) {
 			t.Fatalf("consented reference = %s", res.RedirectTo)
@@ -103,6 +109,7 @@ func TestOAuthProvider_GatesAndContinue(t *testing.T) {
 		ref = "org_2"
 		pageQuery(t, must[oauthprovider.AuthorizeResult](t)(o.op.Continue(ctx, oauthprovider.ContinueRequest{Query: q, PostLogin: true})), "/consent")
 		// prompt=none cannot show a gate.
+		orgPending = true
 		none := authzReq(reg.ClientID)
 		none.Prompt = "none"
 		var re *oauthprovider.RedirectError

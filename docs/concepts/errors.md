@@ -668,6 +668,7 @@ Codes from the core carry the `auth.` prefix (`auth.internal`, `auth.rate_limite
 | `oauthprovider.forbidden` | 403 | You may not do this with this client. |
 | `oauthprovider.account_selection_required` | 403 | The user must choose an account. |
 | `oauthprovider.interaction_required` | 403 | The user must complete a step before this authorization. |
+| `oauthprovider.no_access` | 403 | This account has no access to this app. |
 | `oauthprovider.client_disabled` | 400 | The client is disabled. |
 | `oauthprovider.invalid_user` | 400 | The user of this grant no longer exists. |
 | `oauthprovider.not_found` | 404 | Not found. |

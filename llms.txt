@@ -70,11 +70,12 @@ Every page below is plain Markdown in the repository. Code blocks in the guides 
 - `github.com/ubgo/auth/plugin/scim`: a SCIM 2.0 server for user and group provisioning.
 - `github.com/ubgo/auth/plugin/deviceauth`: the device authorization grant (RFC 8628); `plugin/deviceauth/oauthdevice` issues OAuth tokens through oauthprovider.
 - `github.com/ubgo/auth/plugin/oauthproxy`: provider sign-in on preview deployments; its package `oauthpopup` signs in from a popup.
-- `github.com/ubgo/auth/plugin/oauthprovider`: the app as an OAuth 2.1 authorization server and OpenID Connect provider.
+- `github.com/ubgo/auth/plugin/oauthprovider`: the app as an OAuth 2.1 authorization server and OpenID Connect provider, with per-client access rules (`ClientAccess`, `AllowList`) and `auth oauth-client` commands.
 - `github.com/ubgo/auth/plugin/ldap`: sign-in with a username and password checked against an LDAP directory, through a replaceable `Directory` (go-ldap by default, TLS required).
 - `github.com/ubgo/auth/plugin/siwe`: Sign-In with Ethereum (ERC-4361) with several wallets per user and a replaceable signature `Verifier`.
 - `github.com/ubgo/auth/plugin/agentauth`: AI agents with their own keys acting under capabilities a user granted (Agent Auth Protocol), with the `agentclient` Go client.
 - `github.com/ubgo/auth/authui`: optional server-rendered sign-in, sign-up, reset, verification, two-factor and settings pages.
+- `github.com/ubgo/auth/authui/social`: optional sign-in buttons, no-access and consent pages for an identity provider that signs users in only with OAuth providers (no password plugin).
 - `github.com/ubgo/auth/contrib/gin`, `contrib/echo`, `contrib/fiber`, `contrib/gqlgen`: framework adapters.
 - `github.com/ubgo/auth/contrib/redis`: rate store, session store and session cache shared by several instances; `contrib/phonenumbers`: national phone numbers through libphonenumber. `contrib/goth`: any goth provider as an `oauth.Provider` (no PKCE). `plugin/oauth/oauthtest`: a conformance kit that proves an `oauth.Provider` against a fake authorization server.
 

@@ -31,6 +31,7 @@ This skill tells a coding agent how to work with `github.com/ubgo/auth` in an ap
 | Tests in the app | [docs/start/testing.md](../../docs/start/testing.md) (the `authtest` package) |
 | Every `auth.With…` option | [docs/concepts/configuration.md](../../docs/concepts/configuration.md) |
 | Error codes and HTTP statuses | [docs/concepts/errors.md](../../docs/concepts/errors.md), [docs/reference/error-codes.md](../../docs/reference/error-codes.md) |
+| A company login: the app as the OIDC provider for internal apps, social sign-in only, per-app access lists | [docs/plugins/oauthprovider.md](../../docs/plugins/oauthprovider.md) (step 14), [examples/sso-server](../../examples/sso-server) |
 | Every route | [docs/reference/http-api.md](../../docs/reference/http-api.md), [docs/reference/openapi.json](../../docs/reference/openapi.json) |
 | A plugin (options, routes, tables, errors) | `docs/plugins/<name>.md` and the package README `plugin/<name>/README.md` |
 | net/http, chi, gin, echo, fiber, gqlgen | [docs/integrations/](../../docs/integrations/) |

@@ -3,6 +3,7 @@ go 1.25.0
 use (
 	.
 	./authui
+	./authui/social
 	./contrib/echo
 	./contrib/fiber
 	./contrib/gin
@@ -83,3 +84,4 @@ replace github.com/ubgo/auth/plugin/organization v0.1.0 => ./plugin/organization
 replace github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.1.0 => ./plugin/deviceauth/oauthdevice
 
 replace github.com/ubgo/auth/authui v0.1.0 => ./authui
+replace github.com/ubgo/auth/authui/social v0.1.0 => ./authui/social

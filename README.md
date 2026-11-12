@@ -239,6 +239,7 @@ A package that needs a third-party module is its own module, so an app downloads
 | [`github.com/ubgo/auth/plugin/scim`](plugin/scim), [`plugin/deviceauth`](plugin/deviceauth), [`plugin/oauthproxy`](plugin/oauthproxy), [`plugin/oauthprovider`](plugin/oauthprovider), [`plugin/agentauth`](plugin/agentauth) | no dependency: opt-in protocols most apps never use, so they are compiled only by apps that import them |
 | [`github.com/ubgo/auth/plugin/deviceauth/oauthdevice`](plugin/deviceauth/oauthdevice) | the one place `deviceauth` and `oauthprovider` meet |
 | [`github.com/ubgo/auth/authui`](authui) | serves the password pages, so it imports `plugin/password` |
+| [`github.com/ubgo/auth/authui/social`](authui/social) | no dependency: the sign-in, no-access and consent pages of an identity provider that signs users in only with OAuth providers; never imports `plugin/password`, so no argon2 |
 | [`contrib/gin`](contrib/gin), [`contrib/echo`](contrib/echo), [`contrib/fiber`](contrib/fiber), [`contrib/gqlgen`](contrib/gqlgen) | the framework |
 | [`github.com/ubgo/auth/contrib/redis`](contrib/redis) | a rate store for several instances, on the Redis client |
 | [`github.com/ubgo/auth/contrib/phonenumbers`](contrib/phonenumbers) | numbers typed without the country code, on libphonenumber |
