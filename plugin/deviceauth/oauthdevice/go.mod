@@ -7,9 +7,9 @@ module github.com/ubgo/auth/plugin/deviceauth/oauthdevice
 go 1.24.0
 
 require (
-	github.com/ubgo/auth v0.1.0
-	github.com/ubgo/auth/plugin/deviceauth v0.1.0
-	github.com/ubgo/auth/plugin/oauthprovider v0.1.0
+	github.com/ubgo/auth v0.1.1
+	github.com/ubgo/auth/plugin/deviceauth v0.1.1
+	github.com/ubgo/auth/plugin/oauthprovider v0.1.1
 )
 
 require github.com/ubgo/sqlb v0.1.1 // indirect
