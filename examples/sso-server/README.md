@@ -7,7 +7,7 @@ What it puts together:
 - `plugin/oauth` with Google as the only sign-in method, and `plugin/email` with `email.NoMail()`, which stores the address Google reports and sends no mail (no mailer, no verify or change routes). Without an email plugin no address is stored at all, so ID tokens would carry no email claim.
 - `plugin/oauthprovider` with `ClientAccess(AllowListAccess(...))`: who may use each app, keyed by the client's name. The rule is checked when the app asks for a code, on every route that continues an authorization, when the code is exchanged and at every refresh, so removing someone from a list stops their next refresh too. A refused person lands on the no-access page (`NoAccessPage`) and the app gets no code.
 - `authui/social` for the three pages: sign in with Google, no access, and consent (for a client registered without `--skip-consent`). It is its own module and does not bring in the password plugin or argon2.
-- `authcli` for the operator: `auth migrate`, and `auth oauth-client create|list|show|update|delete`, which the provider plugin adds with no extra code.
+- `authcli` for the operator: `auth migrate`, and `auth oauth-client create|list|show|update|delete|revoke-user`, which the provider plugin adds with no extra code.
 
 ## Run it
 

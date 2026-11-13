@@ -78,6 +78,8 @@ func sqliteDSN(path string) string {
 ```
 <!-- /ds:block hash=9ba25c -->
 
+An app whose writes run concurrently (several requests refreshing the same token, a login server under load) also adds `&_txlock=immediate`. SQLite's default deferred transaction takes the write lock only at its first write, so two transactions that both read first cannot both upgrade: one fails at once with `database is locked`, whatever the busy timeout. With `_txlock=immediate` each transaction takes the write lock when it begins, and the second waits for the first within the busy timeout. `integration/refreshrace_test.go` opens its SQLite database this way for the concurrent-refresh tests.
+
 **MySQL** needs `parseTime=true` so timestamps scan into `time.Time`, `loc=UTC` so they are read in the zone they were written, and `clientFoundRows=true` so `RowsAffected` counts matched rows, as the other two engines do; the library's "did this statement match a row" checks assume that. With the standard driver's DSN:
 
 ```go
@@ -486,7 +488,7 @@ Check: `auth.UserBindings` binds exactly the stable user columns plus `sessions_
 
 ## What can go wrong
 
-- `database is locked` on SQLite — `_pragma=busy_timeout` is missing from the DSN, or two processes share the file without WAL.
+- `database is locked` on SQLite — `_pragma=busy_timeout` is missing from the DSN, two processes share the file without WAL, or two concurrent transactions read before they write without `_txlock=immediate` (step 2).
 - `sql: Scan error … unsupported Scan, storing driver.Value type []uint8 into type *time.Time` on MySQL — `parseTime=true` is missing.
 - A refused call on MySQL where the row was in fact matched — `clientFoundRows=true` is missing, so `RowsAffected` counts changed rows rather than matched ones. Set it.
 - `auth: engine not supported: "…"` — the dialect is not one of the three. There is no adapter layer to add a fourth: the invariants (one uniqueness policy over `auth_identity`, a verification token spent by the database, `RowsAffected` meaning "matched") are SQL and Go together, and a document store or an ORM could not carry them unchanged. Column types can be overridden for the three engines (`auth.WithSQLTypes`, step 3). What is pluggable is where the short-lived records live: `auth.SessionStore`, `auth.SessionCache` and `auth.RateStore`, each with a Redis implementation in `contrib/redis`. A Postgres-, MySQL- or SQLite-compatible service (Neon, Supabase, PlanetScale, Turso, TiDB) works through its dialect.

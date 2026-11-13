@@ -59,6 +59,8 @@ For SQLite, open the file with the pragmas the library depends on: WAL so reader
 file:app.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)
 ```
 
+When requests write concurrently (a busy app, or a login server whose clients refresh at the same moment), add `&_txlock=immediate`: each transaction then takes SQLite's write lock when it begins and a second one waits within the busy timeout, instead of failing with "database is locked" when both read before they write ([databases, step 2](../concepts/databases.md#step-2--connection-settings-each-engine-needs)).
+
 The MySQL settings matter too: `parseTime` and `loc=UTC` so timestamps come back as `time.Time` in UTC, and `clientFoundRows` so an update reports matched rows the way Postgres and SQLite do. The [databases](../concepts/databases.md) page has the full DSNs.
 
 Check: `go build ./...` succeeds with the import `_ "modernc.org/sqlite"` (or your driver) in `main`.

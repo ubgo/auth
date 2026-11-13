@@ -61,7 +61,7 @@ The command names are exported as [`CmdMigrate`](ds:block?id=cmdmigrate-mr367qab
 
 ### Commands a plugin adds
 
-A plugin that implements `CommandProvider` (`Commands() []Command`) adds its own words to `auth`, so an optional module gives operators a command line without this package importing it: register the plugin and the command is there. `plugin/oauthprovider` adds `auth oauth-client create|list|show|update|delete` this way. A `Command` has a `Name`, its `Usage` lines (shown under "plugin commands:" in the usage text) and `Run(ctx, a, args, IO)`, which returns an exit code below; `NewFlagSet` and `ParseFlags` give it the built-in commands' flag handling. A plugin command never shadows a built-in one or another plugin's: `Main` refuses with `ErrCommandClash` (exit 1) rather than pick one.
+A plugin that implements `CommandProvider` (`Commands() []Command`) adds its own words to `auth`, so an optional module gives operators a command line without this package importing it: register the plugin and the command is there. `plugin/oauthprovider` adds `auth oauth-client create|list|show|update|delete|revoke-user` this way. A `Command` has a `Name`, its `Usage` lines (shown under "plugin commands:" in the usage text) and `Run(ctx, a, args, IO)`, which returns an exit code below; `NewFlagSet` and `ParseFlags` give it the built-in commands' flag handling. A plugin command never shadows a built-in one or another plugin's: `Main` refuses with `ErrCommandClash` (exit 1) rather than pick one.
 
 ### Exit codes
 

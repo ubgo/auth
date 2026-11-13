@@ -65,11 +65,11 @@ tasks:
     vars:
       COVER_MIN: '{{.COVER_MIN | default "0"}}'
       OUT: '{{.ROOT_DIR}}/.cover'
-      PKGS: github.com/ubgo/auth/...,github.com/ubgo/auth/plugin/password/...,github.com/ubgo/auth/plugin/passkey/...,github.com/ubgo/auth/plugin/organization/...,github.com/ubgo/auth/plugin/deviceauth/...,github.com/ubgo/auth/plugin/deviceauth/oauthdevice/...,github.com/ubgo/auth/plugin/scim/...,github.com/ubgo/auth/plugin/oauthproxy/...,github.com/ubgo/auth/plugin/sso/...,github.com/ubgo/auth/plugin/samlidp/...,github.com/ubgo/auth/plugin/oauthprovider/...,github.com/ubgo/auth/plugin/agentauth/...,github.com/ubgo/auth/plugin/referral/...,github.com/ubgo/auth/plugin/access/...,github.com/ubgo/auth/authui/...,github.com/ubgo/auth/authui/social/...
+      PKGS: github.com/ubgo/auth/...,github.com/ubgo/auth/plugin/password/...,github.com/ubgo/auth/plugin/passkey/...,github.com/ubgo/auth/plugin/organization/...,github.com/ubgo/auth/plugin/deviceauth/...,github.com/ubgo/auth/plugin/deviceauth/oauthdevice/...,github.com/ubgo/auth/plugin/scim/...,github.com/ubgo/auth/plugin/oauthproxy/...,github.com/ubgo/auth/plugin/sso/...,github.com/ubgo/auth/plugin/samlidp/...,github.com/ubgo/auth/plugin/oauthprovider/...,github.com/ubgo/auth/plugin/agentauth/...,github.com/ubgo/auth/plugin/referral/...,github.com/ubgo/auth/plugin/access/...,github.com/ubgo/auth/authui/...,github.com/ubgo/auth/authui/social/...,github.com/ubgo/auth/oidcclient/...
     cmds:
       - /bin/rm -rf {{.OUT}} && mkdir -p {{.OUT}}
       - go test -coverprofile={{.OUT}}/core.out ./... > /dev/null
-      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, authui/social, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
+      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, oidcclient, authui, authui/social, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
         # contrib/redis talks to a live Redis, so only it skips the test cache.
         cmd: 'cd {{.ITEM}} && go test {{if eq .ITEM "contrib/redis"}}-count=1 {{end}}-coverprofile={{.OUT}}/{{replace "/" "-" .ITEM}}.out ./... > /dev/null'
       # plugin/ldap and plugin/siwe need a database and a driver, which their own
@@ -83,6 +83,9 @@ tasks:
       # (a real auth.New, database and HTTP handler), counted here like the
       # ldap and siwe flows above.
       - cd examples && go test -coverpkg=github.com/ubgo/auth,github.com/ubgo/auth/plugin/twofactor,github.com/ubgo/auth/plugin/passkey,github.com/ubgo/auth/plugin/organization,github.com/ubgo/auth/plugin/metadata,github.com/ubgo/auth/plugin/jwt/...,github.com/ubgo/auth/plugin/organization/orgjwt,github.com/ubgo/auth/plugin/samlidp -coverprofile={{.OUT}}/examples-batch5.out ./two-factor-security-key ./org-domains ./user-metadata ./jwt-templates ./session-tasks ./token-rotation ./saml-idp > /dev/null
+      # oidcclient's whole flow against a real login server (examples/sso-server
+      # with a stand-in Google) is proven by examples/oidc-app and counted here.
+      - cd examples && go test -count=1 -coverpkg=github.com/ubgo/auth/oidcclient/...,github.com/ubgo/auth/plugin/oauthprovider/... -coverprofile={{.OUT}}/examples-oidc-app.out ./oidc-app > /dev/null
       - cd integration && go test -count=1 -coverpkg={{.PKGS}} -coverprofile={{.OUT}}/integration.out . > {{.OUT}}/integration.log 2>&1 || (grep -E 'FAIL|_test.go:[0-9]+:' {{.OUT}}/integration.log; exit 1)
       - cd integration && go run ./cmd/covmerge -min {{.COVER_MIN}} -o {{.OUT}}/merged.profile {{.OUT}}/*.out
 
@@ -105,7 +108,7 @@ tasks:
       - go run ./cmd/apiref -check ../docs/reference -client ../clients/ts/src
 
   ts:check:
-    desc: Type-check the TypeScript client in clients/ts, the app-generated client of examples/ts-client-custom/web and the runnable examples ts-client-flows/web and ts-client-bearer/web under strict (tsc on PATH, 5.6 or later), then prove the negative type test fails exactly where marked
+    desc: Type-check the TypeScript client in clients/ts (with its oidc subpath, whose tests, negative type test and publish build run too), the app-generated client of examples/ts-client-custom/web and the runnable examples ts-client-flows/web and ts-client-bearer/web under strict (tsc on PATH, 5.6 or later), then prove the negative type test fails exactly where marked
     dir: clients/ts
     cmds:
       - 'command -v tsc >/dev/null || { echo "FAIL: tsc is not on PATH (npm i -g typescript)"; exit 1; }'
@@ -119,6 +122,16 @@ tasks:
       - tsc -p ../../examples/ts-client-flows/web
       - tsc -p ../../examples/ts-client-bearer/web
       - task: ts:typecheck
+      # The server-side OIDC relying party (@ubgo/auth-client/oidc): the
+      # negative type test, the publish build (dist/, which needs the
+      # package's pinned typescript in node_modules), then its tests against
+      # an in-process fake provider. The build comes first so entries.test.ts
+      # (run by run.ts) checks the emitted .js as well as src/ keeps the
+      # browser and oidc entries apart.
+      - task: ts:oidc-typecheck
+      - 'test -d node_modules/typescript || pnpm install --frozen-lockfile'
+      - node scripts/pack.mjs build
+      - node test/oidc/run.ts
 
   ts:typecheck:
     desc: Prove the typed client rejects wrong code (clients/ts/test/typecheck/bad.ts MUST fail to compile, each marked line with its marked error and no other)
@@ -146,6 +159,38 @@ tasks:
           echo "|$marks|" | grep -qF "|$code|" || { echo "FAIL: bad.ts:$line failed with $code, not the error it is marked with"; exit 1; }
         done || exit 1
         echo "ok: tsc rejected all {{.TS_TYPECHECK_EXPECTED}} deliberately-wrong lines, each with its marked error"
+
+  ts:oidc-typecheck:
+    desc: Prove the OIDC relying party's options reject wrong code (clients/ts/test/oidc/typecheck/bad.ts MUST fail to compile, each marked line with its marked error and no other)
+    dir: clients/ts/test/oidc/typecheck
+    vars:
+      # One per `expect TSnnnn` line in bad.ts.
+      TS_TYPECHECK_EXPECTED: 13
+    cmds:
+      - |
+        out=$(tsc -p . 2>&1) && { echo "FAIL: bad.ts compiled, so the oidc options' types are not guarding"; exit 1; }
+        if echo "$out" | grep -qE "error TS(2304|2305|2307|2724)"; then
+          echo "FAIL: bad.ts refers to a name or module that no longer exists:"; echo "$out"; exit 1
+        fi
+        errs=$(echo "$out" | grep -oE "^bad\.ts\([0-9]+,[0-9]+\): error TS[0-9]+")
+        n=$(echo "$errs" | grep -c "error TS")
+        if [ "$n" -ne {{.TS_TYPECHECK_EXPECTED}} ]; then
+          echo "FAIL: expected {{.TS_TYPECHECK_EXPECTED}} type errors, got $n:"; echo "$out"; exit 1
+        fi
+        echo "$errs" | while IFS= read -r e; do
+          line=$(echo "$e" | sed -E 's/^bad\.ts\(([0-9]+),.*/\1/')
+          code=$(echo "$e" | sed -E 's/.*error (TS[0-9]+)$/\1/')
+          marks=$(sed -n "${line}p" bad.ts | sed -nE 's/.*expect (TS[0-9]+(\|TS[0-9]+)*).*/\1/p')
+          echo "|$marks|" | grep -qF "|$code|" || { echo "FAIL: bad.ts:$line failed with $code, not the error it is marked with"; exit 1; }
+        done || exit 1
+        echo "ok: tsc rejected all {{.TS_TYPECHECK_EXPECTED}} deliberately-wrong lines, each with its marked error"
+
+  ts:publish-dry-run:
+    desc: Build @ubgo/auth-client (clients/ts) for npm, check the tarball holds only dist/ and the manifest, and run npm publish --dry-run on it; never publishes
+    dir: clients/ts
+    cmds:
+      - pnpm install --frozen-lockfile
+      - pnpm run publish:dry-run
 
   ts:smoke:
     desc: Run clients/ts/test/smoke.ts against the two-factor example on port 8095 (AUTH_SMOKE_PORT) in cookie and bearer mode, including a pending second factor, then clients/ts/examples/options.ts against a stub fetch; needs node 22.18+ (runs .ts without a flag) and takes up to 30s for a fresh TOTP step
@@ -233,7 +278,7 @@ tasks:
   # Called through testlock by the public task above; no desc keeps it off task --list.
   contrib:run:
     cmds:
-      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, authui, authui/social, examples, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
+      - for: [plugin/password, plugin/passkey, plugin/organization, plugin/deviceauth, plugin/deviceauth/oauthdevice, plugin/scim, plugin/oauthproxy, plugin/oauthprovider, plugin/agentauth, plugin/sso, plugin/samlidp, plugin/referral, plugin/access, plugin/ldap, plugin/siwe, plugin/webhook, oidcclient, authui, authui/social, examples, contrib/gin, contrib/echo, contrib/fiber, contrib/gqlgen, contrib/redis, contrib/otel, contrib/phonenumbers, contrib/goth]
         cmd: 'cd {{.ITEM}} && go vet ./... && go test ./...'
 
   gqlgen:example:
@@ -401,6 +446,12 @@ tasks:
     deps: [ui:registry]
     dir: examples/react-demo/web
     cmds: ['./scripts/registry-add.sh {{.ITEMS}}']
+
+  ui:pack:
+    desc: Build @ubgo/auth-react (clients/react) for npm, check the tarball holds only dist/ and the manifest, and run npm publish --dry-run on it; never publishes (task ui:install once first)
+    dir: clients/react
+    cmds:
+      - pnpm run publish:dry-run
 
   ui:check:
     desc: Type-check @ubgo/auth-react, the registry views and the custom-backend examples (strict), run the views' tests, their data-layer guard and the examples (vitest), fail when a demo component differs from its registry source, then type-check and build the demo and the react-headless, react-router-app and nextjs-app examples

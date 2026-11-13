@@ -1,6 +1,6 @@
 # React UI kit
 
-You will have sign-in, sign-up, password reset, email verification, two-factor, passkeys (with autofill), a user menu, an account page and organization switching in a React app, as components you copy in and own, styled by your shadcn theme, talking to the library through the [TypeScript client](README.md). Nothing here is on npm: copy the kit in from the repository.
+You will have sign-in, sign-up, password reset, email verification, two-factor, passkeys (with autofill), a user menu, an account page and organization switching in a React app, as components you copy in and own, styled by your shadcn theme, talking to the library through the [TypeScript client](README.md). The package, `@ubgo/auth-react`, is built for npm; the components are copied in from the registry with `shadcn add`.
 
 ## What it is, and when you want it
 
@@ -74,13 +74,18 @@ Sign in as `ada@example.com` with `correct horse battery staple`. Mailed links l
 | ![The demo-only Inbox listing a password reset, an email verification and a sign-in link, with the selected message's link as a button](../assets/screenshots/inbox.png) | ![The react-demo's Account settings page in dark mode](../assets/screenshots/account-settings-dark.png) |
 | ![The Customise panel: Theme light or dark, Language English or Deutsch, Appearance default or custom, and the classNames the custom appearance passes](../assets/screenshots/customise-panel.png) | ![The react-demo's Sign in page at phone width, with the sidebar turned into a row of tabs](../assets/screenshots/sign-in-phone.png) |
 
-## Step 1 — Link the packages
+## Step 1 — Add the packages
 
-Link the client and the package from a checkout of the library, and add TanStack Query, which the package uses for the session:
+Install the client and the package, and TanStack Query, which the package uses for the session:
+
+```sh
+pnpm add @ubgo/auth-client @ubgo/auth-react @tanstack/react-query@5.104.1
+```
+
+To work against a checkout of the library instead (to try a change before it is released), link them:
 
 ```sh
 pnpm add @ubgo/auth-client@link:../ubgo-auth/clients/ts @ubgo/auth-react@link:../ubgo-auth/clients/react
-pnpm add @tanstack/react-query@5.104.1
 ```
 
 A linked package brings its own `node_modules`, so tell the bundler to keep one React and one query cache. In Vite: `resolve.dedupe: ["react", "react-dom", "@tanstack/react-query"]`, as the demo's [`vite.config.ts`](../../examples/react-demo/web/vite.config.ts) does beside the proxy of Step 2.

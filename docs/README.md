@@ -59,6 +59,7 @@ Read in this order to go from nothing to a production setup. Each step is one gu
 | Tell other services when users sign up, sign in or change | [Webhooks](plugins/webhook.md) | [webhooks](../examples/webhooks/) |
 | Run one company login for my own internal apps, with a list of who may use each app | [SSO login server](integrations/sso-server.md) | [sso-server](../examples/sso-server/) |
 | Understand or write the app side of the SSO login server | [How an OIDC login works](concepts/oidc-login-flow.md) | [sso-client](../examples/sso-client/) |
+| Sign people in to my Go app through a login server, keep them signed in for days, and drop removed users within a minute | [OIDC client](integrations/oidc-client.md) | [oidc-app](../examples/oidc-app/) |
 | Be an OAuth / OpenID Connect provider or guard an MCP server | [OAuth provider](plugins/oauthprovider.md) | [oauth-provider](../examples/oauth-provider/) |
 | Let SAML services (wikis, ticketing, vendor tools) sign in with your app | [SAML identity provider](plugins/samlidp.md) | [saml-idp](../examples/saml-idp/) |
 | Let agents act for my users | [Agent auth](plugins/agentauth.md) | [agent-auth](../examples/agent-auth/) |
@@ -188,6 +189,7 @@ A typed TypeScript client generated from the same operations the Go server serve
 | Other services that verify your users | [other services](integrations/other-services.md) |
 | A login gate with no database: internal tools, prototypes, serverless | [login gate](integrations/login-gate.md) |
 | One company login (an SSO / OpenID Connect server) for your own apps, with per-app access and provider-only sign-in pages | [SSO login server](integrations/sso-server.md) |
+| A Go app (or a TypeScript server) that signs people in through such a login server, keeps them signed in for days and re-checks every minute | [OIDC client](integrations/oidc-client.md) |
 
 ## Migrating from another system
 
