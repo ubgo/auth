@@ -8,6 +8,7 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "strict": true,
+    "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -16,5 +17,5 @@
     "skipLibCheck": false,
     "types": []
   },
-  "include": ["src", "test/*.ts", "examples/*.ts"]
+  "include": ["src", "test/*.ts", "test/oidc/*.ts", "examples/*.ts"]
 }
