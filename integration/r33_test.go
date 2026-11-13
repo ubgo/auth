@@ -166,31 +166,37 @@ func TestOAuthProvider_CodeFlowEndToEnd(t *testing.T) {
 }
 
 // A code is single use, bound to its client, redirect URI and verifier, and
-// expires; a replay revokes what the code was exchanged for.
+// expires; a replay revokes what the code was exchanged for. Each refusal
+// spends the code it was given (TestOAuthProvider_FailedExchangeBurnsCode),
+// so every case here gets a code of its own.
 func TestOAuthProvider_CodeRefusals(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		o := newOPEnv(t, e)
 		reg := o.client(t, oauthprovider.ClientSpec{})
 		other := o.client(t, oauthprovider.ClientSpec{})
-		code := o.code(t, authzReq(reg.ClientID))
-		for name, req := range map[string]oauthprovider.TokenRequest{
-			"wrong verifier": exchange(reg, code, strings.Repeat("a", 43)),
-			"no verifier":    exchange(reg, code, ""),
-			"other client":   exchange(other, code, opVerifier),
-			"wrong redirect": func() oauthprovider.TokenRequest {
+		for name, req := range map[string]func(code string) oauthprovider.TokenRequest{
+			"wrong verifier": func(code string) oauthprovider.TokenRequest { return exchange(reg, code, strings.Repeat("a", 43)) },
+			"no verifier":    func(code string) oauthprovider.TokenRequest { return exchange(reg, code, "") },
+			"other client":   func(code string) oauthprovider.TokenRequest { return exchange(other, code, opVerifier) },
+			"wrong redirect": func(code string) oauthprovider.TokenRequest {
 				r := exchange(reg, code, opVerifier)
 				r.RedirectURI = opRedirect + "/x"
 				return r
-			}(),
-			"no redirect":        func() oauthprovider.TokenRequest { r := exchange(reg, code, opVerifier); r.RedirectURI = ""; return r }(),
-			"unknown code":       exchange(reg, "uboc_nope", opVerifier),
-			"plain verifier hit": exchange(reg, code, opChallenge(opVerifier)),
+			},
+			"no redirect": func(code string) oauthprovider.TokenRequest {
+				r := exchange(reg, code, opVerifier)
+				r.RedirectURI = ""
+				return r
+			},
+			"unknown code":       func(string) oauthprovider.TokenRequest { return exchange(reg, "uboc_nope", opVerifier) },
+			"plain verifier hit": func(code string) oauthprovider.TokenRequest { return exchange(reg, code, opChallenge(opVerifier)) },
 		} {
-			if _, err := o.op.Token(anon(o.a), req); !errors.Is(err, oauthprovider.ErrInvalidGrant) {
+			if _, err := o.op.Token(anon(o.a), req(o.code(t, authzReq(reg.ClientID)))); !errors.Is(err, oauthprovider.ErrInvalidGrant) {
 				t.Fatalf("%s: %v", name, err)
 			}
 		}
-		// The refusals left the code unspent; it still works once.
+		// A code works once.
+		code := o.code(t, authzReq(reg.ClientID))
 		tok := must[oauthprovider.TokenResponse](t)(o.op.Token(anon(o.a), exchange(reg, code, opVerifier)))
 		if _, err := o.op.Token(anon(o.a), exchange(reg, code, opVerifier)); !errors.Is(err, oauthprovider.ErrInvalidGrant) {
 			t.Fatalf("replayed code: %v", err)
@@ -199,7 +205,7 @@ func TestOAuthProvider_CodeRefusals(t *testing.T) {
 			t.Fatalf("a replayed code left its token alive: %v", err)
 		}
 		// A code issued without a challenge refuses a verifier (a stripped
-		// challenge is never upgraded past), and works without one.
+		// challenge is never upgraded past), and a fresh one works without one.
 		conf := o.client(t, oauthprovider.ClientSpec{OptionalPKCE: true})
 		noPKCE := authzReq(conf.ClientID)
 		noPKCE.CodeChallenge, noPKCE.CodeChallengeMethod = "", ""
@@ -207,7 +213,7 @@ func TestOAuthProvider_CodeRefusals(t *testing.T) {
 		if _, err := o.op.Token(anon(o.a), exchange(conf, plain, opVerifier)); !errors.Is(err, oauthprovider.ErrInvalidGrant) {
 			t.Fatalf("verifier for a code without a challenge: %v", err)
 		}
-		must[oauthprovider.TokenResponse](t)(o.op.Token(anon(o.a), exchange(conf, plain, "")))
+		must[oauthprovider.TokenResponse](t)(o.op.Token(anon(o.a), exchange(conf, o.code(t, noPKCE), "")))
 		// An expired code is refused.
 		late := o.code(t, authzReq(reg.ClientID))
 		e.clock.Advance(oauthprovider.DefaultCodeTTL + time.Second)
@@ -588,11 +594,16 @@ func TestOAuthProvider_HTTP(t *testing.T) {
 		if res, body := post("/oauth2/token", both, basic); res.StatusCode != 400 || body["error"] != "invalid_request" {
 			t.Fatalf("two methods = %d %v", res.StatusCode, body)
 		}
-		// A wrong secret is 401 with a Basic challenge.
+		// A wrong secret is 401 with a Basic challenge, and spends the code
+		// it presented: the right secret after it gets invalid_grant.
 		bad := http.Header{"Authorization": {"Basic " + base64.StdEncoding.EncodeToString([]byte(reg.ClientID+":nope"))}}
 		if res, body := post("/oauth2/token", form, bad); res.StatusCode != 401 || body["error"] != "invalid_client" || !strings.HasPrefix(res.Header.Get("WWW-Authenticate"), "Basic") {
 			t.Fatalf("wrong secret = %d %v %v", res.StatusCode, body, res.Header)
 		}
+		if res, body := post("/oauth2/token", form, basic); res.StatusCode != 400 || body["error"] != "invalid_grant" {
+			t.Fatalf("the code after a wrong secret = %d %v", res.StatusCode, body)
+		}
+		form.Set("code", o.code(t, authzReq(reg.ClientID)))
 		// A browser session riding along is ignored: no CSRF refusal.
 		withCookie := http.Header{"Authorization": basic["Authorization"], "Cookie": {"__Host-auth_session=" + o.token.Reveal()}, "Origin": {"https://spa.example"}}
 		res, tok := post("/oauth2/token", form, withCookie)

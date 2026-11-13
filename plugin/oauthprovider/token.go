@@ -138,10 +138,10 @@ func (p *Plugin) doToken(ctx context.Context, _ *auth.Call, in TokenRequest) (To
 	}
 	client, err := p.authenticateClient(ctx, in.credentials(), p.endpoint(pathToken))
 	if err != nil {
-		return TokenResponse{}, err
+		return TokenResponse{}, p.refuseCodeRequest(ctx, in, err)
 	}
 	if !slices.Contains(client.client().GrantTypes, in.GrantType) {
-		return TokenResponse{}, ErrUnauthorizedClient
+		return TokenResponse{}, p.refuseCodeRequest(ctx, in, ErrUnauthorizedClient)
 	}
 	switch in.GrantType {
 	case GrantAuthorizationCode:
@@ -156,6 +156,29 @@ func (p *Plugin) doToken(ctx context.Context, _ *auth.Call, in TokenRequest) (To
 	return p.extensionGrant(ctx, g, client, in)
 }
 
+// refuseCodeRequest is the refusal of a code exchange whose client was not
+// authenticated or may not use the grant: the code it presented is burned
+// all the same (burnCode), since the request named it. Any other grant's
+// refusal is err unchanged.
+func (p *Plugin) refuseCodeRequest(ctx context.Context, in TokenRequest, err error) error {
+	if in.Code == "" {
+		return err
+	}
+	switch in.GrantType {
+	case GrantAuthorizationCode:
+		return p.burnCode(ctx, in.Code, "", err)
+	}
+	return err
+}
+
+// exchangeCode redeems a code for tokens. The code is bound to the client it
+// was issued to and the redirect URI the request named (RFC 6749 section
+// 4.1.3), and to the PKCE verifier. A request that fails one of those
+// bindings burns the code (burnCode): a stolen code gets one guess, and the
+// right request after a wrong one gets invalid_grant (OAuth 2.1 section
+// 4.1.3). A refusal after the bindings held (the user is gone, another
+// resource, a DPoP proof to redo, a failed write) leaves the code to the
+// client that proved it holds it.
 func (p *Plugin) exchangeCode(ctx context.Context, client clientRow, in TokenRequest) (TokenResponse, error) {
 	if in.Code == "" {
 		return TokenResponse{}, ErrInvalidRequest
@@ -164,13 +187,11 @@ func (p *Plugin) exchangeCode(ctx context.Context, client clientRow, in TokenReq
 	if err != nil {
 		return TokenResponse{}, err
 	}
-	// The code is bound to the client it was issued to and the redirect URI
-	// the request named (RFC 6749 section 4.1.3), and to the PKCE verifier.
 	if r.client != client.c.ClientID || r.redirect != in.RedirectURI {
-		return TokenResponse{}, ErrInvalidGrant
+		return TokenResponse{}, p.burnCode(ctx, in.Code, r.id, ErrInvalidGrant)
 	}
 	if err := checkPKCE(r, in.CodeVerifier); err != nil {
-		return TokenResponse{}, err
+		return TokenResponse{}, p.burnCode(ctx, in.Code, r.id, err)
 	}
 	if err := p.userExists(ctx, r.user); err != nil {
 		return TokenResponse{}, err

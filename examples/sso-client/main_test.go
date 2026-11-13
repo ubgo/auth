@@ -305,15 +305,22 @@ func TestSSOClient_CodeWorksOnce(t *testing.T) {
 }
 
 // A code with another verifier than the one whose fingerprint went to
-// /oauth2/authorize gets no tokens: a stolen code alone is useless.
+// /oauth2/authorize gets no tokens: a stolen code alone is useless. The
+// failed attempt spends the code, so the right verifier after it is refused
+// too: whoever stole a code gets one guess.
 //
 //ds:def id=testssoclient-refuseswrongverifier-h6c3pz8r owner=@khanakia stability=stable
 func TestSSOClient_RefusesWrongVerifier(t *testing.T) {
 	w := newWorld(t, listed)
-	_, loc, _ := w.atCallback()
-	_, err := w.app.exchangeCode(context.Background(), loc.Query().Get("code"), random())
+	_, loc, st := w.atCallback()
+	code := loc.Query().Get("code")
+	_, err := w.app.exchangeCode(context.Background(), code, random())
 	if err == nil || !strings.Contains(err.Error(), "invalid_grant") {
 		t.Fatalf("exchange with another verifier = %v, want invalid_grant", err)
+	}
+	_, err = w.app.exchangeCode(context.Background(), code, st.Verifier)
+	if err == nil || !strings.Contains(err.Error(), "invalid_grant") {
+		t.Fatalf("the right verifier after a wrong one = %v, want invalid_grant", err)
 	}
 }
 

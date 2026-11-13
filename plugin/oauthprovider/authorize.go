@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ubgo/auth"
@@ -800,4 +801,65 @@ func checkPKCE(r codeRow, verifier string) error {
 		return ErrInvalidGrant
 	}
 	return nil
+}
+
+// codeRefusal is the error of a refused code exchange. The request's
+// transaction rolls back, so the write that spends the code runs once it has
+// ended (burnCode); while that write has not failed, the error is the
+// refusal, unchanged in shape for the client. When it fails, the error
+// becomes that failure: the caller sees the database error, never an
+// invalid_grant that would hide a code left unspent.
+type codeRefusal struct {
+	mu      sync.Mutex
+	refusal error
+	burn    error
+}
+
+// current is the error the refusal stands for now.
+func (e *codeRefusal) current() error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.burn != nil {
+		return e.burn
+	}
+	return e.refusal
+}
+
+func (e *codeRefusal) Error() string { return e.current().Error() }
+
+// Unwrap lets errors.Is and auth.ErrorOf see the refusal, or the burn's
+// failure once there is one.
+func (e *codeRefusal) Unwrap() error { return e.current() }
+
+// burnCode spends the code a refused exchange presented, on a write the
+// refusal's rollback does not undo (AfterTx), and returns refusal wrapped
+// so a failure of that write reaches the caller. When the pipeline owns the
+// transaction the write runs before the call returns; inside an app's own Tx
+// it runs when that Tx ends.
+//
+// family is the code's id when this request claimed the code (redeemCode)
+// before it was refused, "" otherwise. A claimed code that is found spent by
+// the time the burn runs was redeemed by another request in the moment
+// between the rollback and the burn; that redemption's tokens are revoked,
+// so no live token comes out of a code a refused request held.
+//
+//ds:def id=oauthprovider-burncode-k4p9vz2h owner=@khanakia stability=stable
+func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal error) error {
+	e := &codeRefusal{refusal: refusal}
+	hash := p.hashSecret(SecretCode, code)
+	p.core.AfterTx(ctx, func(ctx context.Context) {
+		now := p.core.Now()
+		n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
+			Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
+		if err != nil {
+			e.mu.Lock()
+			e.burn = err
+			e.mu.Unlock()
+			return
+		}
+		if n == 0 && family != "" {
+			p.revokeFamily(ctx, family)
+		}
+	})
+	return e
 }
