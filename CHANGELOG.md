@@ -4,6 +4,10 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 ## Unreleased
 
+## plugin/oauthprovider v0.1.4 and oidcclient v0.1.0, 2026-11-13
+
+`plugin/oauthprovider` is tagged v0.1.4 and the new `oidcclient` module starts at v0.1.0. The core stays at v0.1.1: since then it changed only in doc comments. `@ubgo/auth-client` and `@ubgo/auth-react` are built for npm at 0.1.0; the npm packages carry no git tags.
+
 ### Added
 
 - oidcclient: a new module, `github.com/ubgo/auth/oidcclient`, the app side of an OpenID Connect login with the standard library only. `oidcclient.New(Config{Issuer, ClientID, ClientSecret, AppURL, SessionSecret}, opts...)` validates everything at once and makes no network call; `Client.Handler()` serves login, callback, logout and back-channel logout, `Client.Require(h)` and `Client.Optional(h)` guard the app, and `UserFrom(ctx)` reads the person. The session is sealed (AES-256-GCM) into an expiring cookie (chunked up to three cookies, `ErrSessionTooLarge` above), lasts 7 days while in use and 30 at most, and the login server is asked again at most once a minute by redeeming the refresh token, so a person removed there is refused within one re-check even with a saved copy of the cookie; an unreachable server is ridden out for 5 minutes, then answered "unavailable". Every policy is a typed option (`WithSessionStore`, `WithSealer`, `WithUserMapper`, `WithAuthorizer`, `WithRechecker` with `RecheckByRefresh`, `RecheckByIntrospection`, `RecheckByUserInfo` and `RecheckBackchannelOnly`, `WithRecheckInterval`, `WithOutageGrace`, `WithLifetimes`, `WithResponder`, `WithReturnPolicy`, `WithCookie`, `WithPaths`, `WithScopes`, `WithAuthParams`, `WithClientAuth`, `WithObserver` and more); PKCE, state, nonce, the ID token checks, the same-site return path and the cookie's prefix have none. Logout revokes the refresh token (RFC 7009) before the end-session redirect, and a failed revocation is its own event, `EventRevokeFailed`. Two tabs re-checking at once share one refresh in the process. The [OIDC client guide](docs/integrations/oidc-client.md) and the package's DESIGN.md explain each choice.
