@@ -462,20 +462,18 @@ So a stolen code is useless on its own. Whoever takes it from the URL, a log or 
 A failed attempt spends the code. When the verifier, the `redirect_uri` or the client is wrong, or the client fails to authenticate, the request is refused and its transaction rolls back, and then a separate write marks the code used, so the rollback does not bring it back:
 
 <!-- ds:block id=oauthprovider-burncode-k4p9vz2h -->
-**Plugin.burnCode** · [`plugin/oauthprovider/authorize.go:847-865`](../../plugin/oauthprovider/authorize.go#L847-L865)
+**Plugin.burnCode** · [`plugin/oauthprovider/authorize.go:855-871`](../../plugin/oauthprovider/authorize.go#L855-L871)
 
 ```go
 func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal error) error {
-	e := &codeRefusal{refusal: refusal}
+	e := &grantRefusal{refusal: refusal}
 	hash := p.hashSecret(SecretCode, code)
 	p.core.AfterTx(ctx, func(ctx context.Context) {
 		now := p.core.Now()
 		n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
 			Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
 		if err != nil {
-			e.mu.Lock()
-			e.burn = err
-			e.mu.Unlock()
+			e.fail(err)
 			return
 		}
 		if n == 0 && family != "" {
@@ -485,7 +483,7 @@ func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal erro
 	return e
 }
 ```
-<!-- /ds:block hash=29a228 -->
+<!-- /ds:block hash=3eceef -->
 
 Whoever stole a code gets one guess, and the right request after a wrong one gets `invalid_grant` too. A refusal after those checks passed (another `resource`, a DPoP proof to redo) leaves the code, since the request proved it came from the app that asked for it. If that write fails, the token endpoint answers with the database error rather than `invalid_grant`, since the code was not spent. If another request redeems the code in the moment between the rollback and that write, the tokens it got are revoked. [`TestOAuthProvider_FailedExchangeBurnsCode`](ds:block?id=testoauthprovider-failedexchangeburnscode-r7k2mx4q&assert=true) checks a wrong verifier, no verifier, a wrong `redirect_uri`, another client and a wrong client secret, each followed by the right request, on SQLite, Postgres and MySQL.
 
@@ -683,6 +681,7 @@ ok  	github.com/ubgo/auth/examples/sso-client	0.457s
 | The callback fails with "no valid login cookie" | The step-1 cookie did not come back: `SameSite=Strict`, a different host or path, or more than ten minutes passed | `SameSite=Lax` (it is sent on the top-level redirect back), `Path=/`, and start again from the app |
 | `invalid_grant` at the token endpoint | The code was used already, expired, belongs to another client, the `redirect_uri` differs from step 1, or the verifier does not match | Send the same `redirect_uri` and the verifier from the cookie, and swap the code at once |
 | `invalid_grant` when the app retries the exchange after fixing a wrong verifier, `redirect_uri` or secret | The failed attempt spent the code; a code gets one try | Start the sign-in again from the app (step 1) for a new code; never retry a code |
+| The exchange is refused for another `resource`, a DPoP proof to redo, or a server error, and the retry with the same code works | Deliberate: by then the request has proven the verifier and the client credentials, so it came from the app that asked for the code, and spending the code would turn a fixable mistake or a passing outage into a new sign-in. [`TestOAuthProvider_ResourceJWTAccessTokens`](ds:block?id=testoauthprovider-resourcejwtaccesstokens-p735ucxk&assert=true), [`TestOAuthProvider_DPoP`](ds:block?id=testoauthprovider-dpop-bazxe8y2&assert=true) and [`TestOAuthProvider_IDGeneratorFailures`](ds:block?id=testoauthprovider-idgeneratorfailures-rcqftdr5&assert=true) retry the same code after each | Fix the request and retry the code at once, inside its ten minutes |
 | `invalid_client` at the token endpoint | Wrong secret, or the Basic header was built without form-encoding the id and secret first | `SetBasicAuth(url.QueryEscape(id), url.QueryEscape(secret))` (RFC 6749 section 2.3.1) |
 | ID tokens stop verifying after the login server restarts | The example login server signs with a new key on each start, and the app looks up keys by `kid` | Load a fixed key on the login server; see [jwt-keys](../../examples/jwt-keys/) |
 | An app accepts any token that decodes | It reads the claims without checking the signature, or accepts the `alg` the token names | Verify against `/oauth2/jwks` with the algorithm pinned, then `iss`, `aud`, `exp` and `nonce` |

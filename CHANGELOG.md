@@ -13,6 +13,12 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - The [learning path](docs/README.md#learning-path) has a step for the OIDC login flow, and "Start from your goal" a row for the app side of the SSO login server.
 - [Feature index](docs/reference/features.md): rows for `email.NoMail`, apikey's `ListFor` family, `authhttp.OperationServer` and `RequestContext`, and five OIDC rows (the step-by-step flow, the exact redirect URI, PKCE with a single-use code, the ID token checks, signing out) pointing at the new guide and `examples/sso-client`; the `PatchClient`/`AllClients` and `oauth_query` rows now name an example.
 
+## plugin/oauthprovider v0.1.3, 2026-11-13
+
+### Fixed
+
+- **[security]** plugin/oauthprovider: a refused refresh now revokes the refresh token's family, as a reused token does (OAuth 2.1 section 4.3.1). A refresh for another client, with an expired token, for a user that is gone, with a DPoP proof of another key, or from a client that fails to authenticate is refused as before (`invalid_grant`, `invalid_user`, `invalid_dpop_proof` or `invalid_client`), and the family is then revoked on writes the refused request's rollback does not undo; the right request after it gets `invalid_grant` and the family's access tokens stop working. Before, the rollback left the token usable. A rotation that lands between the rollback and those writes is revoked with the family, and a database failure of the writes reaches the caller instead of the refusal. A refusal after those checks passed (a scope or resource the grant does not cover, a DPoP proof to redo, a server error) still leaves the token. Only the oauthprovider module's code changed. `TestOAuthProvider_FailedRefreshRevokesFamily`, `TestOAuthProvider_FailedRefreshRevokesARacingRotation`, `TestOAuthProvider_FailedRefreshFaultSweep`.
+
 ## plugin/oauthprovider v0.1.2, 2026-11-13
 
 ### Fixed

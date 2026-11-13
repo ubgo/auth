@@ -96,6 +96,25 @@ type dpopHeader struct {
 	JWK map[string]json.RawMessage `json:"jwk"`
 }
 
+// dpopOtherKey is a proof that is valid in every way but signed by another
+// key than the one the grant is bound to. It is ErrInvalidDPoPProof to every
+// caller and on the wire; the refresh grant tells it apart, because unlike
+// a missing, stale or malformed proof it is not a proof to redo but a
+// request from someone without the key, and it revokes the family.
+type dpopOtherKey struct{}
+
+func (dpopOtherKey) Error() string { return ErrInvalidDPoPProof.Error() }
+
+func (dpopOtherKey) Unwrap() error { return ErrInvalidDPoPProof }
+
+// isDPoPOtherKey reports whether err is a proof of another key. It matches
+// the type: errors.Is would not tell it apart, because ErrInvalidDPoPProof
+// is (by its code) every invalid_dpop_proof.
+func isDPoPOtherKey(err error) bool {
+	var k dpopOtherKey
+	return errors.As(err, &k)
+}
+
 // dpopCheck is what a proof must match.
 type dpopCheck struct {
 	method, url, accessToken, expectedJKT string
@@ -164,8 +183,11 @@ func (p *Plugin) verifyDPoP(ctx context.Context, proof string, want dpopCheck) (
 		return "", ErrInvalidDPoPProof
 	}
 	jkt, err := jwt.Thumbprint(key)
-	if err != nil || (want.expectedJKT != "" && jkt != want.expectedJKT) {
+	if err != nil {
 		return "", ErrInvalidDPoPProof
+	}
+	if want.expectedJKT != "" && jkt != want.expectedJKT {
+		return "", dpopOtherKey{}
 	}
 	sum := sha256.Sum256([]byte(jkt + "\n" + strings.ToUpper(c.HTM) + "\n" + htu + "\n" + c.JTI))
 	_, err = p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableAssertion).Row(
