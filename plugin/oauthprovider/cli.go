@@ -16,7 +16,7 @@ import (
 )
 
 // The operator's command line for clients: `auth oauth-client
-// create|list|show|update|delete`, added to authcli through
+// create|list|show|update|delete|revoke-user`, added to authcli through
 // authcli.CommandProvider, so an app that registers this plugin and wires
 // authcli has it with no code. It manages every stored client, whoever owns
 // it, so it belongs to the operator's shell, never to a route.
@@ -64,7 +64,7 @@ auth oauth-client update <id|name> [--name N] [--redirect-uri URL ...] [--post-l
                           change only the flags given; a list flag given as "" clears the list;
                           the authentication method never changes
 auth oauth-client delete <id|name> [--dry-run]   delete a client with its codes, tokens and consents
-`
+` + revokeUserUsage
 
 // ErrAmbiguousClient is a name that more than one client has: the operator
 // names the client by id instead.
@@ -118,6 +118,8 @@ func (p *Plugin) runClientCommand(ctx context.Context, _ *auth.Auth, args []stri
 		}
 	case SubClientShow, SubClientUpdate, SubClientDelete:
 		return p.cliOne(ctx, sub, fs, rest, asJSON, std)
+	case SubClientRevokeUser:
+		return p.cliRevokeUser(ctx, fs, rest, asJSON, std)
 	default:
 		fmt.Fprint(std.Stderr, clientUsage)
 		return authcli.ExitUsage
