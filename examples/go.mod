@@ -25,6 +25,7 @@ require (
 	github.com/ubgo/auth/contrib/goth v0.1.0
 	github.com/ubgo/auth/contrib/otel v0.1.0
 	github.com/ubgo/auth/contrib/redis v0.1.0
+	github.com/ubgo/auth/oidcclient v0.1.0
 	github.com/ubgo/auth/plugin/agentauth v0.1.0
 	github.com/ubgo/auth/plugin/deviceauth v0.1.0
 	github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.1.0

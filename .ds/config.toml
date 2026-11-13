@@ -4,7 +4,7 @@ prefix = "ds"
 [scan]
 code = ["**"]
 docs = ["**/*.md"]
-exclude = ["**/testdata/**", "**/node_modules/**", "**/vendor/**", "dist/**", "public/**", ".lore/**", ".cover/**", "contrib/gqlgen/example/graph/generated.go"]
+exclude = ["**/testdata/**", "**/node_modules/**", "**/vendor/**", "**/dist/**", "public/**", ".lore/**", ".cover/**", "contrib/gqlgen/example/graph/generated.go"]
 generated = ["**/*.pb.go", "**/gen/**", "**/*_gen.go", "**/*_gen.ts"]
 
 [include]

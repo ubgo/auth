@@ -185,6 +185,12 @@ go run ./sso-server auth oauth-client delete wiki --dry-run
 go run ./sso-server auth oauth-client delete wiki
 ```
 
+To take one person out of one app now, rather than at the app's next refresh, change the allow list first, then revoke what they hold there: every token, unredeemed code and the consent, with a back-channel logout to the app when it registered one ([OIDC client › Step 5](oidc-client.md#step-5--take-someone-out) tells the order and why):
+
+```sh
+go run ./sso-server auth oauth-client revoke-user wiki sam@partner.io
+```
+
 ## Step 6 — What the app does
 
 The app needs only its client id, its secret and the server's issuer URL. Any OIDC client library works. [How an OIDC login works](../concepts/oidc-login-flow.md) walks through each of these steps with the real requests, and [sso-client](../../examples/sso-client/) is an app written with the standard library only.

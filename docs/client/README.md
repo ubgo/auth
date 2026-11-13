@@ -152,9 +152,9 @@ A method never throws. It resolves to `{ data, error }` with exactly one of them
 
 | | Way 1: the prebuilt package | Way 2: your app generates its own |
 |---|---|---|
-| Where it comes from | [`clients/ts/src`](../../clients/ts/src/) in this repository (`@ubgo/auth-client`, not on npm) | Your Go binary: `myapp auth client ts --out web/src/auth` |
+| Where it comes from | [`clients/ts`](../../clients/ts/) in this repository, built for npm as `@ubgo/auth-client` | Your Go binary: `myapp auth client ts --out web/src/auth` |
 | What it knows | The core and every built-in plugin, with every built-in error code | The core, exactly the plugins your app wires, **your own plugins** and their error codes |
-| How you get it | Copy the five files of `clients/ts/src` into your frontend | Route a word of your command line to `authcli.Main` (one function), then run the command |
+| How you get it | `pnpm add @ubgo/auth-client`, or copy the five files of `clients/ts/src` into your frontend | Route a word of your command line to `authcli.Main` (one function), then run the command |
 | Kept fresh by | This repository's `task docs:api` and `task check` | You: re-run the command when Go changes, and a test or CI step that fails when the copy is stale |
 | Guide | [Quickstart](quickstart.md) | [Your own plugins](custom-plugins.md) |
 

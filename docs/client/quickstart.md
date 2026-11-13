@@ -10,7 +10,7 @@ You will have a browser page that signs a user up, signs them in, knows who is s
 
 ## Step 1 — Copy the client into your frontend
 
-Copy the five files of [`clients/ts/src`](../../clients/ts/src/) into a folder of your frontend, for example `src/auth/`:
+Copy the five files of [`clients/ts/src`](../../clients/ts/src/) into a folder of your frontend, for example `src/auth/` (or `pnpm add @ubgo/auth-client` and import from `@ubgo/auth-client` instead of `./auth/index.ts`):
 
 ```sh
 cp path/to/ubgo/auth/clients/ts/src/*.ts src/auth/

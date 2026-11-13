@@ -610,6 +610,47 @@ browser: GET https://login.example.com/oauth2/end-session
 
 The client must be registered with `--end-session` and the address with `--post-logout-uri`. [`TestSSOClient_SignInAndOut`](ds:block?id=testssoclient-signinandout-3s8tq2vb&assert=true) signs in, checks the step-1 cookie is gone and the session cookie is set, signs out, and checks that the next sign-in starts at the login server's sign-in page again.
 
+## Staying signed in and being removed
+
+The steps above sign Priya in once. An app people use every day needs two more things: they should not sign in again every morning, and when someone loses access it should stop at once, not when their session happens to run out. The two pull in opposite directions, and the [`oidcclient`](../../oidcclient/doc.go) package solves them with two separate clocks. [`examples/oidc-app`](../../examples/oidc-app/) is an app built on it; the [OIDC client guide](../integrations/oidc-client.md) sets one up.
+
+### The story
+
+Sam, a contractor, is on the ops console's list. On Monday he signs in to the console through the login server and works. He closes the browser. On Wednesday he opens the console again and is still signed in, with no redirect and no Google. On Thursday at 15:00 his contract ends: the operator takes him off the ops list and revokes what he holds at the console. At 15:01 every request Sam makes is refused, and so is every request made with a copy of his cookie someone saved on Wednesday. If he is put back on the list next Monday, one click signs him in again.
+
+### Two clocks
+
+- **The session** says how long the browser stays signed in without seeing the login server: 7 days while in use, 30 days at most. It lives in a sealed cookie that has an expiry, so closing the browser does not end it. That is why Wednesday needs no sign-in.
+- **The re-check** says how long the login server's last "yes" stands: one minute. On the first request after it, the app redeems the session's refresh token at `/oauth2/token`, as step 5 redeemed the code. The login server asks the same question as in step 3 (does the app's list let this person in?) on every refresh, so its answer is current. A "yes" brings new tokens, which the app saves into a new cookie; a "no" (`invalid_grant`) ends the session on that request.
+
+A long session is convenience; the re-check is authority. The cookie never decides on its own whether Sam may use the app: it only carries the refresh token, and the login server decides what that token is still worth. A saved copy of the cookie carries a refresh token the server has refused, so on Thursday at 15:01 it is worth nothing. Between 15:00 and 15:01 the copy still works, because the app has not asked yet: the re-check interval is the longest a removed person can stay in, and an app that needs less sets a shorter one.
+
+### What Sam sees: "login required", then the login server's no-access page
+
+```mermaid
+sequenceDiagram
+    actor S as Sam (browser)
+    participant A as Ops console (oidcclient)
+    participant L as Login server
+    Note over L: 15:00 the operator removes Sam from the list<br/>and revokes his tokens for the console
+    S->>A: GET /orders (cookie, last "yes" at 14:59:40)
+    A->>L: POST /oauth2/token (grant_type=refresh_token)
+    L->>A: 400 invalid_grant
+    Note over A: session ended
+    A->>S: 302 to /auth/login (an API call gets 401 login_required)
+    S->>A: GET /auth/login
+    A->>S: 302 to /oauth2/authorize
+    S->>L: GET /oauth2/authorize (Sam's login server session is still alive)
+    L->>L: ClientAccess: is Sam on the ops list? no
+    L->>S: 403 no-access page: "Your account does not have access to ops."
+```
+
+When the re-check is refused, the app answers "login required", not "no access", and that is deliberate. The app only learns that the refresh token no longer works; it cannot tell whether Sam was removed, or his token simply expired or was revoked for another reason. The login server can, because it knows its own list. So the app sends the browser to sign in, and the login server decides: it shows its no-access page when Sam was removed, and signs him straight back in, with no click, when he still has access and only the token ran out. Either way the person sees the right page, and the app needs no copy of the rule.
+
+The operator's two steps go in that order: change the list, then revoke (`auth oauth-client revoke-user ops sam@partner.io`). Changing the list alone already refuses the next refresh. The revoke also ends the access tokens the app holds, which matters to an app that checks them by introspection, and sends a back-channel logout to an app that registered one. A revoke without the list change ends the session, but the login server still lets Sam in, so "login required" signs him straight back in.
+
+[`TestOIDCApp_RemovedUserIsRefusedWithinRecheck`](ds:block?id=testoidcapp-removeduserisrefusedwithinrecheck-h3w8qn5t&assert=true) plays Thursday: a copy of Sam's cookie is let in before the revoke and until the minute is up, refused after it (`401 login_required` for an API call, a redirect to sign-in for a page), and his browser, following the redirect, ends on the login server's no-access page. [`TestOIDCApp_ClosingTheBrowserKeepsTheSession`](ds:block?id=testoidcapp-closingthebrowserkeepsthesession-p9k4tz2w&assert=true) plays Wednesday: a browser restarted two days later with only the session cookie opens the console after one re-check.
+
 ## State, verifier and nonce
 
 | | state | PKCE verifier | nonce |
@@ -691,6 +732,7 @@ ok  	github.com/ubgo/auth/examples/sso-client	0.457s
 ## Related
 
 - [SSO login server](../integrations/sso-server.md): the server side of this page, with allow lists, client registration and taking access away.
+- [OIDC client](../integrations/oidc-client.md): a Go app that stays signed in for days and obeys the login server within a minute, with [`examples/oidc-app`](../../examples/oidc-app/).
 - [`examples/sso-client`](../../examples/sso-client/): the wiki app and its tests.
 - [`examples/sso-server`](../../examples/sso-server/): the login server.
 - [OAuth provider](../plugins/oauthprovider.md): every option of the provider plugin.

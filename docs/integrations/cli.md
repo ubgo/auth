@@ -296,6 +296,7 @@ myapp auth oauth-client create --name wiki --redirect-uri https://wiki.example.c
 myapp auth oauth-client list
 myapp auth oauth-client update wiki --post-logout-uri https://wiki.example.com/signed-out
 myapp auth oauth-client delete wiki --dry-run
+myapp auth oauth-client revoke-user wiki sam@partner.io
 ```
 
 The usage text lists every plugin command under "plugin commands:". The [SSO login server](sso-server.md#step-4--register-an-app) guide walks through these.

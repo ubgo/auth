@@ -306,7 +306,7 @@ The [freshness check](custom-plugins.md#step-7--fail-the-build-when-the-copy-is-
 
 **Can I use it from Node, a server, or a test?** Yes: Node 18 or later has `fetch`, Node 22.18 or later runs the `.ts` files as they are, without a flag. Use bearer mode, forward a cookie per request, or pass your own `fetch`. See [Bearer mode › Step 5 and 6](bearer-and-mobile.md#step-5--server-side-code-calling-for-a-browser).
 
-**Is it on npm?** No. `@ubgo/auth-client` is not published to npm; copy the files, or generate them from your app.
+**Is it on npm?** It is built for npm as `@ubgo/auth-client`: compiled `.js` and `.d.ts`, no runtime dependency, and a second entry, `@ubgo/auth-client/oidc`, for server-side sign-in through an OpenID Connect server. You can also copy the five files of `clients/ts/src`, or generate them from your app.
 
 **Does the client refresh the session by itself?** No. How long a session lives and whether use extends it is the server's configuration ([Sessions](../concepts/sessions.md)); when a session ends, calls answer `auth.signed_out` and your app signs the user in again. `client.sessionRefresh()` is there for a server that defers refreshing to the client.
 
@@ -315,7 +315,6 @@ The [freshness check](custom-plugins.md#step-7--fail-the-build-when-the-copy-is-
 - Vue and Svelte bindings (React has [its own kit](react.md)).
 - Helpers for browser redirects in the client itself (OAuth start, the pages mail links open); the [Flows](flows.md) page shows the few lines each takes, and the [React kit](react.md) has `oauthStartURL` and a component for each mailed page.
 - The bearer-mode headers for a session cache snapshot and a remembered device (`Set-Auth-Session-Cache`, `Set-Auth-Device`): the client returns what the routes answer, and an app that needs them keeps them through a custom `fetch`.
-- A published npm package.
 
 ## See also
 
