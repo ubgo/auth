@@ -25,7 +25,7 @@ The tests start the login server (wired as `sso-server` wires it, with a stand-i
 - a listed person signs in, the step-1 cookie is gone, and signing out ends the login server's session too;
 - a callback with another state is refused before the code is sent anywhere;
 - a code works once;
-- a code with another verifier gets no tokens;
+- a code with another verifier gets no tokens, and the right verifier after it is refused too;
 - a person not on the wiki's list ends on the no-access page and the wiki gets no code;
 - an unregistered redirect URI is answered with an error page by the login server;
 - an ID token that was altered, signed with another key, carries another nonce, has expired or is unsigned (`alg: none`) is refused.

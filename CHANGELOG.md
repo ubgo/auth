@@ -13,6 +13,12 @@ Every entry that changes a security property is tagged **[security]**, so an app
 - The [learning path](docs/README.md#learning-path) has a step for the OIDC login flow, and "Start from your goal" a row for the app side of the SSO login server.
 - [Feature index](docs/reference/features.md): rows for `email.NoMail`, apikey's `ListFor` family, `authhttp.OperationServer` and `RequestContext`, and five OIDC rows (the step-by-step flow, the exact redirect URI, PKCE with a single-use code, the ID token checks, signing out) pointing at the new guide and `examples/sso-client`; the `PatchClient`/`AllClients` and `oauth_query` rows now name an example.
 
+## plugin/oauthprovider v0.1.2, 2026-11-13
+
+### Fixed
+
+- **[security]** plugin/oauthprovider: a failed code exchange now spends the code (OAuth 2.1 section 4.1.3). A request to the token endpoint with a valid, unexpired, unused code and a wrong or missing `code_verifier`, a wrong `redirect_uri`, another client, or a client that fails to authenticate is refused as before (`invalid_grant`, or `invalid_client` for the failed authentication), and the code is then marked used on a write the refused request's rollback does not undo; the right request after it gets `invalid_grant`. Before, the rollback left the code unspent, so whoever held a stolen code could keep guessing and the legitimate exchange still worked afterwards. A redemption that lands between the rollback and that write has its tokens revoked, and a database failure of the write reaches the caller instead of `invalid_grant`. A refusal after those checks passed (another `resource`, a DPoP proof to redo, a server error) still leaves the code. A client that retried a code after fixing a wrong verifier, redirect URI or secret must now start again from authorize. Only the oauthprovider module's code changed. `TestOAuthProvider_FailedExchangeBurnsCode`, `TestOAuthProvider_FailedExchangeRevokesARacingRedemption`, `TestOAuthProvider_FailedExchangeBurnFaultSweep`, and `TestSSOClient_RefusesWrongVerifier` now sends the right verifier after the wrong one.
+
 ## v0.1.1, 2026-11-12
 
 The core and every module changed since v0.1.0 are tagged v0.1.1; `authui/social` is new and starts at v0.1.0.

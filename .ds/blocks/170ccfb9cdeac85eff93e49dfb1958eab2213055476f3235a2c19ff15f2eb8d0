@@ -1,0 +1,13 @@
+func TestSSOClient_RefusesWrongVerifier(t *testing.T) {
+	w := newWorld(t, listed)
+	_, loc, st := w.atCallback()
+	code := loc.Query().Get("code")
+	_, err := w.app.exchangeCode(context.Background(), code, random())
+	if err == nil || !strings.Contains(err.Error(), "invalid_grant") {
+		t.Fatalf("exchange with another verifier = %v, want invalid_grant", err)
+	}
+	_, err = w.app.exchangeCode(context.Background(), code, st.Verifier)
+	if err == nil || !strings.Contains(err.Error(), "invalid_grant") {
+		t.Fatalf("the right verifier after a wrong one = %v, want invalid_grant", err)
+	}
+}

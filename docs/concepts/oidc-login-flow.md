@@ -144,7 +144,7 @@ The `state` and `nonce` in the URL are the ones in the cookie. The `code_challen
 The login server first checks the request itself: the `client_id` must be a registered, enabled client, and the `redirect_uri` must be one it registered, compared as an exact string. No prefix match, no wildcard, no clean-up, so `https://wiki.example.com/callback/../evil` is not `https://wiki.example.com/callback`:
 
 <!-- ds:block id=oauthprovider-redirectaccepted-44z4eb9d -->
-**Plugin.redirectAccepted** · [`plugin/oauthprovider/authorize.go:295-301`](../../plugin/oauthprovider/authorize.go#L295-L301)
+**Plugin.redirectAccepted** · [`plugin/oauthprovider/authorize.go:296-302`](../../plugin/oauthprovider/authorize.go#L296-L302)
 
 ```go
 func (p *Plugin) redirectAccepted(uri string, registered []string) bool {
@@ -245,7 +245,7 @@ browser: GET https://login.example.com/no-access
 Priya is on the list, so the login server issues a code. It asks the rule once more (whatever route led here), then stores the code with the client, the user, the session, the redirect URI, the `code_challenge` and the `nonce`, and an expiry:
 
 <!-- ds:block id=oauthprovider-issuecode-fyj9g3rp -->
-**Plugin.issueCode** · [`plugin/oauthprovider/authorize.go:708-732`](../../plugin/oauthprovider/authorize.go#L708-L732)
+**Plugin.issueCode** · [`plugin/oauthprovider/authorize.go:709-733`](../../plugin/oauthprovider/authorize.go#L709-L733)
 
 ```go
 func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, scopes []string, ref string) (AuthorizeResult, error) {
@@ -388,7 +388,7 @@ wiki → login: POST https://login.example.com/oauth2/token
 On the login server, the code is spent first. The update marks it used only if it was not used yet; a second use of a spent code is a replay and revokes everything issued from it:
 
 <!-- ds:block id=oauthprovider-redeemcode-adngtvxm -->
-**Plugin.redeemCode** · [`plugin/oauthprovider/authorize.go:757-782`](../../plugin/oauthprovider/authorize.go#L757-L782)
+**Plugin.redeemCode** · [`plugin/oauthprovider/authorize.go:758-783`](../../plugin/oauthprovider/authorize.go#L758-L783)
 
 ```go
 func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
@@ -423,7 +423,7 @@ func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 Then the code must belong to this client and this redirect URI, and the verifier must match the stored challenge. The login server hashes the verifier itself and compares:
 
 <!-- ds:block id=oauthprovider-checkpkce-jb5yqv5r -->
-**checkPKCE** · [`plugin/oauthprovider/authorize.go:789-803`](../../plugin/oauthprovider/authorize.go#L789-L803)
+**checkPKCE** · [`plugin/oauthprovider/authorize.go:790-804`](../../plugin/oauthprovider/authorize.go#L790-L804)
 
 ```go
 func checkPKCE(r codeRow, verifier string) error {
@@ -445,7 +445,7 @@ func checkPKCE(r codeRow, verifier string) error {
 <!-- /ds:block hash=7107ba -->
 
 <!-- ds:block id=oauthprovider-s256-3ek42s37 -->
-**s256** · [`plugin/oauthprovider/authorize.go:367-370`](../../plugin/oauthprovider/authorize.go#L367-L370)
+**s256** · [`plugin/oauthprovider/authorize.go:368-371`](../../plugin/oauthprovider/authorize.go#L368-L371)
 
 ```go
 func s256(verifier string) string {
@@ -457,7 +457,37 @@ func s256(verifier string) string {
 
 No key is involved. SHA-256 is a public recipe: anyone can compute it from the verifier, nobody can get the verifier back from it. The wiki gave out the fingerprint in step 1 and only now shows the verifier, over a direct connection the browser never sees.
 
-So a stolen code is useless on its own. Whoever takes it from the URL, a log or the browser history still needs the client secret (it stays on the wiki's server) and the verifier (it stayed in the wiki's signed cookie and is now only in this request). [`TestSSOClient_RefusesWrongVerifier`](ds:block?id=testssoclient-refuseswrongverifier-h6c3pz8r&assert=true) sends a real code with another verifier and gets `invalid_grant`. [`TestSSOClient_CodeWorksOnce`](ds:block?id=testssoclient-codeworksonce-q2v7nd4k&assert=true) signs in, then sends the same code with the right verifier and secret again, and gets `invalid_grant`.
+So a stolen code is useless on its own. Whoever takes it from the URL, a log or the browser history still needs the client secret (it stays on the wiki's server) and the verifier (it stayed in the wiki's signed cookie and is now only in this request). [`TestSSOClient_RefusesWrongVerifier`](ds:block?id=testssoclient-refuseswrongverifier-h6c3pz8r&assert=true) sends a real code with another verifier and gets `invalid_grant`, then sends the same code with the right verifier and gets `invalid_grant` again. [`TestSSOClient_CodeWorksOnce`](ds:block?id=testssoclient-codeworksonce-q2v7nd4k&assert=true) signs in, then sends the same code with the right verifier and secret again, and gets `invalid_grant`.
+
+A failed attempt spends the code. When the verifier, the `redirect_uri` or the client is wrong, or the client fails to authenticate, the request is refused and its transaction rolls back, and then a separate write marks the code used, so the rollback does not bring it back:
+
+<!-- ds:block id=oauthprovider-burncode-k4p9vz2h -->
+**Plugin.burnCode** · [`plugin/oauthprovider/authorize.go:847-865`](../../plugin/oauthprovider/authorize.go#L847-L865)
+
+```go
+func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal error) error {
+	e := &codeRefusal{refusal: refusal}
+	hash := p.hashSecret(SecretCode, code)
+	p.core.AfterTx(ctx, func(ctx context.Context) {
+		now := p.core.Now()
+		n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
+			Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
+		if err != nil {
+			e.mu.Lock()
+			e.burn = err
+			e.mu.Unlock()
+			return
+		}
+		if n == 0 && family != "" {
+			p.revokeFamily(ctx, family)
+		}
+	})
+	return e
+}
+```
+<!-- /ds:block hash=29a228 -->
+
+Whoever stole a code gets one guess, and the right request after a wrong one gets `invalid_grant` too. A refusal after those checks passed (another `resource`, a DPoP proof to redo) leaves the code, since the request proved it came from the app that asked for it. If that write fails, the token endpoint answers with the database error rather than `invalid_grant`, since the code was not spent. If another request redeems the code in the moment between the rollback and that write, the tokens it got are revoked. [`TestOAuthProvider_FailedExchangeBurnsCode`](ds:block?id=testoauthprovider-failedexchangeburnscode-r7k2mx4q&assert=true) checks a wrong verifier, no verifier, a wrong `redirect_uri`, another client and a wrong client secret, each followed by the right request, on SQLite, Postgres and MySQL.
 
 ## Step 6 — The app checks the ID token and starts its own session
 
@@ -610,6 +640,8 @@ Each secret has one holder and one job. The app never needs the login server's k
 
 **How can the login server check the verifier without the app's key?** It does not need a key. The check is "SHA-256 of what you send me now equals what you sent me before", and SHA-256 is a public recipe with no key: the login server runs the same function the app ran in step 1 and compares. What makes it safe is that SHA-256 cannot be run backwards: seeing the fingerprint in step 1 tells nobody the verifier.
 
+**Why does the right verifier fail after a wrong one?** The wrong one spent the code. A code that answered one wrong guess and kept working would let someone who stole it keep guessing, so any failed exchange burns the code, whoever sent it. The app's fix is the same as for any refused code: start the sign-in again.
+
 **Is the verifier the same as the state?** No. Both are random values the app makes and keeps in its cookie, but they protect different things and are checked by different parties. The state protects the browser (is this answer for the sign-in this browser started?) and the app checks it. The verifier protects the code (is the one swapping this code the app that asked for it?) and the login server checks it. The state travels in the URL as is; the verifier never travels through the browser at all.
 
 **What is the difference between signing and hashing?** Hashing (SHA-256) needs no key: anyone can compute the hash of a value, and nobody can get the value back. It answers "is this the same value as before?". Signing needs a key: only the holder of the private key (Ed25519) or the shared secret (HMAC) can make a signature, and the matching public key or the same secret checks it. It answers "did the key holder write exactly this?". PKCE uses hashing, the app's cookies use HMAC signing with the app's secret, and ID tokens use Ed25519 signing with the login server's private key.
@@ -650,6 +682,7 @@ ok  	github.com/ubgo/auth/examples/sso-client	0.457s
 | `auth oauth-client create` refuses `http://localhost:8082/callback` | A web client's redirect URI must be `https` on a non-loopback host | Serve the app at an `https` address (behind a TLS proxy in development too) |
 | The callback fails with "no valid login cookie" | The step-1 cookie did not come back: `SameSite=Strict`, a different host or path, or more than ten minutes passed | `SameSite=Lax` (it is sent on the top-level redirect back), `Path=/`, and start again from the app |
 | `invalid_grant` at the token endpoint | The code was used already, expired, belongs to another client, the `redirect_uri` differs from step 1, or the verifier does not match | Send the same `redirect_uri` and the verifier from the cookie, and swap the code at once |
+| `invalid_grant` when the app retries the exchange after fixing a wrong verifier, `redirect_uri` or secret | The failed attempt spent the code; a code gets one try | Start the sign-in again from the app (step 1) for a new code; never retry a code |
 | `invalid_client` at the token endpoint | Wrong secret, or the Basic header was built without form-encoding the id and secret first | `SetBasicAuth(url.QueryEscape(id), url.QueryEscape(secret))` (RFC 6749 section 2.3.1) |
 | ID tokens stop verifying after the login server restarts | The example login server signs with a new key on each start, and the app looks up keys by `kid` | Load a fixed key on the login server; see [jwt-keys](../../examples/jwt-keys/) |
 | An app accepts any token that decodes | It reads the claims without checking the signature, or accepts the `alg` the token names | Verify against `/oauth2/jwks` with the algorithm pinned, then `iss`, `aud`, `exp` and `nonce` |

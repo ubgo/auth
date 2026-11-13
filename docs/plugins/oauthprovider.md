@@ -312,7 +312,7 @@ curl -s localhost:8081/oauth2/token -d grant_type=authorization_code -d code=$CO
 
 The access token lives [one hour](ds:block?id=oauthprovider-defaultaccessttl-h4k9zt3p) (`AccessTokenTTL`) and the code [ten minutes](ds:block?id=oauthprovider-defaultcodettl-r5m2qw8x) (`CodeTTL`). Because `resource` was sent, the access token is a JWT (type [`at+jwt`](ds:block?id=oauthprovider-accesstokentype-k9w2mq4x)) whose `aud` is the MCP server; without it, it is an opaque `uboa_…` string. A refresh token (`ubor_…`) comes only when `offline_access` was granted, and an ID token only with `openid`.
 
-A code works once. Presenting it again is `invalid_grant`, and it also revokes every token the first exchange issued, because only a thief would hold an old code. A refresh rotates the same way: every refresh token works once, and a spent one revokes its whole family.
+A code works once. Presenting it again is `invalid_grant`, and it also revokes every token the first exchange issued, because only a thief would hold an old code. A failed exchange spends the code as well: after a wrong verifier, redirect URI or client, or a client that fails to authenticate, the right request gets `invalid_grant`, so a stolen code gets one guess. A refresh rotates the same way: every refresh token works once, and a spent one revokes its whole family.
 
 Check: `TestOAuthProvider_ThirdPartyClientEndToEnd` drives this flow over HTTP, refreshes, and replays the code last.
 
