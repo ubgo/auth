@@ -81,6 +81,7 @@ import (
 var edgeNotImported = map[string]string{
 	"github.com/ubgo/auth/contrib/redis":        "contrib/redis is its own module (go-redis); its options are nil-checked by its options_nil_test.go",
 	"github.com/ubgo/auth/plugin/password/hibp": "plugin/password/hibp is its own module; its options are nil-checked by its options_nil_test.go",
+	"github.com/ubgo/auth/oidcclient":           "oidcclient is its own module and configures no auth.New (it is an OIDC relying party); its options are nil-checked by its options_nil_test.go and validated together by oidcclient.New (config_test.go)",
 }
 
 // edgeUnnamedRefusals are the options whose edge values auth.New (or the

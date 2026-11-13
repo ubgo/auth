@@ -15,6 +15,7 @@ use (
 	./contrib/redis
 	./examples
 	./integration
+	./oidcclient
 	./plugin/access
 	./plugin/agentauth
 	./plugin/deviceauth
@@ -101,3 +102,4 @@ replace github.com/ubgo/auth/plugin/sso v0.1.1 => ./plugin/sso
 replace github.com/ubgo/auth/plugin/oauthprovider v0.1.1 => ./plugin/oauthprovider
 replace github.com/ubgo/auth/plugin/organization v0.1.1 => ./plugin/organization
 replace github.com/ubgo/auth/plugin/deviceauth/oauthdevice v0.1.1 => ./plugin/deviceauth/oauthdevice
+replace github.com/ubgo/auth/oidcclient v0.1.0 => ./oidcclient
