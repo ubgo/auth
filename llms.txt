@@ -24,6 +24,7 @@ Every page below is plain Markdown in the repository. Code blocks in the guides 
 - [Risk signals](https://github.com/ubgo/auth/blob/main/docs/concepts/risk-signals.md): your own IP reputation, bot and trial-abuse checks, each blocking, logging or challenging, with an explicit fail-open or fail-closed choice
 - [Geo rules](https://github.com/ubgo/auth/blob/main/docs/concepts/geo-rules.md): country allow and deny rules and impossible travel at sign-in, over an app-supplied GeoLocator
 - [Security](https://github.com/ubgo/auth/blob/main/docs/concepts/security.md)
+- [How an OIDC login works](https://github.com/ubgo/auth/blob/main/docs/concepts/oidc-login-flow.md): one sign-in between an app, the SSO login server and Google, step by step: state, PKCE, nonce, the code, the ID token checks and signing out
 - [Transactions](https://github.com/ubgo/auth/blob/main/docs/concepts/transactions.md)
 - [Configuration](https://github.com/ubgo/auth/blob/main/docs/concepts/configuration.md): every auth.With option and environment variable
 - [Databases](https://github.com/ubgo/auth/blob/main/docs/concepts/databases.md): drivers, dialects, the tables and how to join them

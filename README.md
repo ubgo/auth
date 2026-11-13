@@ -47,7 +47,7 @@ Everything is a plugin, including password sign-in and email addresses. The list
 - **One pipeline for every entry point.** Each feature is one typed operation. A Go call, an HTTP route and a GraphQL resolver all run the same code, so none can skip the rate limit, the CSRF origin check, the session requirement or a hook.
 - **Security pinned by tests.** Constant-time comparison of every secret is a source guard that fails the build; one password hash on every sign-in path, known account or not, is a timing test; only verified identities ever match a person; tokens are single-use under concurrency.
 - **Three engines, one behaviour.** Values are normalized in Go and compared byte for byte, and one integration suite runs on Postgres, MySQL and SQLite.
-- **A login server for your other apps, when you need one.** `oauthprovider` makes the app an OpenID Connect provider for your own internal apps, with a per-app access rule (`ClientAccess`, `AllowList`) checked at every code and refresh, provider-only sign-in pages in `authui/social`, and `auth oauth-client` to register apps ([SSO login server](docs/integrations/sso-server.md)).
+- **A login server for your other apps, when you need one.** `oauthprovider` makes the app an OpenID Connect provider for your own internal apps, with a per-app access rule (`ClientAccess`, `AllowList`) checked at every code and refresh, provider-only sign-in pages in `authui/social`, and `auth oauth-client` to register apps ([SSO login server](docs/integrations/sso-server.md)); [How an OIDC login works](docs/concepts/oidc-login-flow.md) follows one sign-in through it step by step, with the app side in [examples/sso-client](examples/sso-client).
 - **A dependency-free core.** The core module depends on the standard library and sqlb only, enforced by a test; argon2, WebAuthn and each framework adapter are separate modules you download only if you import them.
 
 | | **auth** | Hosted identity service | Self-hosted identity server | Hand-written on a session library |
@@ -125,7 +125,7 @@ Try every component in the browser, with its install line, at [ubgo.github.io/au
 
 ## Examples
 
-Every recipe in [examples/](examples) is a complete program with a README that walks through it with real output, and a test that drives it end to end, so a recipe that stops working fails the build. The table below is a selection; [examples/README.md](examples/README.md) lists all 117 recipes, and the [feature index](docs/reference/features.md) names the example for each feature.
+Every recipe in [examples/](examples) is a complete program with a README that walks through it with real output, and a test that drives it end to end, so a recipe that stops working fails the build. The table below is a selection; [examples/README.md](examples/README.md) lists all 119 recipes, and the [feature index](docs/reference/features.md) names the example for each feature.
 
 | Recipe | What it shows |
 |---|---|
@@ -141,6 +141,7 @@ Every recipe in [examples/](examples) is a complete program with a README that w
 | [oauth](examples/oauth) | GitHub, Google or any OpenID Connect issuer |
 | [login-gate](examples/login-gate) | An internal dashboard for one email domain with no database: `authgate`, the sign-in in a sealed cookie |
 | [sso-server](examples/sso-server) | One company login for your own apps: Google as the only way in, an OIDC provider, a per-app allow list, provider-only pages |
+| [sso-client](examples/sso-client) | The app side of that login, standard library only: state, PKCE, nonce, the code exchange, the ID token checks and sign-out |
 | [api-keys-and-jwt](examples/api-keys-and-jwt) | Scoped API keys for scripts; short-lived JWTs for another service |
 | [organizations](examples/organizations) | Organizations, invitations by email, role checks |
 | [sso](examples/sso) | Enterprise SSO: OIDC and SAML identity providers per customer |
@@ -155,7 +156,7 @@ Every recipe in [examples/](examples) is a complete program with a README that w
 
 ## Guides
 
-New here? Follow the [learning path](docs/README.md#learning-path): fourteen steps from install to a production setup, each with a guide and an example, or [start from your goal](docs/README.md#start-from-your-goal). Before writing code, the [decision guides](docs/choosing/README.md) say which transport, sign-in methods, session strategy, database options and plugin set fit your kind of app, and the [feature index](docs/reference/features.md) lists every feature with its guide section and example.
+New here? Follow the [learning path](docs/README.md#learning-path): fifteen steps from install to a production setup, each with a guide and an example, or [start from your goal](docs/README.md#start-from-your-goal). Before writing code, the [decision guides](docs/choosing/README.md) say which transport, sign-in methods, session strategy, database options and plugin set fit your kind of app, and the [feature index](docs/reference/features.md) lists every feature with its guide section and example.
 
 The [guides](docs) cover everything, step by step: [getting started](docs/start/first-app.md), the [concepts](docs/README.md#concepts) (sessions, identifiers, errors, rate limits, security events, geo rules, security, configuration, databases, migrations), a guide for [every plugin](docs/README.md#plugins), every [integration](docs/README.md#integrations) (net/http, chi, gin, echo, fiber, GraphQL, ready-made pages, mobile apps, single-page frontends, the [TypeScript client](docs/client/README.md), Redis, the CLI, other services), [extending](docs/extending/README.md) the library with plugins of your own, and an [HTTP API reference](docs/reference/http-api.md) generated from the code. Every Go snippet is copied from a program the test suite compiles and runs, and every HTTP transcript comes from a real run.
 

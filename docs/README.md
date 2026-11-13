@@ -23,9 +23,10 @@ Read in this order to go from nothing to a production setup. Each step is one gu
 | 9 | Errors your users can read | The error shape, matching errors in Go, translations, an error page for browser links | [Errors](concepts/errors.md) | [translated-errors](../examples/translated-errors/) |
 | 10 | Harden the account | A second factor, recent sign-in for sensitive actions, account settings and deletion | [Two-factor](plugins/twofactor.md), [Sessions › Step 8](concepts/sessions.md#step-8--deleting-an-account) | [two-factor](../examples/two-factor/), [account-settings](../examples/account-settings/) |
 | 11 | Teams and permissions | Organizations, invitations, roles, and your own permission model behind one interface | [Organizations](plugins/organization.md), [Authorization](extending/11-authorization.md) | [org-teams](../examples/org-teams/), [authorizer](../examples/authorizer/) |
-| 12 | Test it | End-to-end tests with SQLite in memory, recorded mail and a movable clock | [Test your app](start/testing.md) | [app-tests](../examples/app-tests/) |
-| 13 | Go to production | Secrets, migrations from the deploy, the sweep, several instances, a reverse proxy, logs, metrics and traces, the checklist | [Going to production](start/production.md), [net/http › Step 8](integrations/net-http.md#step-8--run-behind-a-reverse-proxy) | [cli](../examples/cli/), [multi-instance](../examples/multi-instance/), [behind-proxy](../examples/behind-proxy/), [observability](../examples/observability/) |
-| 14 | Make it yours | Plugins of your own: operations, hooks, columns, tables, identifier kinds | [Extending](extending/README.md) | [custom-plugin](../examples/custom-plugin/), [plugin-tables](../examples/plugin-tables/) |
+| 12 | How an OIDC login works | The six steps of one sign-in between an app, the login server and Google: state, PKCE, nonce, ID token checks | [guide](concepts/oidc-login-flow.md) | [sso-client](../examples/sso-client/) |
+| 13 | Test it | End-to-end tests with SQLite in memory, recorded mail and a movable clock | [Test your app](start/testing.md) | [app-tests](../examples/app-tests/) |
+| 14 | Go to production | Secrets, migrations from the deploy, the sweep, several instances, a reverse proxy, logs, metrics and traces, the checklist | [Going to production](start/production.md), [net/http › Step 8](integrations/net-http.md#step-8--run-behind-a-reverse-proxy) | [cli](../examples/cli/), [multi-instance](../examples/multi-instance/), [behind-proxy](../examples/behind-proxy/), [observability](../examples/observability/) |
+| 15 | Make it yours | Plugins of your own: operations, hooks, columns, tables, identifier kinds | [Extending](extending/README.md) | [custom-plugin](../examples/custom-plugin/), [plugin-tables](../examples/plugin-tables/) |
 
 ## Start from your goal
 
@@ -57,6 +58,7 @@ Read in this order to go from nothing to a production setup. Each step is one gu
 | Hand my users tokens Supabase, Hasura, Convex or Firebase accept | [JWT › Step 14](plugins/jwt.md#step-14--tokens-shaped-for-another-service-by-name) | [jwt-templates](../examples/jwt-templates/) |
 | Tell other services when users sign up, sign in or change | [Webhooks](plugins/webhook.md) | [webhooks](../examples/webhooks/) |
 | Run one company login for my own internal apps, with a list of who may use each app | [SSO login server](integrations/sso-server.md) | [sso-server](../examples/sso-server/) |
+| Understand or write the app side of the SSO login server | [How an OIDC login works](concepts/oidc-login-flow.md) | [sso-client](../examples/sso-client/) |
 | Be an OAuth / OpenID Connect provider or guard an MCP server | [OAuth provider](plugins/oauthprovider.md) | [oauth-provider](../examples/oauth-provider/) |
 | Let SAML services (wikis, ticketing, vendor tools) sign in with your app | [SAML identity provider](plugins/samlidp.md) | [saml-idp](../examples/saml-idp/) |
 | Let agents act for my users | [Agent auth](plugins/agentauth.md) | [agent-auth](../examples/agent-auth/) |
@@ -104,6 +106,7 @@ Read in this order to go from nothing to a production setup. Each step is one gu
 | [Databases](concepts/databases.md) | Postgres, MySQL and SQLite, drivers, and reading the auth tables from your own queries |
 | [Migrations and maintenance](concepts/migrations-and-maintenance.md) | Creating and upgrading tables, the CLI, and cleaning up expired rows |
 | [Multi-tenancy](concepts/multi-tenancy.md) | One deployment serving several tenants |
+| [How an OIDC login works](concepts/oidc-login-flow.md) | One sign-in through the SSO login server, step by step: state, PKCE, nonce, the code, the ID token checks and signing out, with the real requests |
 
 ## Plugins
 

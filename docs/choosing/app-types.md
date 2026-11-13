@@ -48,7 +48,11 @@ Whatever the kind, the same list applies before the first real user: secrets fro
 
 ## Next
 
-- [Choose a transport](transport.md)
-- [Choose sign-in methods](sign-in-methods.md)
-- [Choose a session strategy](sessions.md)
-- [Choose a database and storage](storage.md)
+- [Choose a transport](transport.md): how the app you picked reaches the library.
+- [Choose sign-in methods](sign-in-methods.md): the ways in each kind of app usually offers.
+- [Choose a session strategy](sessions.md): where the sessions of that app live.
+- [Choose a database and storage](storage.md): the engine and the state that may live outside it.
+- [SSO login server](../integrations/sso-server.md) and [How an OIDC login works](../concepts/oidc-login-flow.md): the company-login row in full, server side and app side.
+- [Going to production](../start/production.md): the checklist every kind of app ends with.
+- [Learning path](../README.md#learning-path): the order to read the guides in, from the first app to production.
+- [Feature index](../reference/features.md): every feature with the guide section that explains it and the example that runs it.

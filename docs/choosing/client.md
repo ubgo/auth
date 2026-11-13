@@ -91,3 +91,7 @@ This guide answers the questions a frontend settles before its first call: which
 - [TypeScript client](../client/README.md): the learning path from a first call to production.
 - [Choose a transport](transport.md): the server side of the same questions.
 - [Choose a session strategy](sessions.md): where the session lives on the server.
+- [Bearer mode and other runtimes](../client/bearer-and-mobile.md): the token stores behind the bearer answers above.
+- [Put the React UI on another API](../client/custom-backend.md): when the screens must talk to a backend that is not this library.
+- [Learning path](../README.md#learning-path): the order to read the guides in, from the first app to production.
+- [Feature index](../reference/features.md): every feature with the guide section that explains it and the example that runs it.

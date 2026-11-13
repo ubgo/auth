@@ -139,6 +139,8 @@ func normalizeAddress(s string) string { return strings.ToLower(strings.TrimSpac
 // consent: prompt=none goes back to the client as access_denied (no page
 // may be shown), otherwise the browser goes to NoAccessPage when there is
 // one, or the refusal is the answer. A database error is passed on as it is.
+//
+//ds:def id=oauthprovider-refuseaccess-fugdevc8 owner=@khanakia stability=stable
 func (p *Plugin) refuseAccess(z authzContext, in AuthorizeRequest, none bool, err error) (AuthorizeResult, error) {
 	switch {
 	case !errors.Is(err, ErrNoAccess):

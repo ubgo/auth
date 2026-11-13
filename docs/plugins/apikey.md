@@ -384,6 +384,8 @@ Check: `TestTokensAPIKey_GetAndListPaging`.
 
 The routes act on the signed-in user's own keys and refuse a request signed with an API key, so a key cannot manage keys. When the app itself manages someone's keys (a parent account looking after its bot user's keys, or the app's own route answering a CLI that holds a key and lists its owner's keys), it calls the Go-only twins of `CreateFor`: [`ListFor(ctx, userID, ListRequest)`](ds:block?id=plugin-listfor-4kq8wm2v) with the same paging and sorting, [`GetFor(ctx, userID, id)`](ds:block?id=plugin-getfor-7n3xq5kd), [`UpdateFor(ctx, userID, UpdateRequest)`](ds:block?id=plugin-updatefor-2wm9kq4x) (rename, disable or resume, a new expiry, scopes, and metadata without `AllowMetadata`) and [`RevokeFor(ctx, userID, id)`](ds:block?id=plugin-revokefor-6q2nw8kt). No session or fresh sign-in is asked for, because the caller is the app; deciding who may manage whose keys is the app's job before the call. The ownership rules are the routes' own: another user's key is `ErrNotFound`, and for an organization-owned key `userID` is the member acting, whose role must grant the action. Update and revoke drop the key's cache entry, so the change holds on the next request.
 
+[examples/bot-keys](../../examples/bot-keys/) runs it: a parent account's bot user, its key made with `CreateFor`, listed with `ListFor` and revoked with `RevokeFor`, with no session.
+
 Check: `TestAPIKeyFor`.
 
 ## Step 6 — Rename, pause, re-expire, and label a key

@@ -12,3 +12,9 @@ Decision guides for the questions every app answers before it writes code. Each 
 | [Choose a client setup](client.md) | How does my frontend call it: the prebuilt or an app-generated TypeScript client, cookie or bearer, same domain or another site, React components or hooks or the plain client, which router, which plugins? |
 
 Once the choices are made, the [learning path](../README.md) takes you from the first app to production, and the [feature index](../reference/features.md) lists every feature with its guide and example.
+
+## Next
+
+- [Learning path](../README.md#learning-path): the guides in order, each with its example.
+- [Start from your goal](../README.md#start-from-your-goal): one guide and one example per task.
+- [Feature index](../reference/features.md): every feature by area.

@@ -290,6 +290,8 @@ func (p *Plugin) validate(ctx context.Context, in AuthorizeRequest) (authzContex
 // never admits https://app/cb/../evil), or the RedirectValidator's answer
 // when one is installed. A URI the validator accepts must still be a valid
 // redirect URI (absolute, no fragment, no credentials).
+//
+//ds:def id=oauthprovider-redirectaccepted-44z4eb9d owner=@khanakia stability=stable
 func (p *Plugin) redirectAccepted(uri string, registered []string) bool {
 	exact := slices.Contains(registered, uri) || loopbackPortMatch(uri, registered)
 	if p.redirectValidator == nil {
@@ -360,6 +362,8 @@ func validVerifier(v string) bool {
 }
 
 // s256 is the PKCE S256 transform: base64url(SHA-256(verifier)), unpadded.
+//
+//ds:def id=oauthprovider-s256-3ek42s37 owner=@khanakia stability=stable
 func s256(verifier string) string {
 	sum := sha256.Sum256([]byte(verifier))
 	return base64.RawURLEncoding.EncodeToString(sum[:])
@@ -699,6 +703,8 @@ func (p *Plugin) recordConsent(ctx context.Context, userID, clientID string, sco
 
 // issueCode stores a new code for the signed-in user and answers the
 // client's redirect URI with it.
+//
+//ds:def id=oauthprovider-issuecode-fyj9g3rp owner=@khanakia stability=stable
 func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, scopes []string, ref string) (AuthorizeResult, error) {
 	// The last word before a code exists: whatever route led here, a user
 	// ClientAccess refuses gets none.
@@ -746,6 +752,8 @@ func (r *codeRow) bindings() []sqlb.Binding {
 // redeemCode spends a code once. A second use of a spent code is a replay:
 // it revokes every token issued from the code (RFC 6749 section 4.1.2) on a
 // write that the refused request's rollback does not undo.
+//
+//ds:def id=oauthprovider-redeemcode-adngtvxm owner=@khanakia stability=stable
 func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 	hash := p.hashSecret(SecretCode, code)
 	now := p.core.Now()
@@ -776,6 +784,8 @@ func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 // checkPKCE compares the verifier with the stored challenge in constant
 // time. A code issued without a challenge refuses a verifier, so a stripped
 // challenge cannot be "upgraded" past (OAuth 2.1 section 4.1.3).
+//
+//ds:def id=oauthprovider-checkpkce-jb5yqv5r owner=@khanakia stability=stable
 func checkPKCE(r codeRow, verifier string) error {
 	if r.challenge == nil {
 		if verifier != "" {

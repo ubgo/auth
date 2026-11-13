@@ -36,8 +36,8 @@ go run ./sso-server auth oauth-client update wiki --disabled=true
 go run ./sso-server auth oauth-client delete wiki --dry-run
 ```
 
-From Go, `op.PatchClient(ctx, id, oauthprovider.ClientPatch{...})` does the same.
+From Go, `clients.go` does the same for an operator's own tooling. `clientByName` finds an app by the name the access lists use, through `op.AllClients` (every stored client, whoever owns it, so never behind a route a user reaches). `enableSignOut` adds a sign-out URI and switches the end-session endpoint on with `op.PatchClient(ctx, id, oauthprovider.ClientPatch{...})`: a nil field is kept as stored, and the patched client is checked as strictly as a new registration, so a URI `create` would refuse is refused here too.
 
 ## Tests
 
-`go test ./sso-server` runs the whole browser flow against a stand-in for Google. A listed address goes from the app's authorize request through the sign-in page and back with a code, and its ID token names the address. An unlisted address ends on the no-access page, and no code reaches the app.
+`go test ./sso-server` runs the whole browser flow against a stand-in for Google. A listed address goes from the app's authorize request through the sign-in page and back with a code, and its ID token names the address. An unlisted address ends on the no-access page, and no code reaches the app. `enableSignOut` changes only the sign-out fields of the named app (its redirect URI, its skipped consent and the other app stay as they were), answers `ErrClientNotFound` for an unknown name, and stores nothing when the URI is refused.

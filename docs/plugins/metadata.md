@@ -171,3 +171,24 @@ curl -s -b alice.txt "localhost:8081/auth/metadata/admin-get?userId=x"
 | `auth.user_not_found` | 404 | An admin call or the Go API named an unknown user |
 
 The table is [`auth_user_metadata`](ds:block?id=metadata-tablename-6vq3kx8w) (`user_id`, `public_metadata`, `private_metadata`, `unsafe_metadata`, `updated_at`); reading and joining it is fine, writing it outside the plugin is not.
+
+## What can go wrong
+
+| Problem | When | Fix |
+|---|---|---|
+| The session answer has no `extras` | `md.SessionExtras` was not handed to the core. | Pass `auth.WithSessionExtras(md.SessionExtras)`, or call it from your own extras function and nest the result (Step 1). |
+| A decision trusts what the user wrote | The value came from `unsafe`, which the user controls. | Base decisions on `public` or `private` only; both are written by the backend alone. |
+| A user's update answers `auth.bad_request` | The body names `public` or `private`; the update input has only `unsafe`, and the transport refuses unknown fields. | Expected: write public and private from the backend (Step 2). |
+| `metadata.invalid` | A document or patch is not one JSON object (an array, a string, a number). | Wrap the value in an object; a client can then always read a key without checking the type. |
+| `413 metadata.too_large` | A patch, or the document it would produce, is over [`DefaultUnsafeMaxSize`](ds:block?id=metadata-defaultunsafemaxsize-9mk2wr4t) for unsafe or [`DefaultMaxSize`](ds:block?id=metadata-defaultmaxsize-3wq8kn6v) for the others. | Keep large data in your own tables; raise the bound with its option only when the documents must hold it. |
+| A key the user wanted to clear is still there | The patch left the key out; in a merge patch only `null` removes a key. | Send the key with `null`. |
+| The admin routes are not found | `metadata.WithAdmin` was not passed, so the routes do not exist. | Pass it with your authorizer (Step 4). |
+| `admin-update` answers `auth.fresh_session_required` | The admin's sign-in is older than the fresh window. | Sign in again, or confirm the identity, then retry. |
+| Every admin call is `403 metadata.forbidden` | The authorizer refused, or returned an error (which refuses too). | Check the authorizer's answer for `read` and `write`; the refusal comes before the target is looked up, so it says nothing about whether the user exists. |
+
+## Next
+
+- [Admin](admin.md): the roles the example's authorizer reads.
+- [Sessions](../concepts/sessions.md): the session answer the public and unsafe documents ride on.
+- [Add columns to the user](../extending/04-user-columns.md): for a short value that every request should carry, the other place per-user data can live.
+- The package [README](../../plugin/metadata/README.md) is the reference.

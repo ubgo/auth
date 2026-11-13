@@ -1076,6 +1076,8 @@ const dummySecret = PrefixClientSecret + "dummy"
 // is enabled, it used its registered method, and a confidential client's
 // secret matches in constant time. Every failure is ErrInvalidClient, so the
 // answer does not say which part was wrong.
+//
+//ds:def id=oauthprovider-authenticateclient-jjwxsb9j owner=@khanakia stability=stable
 func (p *Plugin) authenticateClient(ctx context.Context, cred ClientCredentials, audience string) (clientRow, error) {
 	r, err := p.resolveClient(ctx, cred.ID)
 	if err != nil && !errors.Is(err, ErrClientNotFound) {

@@ -50,5 +50,9 @@ A document store or a fourth SQL engine is not supported, and there is no adapte
 
 ## Next
 
-- [Choose a session strategy](sessions.md)
-- [Choose by kind of app](app-types.md)
+- [Databases](../concepts/databases.md): drivers, table names, column types and reading the tables from your own queries.
+- [Migrations and maintenance](../concepts/migrations-and-maintenance.md): creating the tables and sweeping expired rows.
+- [Choose a session strategy](sessions.md): the one store most apps move first.
+- [Choose by kind of app](app-types.md): serverless and multi-instance setups and what they keep outside the database.
+- [Learning path](../README.md#learning-path): the order to read the guides in, from the first app to production.
+- [Feature index](../reference/features.md): every feature with the guide section that explains it and the example that runs it.

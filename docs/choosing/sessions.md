@@ -58,5 +58,9 @@ Any store can take `auth.WithSessionCache(c, ttl)`, which skips the lookup for u
 
 ## Next
 
-- [Choose a database and storage](storage.md)
-- [Choose by kind of app](app-types.md)
+- [Sessions](../concepts/sessions.md): every option behind the tables above, step by step.
+- [Choose a database and storage](storage.md): the database the default store writes to.
+- [Choose by kind of app](app-types.md): which strategy each kind of app usually takes.
+- [Redis](../integrations/redis.md): the shared store and cache for several instances.
+- [Learning path](../README.md#learning-path): the order to read the guides in, from the first app to production.
+- [Feature index](../reference/features.md): every feature with the guide section that explains it and the example that runs it.

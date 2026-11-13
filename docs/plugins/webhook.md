@@ -185,6 +185,35 @@ func maintain(ctx context.Context, a *auth.Auth) {
 
 Two senders never send one attempt twice: each send claims its row first, and a Maintain run that finds it claimed skips it. A process that dies mid-send leaves the row to be retried once its lease (the timeout plus a minute) has passed. `auth sweep` deletes finished deliveries older than the retention; pending ones are never swept.
 
+## Try it
+
+Start the example from `examples/`, sign up, then send the receiver a request nobody signed:
+
+```sh
+export AUTH_SECRET=$(openssl rand -base64 32)
+go run ./webhooks
+curl -s -X POST localhost:8081/auth/password/sign-up -H 'Origin: http://localhost:8081' -H 'Content-Type: application/json' -d '{"identifier":"ada@example.com","password":"correct horse battery staple","name":"Ada"}'
+curl -s -w ' %{http_code}\n' -X POST localhost:8081/receiver -d '{}'
+```
+
+```text
+{"user":{"id":"usr_wfjf4nym5t6mkg2c7kfimkiw","name":"Ada","image":""},"verificationRequired":false,"secondFactorRequired":false}
+bad signature
+ 401
+```
+
+The program's log shows the endpoint it registered at start and one line per verified webhook the receiver got from the sign-up. The three events are sent independently after the commit, so their order is not fixed:
+
+```text
+registered endpoint whe_zexlpcapylgcojim3n3szxhy for http://localhost:8081/receiver
+listening on http://localhost:8081
+{"data":{"createdAt":"2026-11-13T05:21:38.958044956Z","id":"usr_wfjf4nym5t6mkg2c7kfimkiw","image":"","name":"Ada","updatedAt":"2026-11-13T05:21:38.958044956Z"},"id":"msg_9eb2841e867605e4d3613d6206f77f21","type":"user.created"}
+{"data":{"createdAt":"2026-11-13T05:21:38.959101202Z","expiresAt":"2026-11-20T05:21:38.959101202Z","id":"ses_ofjjjdaju2f5p43po3chqyl4","ip":"127.0.0.1","userAgent":"curl/8.18.0","userId":"usr_wfjf4nym5t6mkg2c7kfimkiw"},"id":"msg_1f4d1791be61d70faacc44dfa25e680a","type":"session.created"}
+{"data":{"id":"idn_h2ucuusntlujnmemcwqpkgug","isPrimary":false,"kind":"email","userId":"usr_wfjf4nym5t6mkg2c7kfimkiw","value":"ada@example.com","verified":false},"id":"msg_3e8c58a7a0aa6e59a24b82e915a1d981","type":"identity.created"}
+```
+
+`go test ./webhooks` runs the rest: retries to the dead-letter state and a replay, a `410`, a rolled-back transaction, secret rotation and the SSRF guard.
+
 ## Errors
 
 | Error | Code | Status | When |
@@ -206,3 +235,23 @@ Two senders never send one attempt twice: each send claims its row first, and a 
 - **Organization events by themselves.** The organization plugin is a separate module; send its events with `Publish` from its hooks.
 - **Asymmetric signatures** (`v1a`, ed25519). Only the symmetric `v1` scheme is implemented.
 - **A proxy such as smokescreen.** The guard is built in; there is no option to send through a proxy.
+
+## What can go wrong
+
+| Problem | When | Fix |
+|---|---|---|
+| `CreateEndpoint` answers `webhook.destination_refused` | The URL names `localhost` or a private address, as a receiver on your own machine does. | Use `webhook.AllowPrivateNetworks()` for local development and tests only; in production, register a public `https` URL. |
+| A failed delivery is never retried | Nothing runs `auth maintain` (or `auth.Maintain`): the plugin sends the first attempt by itself, and only the scheduled run retries. | Run `auth maintain` every minute from one cron job, or a ticker as the example does. |
+| A delivery fails although the receiver is up | The receiver answered with a redirect; redirects are never followed, as the spec says. | Register the final URL. |
+| The receiver handles one event twice | Delivery is at least once: a retry after a lost answer, or a replay, sends the same `webhook-id` again. | De-duplicate on `webhook-id`. |
+| The receiver refuses every request as too old | Its clock is more than [`signature.DefaultTolerance`](ds:block?id=defaulttolerance-8j3tkkz8) away from the sender's. | Sync the receiver's clock, or pass a wider tolerance to `signature.VerifyAt`. |
+| An endpoint stopped receiving anything | It answered `410 Gone` once, which dead-letters the delivery and disables the endpoint (`DisabledReason` `gone`). | Fix the receiver, switch the endpoint back on with `UpdateEndpoint` (`Enabled` set to true), then `Replay` what it missed. |
+| No `session.revoked` for expired sessions | Sessions live in Redis, `WithSecondaryStorage`, a mirror store or stateless tokens, which expire without the core seeing it. | Expected; see "What it does not do" above. |
+| `auth.New` fails with `webhook.no_encryption_key` | There is no `auth.WithSecret`, `auth.WithSealer` or `webhook.WithSealer` to seal endpoint secrets with. | Pass one of them. |
+
+## Next
+
+- [Migrations and maintenance](../concepts/migrations-and-maintenance.md): `auth maintain` and `auth sweep`, which retry deliveries and delete old ones.
+- [Security events](../concepts/security-events.md): the stream `hooks.SecuritySink()` forwards as `security.*` webhooks.
+- [Organizations](organization.md): send its events yourself with `Publish` from its hooks.
+- The package [README](../../plugin/webhook/README.md) is the reference for every option, event type and error.
