@@ -5,9 +5,17 @@ React bindings and copy-in UI components for [github.com/ubgo/auth](../../README
 - **The package** (`src/`, `@ubgo/auth-react`): headless. `AuthProvider`, `useAuth`, `useSession`, `useSessionActions`, `<SignedIn>` / `<SignedOut>`, `usePlugin` / `usePluginClient`, `useOAuthProviders`, the localization helpers, the passkey ceremony and passkey autofill, and the organization hooks. Built on TanStack Query.
 - **The registry** (`registry/`): shadcn components you copy into your app with `shadcn add`, styled with your shadcn tokens, compact by default, and edited freely once copied. Base UI primitives, not Radix.
 
-Not published to npm. How every component is customised is in [CONTRACT.md](CONTRACT.md); how to add one is in [BUILDING.md](BUILDING.md); a working app is [examples/react-demo](../../examples/react-demo/README.md).
+The package is published to npm as `@ubgo/auth-react`; the registry components are not part of it and are installed with `shadcn add`. How every component is customised is in [CONTRACT.md](CONTRACT.md); how to add one is in [BUILDING.md](BUILDING.md); a working app is [examples/react-demo](../../examples/react-demo/README.md).
 
 See every component live, with its install line and a usage snippet, at [ubgo.github.io/auth](https://ubgo.github.io/auth/): a static showcase against a mock server, built from [showcase/](showcase/).
+
+## Install
+
+```sh
+npm i @ubgo/auth-client @ubgo/auth-react
+```
+
+`react` (19) and `@tanstack/react-query` (5) are peer dependencies; install them too if the app does not have them. The package is ESM with type declarations, and has no dependencies of its own.
 
 ## Use it in an app
 
@@ -21,7 +29,7 @@ The guide is in five pages:
 | [Put the React UI on another API](../../docs/client/custom-backend.md) | The pure views (`SignInFormView`, ...) with handlers of your own, a translating `fetch`, or an adapter object passed to the provider |
 | [React with your router](../../docs/client/react-routers.md) | `navigate` and `Link` for TanStack Router, React Router, the Next.js App Router and no router; server rendering |
 
-In short: link `@ubgo/auth-client` and `@ubgo/auth-react` from a checkout (`pnpm add @ubgo/auth-react@link:../ubgo-auth/clients/react`), dedupe React and TanStack Query in the bundler, serve the registry JSON that `task ui:registry` builds into `registry/r` over HTTP, `pnpm dlx shadcn@4.21.4 add @ubgo/sign-in-form`, and mount `<AuthProvider client={auth}>` inside your router. A component shows a method only when its plugin factory is in the client's `plugins`, so keep that list equal to the server's.
+In short: install `@ubgo/auth-client` and `@ubgo/auth-react` from npm (or link them from a checkout: `pnpm add @ubgo/auth-react@link:../ubgo-auth/clients/react`), dedupe React and TanStack Query in the bundler, serve the registry JSON that `task ui:registry` builds into `registry/r` over HTTP, `pnpm dlx shadcn@4.21.4 add @ubgo/sign-in-form`, and mount `<AuthProvider client={auth}>` inside your router. A component shows a method only when its plugin factory is in the client's `plugins`, so keep that list equal to the server's.
 
 ## Hooks
 
@@ -56,11 +64,21 @@ SignInForm, SignUpForm, PasswordStrength, ForgotPasswordForm, ResetPasswordForm,
 | Path | What it is |
 |---|---|
 | `src/` | The package; `tsc -p .` (strict) is part of `task ui:check` |
+| `dist/` | The published build of `src/` (`pnpm build`: `.js` and `.d.ts` per module; gitignored, rebuilt by `prepack`) |
+| `scripts/pack.mjs`, `tsconfig.build.json` | The build, the publish guard and the publish dry run (see Publishing) |
 | `registry/registry.json` | The shadcn registry: the primitives (`registry:ui`) and the auth components |
 | `registry/ui/*.tsx` | shadcn's Base UI primitives at the compact density |
 | `registry/auth/*.tsx` | The auth components |
 | `registry/r/` | Built registry JSON (`task ui:registry`; gitignored) |
 | `CONTRACT.md`, `BUILDING.md` | The customisation contract; how to add a component |
+
+## Publishing
+
+In this repository `exports` points at `src/index.ts`, so the showcase, the demo and the examples that link the package bundle and type-check its source with no build step. The published manifest points at `dist/` instead, through `publishConfig.exports`, which pnpm applies when it packs and npm does not. So:
+
+- `pnpm build` writes `dist/` (`tsc -p tsconfig.build.json`, then the `.d.ts` files' relative imports rewritten from `.ts`/`.tsx` to `.js`).
+- `pnpm run publish:dry-run` packs with `pnpm pack`, fails when the tarball holds anything but `dist/`, `README.md`, `package.json` (and `LICENSE`) or when its `exports` name a file it lacks, then runs `npm publish --dry-run` on that tarball.
+- A real release is `pnpm publish` from this folder, after `@ubgo/auth-client` at the version the peer range asks for is on npm. `npm publish` here is refused by `prepublishOnly`, because it would upload the source paths.
 
 ## Not built yet
 

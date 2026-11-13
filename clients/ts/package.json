@@ -1,14 +1,52 @@
 {
   "name": "@ubgo/auth-client",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Typed fetch client for the github.com/ubgo/auth HTTP API, generated from its operation list.",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Typed fetch client for the github.com/ubgo/auth HTTP API, generated from its operation list, and a server-side OpenID Connect relying party (@ubgo/auth-client/oidc) for Fetch-API servers.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ubgo/auth.git",
+    "directory": "clients/ts"
+  },
+  "homepage": "https://ubgo.github.io/auth/",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./oidc": "./src/oidc/index.ts"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "./oidc": {
+        "types": "./dist/oidc/index.d.ts",
+        "import": "./dist/oidc/index.js",
+        "default": "./dist/oidc/index.js"
+      }
+    }
   },
   "files": [
-    "src"
+    "dist",
+    "README.md"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "test:oidc": "node test/oidc/run.ts",
+    "build": "node scripts/pack.mjs build",
+    "prepack": "node scripts/pack.mjs build",
+    "prepublishOnly": "node scripts/pack.mjs guard",
+    "publish:dry-run": "node scripts/pack.mjs dry-run"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
 }

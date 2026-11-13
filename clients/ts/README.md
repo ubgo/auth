@@ -2,7 +2,16 @@
 
 A typed `fetch` client for the HTTP API of [github.com/ubgo/auth](../../README.md), generated from the library's operation list. Every operation is a method; its input and output types come from the Go types; error codes are a closed union; and a plugin's methods exist only when the plugin is passed to `createAuthClient`, so calling a plugin the server does not serve is a compile error. No dependencies.
 
-Not published to npm: copy `src/`, or generate a client for your own app with `myapp auth client ts --out <dir>` (the `authcli` command), which also types your custom plugins and their error codes.
+The package has two entries, and an app imports only the one it needs:
+
+| Entry | Runs in | What it is |
+|---|---|---|
+| `@ubgo/auth-client` | the browser, or any runtime with `fetch` | The typed client for an app that serves ubgo/auth's HTTP API itself (below) |
+| `@ubgo/auth-client/oidc` | the server only (Node 20+, Bun, Deno, workers, TanStack Start server code) | A relying party that signs people in through any OpenID Connect server and keeps them signed in ([section below](#ubgoauth-clientoidc-server-side-sign-in-through-an-openid-connect-server)) |
+
+The browser entry never imports the oidc entry (`test/oidc/entries.test.ts` walks both import graphs, in `src/` and in `dist/`), so a browser bundle cannot pull server code in. Neither has a runtime dependency.
+
+Getting it: built for npm as `@ubgo/auth-client` (`pnpm add @ubgo/auth-client`; the tarball carries compiled `.js` and `.d.ts` in `dist/`). Inside this repository, examples and `@ubgo/auth-react` link the package (`link:../ts`) and compile its TypeScript source directly, with no build step. You can also copy `src/`, or generate a client for your own app with `myapp auth client ts --out <dir>` (the `authcli` command), which also types your custom plugins and their error codes.
 
 ```ts
 import { createAuthClient, password, twofactor } from "./auth/index.ts";
@@ -44,8 +53,12 @@ Every method with its route and types: [docs/reference/ts-client.md](../../docs/
 | `test/typecheck/bad.ts` | Mistakes that must not compile, each marked with the error it must fail with |
 | `test/smoke.ts` | An end-to-end run against the `two-factor` example in both token modes |
 | `test/runtime.ts` | The runtime and the hand-written plugins against a stub `fetch` and a fake popup window: token handling, hooks, session extras, `oauth_query`, the last-login hint, and every gate and failure of the popup sign-in |
+| `src/oidc/` | The `@ubgo/auth-client/oidc` entry, hand-written (not generated): `index.ts` is its public surface |
+| `examples/oidc-tanstack-start.ts` | The oidc entry wired into a TanStack Start (or any Fetch-API) server, type-checked |
+| `test/oidc/` | The oidc entry's tests against a stand-in OpenID Connect server (`run.ts` runs them), the entry-isolation scan, and `typecheck/bad.ts`, the oidc mistakes that must not compile |
+| `scripts/pack.mjs`, `tsconfig.build.json` | The build to `dist/`, the publish guard and the publish dry run |
 
-Everything in `src/` is generated: edit `authhttp/typescript.go`, `authhttp/tsclient/runtime.ts` or `authhttp/tsclient/extensions.ts`, never these files.
+Everything in `src/` except `src/oidc/` is generated: edit `authhttp/typescript.go`, `authhttp/tsclient/runtime.ts` or `authhttp/tsclient/extensions.ts`, never these files. The generator writes exactly its five files (`client.ts`, `runtime.ts`, `error-codes.ts`, `extensions.ts`, `index.ts`) and never touches `src/oidc/`.
 
 ## Tasks
 
@@ -55,3 +68,34 @@ Everything in `src/` is generated: edit `authhttp/typescript.go`, `authhttp/tscl
 | `task ts:check` | `tsc` under `strict` (5.6 or later on `PATH`), then `ts:typecheck`; part of `task check`, which also fails when `src/` is stale |
 | `task ts:typecheck` | Fails unless `test/typecheck/bad.ts` fails to compile on exactly its 10 marked lines, each with its marked error (a line marked `expect TSaaaa|TSbbbb` accepts either code) |
 | `task ts:smoke` | Starts the `two-factor` example on port 8095 and runs `test/smoke.ts` against it with Node (22.18 or later, which runs `.ts` without a flag) |
+| `pnpm build` | Compiles both entries to `dist/` (`.js` and `.d.ts`); `dist/` is not committed, `prepack` rebuilds it |
+| `pnpm publish:dry-run` | Packs with pnpm (which applies `publishConfig.exports`, pointing both entries at `dist/`), checks the tarball holds only `dist/`, `package.json` and the README, then runs `npm publish --dry-run` on it. A real publish is `pnpm publish`; a plain `npm publish` is refused, because npm would ship the source paths |
+| `node test/oidc/run.ts` | The oidc entry's tests (Node 22.18 or later) |
+
+## `@ubgo/auth-client/oidc`: server-side sign-in through an OpenID Connect server
+
+Signs people in to a Fetch-API server (TanStack Start, Node 20+ behind a Fetch adapter, Bun, Deno, workers) through any OpenID Connect server: ubgo/auth's `plugin/oauthprovider`, Google, Keycloak, Entra. The session lasts days, so closing the browser does not sign anyone out; the login server is asked again at most every minute while the person is active, so someone removed there is refused on their next request, even with a saved copy of the cookie. The TypeScript twin of the Go module [`oidcclient`](../../oidcclient/DESIGN.md): the same model, the same seams, the same floors. WebCrypto and `fetch` only. Server only: it holds the client secret and the session key.
+
+```ts
+import { createOidcClient, secret } from "@ubgo/auth-client/oidc";
+
+const oidc = createOidcClient({
+  issuer: "https://login.example.com",
+  clientId: "admin",
+  clientSecret: secret(process.env.OIDC_CLIENT_SECRET ?? ""),
+  appUrl: "https://admin.example.com",
+  sessionSecret: secret(process.env.SESSION_SECRET ?? ""), // 32+ random bytes
+});
+
+// The four routes (/auth/login, /auth/callback, /auth/logout, /auth/backchannel), then everything else behind the gate.
+const app = oidc.protect((_request, user) => new Response(`Hello, ${user.name}`));
+export const fetchHandler = async (request: Request) => (await oidc.handle(request)) ?? app(request);
+```
+
+Sign-out (a same-origin POST to the logout route) revokes the session's refresh token at the login server's revocation endpoint (RFC 7009) before sending the browser to its end-session endpoint. That matters with the default cookie store, which keeps nothing on the server to delete, because a server keeps an `offline_access` refresh token past the end of its own session: without the revocation, a copy of the cookie saved before sign-out could keep refreshing. It is best effort: a failure, or a server with no revocation endpoint, is logged and observed (`revoke_failed`), and sign-out goes on. Up to three sign-ins can be in flight in one browser (two tabs whose sessions expired can both finish signing in; a fourth start drops the oldest), each usable once and for ten minutes. Back-channel logout tokens must carry a `jti`, and each one is accepted once per process; a replay is answered 400, and 503 when the login server's keys cannot be read, so its log tells an outage apart from a bad token. `requireSession(request)` is the gate for frameworks that set headers their own way (it returns the user and the cookies to send, or the refusal response); `optionalSession(request)` is the same steps for a public page that shows "signed in as" when someone is, and never refuses. [`examples/oidc-tanstack-start.ts`](examples/oidc-tanstack-start.ts) shows a TanStack Start setup with a server-side store, a user mapper, an authorizer and a custom no-access page.
+
+Every policy is one field of the options object with a safe default: `store`, `sealer` (or `sessionSecret` with `previousSessionSecrets` for rotation), `mapUser`, `authorize`, `rechecker` and `recheckIntervalMs`, `outageGraceMs`, `lifetimes`, `responder`, `returnPolicy`, `cookie`, `paths`, `clientAuth`, `scopes`, `authParams`, `fetch`, `logger`, `now`, `discovery`, `observe`. The Go module's [DESIGN.md](../../oidcclient/DESIGN.md) explains why each seam has its shape.
+
+The protocol floors have no option at all: PKCE S256, state, nonce, the ID token signature under RS256, ES256 or EdDSA only (RSA keys of 2048 bits or more), iss, aud, exp and azp, constant-time comparisons, same-site return URLs, cookie prefixes, `Secure` and `HttpOnly`, no redirects followed to the login server, and hooks that fail closed. Where the type system can see a floor it is a compile error (a cookie name without its prefix, `sameSite: "none"`, a reserved authorization parameter, both or neither of `clientSecret` and `clientAuth`, a forged `Refreshed`, an authorizer that can end without a decision); `createOidcClient` checks the same rules again at start-up for callers outside the type system.
+
+The default store keeps the whole session in the sealed cookie, split over at most three cookies. An empty session is about 2 KB sealed, and every 1 KB of ID token claims adds about 3 KB (the claims are kept in the user and inside the ID token kept for sign-out), so a mapper that drops `claims` it does not need, or a server-side store (`memoryStore` for one instance, your own Redis or SQL store for more), is the answer for large tokens. A session that does not fit is refused at sign-in, never written as a cookie the browser would drop.

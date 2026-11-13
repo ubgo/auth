@@ -1,0 +1,4 @@
+# build output of `pnpm build` and stray `pnpm pack` tarballs; the published
+# package is built from src/ at pack time (prepack), never committed
+dist/
+*.tgz

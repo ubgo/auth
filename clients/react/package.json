@@ -1,23 +1,45 @@
 {
   "name": "@ubgo/auth-react",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
   "description": "React bindings for the github.com/ubgo/auth TypeScript client: provider, session hooks, plugin gating, localization and the customisation contract the copy-in UI components follow.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ubgo/auth.git",
+    "directory": "clients/react"
+  },
+  "homepage": "https://ubgo.github.io/auth/",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "files": [
-    "src"
+    "dist",
+    "README.md"
   ],
   "sideEffects": false,
   "scripts": {
     "typecheck": "tsc -p .",
+    "build": "node scripts/pack.mjs build",
+    "prepack": "node scripts/pack.mjs build",
+    "prepublishOnly": "node scripts/pack.mjs guard",
+    "publish:dry-run": "node scripts/pack.mjs dry-run",
     "registry:build": "shadcn build registry/registry.json --output registry/r"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.0.0",
-    "@ubgo/auth-client": "*",
+    "@ubgo/auth-client": "^0.1.0",
     "react": "^19.0.0"
   },
   "devDependencies": {
