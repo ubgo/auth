@@ -140,8 +140,53 @@ Every option refuses a nil check, an unknown action or error mode, and a challen
 
 A flag is one `SecurityEvent`: kind `ip.suspicious`, `bot` or `trial.abuse`, severity `warn` (`info` when a challenge was passed), the outcome, the operation, the client address (empty under `WithoutIPTracking`), the user id for a sign-up, and `reason`. It never carries the identifier, the user agent or a header. See [security events](security-events.md).
 
-## What to remember
+## Try it
 
-- The library decides nothing about what is suspicious; a check that flags too much locks people out, so start with `RateLog`.
-- The address a check sees is the one the transport resolved. Behind a proxy, configure `authhttp.TrustedProxies`, or every client looks like the proxy.
-- A bot check on a plain script is easy to evade; pair it with a challenge, which a script cannot answer cheaply.
+Run the example from `examples/`, which trusts a proxy on this machine so `X-Forwarded-For` is the client address. Sign in from the denylisted address, sign up with a script's user agent, sign up with a dotted, tagged variant of the address that already had the trial, then sign up normally from the clean address:
+
+```sh
+go run ./risk-signals
+O='Origin: http://localhost:8081'
+J='{"identifier":"ada@example.com","password":"correct horse battery staple","name":"Ada"}'
+curl -s -X POST localhost:8081/auth/password/sign-in -H "$O" -H 'X-Forwarded-For: 203.0.113.66' -d "$J"
+curl -s -X POST localhost:8081/auth/password/sign-up -H "$O" -H 'X-Forwarded-For: 203.0.113.67' -A python-requests/2.32 -d "$J"
+curl -s -X POST localhost:8081/auth/password/sign-up -H "$O" -H 'X-Forwarded-For: 203.0.113.67' -d '{"identifier":"T.rial+again@example.com","password":"correct horse battery staple","name":"T"}'
+curl -s -X POST localhost:8081/auth/password/sign-up -H "$O" -H 'X-Forwarded-For: 203.0.113.67' -d "$J"
+```
+
+The first three are refused with `403`, each with its own code; the last one signs up:
+
+```json
+{"error":{"code":"auth.ip_blocked","message":"This request cannot be completed from your network."}}
+{"error":{"code":"auth.bot_blocked","message":"This request looks automated. Try again from a browser."}}
+{"error":{"code":"auth.signup_blocked","message":"We could not create this account. Contact support if you think this is a mistake."}}
+{"user":{"id":"usr_bjol3sqkz2wob3lhwstyq4du","name":"Ada","image":""},"verificationRequired":false,"secondFactorRequired":false}
+```
+
+The server's log has one security event per refusal, with the cause under `reason` and never the typed address:
+
+```text
+WARN auth: security event id=sev_acd473107646ac3d2895b76f kind=ip.suspicious outcome=blocked op=password.sign-in user="" ip=203.0.113.66 reason=denylist
+WARN auth: security event id=sev_d6e73b33a4147f0c9e729d40 kind=bot outcome=blocked op=password.sign-up user="" ip=203.0.113.67 reason=script-agent
+WARN auth: security event id=sev_790f8e7e4c4ec16d175614a1 kind=trial.abuse outcome=blocked op=password.sign-up user=usr_jpvi5rwk63h2oacyrk6wfna2 ip=203.0.113.67 reason=repeat-address
+```
+
+The trial-abuse event names the user the refused sign-up created, but that user is gone: the sign-up ran in a transaction and was rolled back. `go test ./risk-signals` checks the same answers and events.
+
+## What can go wrong
+
+| Problem | When | Fix |
+|---|---|---|
+| Real people are locked out | A new check flags more than you expected and its policy is the default, `RateBlock`. | Start every check with `auth.RiskPolicy{Action: auth.RateLog}`, read the events for a while, then switch to block or challenge. |
+| Every client gets the same verdict | The app runs behind a proxy and the check sees the proxy's address. | Configure `authhttp.TrustedProxies` (or `ClientIPFunc`) so the transport resolves the real client address. |
+| `auth.New` fails naming a risk option | The policy asks for `RateChallenge` and no `RateChallenger` is registered, or the check is nil, or the action or error mode is unknown. | Register a challenger (a captcha, [pow](../plugins/pow.md)) or choose another action. |
+| Sign-ins fail with `503 auth.risk_check_unavailable` | The check returned an error under `RiskFailClosed`, for example when the vendor is down. | Expected under that mode; keep the default `RiskFailOpen` unless an unchecked sign-up is worse than an outage. |
+| A script still gets through | A bot check that reads the user agent is easy to evade. | Pair it with a challenge, which a script cannot answer cheaply. |
+| A flag shows no event | The check returned an error instead of a flag. | Expected: a failed check emits no event, only a warning in the log, because nothing was flagged. |
+
+## Next
+
+- [Rate limits](rate-limits.md): the same block, log and challenge actions, and the `RateChallenger` a challenge needs.
+- [Security events](security-events.md): the stream every flag lands on, and how to send it to your own log or alerting.
+- [Captcha](../plugins/captcha.md) and [proof of work](../plugins/pow.md): two challengers a `RateChallenge` policy can use.
+- The example's [README](../../examples/risk-signals/README.md) and the doc comments in [risk.go](../../risk.go) are the reference.

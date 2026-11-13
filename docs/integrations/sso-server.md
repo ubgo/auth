@@ -176,7 +176,7 @@ go run ./sso-server auth oauth-client update wiki --post-logout-uri https://wiki
 
 `update` changes only the flags you give and keeps everything else. A list flag given as `""` clears that list. `--disabled=true` switches the app off without deleting it. The authentication method never changes; for a new one, register a new client.
 
-From Go, `op.PatchClient(ctx, clientID, oauthprovider.ClientPatch{PostLogoutRedirectURIs: &uris})` does the same: a nil field is kept, and the result is checked as strictly as a new registration. [`TestOAuthProvider_PatchClient`](ds:block?id=testoauthprovider-patchclient-ctwjkqxc&assert=true) checks that the other fields stay as they were.
+From Go, `op.PatchClient(ctx, clientID, oauthprovider.ClientPatch{PostLogoutRedirectURIs: &uris})` does the same: a nil field is kept, and the result is checked as strictly as a new registration. [`TestOAuthProvider_PatchClient`](ds:block?id=testoauthprovider-patchclient-ctwjkqxc&assert=true) checks that the other fields stay as they were. The example's [`enableSignOut`](ds:block?id=ssoserver-enablesignout-7n3vb8wd) finds the app by its name through `AllClients` and patches only the post-logout URIs and the end-session switch; [`TestSSOServer_EnableSignOutKeepsTheRest`](ds:block?id=testssoserver-enablesignoutkeepstherest-5q8mx2kw&assert=true) checks that the redirect URI and the skipped consent stay as they were.
 
 To remove an app, look first, then delete:
 
@@ -187,7 +187,7 @@ go run ./sso-server auth oauth-client delete wiki
 
 ## Step 6 — What the app does
 
-The app needs only its client id, its secret and the server's issuer URL. Any OIDC client library works.
+The app needs only its client id, its secret and the server's issuer URL. Any OIDC client library works. [How an OIDC login works](../concepts/oidc-login-flow.md) walks through each of these steps with the real requests, and [sso-client](../../examples/sso-client/) is an app written with the standard library only.
 
 1. It reads `https://login.example.com/.well-known/openid-configuration` to find the endpoints.
 2. To sign someone in, it sends the browser to the authorize endpoint with its `client_id`, its redirect URI, `scope=openid email profile`, a `state`, and a PKCE challenge.
@@ -220,6 +220,7 @@ Check: [`TestSSOServer_UnlistedUserSeesNoAccess`](ds:block?id=testssoserver-unli
 
 ## Next
 
+- [How an OIDC login works](../concepts/oidc-login-flow.md): one sign-in between an app, this server and Google, step by step, with the real requests and the app's side in [sso-client](../../examples/sso-client/).
 - [OAuth provider](../plugins/oauthprovider.md): every option of the provider, consent, MCP servers and tokens for APIs.
 - [OAuth](../plugins/oauth.md): more upstream providers beside Google, or your own OIDC issuer.
 - [CLI](cli.md): wiring `authcli` into your binary.

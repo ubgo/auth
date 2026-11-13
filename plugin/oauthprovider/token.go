@@ -472,6 +472,8 @@ func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) 
 // idToken signs an ID token with the jwt plugin's key: sub, aud (the
 // client), azp, auth_time, the nonce of the authorization request, and the
 // claims of the granted scopes.
+//
+//ds:def id=oauthprovider-idtoken-pr39wb8q owner=@khanakia stability=stable
 func (p *Plugin) idToken(ctx context.Context, is issuance, accessToken string) (string, error) {
 	u, err := p.core.User(ctx, is.userID)
 	if err != nil {

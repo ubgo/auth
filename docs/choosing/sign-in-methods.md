@@ -58,5 +58,8 @@ Around any of them: [`twofactor`](../plugins/twofactor.md) adds a second step ([
 
 ## Next
 
-- [Choose a session strategy](sessions.md)
-- [Choose by kind of app](app-types.md)
+- [Choose a session strategy](sessions.md): what the sign-in hands back, and where it lives.
+- [Choose by kind of app](app-types.md): the methods each kind of app usually combines.
+- [Your first app](../start/first-app.md): email and password end to end, the base most combinations start from.
+- [Learning path](../README.md#learning-path): the order to read the guides in, from the first app to production.
+- [Feature index](../reference/features.md): every feature with the guide section that explains it and the example that runs it.

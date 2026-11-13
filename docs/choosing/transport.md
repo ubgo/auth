@@ -42,6 +42,9 @@ These combine: one app can mount `authhttp.Handler` for its JSON routes, `authui
 
 ## Next
 
-- [Choose sign-in methods](sign-in-methods.md)
-- [Choose a session strategy](sessions.md)
-- [Choose by kind of app](app-types.md)
+- [Choose sign-in methods](sign-in-methods.md): what the routes you mount will serve.
+- [Choose a session strategy](sessions.md): cookie or bearer, and where the session lives.
+- [Choose by kind of app](app-types.md): the transport each kind of app usually takes.
+- [net/http](../integrations/net-http.md): the handler and middleware every adapter wraps.
+- [Learning path](../README.md#learning-path): the order to read the guides in, from the first app to production.
+- [Feature index](../reference/features.md): every feature with the guide section that explains it and the example that runs it.

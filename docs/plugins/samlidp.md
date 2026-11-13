@@ -148,6 +148,39 @@ func newServiceProvider(base, metadataURL string, client *http.Client) (*saml2.S
 
 `Access` decides per user and SP whether an assertion is issued, which is where roles, groups or an organization's app assignments plug in; without it every signed-in user may sign in to every registered SP.
 
+## Try it
+
+Run the identity provider and the demo service provider from `examples/`, each in its own terminal, and look at what an SP is given:
+
+```sh
+go run ./saml-idp       # the identity provider on http://localhost:8081
+go run ./saml-idp sp    # the demo service provider on http://localhost:8082
+curl -s localhost:8081/saml/metadata | grep -v X509Certificate | tail -8
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' localhost:8082/
+```
+
+The metadata ends with the name ID formats and the two SSO bindings; the SP sends a signed-out visitor straight to the IdP's SSO URL with its request:
+
+```text
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:8081/saml/sso"/>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/saml/sso"/>
+  </md:IDPSSODescriptor>
+</md:EntityDescriptor>
+302 http://localhost:8081/saml/sso?RelayState=%2F&SAMLRequest=fJJfaxsxEMS%2Fith35XSy4%2FqEz%2BDGlBrS1sRuH%2FpSNvK6FugkV7vXP9%2B%2B3CWFQMO9SjPzEzNaMXbx6ja9XNID%2...
+```
+
+Open http://localhost:8082 in a browser, sign in (or sign up through `/auth/password/sign-up`), and the SP answers `Signed in as usr_… (Name)`. The IdP's log says `SAML_IDP_KEY and SAML_IDP_CERT are not set: signing with a new key`; set both to PEM files to keep the key across restarts. `go test ./saml-idp` runs the same round trip over real HTTP:
+
+```text
+--- PASS: TestSAMLIdP_SignInToTheDemoSP (0.27s)
+PASS
+ok  	github.com/ubgo/auth/examples/saml-idp	0.294s
+```
+
 ## What is refused
 
 | Request | Answer |
@@ -170,3 +203,22 @@ An SP with `AllowIdPInitiated` can be opened from your app: a form on your own p
 ## Not implemented yet
 
 Single logout is deferred: the metadata advertises no SingleLogoutService, and an SP's logout does not end the session here. Encrypted assertions, signed metadata and the Artifact binding are not implemented either.
+
+## What can go wrong
+
+| Problem | When | Fix |
+|---|---|---|
+| The SP rejects every assertion after a restart | The IdP signs with a key made at start, and the SP still trusts the old certificate. | Load a fixed key and certificate (`SigningKey`), as the example does from `SAML_IDP_KEY` and `SAML_IDP_CERT`. |
+| `samlidp.acs_not_registered` | The SP's `AssertionConsumerServiceURL` differs from a registered one in any character (a trailing slash, `http` against `https`, another port). | Register the exact URL the SP sends in `ACSURLs`. |
+| `samlidp.request_expired` for every request | The SP's clock is behind or ahead of the IdP's by more than [`DefaultClockSkew`](ds:block?id=samlidp-defaultclockskew-z5k8wn3t), or it reuses an old request. | Sync the clocks; widen `ClockSkew` or `RequestMaxAge` only when you cannot. |
+| Every signed-in user reaches every SP | No `Access` function was given, so the default allows all. | Pass `Access(fn)` and decide per user and SP from your roles, groups or organization's app assignments. |
+| `samlidp.name_id_unavailable` after sign-in | The SP is registered with the email name ID format and the user has no verified address. | Verify addresses first, or use the persistent name ID (the default), which needs none. |
+| Signing out of the SP leaves the user signed in here | Single logout is not implemented. | Sign the user out of your app separately; see "Not implemented yet". |
+| `auth.New` fails with `ErrNoExclusive` | The verification store cannot refuse a duplicate key, so a request ID could be answered twice. | Use a store that can, or pass `WithRequestIDGuard`. |
+
+## Next
+
+- [Enterprise SSO](sso.md): the mirror, where your app is the service provider of someone else's IdP.
+- [OAuth provider](oauthprovider.md): the same role for apps that speak OpenID Connect.
+- [Access](access.md): roles and permissions an `Access` function can read.
+- The package [README](../../plugin/samlidp/README.md) is the reference for every option, endpoint, error and security rule.

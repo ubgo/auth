@@ -272,6 +272,18 @@ The wired components call the client through `usePluginClient(name)`, and the or
 | Organization screens | `organization` |
 | Admin screens, ImpersonationBanner | `admin` |
 
+## What can go wrong
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Every sign-in fails with `client.invalid_response` | The translating `fetch` answers a `2xx` with an empty body (a `204`, or `200` with no JSON); the client reads only a JSON body as success | Answer a JSON body, even `{ "ok": true }`, as the example's sign-out does |
+| A refusal shows as `client.invalid_response` instead of its message | The error body is not `{ error: { code, message } }`: a bare string, a code without a `message`, or another API's own error shape passed through | Rewrite the failure into that shape, with both `code` and `message` as strings |
+| A signed-out visitor sees an error box instead of the sign-in screen | `session` answers a failure other than `auth.signed_out` (a `401` with your API's own code); `useSession` turns only that code into "no session" and keeps any other as an error | Answer `auth.signed_out` when there is no session, in the translating `fetch` and in an adapter's `session()` |
+| The form shows a code instead of a sentence, or the right message in the wrong place | A code of your API's own is `client.unknown_code` on the client (the raw code is kept in `rawCode`), and the components place only the codes they know | Map your codes onto the ones [in the table above](#the-error-codes-the-components-react-to) |
+| A button is shown that only fails | The client lists a plugin the translation or the adapter does not serve, so the wired component offers its method | List only the plugins you serve, as `legacyClient` does with `password()` alone |
+| Every request falls through to the "unsupported" branch | The translating `fetch` compares full URLs, or a `baseURL` other than the one the client was created with | Strip the client's own `baseURL` first, as `pathOf` does |
+| A view stops compiling in a library-free package | A view file imported `@ubgo/auth-react`, TanStack Query or a router | Keep data access in the wired component; `views-guard.test.ts` fails on such an import |
+
 ## Where the examples live
 
 The three files are in [clients/react/examples/custom-backend](../../clients/react/examples/custom-backend/). `task ui:check` type-checks them under the package's strict settings and runs [custom-backend.test.tsx](../../clients/react/test/custom-backend.test.tsx), which signs in through each one against a fake backend of its kind: a REST API, a legacy API behind the translating `fetch`, an identity SDK behind the adapter.
