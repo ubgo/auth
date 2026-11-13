@@ -68,6 +68,8 @@ func randBytes(t *testing.T) []byte {
 // as token_type DPoP with cnf.jkt; a bound token is used only with the DPoP
 // scheme and a fresh proof of its key for that request; dpop_jkt binds a
 // code; a bound refresh token needs its key again.
+//
+//ds:def id=testoauthprovider-dpop-bazxe8y2 owner=@khanakia stability=stable
 func TestOAuthProvider_DPoP(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		o := newOPEnv(t, e)

@@ -1,0 +1,17 @@
+func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal error) error {
+	e := &grantRefusal{refusal: refusal}
+	hash := p.hashSecret(SecretCode, code)
+	p.core.AfterTx(ctx, func(ctx context.Context) {
+		now := p.core.Now()
+		n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
+			Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
+		if err != nil {
+			e.fail(err)
+			return
+		}
+		if n == 0 && family != "" {
+			p.revokeFamily(ctx, family)
+		}
+	})
+	return e
+}

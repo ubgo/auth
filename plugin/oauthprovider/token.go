@@ -138,10 +138,10 @@ func (p *Plugin) doToken(ctx context.Context, _ *auth.Call, in TokenRequest) (To
 	}
 	client, err := p.authenticateClient(ctx, in.credentials(), p.endpoint(pathToken))
 	if err != nil {
-		return TokenResponse{}, p.refuseCodeRequest(ctx, in, err)
+		return TokenResponse{}, p.refuseGrantRequest(ctx, in, err)
 	}
 	if !slices.Contains(client.client().GrantTypes, in.GrantType) {
-		return TokenResponse{}, p.refuseCodeRequest(ctx, in, ErrUnauthorizedClient)
+		return TokenResponse{}, p.refuseGrantRequest(ctx, in, ErrUnauthorizedClient)
 	}
 	switch in.GrantType {
 	case GrantAuthorizationCode:
@@ -156,17 +156,21 @@ func (p *Plugin) doToken(ctx context.Context, _ *auth.Call, in TokenRequest) (To
 	return p.extensionGrant(ctx, g, client, in)
 }
 
-// refuseCodeRequest is the refusal of a code exchange whose client was not
-// authenticated or may not use the grant: the code it presented is burned
-// all the same (burnCode), since the request named it. Any other grant's
-// refusal is err unchanged.
-func (p *Plugin) refuseCodeRequest(ctx context.Context, in TokenRequest, err error) error {
-	if in.Code == "" {
-		return err
-	}
+// refuseGrantRequest is the refusal of a code exchange or a refresh whose
+// client was not authenticated or may not use the grant: the code it
+// presented is burned (burnCode), and the refresh token's family revoked
+// (burnRefresh), all the same, since the request named them. Any other
+// grant's refusal is err unchanged.
+func (p *Plugin) refuseGrantRequest(ctx context.Context, in TokenRequest, err error) error {
 	switch in.GrantType {
 	case GrantAuthorizationCode:
-		return p.burnCode(ctx, in.Code, "", err)
+		if in.Code != "" {
+			return p.burnCode(ctx, in.Code, "", err)
+		}
+	case GrantRefreshToken:
+		if hash, ok := p.refreshHash(ctx, in.RefreshToken); ok {
+			return p.burnRefresh(ctx, hash, err)
+		}
 	}
 	return err
 }
@@ -230,7 +234,12 @@ func (r *tokenRow) bindings() []sqlb.Binding {
 // refresh rotates a refresh token: the presented one is spent and a new
 // pair is issued in the same family. Presenting a spent or revoked refresh
 // token is reuse, which revokes the whole family (OAuth 2.1 section 4.3.1),
-// on a write the refused request's rollback does not undo.
+// on a write the refused request's rollback does not undo. So does a
+// request the token's bindings refuse (burnRefresh): another client, an
+// expired token, a user that is gone, or a DPoP proof of another key. A
+// refusal after the bindings held (a scope or resource the grant does not
+// cover, a DPoP proof to redo, a failed write) leaves the token to the
+// client that proved it holds it.
 func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest) (TokenResponse, error) {
 	if in.RefreshToken == "" {
 		return TokenResponse{}, ErrInvalidRequest
@@ -268,16 +277,16 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 		}
 		if found {
 			if _, err := p.tokenBinding(ctx, in.DPoPProof, deref(r.jkt), deref(r.jkt) != ""); err != nil {
-				return TokenResponse{}, err
+				return TokenResponse{}, p.refuseRefresh(ctx, hash, err)
 			}
 			return res, nil
 		}
 	}
 	if r.client != client.c.ClientID || r.refreshExpires == nil || !now.Before(*r.refreshExpires) || r.user == nil {
-		return TokenResponse{}, ErrInvalidGrant
+		return TokenResponse{}, p.burnRefresh(ctx, hash, ErrInvalidGrant)
 	}
 	if err := p.userExists(ctx, *r.user); err != nil {
-		return TokenResponse{}, err
+		return TokenResponse{}, p.refuseRefresh(ctx, hash, err)
 	}
 	scopes := strings.Fields(r.scopes)
 	if in.Scope != "" {
@@ -294,10 +303,25 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 		return TokenResponse{}, err
 	}
 	res, err := p.issue(ctx, issuance{grantType: GrantRefreshToken, proof: in.DPoPProof, expectedJKT: deref(r.jkt), client: client, userID: *r.user, sessionID: deref(r.session), scopes: scopes, family: r.family, authTime: r.authTime, refreshing: true, resource: resource, userInfoClaims: splitClaims(r.claims), referenceID: deref(r.refID)})
-	if err == nil && n == 1 && p.replay != nil {
-		err = p.storeReplay(ctx, r.id, in, res)
+	if err != nil {
+		return TokenResponse{}, p.refuseRefresh(ctx, hash, err)
 	}
-	return res, err
+	if n == 1 && p.replay != nil {
+		if err := p.storeReplay(ctx, r.id, in, res); err != nil {
+			return TokenResponse{}, err
+		}
+	}
+	return res, nil
+}
+
+// refuseRefresh is err, and revokes the family too (burnRefresh) when err
+// says the request failed a binding of the token: its user is gone, or its
+// DPoP proof is of another key.
+func (p *Plugin) refuseRefresh(ctx context.Context, hash []byte, err error) error {
+	if errors.Is(err, ErrInvalidUser) || isDPoPOtherKey(err) {
+		return p.burnRefresh(ctx, hash, err)
+	}
+	return err
 }
 
 // userExists checks that a grant's user still exists: a deleted user is
@@ -579,6 +603,34 @@ func primaryEmail(ids []auth.Identity) (auth.Identity, bool) {
 		return auth.Identity{}, false
 	}
 	return *first, true
+}
+
+// burnRefresh revokes the family of the refresh token whose hash a refused
+// request presented, as a reuse does, on writes the refusal's rollback does
+// not undo (AfterTx), and returns refusal wrapped so a failure of those
+// writes reaches the caller. The family is found and revoked after the
+// rollback, so a rotation that slipped in between is in the family and is
+// revoked with it. An unknown token has no family and changes nothing.
+//
+//ds:def id=oauthprovider-burnrefresh-q5x7kd3n owner=@khanakia stability=stable
+func (p *Plugin) burnRefresh(ctx context.Context, hash []byte, refusal error) error {
+	e := &grantRefusal{refusal: refusal}
+	p.core.AfterTx(ctx, func(ctx context.Context) {
+		var family string
+		err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(TokenFamily, &family)).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash)))
+		if errors.Is(err, sqlb.ErrNoRows) {
+			return
+		}
+		if err == nil {
+			now := p.core.Now()
+			_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
+				Where(sqlb.Eq(TokenFamily, family), sqlb.IsNull(TokenRevoked)))
+		}
+		if err != nil {
+			e.fail(err)
+		}
+	})
+	return e
 }
 
 // revokeFamily revokes every token of a family. It runs after a refused

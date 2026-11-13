@@ -27,6 +27,8 @@ const opResource = "https://api.example.com/v1"
 // A token for an RFC 8707 resource is a JWT whose aud is the resource,
 // verifiable offline; it is still revocable and introspectable, and a
 // route of one resource refuses a token for another or for none.
+//
+//ds:def id=testoauthprovider-resourcejwtaccesstokens-p735ucxk owner=@khanakia stability=stable
 func TestOAuthProvider_ResourceJWTAccessTokens(t *testing.T) {
 	eachEngine(t, func(t *testing.T, e *env) {
 		o := newOPEnv(t, e, oauthprovider.Scopes("openid", "profile", "email", "offline_access", "api:read", "other:read"),

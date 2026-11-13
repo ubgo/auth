@@ -948,6 +948,9 @@ func TestOAuthProvider_TokenRefusals(t *testing.T) {
 		if _, err := refresh(other, tok.RefreshToken, "", ""); !errors.Is(err, oauthprovider.ErrInvalidGrant) {
 			t.Fatalf("another client's refresh token: %v", err)
 		}
+		// That refusal revoked the family (TestOAuthProvider_FailedRefreshRevokesFamily);
+		// the refusals below need a live one.
+		tok = must[oauthprovider.TokenResponse](t)(o.op.Token(anon(o.a), exchange(reg, o.code(t, authzReq(reg.ClientID)), opVerifier)))
 		if _, err := refresh(reg, tok.RefreshToken, "openid admin", ""); !errors.Is(err, oauthprovider.ErrInvalidScope) {
 			t.Fatalf("widening refresh: %v", err)
 		}
@@ -1146,6 +1149,8 @@ func TestOAuthProvider_ExtensionGrantDecisions(t *testing.T) {
 
 // A failing id generator (auth.WithIDs) stops every write that needs a new
 // id, and nothing half-made is left behind.
+//
+//ds:def id=testoauthprovider-idgeneratorfailures-rcqftdr5 owner=@khanakia stability=stable
 func TestOAuthProvider_IDGeneratorFailures(t *testing.T) {
 	errIDs := errors.New("id service down")
 	const grantType = "urn:example:grant"
