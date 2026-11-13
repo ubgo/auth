@@ -69,7 +69,7 @@ Everything in `src/` except `src/oidc/` is generated: edit `authhttp/typescript.
 | `task ts:typecheck` | Fails unless `test/typecheck/bad.ts` fails to compile on exactly its 10 marked lines, each with its marked error (a line marked `expect TSaaaa|TSbbbb` accepts either code) |
 | `task ts:smoke` | Starts the `two-factor` example on port 8095 and runs `test/smoke.ts` against it with Node (22.18 or later, which runs `.ts` without a flag) |
 | `pnpm build` | Compiles both entries to `dist/` (`.js` and `.d.ts`); `dist/` is not committed, `prepack` rebuilds it |
-| `pnpm publish:dry-run` | Packs with pnpm (which applies `publishConfig.exports`, pointing both entries at `dist/`), checks the tarball holds only `dist/`, `package.json` and the README, then runs `npm publish --dry-run` on it. A real publish is `pnpm publish`; a plain `npm publish` is refused, because npm would ship the source paths |
+| `pnpm publish:dry-run` | Packs with pnpm (which applies `publishConfig.exports`, pointing both entries at `dist/`), checks the tarball holds only `dist/`, `package.json`, the README and `LICENSE` (a copy of the repository's root licence), each of the last three required, then runs `npm publish --dry-run` on it. A real publish is `pnpm publish`; a plain `npm publish` is refused, because npm would ship the source paths |
 | `node test/oidc/run.ts` | The oidc entry's tests (Node 22.18 or later) |
 
 ## `@ubgo/auth-client/oidc`: server-side sign-in through an OpenID Connect server

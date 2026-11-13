@@ -77,7 +77,7 @@ SignInForm, SignUpForm, PasswordStrength, ForgotPasswordForm, ResetPasswordForm,
 In this repository `exports` points at `src/index.ts`, so the showcase, the demo and the examples that link the package bundle and type-check its source with no build step. The published manifest points at `dist/` instead, through `publishConfig.exports`, which pnpm applies when it packs and npm does not. So:
 
 - `pnpm build` writes `dist/` (`tsc -p tsconfig.build.json`, then the `.d.ts` files' relative imports rewritten from `.ts`/`.tsx` to `.js`).
-- `pnpm run publish:dry-run` packs with `pnpm pack`, fails when the tarball holds anything but `dist/`, `README.md`, `package.json` (and `LICENSE`) or when its `exports` name a file it lacks, then runs `npm publish --dry-run` on that tarball.
+- `pnpm run publish:dry-run` packs with `pnpm pack`, fails when the tarball holds anything but `dist/`, `README.md`, `package.json` and `LICENSE` (a copy of the repository's root licence), lacks one of those three, or when its `exports` name a file it lacks, then runs `npm publish --dry-run` on that tarball.
 - A real release is `pnpm publish` from this folder, after `@ubgo/auth-client` at the version the peer range asks for is on npm. `npm publish` here is refused by `prepublishOnly`, because it would upload the source paths.
 
 ## Not built yet

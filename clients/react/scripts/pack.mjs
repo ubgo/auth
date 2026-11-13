@@ -37,6 +37,12 @@ const COMMAND = Object.freeze({ build: "build", guard: "guard", dryRun: "dry-run
  * (src/, registry/, test/, showcase/) in the tarball fails the dry run.
  */
 const ALLOWED_TOP_LEVEL = new Set(["package.json", "README.md", "LICENSE"]);
+/**
+ * Paths the tarball must hold besides dist/: the Apache-2.0 text travels with
+ * the code (a copy of the repository's root LICENSE), so a dry run without it
+ * fails rather than publishing a package with no licence file.
+ */
+const REQUIRED_TOP_LEVEL = ["LICENSE", "README.md", "package.json"];
 /** The prefix every packed path carries inside an npm tarball. */
 const TARBALL_PREFIX = "package/";
 
@@ -124,6 +130,8 @@ function dryRun() {
       .map((line) => line.slice(TARBALL_PREFIX.length));
     const stray = files.filter((path) => !path.startsWith("dist/") && !ALLOWED_TOP_LEVEL.has(path));
     if (stray.length > 0) throw new Error(`dry-run: the tarball carries files outside dist/: ${stray.join(", ")}`);
+    const lacking = REQUIRED_TOP_LEVEL.filter((path) => !files.includes(path));
+    if (lacking.length > 0) throw new Error(`dry-run: the tarball lacks ${lacking.join(", ")}`);
 
     const manifest = JSON.parse(capture("tar", ["-xzOf", tarballPath, `${TARBALL_PREFIX}package.json`]));
     // The leaf values of the exports map are file targets; its keys (".",

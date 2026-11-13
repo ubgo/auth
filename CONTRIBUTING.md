@@ -25,6 +25,8 @@ task cover          # statement coverage, unit and integration merged, per packa
 
 **Every feature is one typed operation.** Define it with `auth.Define[In, Out]`; the Go call, the HTTP route and the GraphQL resolver all run it through the same pipeline. Never add a route that calls store functions directly.
 
+**Operator-only methods are plain methods until the core has an operator requirement.** `DeleteClient`, `PatchClient` and `RevokeUserForClient` act for the operator's own tooling and shell (`auth oauth-client`), never for a request's caller, so they are Go methods, not `auth.Define` operations, and are never mounted on a route; when the core gains an operator requirement they become operations.
+
 **Plugins never write core tables directly.** They go through the core API (`CreateIdentity`, `SetUserColumn`, …). `TestGuard_PluginsNeverWriteCoreTables` checks the syntax tree.
 
 **Values are normalized in Go and compared exactly.** No `lower()` in SQL. Anything that depends on the engine gets a case in the integration suite.
