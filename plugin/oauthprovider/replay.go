@@ -47,10 +47,16 @@ func (p *Plugin) storeReplay(ctx context.Context, rowID string, in TokenRequest,
 // as without RefreshReplay), ErrInvalidGrant when the reuse asks for
 // something else than the first use did, refused without revoking the
 // family.
+//
+// The read is a locking one (lockedRead) for the reason refresh's re-read
+// is: the response was stored by the request that rotated the token, which
+// may have committed while this transaction was open, and a plain read on
+// MySQL's REPEATABLE READ would miss it and issue a second pair.
 func (p *Plugin) replayed(ctx context.Context, rowID string, in TokenRequest, now time.Time) (TokenResponse, bool, error) {
 	var sealed *string
 	var exp *time.Time
-	if err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(TokenReplay, &sealed), sqlb.Bind(TokenReplayExpires, &exp)).From(TableToken).Where(sqlb.Eq(TokenID, rowID))); err != nil {
+	read := p.core.Select().Columns(sqlb.Bind(TokenReplay, &sealed), sqlb.Bind(TokenReplayExpires, &exp)).From(TableToken).Where(sqlb.Eq(TokenID, rowID))
+	if err := p.core.One(ctx, p.lockedRead(read)); err != nil {
 		return TokenResponse{}, false, err
 	}
 	if sealed == nil || exp == nil || !now.Before(*exp) {

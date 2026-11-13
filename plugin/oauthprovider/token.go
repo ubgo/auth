@@ -255,7 +255,20 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 		return TokenResponse{}, err
 	}
 	var r tokenRow
-	err = p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash)))
+	read := p.core.Select().Columns(r.bindings()...).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash))
+	if n == 0 {
+		// The token is spent, revoked or unknown, and what decides between a
+		// reuse inside RefreshReuseInterval and a reuse that revokes the
+		// family is the rotation another request committed, possibly while
+		// this transaction was open (two tabs refreshing at once). The
+		// UPDATE above already judged the newest committed row; this read
+		// must too, or on MySQL's REPEATABLE READ it returns this
+		// transaction's older snapshot (rotated still NULL) and a reuse
+		// inside the window revokes the family. TestOAuthProvider_ConcurrentRefreshInsideReuseWindow
+		// pins it on all three engines.
+		read = p.lockedRead(read)
+	}
+	err = p.core.One(ctx, read)
 	if errors.Is(err, sqlb.ErrNoRows) {
 		return TokenResponse{}, ErrInvalidGrant
 	}

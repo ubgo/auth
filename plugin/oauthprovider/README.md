@@ -110,7 +110,7 @@ Each rule has a test in `integration/r33_test.go` that was broken once to prove 
 | `Claims(fn)` | none | Extra ID token and userinfo claims; it cannot override `iss`, `sub`, `aud`, `exp`, `iat`, `nonce`, `auth_time` or `azp` |
 | `AllowDynamicRegistration()` | off | RFC 7591 registration for signed-in users |
 | `AllowUnauthenticatedRegistration()` | off | Registration with no session, as MCP clients expect; such a client has no owner |
-| `RefreshReuseInterval(d)` | 0 | A just-rotated refresh token works again within `d` (a new pair each time), for clients that refresh from two tabs; after `d`, reuse revokes the family |
+| `RefreshReuseInterval(d)` | 0 | A just-rotated refresh token works again within `d` (a new pair each time, or the first answer with `RefreshReplay`); after `d`, reuse revokes the family. With 0 the second of two concurrent refreshes signs the user out, so a relying party on several instances, serverless workers or several browser tabs needs a few seconds here |
 | `AssertionMaxLifetime(d)` | 5m | The longest a `private_key_jwt` assertion may live |
 | `RateLimit(endpoint, n, window)`, `NoDefaultRateLimits()` | [per endpoint](ds:block?id=oauthprovider-defaultratelimits-q7v3mx2k) | Per-IP limits per endpoint; `n` 0 removes one |
 | `ClientIDMetadataDocuments(...)` | off | CIMD: https client ids are fetched metadata documents |

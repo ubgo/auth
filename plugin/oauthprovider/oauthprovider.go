@@ -405,10 +405,21 @@ func IDTokenTTL(d time.Duration) Option { return func(p *Plugin) { p.idTokenTTL 
 // RefreshReuseInterval lets a refresh token that was just rotated be
 // presented again within d without revoking its family, for a client that
 // refreshes from two tabs or retries after a lost response. Each such reuse
-// issues a new pair; after d, reuse revokes the family as before. 0 (the
-// default) allows no reuse. A reuse issues a new pair rather than replaying
-// the earlier response, because this library keeps no plaintext token to
-// replay.
+// issues a new pair in the same family (ClientAccess is asked again), or,
+// with RefreshReplay, answers the first use's response again; after d,
+// reuse revokes the family as before. A revoked family is never inside the
+// window. The window is judged on the rotation as committed, so two
+// refreshes in flight at once behave the same on every engine.
+//
+// 0, the default, allows no reuse (OAuth 2.1 strict rotation): the second
+// of two refreshes presenting the same token revokes the whole family and
+// signs the user out of the client. So a relying party that can refresh
+// twice at once needs a window here: one running on several instances or
+// serverless workers with a shared session, or a browser app refreshing
+// from several tabs. A few seconds covers concurrent requests; MCP() sets
+// MCPRefreshReuseInterval for agent clients that retry.
+//
+//ds:def id=oauthprovider-refreshreuseinterval-y84nezrp owner=@khanakia stability=stable
 func RefreshReuseInterval(d time.Duration) Option { return func(p *Plugin) { p.refreshReuse = d } }
 
 // AssertionMaxLifetime overrides DefaultAssertionMaxLifetime.
