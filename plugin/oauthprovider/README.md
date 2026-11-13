@@ -158,9 +158,12 @@ myapp auth oauth-client list
 myapp auth oauth-client show wiki --json
 myapp auth oauth-client update wiki --post-logout-uri https://wiki.example.com/signed-out --disabled=false
 myapp auth oauth-client delete wiki --dry-run
+myapp auth oauth-client revoke-user wiki sam@partner.io
 ```
 
 A client is named by its id or its name; `create` refuses a name another client has, and a name two clients share (made from Go) is `ErrAmbiguousClient`. The secret is printed once, or with `--secret-file` written to a new file with mode 0600 and never printed. `update` changes only the flags given; a list flag given as `""` clears the list.
+
+`RevokeUserForClient(ctx, RevokeUserRequest{ClientID, UserID})` (the CLI's `revoke-user`, which also takes a verified email address for the user) ends everything one user holds at one client, in one transaction: every access and refresh token (introspection answers inactive and a refresh is `invalid_grant`, inside `RefreshReuseInterval` too), every unredeemed code, and the consent; after the commit the client is sent a back-channel logout per session when it registered one. It returns what it ended (`RevokeUserResult`); a second run returns all zero. It does not stop the user from authorizing again, so change the `ClientAccess` rule first, then revoke. A JWT access token a resource server checks by signature alone stays valid there until it expires. `integration/revokeuser_test.go` pins each of these.
 
 ## Resource servers and MCP
 
