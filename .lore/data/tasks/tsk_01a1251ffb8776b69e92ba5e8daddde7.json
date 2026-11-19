@@ -1,11 +1,13 @@
 {
+  "_hlc": "2026-10-10T10:03:13.271Z/0000/",
   "_table": "tasks",
-  "_v": 1,
+  "_v": 2,
   "assigned_to_actor_id": null,
   "body": null,
   "commitment": "accepted",
   "completed_at": "2026-10-10T10:03:13.271158000Z",
   "created_at": "2026-10-10T09:23:35.431439000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "deferred_until": null,
   "due_at": null,
@@ -19,5 +21,6 @@
   "status": "done",
   "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
   "title": "Docs: ent on the same *sql.DB and transaction recipe; databases.md Step 6 paragraph on querying through the exported sqlb handles",
-  "updated_at": "2026-10-10T10:03:13.271174000Z"
+  "updated_at": "2026-10-10T10:03:13.271174000Z",
+  "updated_by": "act_00000000000070008000000000000000"
 }

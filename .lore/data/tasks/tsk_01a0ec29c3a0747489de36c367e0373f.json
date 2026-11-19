@@ -1,11 +1,13 @@
 {
+  "_hlc": "2026-10-02T14:07:55.676Z/0000/",
   "_table": "tasks",
-  "_v": 1,
+  "_v": 2,
   "assigned_to_actor_id": null,
   "body": null,
   "commitment": "accepted",
   "completed_at": "2026-10-02T14:07:55.675815000Z",
   "created_at": "2026-09-29T07:55:55.168290000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "deferred_until": null,
   "due_at": null,
@@ -19,5 +21,6 @@
   "status": "done",
   "tasklist_id": "tlt_01a0ec29c16f7d569454b9c6793d9792",
   "title": "Decide whether any current app needs orgs or workspaces in v0",
-  "updated_at": "2026-10-02T14:07:55.676021000Z"
+  "updated_at": "2026-10-02T14:07:55.676021000Z",
+  "updated_by": "act_00000000000070008000000000000000"
 }

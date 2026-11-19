@@ -1,12 +1,14 @@
 {
+  "_hlc": "2026-10-01T04:51:58.446Z/0000/",
   "_table": "rules",
-  "_v": 1,
+  "_v": 2,
   "activation": "always",
   "applies_to_description": null,
   "archived_at": null,
   "body": "A request for docs or a guide covers the whole library by default: getting started, concepts, every plugin, every integration, reference, operations and extending, with tested snippets. The owner's examples illustrate the kind of content wanted; they do not limit it.",
   "confidence": null,
   "created_at": "2026-10-01T04:51:58.446642000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "globs": null,
   "id": "rul_01a0f5ce136e79d7b7fffb7ac870f1d1",
@@ -18,5 +20,6 @@
   "source_ref": null,
   "superseded_by_id": null,
   "trust_score": 0.5,
-  "updated_at": "2026-10-01T04:51:58.446642000Z"
+  "updated_at": "2026-10-01T04:51:58.446642000Z",
+  "updated_by": "act_01a0ec295d707df281151dcef1a34bdb"
 }

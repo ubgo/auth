@@ -1,12 +1,14 @@
 {
+  "_hlc": "2026-10-05T15:51:08.776Z/0000/",
   "_table": "rules",
-  "_v": 1,
+  "_v": 2,
   "activation": "always",
   "applies_to_description": null,
   "archived_at": null,
   "body": "Choose the most flexible, extensible option (pluggable stores, typed hooks, per-instance options) unless it weakens a security guarantee (owner 2026-10-03). Every session store must keep everything the core stores on a session (sessiontest is the contract), so SQL, Redis, memory and custom stores stay interchangeable.",
   "confidence": null,
   "created_at": "2026-10-05T15:51:08.776419000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "globs": null,
   "id": "rul_01a10cc300e87670b029b5e3ba4a0e10",
@@ -18,5 +20,6 @@
   "source_ref": null,
   "superseded_by_id": null,
   "trust_score": 0.5,
-  "updated_at": "2026-10-05T15:51:08.776421000Z"
+  "updated_at": "2026-10-05T15:51:08.776421000Z",
+  "updated_by": "act_00000000000070008000000000000000"
 }
