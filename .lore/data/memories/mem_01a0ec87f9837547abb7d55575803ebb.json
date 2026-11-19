@@ -1,10 +1,12 @@
 {
+  "_hlc": "2026-09-29T09:38:49.347Z/0000/",
   "_table": "memories",
-  "_v": 1,
+  "_v": 2,
   "archived_at": null,
   "body": "ubgo/auth needs no logo or brand kit (owner, 2026-09-29): brand/ was deleted and the README has no logo; do not re-add branding.",
   "confidence": null,
   "created_at": "2026-09-29T09:38:49.347316000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "id": "mem_01a0ec87f9837547abb7d55575803ebb",
   "kind": "retrieved",
@@ -17,6 +19,7 @@
   "trust_score": 0.5,
   "tx_at": "2026-09-29T09:38:49.347316000Z",
   "updated_at": "2026-09-29T09:38:49.347316000Z",
+  "updated_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "valid_at": null,
   "valid_until": null,
   "validated_by_actor_id": null

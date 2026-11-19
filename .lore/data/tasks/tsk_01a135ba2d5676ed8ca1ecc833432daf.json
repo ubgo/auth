@@ -1,11 +1,13 @@
 {
+  "_hlc": "2026-10-13T17:58:12.558Z/0000/",
   "_table": "tasks",
-  "_v": 1,
+  "_v": 2,
   "assigned_to_actor_id": null,
   "body": "SessionTasker, CompleteSessionTask, auth.session_task_pending; WithTokenRotation with SessionTokenRotator (SQL, memory, contrib/redis); examples session-tasks, token-rotation.",
   "commitment": "accepted",
   "completed_at": "2026-10-13T17:58:12.558962000Z",
   "created_at": "2026-10-13T14:45:56.182450000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "deferred_until": null,
   "due_at": null,
@@ -19,5 +21,6 @@
   "status": "done",
   "tasklist_id": "tlt_01a11faebaa8775ab85faeef3e8cc436",
   "title": "Batch 5: session tasks and token rotation with reuse detection",
-  "updated_at": "2026-10-13T17:58:12.558964000Z"
+  "updated_at": "2026-10-13T17:58:12.558964000Z",
+  "updated_by": "act_00000000000070008000000000000000"
 }

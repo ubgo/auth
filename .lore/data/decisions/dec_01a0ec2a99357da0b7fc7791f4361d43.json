@@ -1,10 +1,12 @@
 {
+  "_hlc": "2026-09-29T07:56:49.845Z/0000/",
   "_table": "decisions",
-  "_v": 1,
+  "_v": 2,
   "archived_at": null,
   "body": "The owner asked on 2026-09-29 to use lore; the old task file was retired, open items became lore tasks, finished items moved to the build log. One store for work avoids the drift of two.",
   "confidence": null,
   "created_at": "2026-09-29T07:56:49.845891000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "id": "dec_01a0ec2a99357da0b7fc7791f4361d43",
   "last_validated_at": null,
@@ -16,5 +18,6 @@
   "superseded_by_id": null,
   "title": "Tasks for ubgo/auth live in lore",
   "trust_score": 0.5,
-  "updated_at": "2026-09-29T07:56:49.845891000Z"
+  "updated_at": "2026-09-29T07:56:49.845891000Z",
+  "updated_by": "act_01a0ec295d707df281151dcef1a34bdb"
 }

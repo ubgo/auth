@@ -1,10 +1,12 @@
 {
+  "_hlc": "2026-10-01T17:07:47.811Z/0000/",
   "_table": "memories",
-  "_v": 1,
+  "_v": 2,
   "archived_at": null,
   "body": "Start a new session on ubgo/auth with the 2026-10-01 session handoff: state, open items (docsync review, CHANGELOG, checklist recount, core round-1 finish), team procedure and gotchas.",
   "confidence": null,
   "created_at": "2026-10-01T17:07:47.811334000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "id": "mem_01a0f86fbde37524b305d19a7d183f29",
   "kind": "retrieved",
@@ -17,6 +19,7 @@
   "trust_score": 0.5,
   "tx_at": "2026-10-01T17:07:47.811335000Z",
   "updated_at": "2026-10-01T17:07:47.811334000Z",
+  "updated_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "valid_at": null,
   "valid_until": null,
   "validated_by_actor_id": null

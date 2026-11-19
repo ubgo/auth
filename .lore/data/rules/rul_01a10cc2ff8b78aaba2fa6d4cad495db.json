@@ -1,12 +1,14 @@
 {
+  "_hlc": "2026-10-05T15:51:08.427Z/0000/",
   "_table": "rules",
-  "_v": 1,
+  "_v": 2,
   "activation": "always",
   "applies_to_description": null,
   "archived_at": null,
   "body": "Never build SQL by concatenating a table-name constant (\"CREATE TABLE \" + TableNameX, \"REFERENCES \" + ...). Every table name goes through the Auth (a.TableName(t), the renaming dialect), because auth.RenameTable and auth.WithTablePrefix rename tables per instance. TestGuard_TableNamesNeverConcatenated enforces it, and task check reruns the integration suite with every table prefixed.",
   "confidence": null,
   "created_at": "2026-10-05T15:51:08.427565000Z",
+  "created_by": "act_01a0ec295d707df281151dcef1a34bdb",
   "created_by_actor_id": "act_01a0ec295d707df281151dcef1a34bdb",
   "globs": null,
   "id": "rul_01a10cc2ff8b78aaba2fa6d4cad495db",
@@ -18,5 +20,6 @@
   "source_ref": null,
   "superseded_by_id": null,
   "trust_score": 0.5,
-  "updated_at": "2026-10-05T15:51:08.427567000Z"
+  "updated_at": "2026-10-05T15:51:08.427567000Z",
+  "updated_by": "act_00000000000070008000000000000000"
 }
