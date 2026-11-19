@@ -35,3 +35,10 @@ node_modules/
 
 # lore's generated agent page (regenerated locally)
 .lore/LORE.md
+
+# lore
+.lore/lore.db.broken.*
+.lore/lock
+
+# lore
+.lore/data/**/.tmp-*
