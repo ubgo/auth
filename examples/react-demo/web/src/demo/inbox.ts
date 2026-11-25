@@ -18,7 +18,7 @@ const INBOX_KEY = ["demo", "inbox"] as const
 /** How often the inbox is re-read, so a mailed link shows up within a moment. */
 const INBOX_POLL_MS = 2000
 
-function isMail(value: unknown): value is DemoMail {
+function isDemoMail(value: unknown): value is DemoMail {
   if (typeof value !== "object" || value === null) return false
   const m = value as Record<string, unknown>
   return typeof m["id"] === "string" && typeof m["to"] === "string" && typeof m["subject"] === "string" && typeof m["text"] === "string" && Array.isArray(m["links"])
@@ -29,7 +29,7 @@ async function readInbox(): Promise<readonly DemoMail[]> {
   if (!res.ok) throw new Error(`inbox answered ${res.status}`)
   const body: unknown = await res.json()
   const list = typeof body === "object" && body !== null ? (body as Record<string, unknown>)["messages"] : null
-  return Array.isArray(list) ? list.filter(isMail) : []
+  return Array.isArray(list) ? list.filter(isDemoMail) : []
 }
 
 export function useInbox() {

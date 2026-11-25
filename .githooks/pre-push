@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Refuse pushing commits whose messages, authors or diffs hold private names.
+# Activate: git config core.hooksPath .githooks
+exec bash "$(git rev-parse --show-toplevel)/scripts/check-names.sh" --push
