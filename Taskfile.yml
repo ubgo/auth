@@ -37,6 +37,7 @@ tasks:
   # Called through testlock by the public task above; no desc keeps it off task --list.
   check:run:
     cmds:
+      - task: names:check
       - 'test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)'
       - 'go vet ./...'
       - 'go test ./...'
@@ -569,3 +570,8 @@ tasks:
     desc: Retake the screenshots the docs embed (docs/assets/screenshots, committed) headless, from the React demo and the react-headless, react-router-app and nextjs-app examples against throwaway servers on 8140-8143/5220-5223, compressed with pngquant and optipng when on PATH (task ui:install once first)
     dir: examples/react-demo/web
     cmds: ['./scripts/docs-shots.sh']
+
+  names:check:
+    desc: Fail if a tracked file holds a private name listed (as a sha256 hash) in .github/denyhash.txt
+    cmds:
+      - bash scripts/check-names.sh
