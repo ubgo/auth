@@ -2,20 +2,17 @@
 
 ## The gate
 
-```sh
-task check
-```
-
-That runs gofmt, vet and tests in every module, the SQLite integration suite, the regenerated gqlgen example, the negative type-check build and the PoC's wiring guards. Everything must be green before a change is proposed.
-
-A change that touches SQL also runs on all three engines:
+**Full and release gates run on GitHub Actions (test.yml via workflow_dispatch) on the exact commit; locally only per-package tests.** `.github/workflows/test.yml` runs `task check` (gofmt, vet and tests in every module, the SQLite integration suite plain and with every table prefixed, the regenerated gqlgen example, the negative type-check build, the PoC's wiring guards, the doc gates) and the integration suite on SQLite, Postgres and MySQL with the race detector, plain and with every table prefixed. It is started by hand only, never on push or pull request:
 
 ```sh
-task test:engines   # SQLite, Postgres and MySQL, race detector on
-task cover          # statement coverage, unit and integration merged, per package
+git push origin <branch>
+task ci REF=<branch>   # gh workflow run test --ref <branch>
+task ci:status         # the latest runs and the failing job's last log lines
 ```
 
-`task --list` shows every other command. CI runs the same gate on GitHub Actions (`.github/workflows/test.yml`): `task check` plus the Postgres and MySQL integration suites, started by hand only (it does not run on push or pull request, so run `task check` locally before opening one). `task ci` starts a run on the pushed `main` and `task ci:status` shows the latest runs and the failing job's last log lines, so the heavy suites need not run on your machine; run the touched package's tests locally while you work.
+While you work, run the touched packages' tests (`go test ./plugin/<name>/...`, or one integration test with `-run`). `task check`, `task test:engines` and `task cover` still work on a machine of your own, but they are not the gate and are not needed.
+
+**Changes land through a PR, squash-merged, one commit per change on main; release tags go on the squashed commit after a green test.yml on it.** The order: a green run on the branch head, the squash merge, a green run on main at the squashed commit, then the tag. Nothing on main is rewritten.
 
 ## The rules a change is reviewed against
 
@@ -61,4 +58,4 @@ A core plugin is one the maintainers commit to keep working across releases; a c
 
 ## Pull requests
 
-Keep a pull request to one change. Update the README, the example READMEs, and CHANGELOG.md for anything a user can see; tag a security fix **[security]** and a breaking change **[breaking]**.
+Keep a pull request to one change; it lands squash-merged, so main gets one commit for it. Update the README, the example READMEs, and CHANGELOG.md for anything a user can see; tag a security fix **[security]** and a breaking change **[breaking]**.

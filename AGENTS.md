@@ -10,13 +10,11 @@ Read [README.md](./README.md) for the surface, [examples/](./examples/) for runn
 
 ## Before you finish
 
-```sh
-task check          # every module, SQLite integration, gqlgen example, type and dependency gates
-task test:engines   # when SQL changed: SQLite, Postgres and MySQL
-task cover          # statement coverage per package, unit and integration merged
-```
+**Full and release gates run on GitHub Actions (test.yml via workflow_dispatch) on the exact commit; locally only per-package tests.** Push the branch, then `task ci REF=<branch>` (`gh workflow run test --ref <branch>`) and watch it to the end; `task ci:status` reads the failing job's log. test.yml runs `task check` (every module, the SQLite integration suite plain and prefixed, gqlgen example, type, dependency and doc gates) and the integration suite on SQLite, Postgres and MySQL, plain and prefixed. It stays manual: never add a push or pull_request trigger without the owner's yes. Locally run only the touched packages' tests; never a full `task check`, `task test:engines` or `task cover`.
 
-If it is not green, the change is not done. GitHub Actions can run `task check` and the Postgres and MySQL suites, started by hand only (`task ci` starts a run, `task ci:status` reads the latest results); the local `task check` is the gate.
+**Changes land through a PR, squash-merged, one commit per change on main; release tags go on the squashed commit after a green test.yml on it.** Order: green run on the branch head, `gh pr merge --squash`, green run on main at the squashed commit, then the tag. Never push work commits straight to main, never a merge commit, never rewrite main.
+
+If it is not green, the change is not done.
 
 ## Rules that override your defaults
 
