@@ -3,6 +3,8 @@
 
 # Project knowledge (full)
 
+_Pinned rows as of 2026-11-27 08:05 UTC; a row's current text: `lore show --id <id>`._
+
 ## Must rules
 
 <rule id="rul_01a0ec2a99697af4a7163662c6972a9d" severity="must" trust="0.50">
@@ -39,5 +41,9 @@ A won't-do reason must be checked against the code before it is written or recom
 
 <rule id="rul_01a10cd9cd6a716fa45db269a6f5a35d" severity="must" trust="0.50">
 Feature completeness wherever possible (owner 2026-10-05): when a common auth feature or shape exists (an option, a parameter, a route), offer it too, alongside our own shape if ours differs, instead of answering 'covered differently'. Only something that weakens security is refused, or offered strictly as an explicit opt-in with its risk documented.
+</rule>
+
+<rule id="rul_01a21c09b6627040bea444262a53a297" severity="must" trust="0.25" review="agent-written, not approved">
+Every limit and behaviour is an option with a documented default (today's value). For a limit, 0 or empty means off or no limit, except where 0 would remove a security protection: that fails at startup naming the option. An option that existed before keeps its zero meaning, and a new no-limit gets its own name (NoLimit, NO_LIMIT). Deliberately fixed behaviours are listed with the reason (docs/reference/options.md and the module's guide). Changes stay backward compatible and ship as patch releases (owner 2026-11-27).
 </rule>
 

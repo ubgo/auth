@@ -30,6 +30,8 @@ If it is not green, the change is not done. GitHub Actions can run `task check` 
 
 **Operator-only methods are plain methods until the core has an operator requirement.** `DeleteClient`, `PatchClient` and `RevokeUserForClient` act for the operator's own tooling and shell (`auth oauth-client`), never for a request's caller, so they are Go methods, not `auth.Define` operations, and are never mounted on a route; when the core gains an operator requirement they become operations. `RevokeUserFamily` is a plain method too: the app's own page decides which user's session it ends (it passes the signed-in user's id), so it is never mounted as a route.
 
+**Every limit and behaviour is an option with a documented default.** The default is today's value, so an app that sets nothing sees no change. For a limit, 0 or an empty value means off or no limit, except where 0 would remove a security protection: there `New` fails at start-up naming the option, so an unset setting read as 0 never starts a server without the protection. An option that existed before keeps the meaning its 0 had, and a new "no limit" gets its own name (`NoLimit`, `NO_LIMIT`). A behaviour deliberately kept fixed is listed with its reason in [Limits and options](docs/reference/options.md) and the module's guide. Changes stay backward compatible and ship as patch releases.
+
 **Plugins write core tables only through the core API.** `TestGuard_PluginsNeverWriteCoreTables` enforces it.
 
 **Every closed-set value is a named constant; every export has its own doc comment** saying why it exists and what stays true.
