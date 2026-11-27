@@ -46,7 +46,10 @@ func (g fakeGoogle) Exchange(context.Context, *http.Client, string, string, stri
 func signIn(t *testing.T, email, client string) (*http.Response, oauthprovider.Registration, *oauthprovider.Plugin) {
 	t.Helper()
 	srv := httptest.NewUnstartedServer(nil)
-	baseURL = "http://" + srv.Listener.Addr().String()
+	// https, as in production: the sign-in's state cookie is Secure, and an
+	// http client (Go's cookie jar before 1.26) never sends it back over
+	// plain http, even to a loopback address.
+	baseURL = "https://" + srv.Listener.Addr().String()
 	db, err := sql.Open("sqlite", "file:"+filepath.Join(t.TempDir(), "t.db"))
 	if err != nil {
 		t.Fatal(err)
@@ -65,19 +68,23 @@ func signIn(t *testing.T, email, client string) (*http.Response, oauthprovider.R
 		t.Fatal(err)
 	}
 	srv.Config.Handler = h
-	srv.Start()
+	srv.StartTLS()
 	t.Cleanup(srv.Close)
 	reg, err := op.CreateClient(context.Background(), oauthprovider.ClientSpec{SkipConsent: true, ClientMetadata: oauthprovider.ClientMetadata{Name: client, RedirectURIs: []string{appRedirect}}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	jar, _ := cookiejar.New(nil)
-	browser := &http.Client{Jar: jar, CheckRedirect: func(r *http.Request, _ []*http.Request) error {
+	// srv.Client() trusts the test certificate; a copy so the jar and the
+	// redirect rule belong to this browser alone.
+	browser := *srv.Client()
+	browser.Jar = jar
+	browser.CheckRedirect = func(r *http.Request, _ []*http.Request) error {
 		if strings.HasPrefix(r.URL.String(), appRedirect) {
 			return http.ErrUseLastResponse
 		}
 		return nil
-	}}
+	}
 	sum := sha256.Sum256([]byte(verifier))
 	authorize := baseURL + oauthprovider.DefaultBasePath + "/authorize?" + url.Values{
 		"response_type": {"code"}, "client_id": {reg.ClientID}, "redirect_uri": {appRedirect}, "scope": {"openid email profile"},
