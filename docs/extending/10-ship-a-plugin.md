@@ -17,10 +17,12 @@ module github.com/ubgo/auth/plugin/password
 go 1.24.0
 
 require (
-	github.com/ubgo/auth v0.0.0
+	github.com/ubgo/auth v0.1.3
 	github.com/ubgo/sqlb v0.1.1
 	golang.org/x/crypto v0.42.0
 )
+
+require golang.org/x/sys v0.36.0 // indirect
 ```
 
 Require the core at a released version. Require `github.com/ubgo/sqlb` only if the plugin builds queries or declares typed columns itself (an identifier plugin that uses only `CreateIdentity`, `IssueCode` and `Deliver` does not).

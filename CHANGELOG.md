@@ -4,6 +4,14 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 ## Unreleased
 
+## Every module on core v0.1.3, 2026-11-27
+
+Sixteen modules required the core at v0.1.1, a version proxy.golang.org still serves but whose tag left the repository with the 2026-11-25 history rewrite (v0.1.3 replaced it), so a build with `GOPROXY=direct` or `GOPRIVATE=github.com/ubgo/*` failed with `unknown revision v0.1.1`. Each now requires `github.com/ubgo/auth` v0.1.3, the same core API, and the modules that require each other point at the new versions. No code changed. Tagged: `plugin/oauthprovider` v0.1.9; `plugin/access`, `plugin/agentauth`, `plugin/deviceauth`, `plugin/deviceauth/oauthdevice`, `plugin/oauthproxy`, `plugin/organization`, `plugin/passkey`, `plugin/password`, `plugin/referral`, `plugin/scim`, `plugin/siwe`, `plugin/sso`, `contrib/otel` and `contrib/redis` v0.1.4; `authui/social` v0.1.3. The modules that require the core at v0.1.0 (still tagged) and the core itself are unchanged.
+
+### Changed
+
+- deps: `plugin/organization` requires `plugin/access` v0.1.4; `plugin/deviceauth/oauthdevice` requires `plugin/deviceauth` v0.1.4 and `plugin/oauthprovider` v0.1.9; `authui/social` requires `plugin/oauthprovider` v0.1.9. Every go.sum follows.
+
 ## oidcclient v0.1.3, plugin/oauthprovider v0.1.8 and @ubgo/auth-client 0.1.1, 2026-11-27
 
 `oidcclient` is tagged v0.1.3 and `plugin/oauthprovider` v0.1.8; `@ubgo/auth-client` is 0.1.1 for npm. The core and every other module are unchanged. Every limit and lifetime of the two OIDC clients and the provider is now an option whose default is the value used before, so nothing changes for an app that sets none; [Limits and options](docs/reference/options.md) lists them all.
