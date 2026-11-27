@@ -96,7 +96,7 @@ func RecheckByUserInfo() Rechecker {
 		var out RecheckResult
 		access := in.Session.Tokens.AccessToken
 		exp := in.Session.Tokens.AccessExpiresAt
-		if !exp.IsZero() && !in.Provider.c.set.now().Before(exp.Add(-tokenLeeway)) && !in.Session.Tokens.RefreshToken.IsZero() {
+		if !exp.IsZero() && !in.Provider.c.set.now().Before(exp.Add(-in.Provider.c.set.skew)) && !in.Session.Tokens.RefreshToken.IsZero() {
 			rf, err := in.Provider.Refresh(ctx, RefreshRequest{RefreshToken: in.Session.Tokens.RefreshToken, Subject: in.Session.User.Subject})
 			if err != nil {
 				return RecheckResult{}, err

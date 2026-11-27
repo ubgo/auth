@@ -54,9 +54,6 @@ const (
 
 // Verification constants.
 const (
-	// tokenLeeway absorbs clock differences between the login server and
-	// this app when checking exp, iat and nbf.
-	tokenLeeway = 30 * time.Second
 	// jwksMinRefresh bounds how often an unknown kid may refetch the key
 	// set, so a flood of forged tokens cannot make the app hammer the server.
 	jwksMinRefresh = time.Minute
@@ -406,7 +403,7 @@ func (b *boolish) UnmarshalJSON(raw []byte) error {
 // required by an ID token and optional on a logout token, so the caller
 // says.
 func (p *Provider) checkCommon(rc registeredClaims, issuer string, requireExp bool) error {
-	now := p.c.set.now()
+	now, skew := p.c.set.now(), p.c.set.skew
 	clientID := p.c.cfg.ClientID
 	switch {
 	case rc.Issuer != issuer:
@@ -419,13 +416,13 @@ func (p *Provider) checkCommon(rc registeredClaims, issuer string, requireExp bo
 		return invalid("several audiences and no azp")
 	case rc.IssuedAt == 0:
 		return invalid("no iat")
-	case now.Add(tokenLeeway).Before(rc.IssuedAt.time()):
+	case now.Add(skew).Before(rc.IssuedAt.time()):
 		return invalid("issued in the future")
-	case rc.NotBefore != 0 && now.Add(tokenLeeway).Before(rc.NotBefore.time()):
+	case rc.NotBefore != 0 && now.Add(skew).Before(rc.NotBefore.time()):
 		return invalid("not yet valid")
 	case requireExp && rc.ExpiresAt == 0:
 		return invalid("no exp")
-	case rc.ExpiresAt != 0 && now.After(rc.ExpiresAt.time().Add(tokenLeeway)):
+	case rc.ExpiresAt != 0 && now.After(rc.ExpiresAt.time().Add(skew)):
 		return invalid("expired")
 	}
 	return nil
