@@ -214,6 +214,11 @@ type ClaimsFunc func(ctx context.Context, u auth.User, scopes []string) map[stri
 
 // Plugin is the OAuth 2.1 / OpenID Connect provider. Build it with New.
 type Plugin struct {
+	// store keeps clients, codes, tokens and consents: WithStore's, or the
+	// SQL store Init sets; customStore records that WithStore set it.
+	store       Store
+	customStore bool
+
 	// optErrs collects what the options found while they ran, such as a
 	// nil func or interface (auth.ErrNilOption); see OptionErr.
 	optErrs auth.OptionErrors
@@ -789,6 +794,9 @@ func validIssuer(raw string) bool {
 // checks that the jwt plugin signs with the provider's issuer.
 func (p *Plugin) Init(a *auth.Auth) error {
 	p.core = a
+	if p.store == nil {
+		p.store = sqlStore{p: p}
+	}
 	// The expiry instant is checked here rather than in Validate because
 	// only Init sees the app's clock (auth.WithClock).
 	if !p.dcrSecretAt.IsZero() && !p.dcrSecretAt.After(a.Now()) {
@@ -853,17 +861,10 @@ func (p *Plugin) checkSignerIssuer(a *auth.Auth) error {
 // Sweep deletes codes and tokens that can no longer be used: expired codes,
 // and token rows whose access and refresh tokens have both expired.
 func (p *Plugin) Sweep(ctx context.Context, cutoff time.Time) (int64, error) {
-	n, err := p.core.Exec(ctx, sqlb.NewDelete(p.core.Dialect()).From(TableCode).Where(sqlb.Less(CodeExpires, cutoff)))
+	n, err := p.store.Sweep(ctx, cutoff)
 	if err != nil {
 		return n, err
 	}
-	m, err := p.core.Exec(ctx, sqlb.NewDelete(p.core.Dialect()).From(TableToken).Where(
-		sqlb.Less(TokenAccessExpires, cutoff),
-		sqlb.Or(sqlb.IsNull(TokenRefreshExpires), sqlb.Less(TokenRefreshExpires, &cutoff)),
-	))
-	if err != nil {
-		return n + m, err
-	}
 	k, err := p.core.Exec(ctx, sqlb.NewDelete(p.core.Dialect()).From(TableAssertion).Where(sqlb.Less(AssertionExpires, cutoff)))
-	return n + m + k, err
+	return n + k, err
 }

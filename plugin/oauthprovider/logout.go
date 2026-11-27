@@ -13,7 +13,6 @@ import (
 
 	"github.com/ubgo/auth"
 	"github.com/ubgo/auth/plugin/jwt"
-	"github.com/ubgo/sqlb"
 )
 
 // RP-initiated logout constants.
@@ -252,14 +251,22 @@ func (p *Plugin) doEndSession(ctx context.Context, c *auth.Call, in EndSessionRe
 // has none, finding its user through the client's tokens for it; a session
 // the client holds no token for is left alone.
 func (p *Plugin) endHintedSession(ctx context.Context, clientID, sid string) error {
-	var user *string
-	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(TokenUser, &user)).From(TableToken).
-		Where(sqlb.Eq(TokenClient, clientID), sqlb.Eq(TokenSession, &sid)).Limit(1))
-	if errors.Is(err, sqlb.ErrNoRows) || (err == nil && user == nil) {
+	if clientID == "" || sid == "" {
 		return nil
 	}
+	toks, err := p.store.Tokens(ctx, TokenFilter{ClientID: clientID, SessionID: sid})
 	if err != nil {
 		return err
+	}
+	var user *string
+	for _, t := range toks {
+		if t.UserID != nil {
+			user = t.UserID
+			break
+		}
+	}
+	if user == nil {
+		return nil
 	}
 	err = p.core.EndSession(ctx, *user, sid, auth.SessionEndProviderLogout)
 	// Gone already, or a stateless session the server cannot end by id.

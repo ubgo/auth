@@ -410,7 +410,7 @@ func (p *Plugin) discoveredClient(ctx context.Context, d ClientDiscoverer, id st
 		if err := p.refreshDiscovered(ctx, id, d.ID, m, now); err != nil {
 			return clientRow{}, err
 		}
-	} else if _, err := p.insertClient(ctx, ClientSpec{ClientMetadata: m, id: id, discovery: d.ID, fetchedAt: &now}); err != nil && !auth.IsUniqueViolation(err) {
+	} else if _, err := p.insertClient(ctx, ClientSpec{ClientMetadata: m, id: id, discovery: d.ID, fetchedAt: &now}); err != nil && !errors.Is(err, ErrRecordExists) {
 		// A unique violation is a concurrent resolution that stored it
 		// first. Metadata the provider refuses (a client error) makes the
 		// client unknown; a failed write is the database's error, not a

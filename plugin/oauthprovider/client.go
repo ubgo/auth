@@ -306,27 +306,6 @@ type clientRow struct {
 	policyURI    *string
 }
 
-func (r *clientRow) bindings() []sqlb.Binding {
-	return []sqlb.Binding{
-		sqlb.Bind(ClientIDCol, &r.c.ClientID), sqlb.Bind(ClientSecret, &r.secretHash), sqlb.Bind(ClientName, &r.c.Name),
-		sqlb.Bind(ClientRedirs, &r.redirects), sqlb.Bind(ClientScopes, &r.scopes), sqlb.Bind(ClientGrants, &r.grants),
-		sqlb.Bind(ClientMethod, &r.c.AuthMethod), sqlb.Bind(ClientSkip, &r.c.SkipConsent), sqlb.Bind(ClientPKCE, &r.c.RequirePKCE),
-		sqlb.Bind(ClientIntro, &r.c.IntrospectAny), sqlb.Bind(ClientOwner, &r.owner), sqlb.Bind(ClientOff, &r.disabledAt),
-		sqlb.Bind(ClientURI, &r.clientURI), sqlb.Bind(ClientLogo, &r.logoURI), sqlb.Bind(ClientContact, &r.contacts),
-		sqlb.Bind(ClientTos, &r.tosURI), sqlb.Bind(ClientPolicy, &r.policyURI),
-		sqlb.Bind(ClientCreated, &r.c.CreatedAt), sqlb.Bind(ClientUpdated, &r.c.UpdatedAt),
-		sqlb.Bind(ClientPostLogout, &r.postLogout), sqlb.Bind(ClientEndSession, &r.c.EndSession), sqlb.Bind(ClientJWKS, &r.jwks),
-		sqlb.Bind(ClientDiscovery, &r.discovery), sqlb.Bind(ClientFetchedAt, &r.fetchedAt), sqlb.Bind(ClientSubject, &r.subjectType),
-		sqlb.Bind(ClientBackURI, &r.backchannel), sqlb.Bind(ClientBackSess, &r.c.BackchannelLogoutSessionRequired),
-		sqlb.Bind(ClientDPoP, &r.c.DPoPBoundAccessTokens),
-		sqlb.Bind(ClientAppType, &r.appType), sqlb.Bind(ClientCCScopes, &r.ccScopes), sqlb.Bind(ClientRefID, &r.refID),
-		sqlb.Bind(ClientMeta, &r.meta), sqlb.Bind(ClientSecretExp, &r.secretExpires),
-		sqlb.Bind(ClientCIMDExpires, &r.cimdExpires), sqlb.Bind(ClientCIMDETag, &r.cimdETag), sqlb.Bind(ClientCIMDLastMod, &r.cimdLastMod),
-		sqlb.Bind(ClientSoftwareID, &r.softwareID), sqlb.Bind(ClientSoftwareVersion, &r.softwareVersion), sqlb.Bind(ClientSoftwareStatement, &r.softwareStatement),
-		sqlb.Bind(ClientJWKSURI, &r.jwksURI),
-	}
-}
-
 // client fills the derived fields of the stored row.
 func (r *clientRow) client() Client {
 	c := r.c
@@ -388,11 +367,14 @@ func (p *Plugin) loadClient(ctx context.Context, id string) (clientRow, error) {
 	if t, ok := p.trustedClient(id); ok {
 		return t, nil
 	}
-	err := p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableClient).Where(sqlb.Eq(ClientIDCol, id)))
-	if errors.Is(err, sqlb.ErrNoRows) {
+	rec, err := p.store.Client(ctx, id)
+	if errors.Is(err, ErrRecordNotFound) {
 		return r, ErrClientNotFound
 	}
-	return r, err
+	if err != nil {
+		return r, err
+	}
+	return clientRowOf(rec), nil
 }
 
 // resolveClient is loadClient for the endpoints a client calls (authorize,
@@ -638,37 +620,36 @@ func (p *Plugin) insertClient(ctx context.Context, spec ClientSpec) (Registratio
 	if spec.SecretExpiresAt != nil {
 		reg.ClientSecretExpiresAt = spec.SecretExpiresAt.Unix()
 	}
-	var hash *[]byte
+	var hash []byte
 	if !public && m.AuthMethod != AuthMethodPrivateKeyJWT && !p.isExtensionMethod(m.AuthMethod) {
 		if reg.Secret, err = p.newClientSecret(); err != nil {
 			return Registration{}, err
 		}
-		h := p.hashSecret(SecretClient, reg.Secret)
-		hash = &h
+		hash = p.hashSecret(SecretClient, reg.Secret)
 	}
 	sealed, err := p.sealSecret(reg.Secret)
 	if err != nil {
 		return Registration{}, err
 	}
-	_, err = p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableClient).Row(
-		sqlb.Set(ClientIDCol, id), sqlb.Set(sqlb.Col[*[]byte](TableClient, ColSecretHash), hash), sqlb.Set(ClientSecretEnc, sealed), sqlb.Set(ClientName, m.Name),
-		sqlb.Set(ClientRedirs, strings.Join(m.RedirectURIs, redirectSeparator)), sqlb.Set(ClientScopes, m.Scope),
-		sqlb.Set(ClientGrants, strings.Join(m.GrantTypes, listSeparator)), sqlb.Set(ClientMethod, m.AuthMethod),
-		sqlb.Set(ClientSkip, c.SkipConsent), sqlb.Set(ClientPKCE, c.RequirePKCE), sqlb.Set(ClientIntro, c.IntrospectAny),
-		sqlb.Set(ClientOwner, optional(spec.OwnerID)), sqlb.Set(ClientURI, optional(m.ClientURI)), sqlb.Set(ClientLogo, optional(m.LogoURI)),
-		sqlb.Set(ClientContact, optional(strings.Join(m.Contacts, listSeparator))), sqlb.Set(ClientTos, optional(m.TosURI)),
-		sqlb.Set(ClientPolicy, optional(m.PolicyURI)), sqlb.Set(ClientCreated, now), sqlb.Set(ClientUpdated, now),
-		sqlb.Set(ClientPostLogout, optional(strings.Join(m.PostLogoutRedirectURIs, redirectSeparator))),
-		sqlb.Set(ClientEndSession, spec.EnableEndSession), sqlb.Set(ClientJWKS, optional(string(m.JWKS))), sqlb.Set(ClientJWKSURI, optional(m.JWKSURI)),
-		sqlb.Set(ClientDiscovery, optional(spec.discovery)), sqlb.Set(ClientFetchedAt, spec.fetchedAt),
-		sqlb.Set(ClientSubject, optional(m.SubjectType)),
-		sqlb.Set(ClientBackURI, optional(m.BackchannelLogoutURI)), sqlb.Set(ClientBackSess, m.BackchannelLogoutSessionRequired),
-		sqlb.Set(ClientDPoP, m.DPoPBoundAccessTokens),
-		sqlb.Set(ClientAppType, optional(m.ApplicationType)), sqlb.Set(ClientCCScopes, ccScopes), sqlb.Set(ClientRefID, optional(spec.ReferenceID)),
-		sqlb.Set(ClientMeta, meta), sqlb.Set(ClientSecretExp, spec.SecretExpiresAt),
-		sqlb.Set(ClientSoftwareID, optional(m.SoftwareID)), sqlb.Set(ClientSoftwareVersion, optional(m.SoftwareVersion)),
-		sqlb.Set(ClientSoftwareStatement, optional(m.SoftwareStatement)),
-	))
+	err = p.store.InsertClient(ctx, ClientRecord{
+		ID: id, SecretHash: hash, SecretEncrypted: sealed, Name: m.Name,
+		RedirectURIs: strings.Join(m.RedirectURIs, redirectSeparator), Scopes: m.Scope,
+		GrantTypes: strings.Join(m.GrantTypes, listSeparator), AuthMethod: m.AuthMethod,
+		SkipConsent: c.SkipConsent, RequirePKCE: c.RequirePKCE, IntrospectAny: c.IntrospectAny,
+		OwnerID: optional(spec.OwnerID), ClientURI: optional(m.ClientURI), LogoURI: optional(m.LogoURI),
+		Contacts: optional(strings.Join(m.Contacts, listSeparator)), TosURI: optional(m.TosURI),
+		PolicyURI: optional(m.PolicyURI), CreatedAt: now, UpdatedAt: now,
+		PostLogoutRedirectURIs: optional(strings.Join(m.PostLogoutRedirectURIs, redirectSeparator)),
+		EndSession:             spec.EnableEndSession, JWKS: optional(string(m.JWKS)), JWKSURI: optional(m.JWKSURI),
+		Discovery: optional(spec.discovery), FetchedAt: spec.fetchedAt,
+		SubjectType:          optional(m.SubjectType),
+		BackchannelLogoutURI: optional(m.BackchannelLogoutURI), BackchannelLogoutSessionRequired: m.BackchannelLogoutSessionRequired,
+		DPoPBound:       m.DPoPBoundAccessTokens,
+		ApplicationType: optional(m.ApplicationType), ClientCredentialsScopes: ccScopes, ReferenceID: optional(spec.ReferenceID),
+		Metadata: meta, SecretExpiresAt: spec.SecretExpiresAt,
+		SoftwareID: optional(m.SoftwareID), SoftwareVersion: optional(m.SoftwareVersion),
+		SoftwareStatement: optional(m.SoftwareStatement),
+	})
 	if err != nil {
 		return Registration{}, err
 	}
@@ -690,8 +671,8 @@ func (p *Plugin) SetClientDisabled(ctx context.Context, clientID string, disable
 		now := p.core.Now()
 		at = &now
 	}
-	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableClient).Set(sqlb.Set(ClientOff, at)).Where(sqlb.Eq(ClientIDCol, clientID)))
-	if err == nil && n == 0 {
+	found, err := p.store.UpdateClient(ctx, ClientUpdate{ID: clientID, Record: ClientRecord{DisabledAt: at}, Fields: []ClientField{ClientFieldDisabledAt}})
+	if err == nil && !found {
 		return ErrClientNotFound
 	}
 	return err
@@ -729,8 +710,8 @@ func (p *Plugin) createOwned(ctx context.Context, c *auth.Call, spec ClientSpec)
 	if err := p.allowed(ctx, ActionCreate, c, nil); err != nil {
 		return Registration{}, err
 	}
-	var held int64
-	if err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(sqlb.Count(), &held)).From(TableClient).Where(p.ownerPredicate(ctx, c))); err != nil {
+	held, err := p.store.CountClients(ctx, p.ownerFilter(ctx, c))
+	if err != nil {
 		return Registration{}, err
 	}
 	if held >= maxClientsPerOwner {
@@ -821,12 +802,16 @@ func (p *Plugin) doListClients(ctx context.Context, c *auth.Call, _ struct{}) (C
 	if err := p.allowed(ctx, ActionList, c, nil); err != nil {
 		return ClientList{}, err
 	}
-	var r clientRow
-	out := ClientList{Clients: []Client{}}
-	q := p.core.Select().Columns(r.bindings()...).From(TableClient).Where(p.ownerPredicate(ctx, c)).
-		Order(sqlb.OrderBy(ClientCreated, sqlb.SortAsc), sqlb.OrderBy(ClientIDCol, sqlb.SortAsc))
-	err := p.core.Each(ctx, q, func() error { out.Clients = append(out.Clients, r.client()); return nil })
-	return out, err
+	recs, err := p.store.Clients(ctx, p.ownerFilter(ctx, c))
+	if err != nil {
+		return ClientList{}, err
+	}
+	out := ClientList{Clients: make([]Client, 0, len(recs))}
+	for _, rec := range recs {
+		r := clientRowOf(rec)
+		out.Clients = append(out.Clients, r.client())
+	}
+	return out, nil
 }
 
 func (p *Plugin) doGetClient(ctx context.Context, c *auth.Call, in ClientIDRequest) (Client, error) {
@@ -872,18 +857,9 @@ func (p *Plugin) doUpdateClient(ctx context.Context, c *auth.Call, in UpdateClie
 			return Client{}, err
 		}
 	}
-	now := p.core.Now()
-	if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableClient).Set(
-		sqlb.Set(ClientName, m.Name), sqlb.Set(ClientRedirs, strings.Join(m.RedirectURIs, redirectSeparator)),
-		sqlb.Set(ClientScopes, m.Scope), sqlb.Set(ClientGrants, strings.Join(m.GrantTypes, listSeparator)),
-		sqlb.Set(ClientURI, optional(m.ClientURI)), sqlb.Set(ClientLogo, optional(m.LogoURI)),
-		sqlb.Set(ClientContact, optional(strings.Join(m.Contacts, listSeparator))), sqlb.Set(ClientTos, optional(m.TosURI)),
-		sqlb.Set(ClientPolicy, optional(m.PolicyURI)), sqlb.Set(ClientUpdated, now), sqlb.Set(ClientCCScopes, ccScopes),
-		sqlb.Set(ClientPostLogout, optional(strings.Join(m.PostLogoutRedirectURIs, redirectSeparator))),
-		sqlb.Set(ClientJWKS, optional(string(m.JWKS))), sqlb.Set(ClientJWKSURI, optional(m.JWKSURI)), sqlb.Set(ClientSubject, optional(m.SubjectType)),
-		sqlb.Set(ClientBackURI, optional(m.BackchannelLogoutURI)), sqlb.Set(ClientBackSess, m.BackchannelLogoutSessionRequired),
-		sqlb.Set(ClientDPoP, m.DPoPBoundAccessTokens), sqlb.Set(ClientAppType, optional(m.ApplicationType)),
-	).Where(sqlb.Eq(ClientIDCol, r.c.ClientID))); err != nil {
+	rec := metadataRecord(m, p.core.Now())
+	rec.ClientCredentialsScopes = ccScopes
+	if _, err := p.store.UpdateClient(ctx, ClientUpdate{ID: r.c.ClientID, Record: rec, Fields: append(slices.Clone(clientMetadataFields), ClientFieldClientCredentialsScopes)}); err != nil {
 		return Client{}, err
 	}
 	return p.Client(ctx, r.c.ClientID)
@@ -942,22 +918,14 @@ func (p *Plugin) UpdateClient(ctx context.Context, clientID string, spec ClientS
 	if err != nil {
 		return Client{}, err
 	}
-	if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableClient).Set(
-		sqlb.Set(ClientName, m.Name), sqlb.Set(ClientRedirs, strings.Join(m.RedirectURIs, redirectSeparator)),
-		sqlb.Set(ClientScopes, m.Scope), sqlb.Set(ClientGrants, strings.Join(m.GrantTypes, listSeparator)),
-		sqlb.Set(ClientURI, optional(m.ClientURI)), sqlb.Set(ClientLogo, optional(m.LogoURI)),
-		sqlb.Set(ClientContact, optional(strings.Join(m.Contacts, listSeparator))), sqlb.Set(ClientTos, optional(m.TosURI)),
-		sqlb.Set(ClientPolicy, optional(m.PolicyURI)), sqlb.Set(ClientUpdated, p.core.Now()),
-		sqlb.Set(ClientPostLogout, optional(strings.Join(m.PostLogoutRedirectURIs, redirectSeparator))),
-		sqlb.Set(ClientJWKS, optional(string(m.JWKS))), sqlb.Set(ClientJWKSURI, optional(m.JWKSURI)), sqlb.Set(ClientSkip, spec.SkipConsent),
-		sqlb.Set(ClientPKCE, public || !spec.OptionalPKCE), sqlb.Set(ClientIntro, spec.IntrospectAny),
-		sqlb.Set(ClientEndSession, spec.EnableEndSession), sqlb.Set(ClientOwner, optional(spec.OwnerID)),
-		sqlb.Set(ClientSubject, optional(m.SubjectType)),
-		sqlb.Set(ClientBackURI, optional(m.BackchannelLogoutURI)), sqlb.Set(ClientBackSess, m.BackchannelLogoutSessionRequired),
-		sqlb.Set(ClientDPoP, m.DPoPBoundAccessTokens), sqlb.Set(ClientAppType, optional(m.ApplicationType)),
-		sqlb.Set(ClientCCScopes, ccScopes), sqlb.Set(ClientRefID, optional(spec.ReferenceID)), sqlb.Set(ClientMeta, meta),
-		sqlb.Set(ClientSecretExp, spec.SecretExpiresAt),
-	).Where(sqlb.Eq(ClientIDCol, clientID))); err != nil {
+	rec := metadataRecord(m, p.core.Now())
+	rec.SkipConsent, rec.RequirePKCE, rec.IntrospectAny = spec.SkipConsent, public || !spec.OptionalPKCE, spec.IntrospectAny
+	rec.EndSession, rec.OwnerID, rec.ClientCredentialsScopes = spec.EnableEndSession, optional(spec.OwnerID), ccScopes
+	rec.ReferenceID, rec.Metadata, rec.SecretExpiresAt = optional(spec.ReferenceID), meta, spec.SecretExpiresAt
+	fields := append(slices.Clone(clientMetadataFields), ClientFieldSkipConsent, ClientFieldRequirePKCE, ClientFieldIntrospectAny,
+		ClientFieldEndSession, ClientFieldOwnerID, ClientFieldClientCredentialsScopes, ClientFieldReferenceID, ClientFieldMetadata,
+		ClientFieldSecretExpiresAt)
+	if _, err := p.store.UpdateClient(ctx, ClientUpdate{ID: clientID, Record: rec, Fields: fields}); err != nil {
 		return Client{}, err
 	}
 	return p.Client(ctx, clientID)
@@ -986,9 +954,10 @@ func (p *Plugin) doRotateSecret(ctx context.Context, c *auth.Call, in ClientIDRe
 		return Registration{}, err
 	}
 	now := p.core.Now()
-	if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableClient).Set(
-		sqlb.Set(ClientSecret, p.hashSecret(SecretClient, secret)), sqlb.Set(ClientSecretEnc, sealed), sqlb.Set(ClientUpdated, now),
-	).Where(sqlb.Eq(ClientIDCol, r.c.ClientID))); err != nil {
+	if _, err := p.store.UpdateClient(ctx, ClientUpdate{
+		ID: r.c.ClientID, Record: ClientRecord{SecretHash: p.hashSecret(SecretClient, secret), SecretEncrypted: sealed, UpdatedAt: now},
+		Fields: []ClientField{ClientFieldSecretHash, ClientFieldSecretEncrypted, ClientFieldUpdatedAt},
+	}); err != nil {
 		return Registration{}, err
 	}
 	cl = r.client()
@@ -1016,19 +985,14 @@ func (p *Plugin) DeleteClient(ctx context.Context, clientID string) error {
 	if err := p.refuseTrusted(clientID); err != nil {
 		return err
 	}
-	d := p.core.Dialect()
-	for _, st := range []auth.Statement{
-		sqlb.NewDelete(d).From(TableCode).Where(sqlb.Eq(CodeClient, clientID)),
-		sqlb.NewDelete(d).From(TableToken).Where(sqlb.Eq(TokenClient, clientID)),
-		sqlb.NewDelete(d).From(TableConsent).Where(sqlb.Eq(ConsentClient, clientID)),
-		sqlb.NewDelete(d).From(TableClientResource).Where(sqlb.Eq(LinkClient, clientID)),
-	} {
-		if _, err := p.core.Exec(ctx, st); err != nil {
-			return err
-		}
+	// The client's resource links live in the core database whatever the
+	// store; the store removes the client with its codes, tokens and
+	// consents.
+	if _, err := p.core.Exec(ctx, sqlb.NewDelete(p.core.Dialect()).From(TableClientResource).Where(sqlb.Eq(LinkClient, clientID))); err != nil {
+		return err
 	}
-	n, err := p.core.Exec(ctx, sqlb.NewDelete(d).From(TableClient).Where(sqlb.Eq(ClientIDCol, clientID)))
-	if err == nil && n == 0 {
+	found, err := p.store.DeleteClient(ctx, clientID)
+	if err == nil && !found {
 		return ErrClientNotFound
 	}
 	return err

@@ -11,7 +11,6 @@ import (
 	"github.com/ubgo/auth"
 	"github.com/ubgo/auth/authcli"
 	"github.com/ubgo/auth/plugin/email"
-	"github.com/ubgo/sqlb"
 )
 
 // The operator's revoke: end everything one user holds at one client at
@@ -114,22 +113,18 @@ func (p *Plugin) RevokeUserForClient(ctx context.Context, in RevokeUserRequest) 
 		if err != nil {
 			return err
 		}
-		d, now := p.core.Dialect(), p.core.Now()
-		if res.Tokens, err = p.core.Exec(ctx, sqlb.NewUpdate(d).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
-			Where(sqlb.Eq(TokenUser, &in.UserID), sqlb.Eq(TokenClient, in.ClientID), sqlb.IsNull(TokenRevoked))); err != nil {
+		now := p.core.Now()
+		if res.Tokens, err = p.store.RevokeTokens(ctx, TokenFilter{UserID: in.UserID, ClientID: in.ClientID}, now); err != nil {
 			return err
 		}
 		// A redeemed code stays: it is the root of its (now revoked) family,
 		// and presenting it again must still read as a replay.
-		if res.Codes, err = p.core.Exec(ctx, sqlb.NewDelete(d).From(TableCode).
-			Where(sqlb.Eq(CodeUser, in.UserID), sqlb.Eq(CodeClient, in.ClientID), sqlb.IsNull(CodeConsumed))); err != nil {
+		if res.Codes, err = p.store.DeleteCodes(ctx, CodeFilter{UserID: in.UserID, ClientID: in.ClientID, OnlyUnredeemed: true}); err != nil {
 			return err
 		}
-		n, err := p.core.Exec(ctx, sqlb.NewDelete(d).From(TableConsent).Where(sqlb.Eq(ConsentUser, in.UserID), sqlb.Eq(ConsentClient, in.ClientID)))
-		if err != nil {
+		if res.Consent, err = p.store.DeleteConsent(ctx, in.UserID, in.ClientID); err != nil {
 			return err
 		}
-		res.Consent = n > 0
 		if res.Tokens > 0 {
 			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonAdmin, ClientID: in.ClientID, UserID: in.UserID})
 		}
@@ -157,22 +152,19 @@ func (p *Plugin) revokeUserTargets(ctx context.Context, c clientRow, userID stri
 	if c.disabledAt != nil || deref(c.backchannel) == "" {
 		return nil, nil
 	}
-	var session *string
+	toks, err := p.store.Tokens(ctx, TokenFilter{UserID: userID, ClientID: c.c.ClientID, OnlyUnrevoked: true})
+	if err != nil {
+		return nil, err
+	}
 	seen := map[string]bool{}
 	var targets []logoutTarget
-	q := p.core.Select().Columns(sqlb.Bind(TokenSession, &session)).From(TableToken).
-		Where(sqlb.Eq(TokenUser, &userID), sqlb.Eq(TokenClient, c.c.ClientID), sqlb.IsNull(TokenRevoked))
-	err := p.core.Each(ctx, q, func() error {
-		sid := deref(session)
+	for _, t := range toks {
+		sid := deref(t.SessionID)
 		if seen[sid] || (sid == "" && c.c.BackchannelLogoutSessionRequired) {
-			return nil
+			continue
 		}
 		seen[sid] = true
 		targets = append(targets, logoutTarget{client: c, sessionID: sid, userID: userID})
-		return nil
-	})
-	if err != nil {
-		return nil, err
 	}
 	return targets, nil
 }

@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/ubgo/auth"
-	"github.com/ubgo/sqlb"
 )
 
 // Authorization request values.
@@ -634,18 +633,15 @@ func (p *Plugin) doConsent(ctx context.Context, c *auth.Call, in ConsentRequest)
 // consented reports whether the user's stored consent for the client covers
 // every scope and has not expired (ConsentTTL).
 func (p *Plugin) consented(ctx context.Context, userID, clientID string, scopes, claims, resources []string, ref string) (bool, error) {
-	var stored string
-	var storedClaims, storedRef, storedRes *string
-	var updated time.Time
-	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ConsentScopes, &stored), sqlb.Bind(ConsentClaims, &storedClaims), sqlb.Bind(ConsentRef, &storedRef), sqlb.Bind(ConsentResources, &storedRes), sqlb.Bind(ConsentUpdated, &updated)).From(TableConsent).
-		Where(sqlb.Eq(ConsentUser, userID), sqlb.Eq(ConsentClient, clientID)))
-	if errors.Is(err, sqlb.ErrNoRows) {
+	cn, err := p.store.Consent(ctx, userID, clientID)
+	if errors.Is(err, ErrRecordNotFound) {
 		return false, nil
 	}
 	if err != nil {
 		return false, err
 	}
-	if p.consentExpired(updated) {
+	stored, storedClaims, storedRef, storedRes := cn.Scopes, cn.Claims, cn.ReferenceID, cn.Resources
+	if p.consentExpired(cn.UpdatedAt) {
 		return false, nil
 	}
 	if deref(storedRef) != ref {
@@ -676,25 +672,21 @@ func (p *Plugin) consented(ctx context.Context, userID, clientID string, scopes,
 // it the first time.
 func (p *Plugin) recordConsent(ctx context.Context, userID, clientID string, scopes, claims, resources []string, ref string) error {
 	now := p.core.Now()
-	var id, stored string
-	var storedClaims, storedRef, storedRes *string
-	var updated time.Time
-	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ConsentID, &id), sqlb.Bind(ConsentScopes, &stored), sqlb.Bind(ConsentClaims, &storedClaims), sqlb.Bind(ConsentRef, &storedRef), sqlb.Bind(ConsentResources, &storedRes), sqlb.Bind(ConsentUpdated, &updated)).From(TableConsent).
-		Where(sqlb.Eq(ConsentUser, userID), sqlb.Eq(ConsentClient, clientID)))
-	if errors.Is(err, sqlb.ErrNoRows) {
-		id, err = p.core.NewID(consentIDPrefix)
+	cn, err := p.store.Consent(ctx, userID, clientID)
+	if errors.Is(err, ErrRecordNotFound) {
+		id, err := p.core.NewID(consentIDPrefix)
 		if err != nil {
 			return err
 		}
-		_, err = p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableConsent).Row(
-			sqlb.Set(ConsentID, id), sqlb.Set(ConsentUser, userID), sqlb.Set(ConsentClient, clientID),
-			sqlb.Set(ConsentScopes, strings.Join(scopes, listSeparator)), sqlb.Set(ConsentCreated, now), sqlb.Set(ConsentUpdated, now),
-			sqlb.Set(ConsentClaims, joinClaims(claims)), sqlb.Set(ConsentRef, optional(ref)), sqlb.Set(ConsentResources, optional(strings.Join(resources, listSeparator)))))
-		return err
+		return p.store.InsertConsent(ctx, ConsentRecord{
+			ID: id, UserID: userID, ClientID: clientID, Scopes: strings.Join(scopes, listSeparator), CreatedAt: now, UpdatedAt: now,
+			Claims: joinClaims(claims), ReferenceID: optional(ref), Resources: optional(strings.Join(resources, listSeparator)),
+		})
 	}
 	if err != nil {
 		return err
 	}
+	stored, storedClaims, storedRef, storedRes, updated := cn.Scopes, cn.Claims, cn.ReferenceID, cn.Resources, cn.UpdatedAt
 	merged := dedupe(append(strings.Fields(stored), scopes...))
 	mergedClaims := dedupe(append(splitClaims(storedClaims), claims...))
 	mergedRes := dedupe(append(splitResources(deref(storedRes)), resources...))
@@ -704,8 +696,8 @@ func (p *Plugin) recordConsent(ctx context.Context, userID, clientID string, sco
 		// approving something else.
 		merged, mergedClaims, mergedRes = scopes, claims, resources
 	}
-	_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableConsent).
-		Set(sqlb.Set(ConsentScopes, strings.Join(merged, listSeparator)), sqlb.Set(ConsentClaims, joinClaims(mergedClaims)), sqlb.Set(ConsentRef, optional(ref)), sqlb.Set(ConsentResources, optional(strings.Join(mergedRes, listSeparator))), sqlb.Set(ConsentUpdated, now)).Where(sqlb.Eq(ConsentID, id)))
+	cn.Scopes, cn.Claims, cn.ReferenceID, cn.Resources, cn.UpdatedAt = strings.Join(merged, listSeparator), joinClaims(mergedClaims), optional(ref), optional(strings.Join(mergedRes, listSeparator)), now
+	_, err = p.store.UpdateConsent(ctx, cn)
 	return err
 }
 
@@ -725,15 +717,15 @@ func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, sc
 		return AuthorizeResult{}, err
 	}
 	now := p.core.Now()
-	if _, err := p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableCode).Row(
-		sqlb.Set(CodeID, id), sqlb.Set(CodeHash, p.hashSecret(SecretCode, code)), sqlb.Set(CodeClient, z.client.c.ClientID),
-		sqlb.Set(CodeUser, c.User.ID), sqlb.Set(CodeSession, c.Session.ID), sqlb.Set(CodeRedirect, z.in.RedirectURI),
-		sqlb.Set(CodeScopes, strings.Join(scopes, listSeparator)), sqlb.Set(CodeChallenge, optional(z.in.CodeChallenge)),
-		sqlb.Set(CodeMethod, optional(z.in.CodeChallengeMethod)), sqlb.Set(CodeNonce, optional(z.in.Nonce)),
-		sqlb.Set(CodeAuthTime, c.Session.CreatedAt), sqlb.Set(CodeExpires, now.Add(p.codeTTL)), sqlb.Set(CodeCreated, now),
-		sqlb.Set(CodeResource, optional(z.in.Resource)), sqlb.Set(CodeClaims, joinClaims(z.userInfoClaims)), sqlb.Set(CodeJKT, optional(z.in.DPoPJKT)),
-		sqlb.Set(CodeRef, optional(ref)),
-	)); err != nil {
+	if err := p.store.InsertCode(ctx, CodeRecord{
+		ID: id, Hash: p.hashSecret(SecretCode, code), ClientID: z.client.c.ClientID,
+		UserID: c.User.ID, SessionID: c.Session.ID, RedirectURI: z.in.RedirectURI,
+		Scopes: strings.Join(scopes, listSeparator), Challenge: optional(z.in.CodeChallenge),
+		ChallengeMethod: optional(z.in.CodeChallengeMethod), Nonce: optional(z.in.Nonce),
+		AuthTime: c.Session.CreatedAt, ExpiresAt: now.Add(p.codeTTL), CreatedAt: now,
+		Resource: optional(z.in.Resource), Claims: joinClaims(z.userInfoClaims), DPoPJKT: optional(z.in.DPoPJKT),
+		ReferenceID: optional(ref),
+	}); err != nil {
 		return AuthorizeResult{}, err
 	}
 	return AuthorizeResult{RedirectTo: p.redirectWith(z.redirect, z.in.State, url.Values{paramCode: {code}})}, nil
@@ -748,15 +740,6 @@ type codeRow struct {
 	consumed                                    *time.Time
 }
 
-func (r *codeRow) bindings() []sqlb.Binding {
-	return []sqlb.Binding{
-		sqlb.Bind(CodeID, &r.id), sqlb.Bind(CodeClient, &r.client), sqlb.Bind(CodeUser, &r.user), sqlb.Bind(CodeSession, &r.session),
-		sqlb.Bind(CodeRedirect, &r.redirect), sqlb.Bind(CodeScopes, &r.scopes), sqlb.Bind(CodeChallenge, &r.challenge),
-		sqlb.Bind(CodeMethod, &r.method), sqlb.Bind(CodeNonce, &r.nonce), sqlb.Bind(CodeAuthTime, &r.authTime),
-		sqlb.Bind(CodeExpires, &r.expires), sqlb.Bind(CodeConsumed, &r.consumed), sqlb.Bind(CodeResource, &r.resource), sqlb.Bind(CodeClaims, &r.claims), sqlb.Bind(CodeJKT, &r.dpopJKT), sqlb.Bind(CodeRef, &r.refID),
-	}
-}
-
 // redeemCode spends a code once. A second use of a spent code is a replay:
 // it revokes every token issued from the code (RFC 6749 section 4.1.2) on a
 // write that the refused request's rollback does not undo.
@@ -765,20 +748,19 @@ func (r *codeRow) bindings() []sqlb.Binding {
 func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 	hash := p.hashSecret(SecretCode, code)
 	now := p.core.Now()
-	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
-		Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
-	if err != nil {
-		return codeRow{}, err
-	}
-	var r codeRow
-	err = p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableCode).Where(sqlb.Eq(CodeHash, hash)))
-	if errors.Is(err, sqlb.ErrNoRows) {
+	rec, claimed, err := p.store.RedeemCode(ctx, hash, now)
+	if errors.Is(err, ErrRecordNotFound) {
 		return codeRow{}, ErrInvalidGrant
 	}
 	if err != nil {
 		return codeRow{}, err
 	}
-	if n == 0 {
+	r := codeRowOf(rec)
+	if claimed {
+		// What the rollback of a failed request undoes, a store outside
+		// the database gets put back.
+		p.undoOnRollback(ctx, "restore code", func(ctx context.Context) (bool, error) { return p.store.RestoreCode(ctx, hash) })
+	} else {
 		p.reportReplay(ctx, GrantAuthorizationCode, r.client, r.user)
 		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonReuse, ClientID: r.client, UserID: r.user, SessionID: r.session, Family: r.id}
 		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
@@ -864,14 +846,12 @@ func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal erro
 	e := &grantRefusal{refusal: refusal}
 	hash := p.hashSecret(SecretCode, code)
 	p.core.AfterTx(ctx, func(ctx context.Context) {
-		now := p.core.Now()
-		n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
-			Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
+		spent, err := p.store.BurnCode(ctx, hash, p.core.Now())
 		if err != nil {
 			e.fail(err)
 			return
 		}
-		if n == 0 && family != "" {
+		if !spent && family != "" {
 			p.revokeFamily(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, Family: family})
 		}
 	})

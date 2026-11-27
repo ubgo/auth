@@ -13,7 +13,6 @@ import (
 	"github.com/ubgo/auth"
 	"github.com/ubgo/auth/plugin/email"
 	"github.com/ubgo/auth/plugin/jwt"
-	"github.com/ubgo/sqlb"
 )
 
 // Token response and claim names.
@@ -222,16 +221,6 @@ type tokenRow struct {
 	accessRevoked *time.Time
 }
 
-func (r *tokenRow) bindings() []sqlb.Binding {
-	return []sqlb.Binding{
-		sqlb.Bind(TokenID, &r.id), sqlb.Bind(TokenFamily, &r.family), sqlb.Bind(TokenClient, &r.client), sqlb.Bind(TokenScopes, &r.scopes),
-		sqlb.Bind(TokenUser, &r.user), sqlb.Bind(TokenSession, &r.session), sqlb.Bind(TokenAccessExpires, &r.accessExpires),
-		sqlb.Bind(TokenRefreshExpires, &r.refreshExpires), sqlb.Bind(TokenAuthTime, &r.authTime), sqlb.Bind(TokenCreated, &r.created),
-		sqlb.Bind(TokenRotated, &r.rotated), sqlb.Bind(TokenRevoked, &r.revoked), sqlb.Bind(TokenResource, &r.resource), sqlb.Bind(TokenClaims, &r.claims), sqlb.Bind(TokenJKT, &r.jkt),
-		sqlb.Bind(TokenX5T, &r.x5t), sqlb.Bind(TokenRef, &r.refID), sqlb.Bind(TokenAccessRevoked, &r.accessRevoked),
-	}
-}
-
 // refresh rotates a refresh token: the presented one is spent and a new
 // pair is issued in the same family. Presenting a spent or revoked refresh
 // token is reuse, which revokes the whole family (OAuth 2.1 section 4.3.1),
@@ -250,33 +239,22 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 		return TokenResponse{}, ErrInvalidGrant
 	}
 	now := p.core.Now()
-	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRotated, &now)).
-		Where(sqlb.Eq(TokenRefresh, hash), sqlb.IsNull(TokenRotated), sqlb.IsNull(TokenRevoked)))
-	if err != nil {
-		return TokenResponse{}, err
-	}
-	var r tokenRow
-	read := p.core.Select().Columns(r.bindings()...).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash))
-	if n == 0 {
-		// The token is spent, revoked or unknown, and what decides between a
-		// reuse inside RefreshReuseInterval and a reuse that revokes the
-		// family is the rotation another request committed, possibly while
-		// this transaction was open (two tabs refreshing at once). The
-		// UPDATE above already judged the newest committed row; this read
-		// must too, or on MySQL's REPEATABLE READ it returns this
-		// transaction's older snapshot (rotated still NULL) and a reuse
-		// inside the window revokes the family. TestOAuthProvider_ConcurrentRefreshInsideReuseWindow
-		// pins it on all three engines.
-		read = p.lockedRead(read)
-	}
-	err = p.core.One(ctx, read)
-	if errors.Is(err, sqlb.ErrNoRows) {
+	// RotateRefresh spends the token atomically and, when it was spent,
+	// revoked or rotated already, returns the newest committed row: the
+	// rotation another request committed decides between a reuse inside
+	// RefreshReuseInterval and a reuse that revokes the family.
+	rec, rotated, err := p.store.RotateRefresh(ctx, hash, now)
+	if errors.Is(err, ErrRecordNotFound) {
 		return TokenResponse{}, ErrInvalidGrant
 	}
 	if err != nil {
 		return TokenResponse{}, err
 	}
-	if n == 0 && !p.withinReuse(r, now) {
+	r := tokenRowOf(rec)
+	if rotated {
+		p.undoOnRollback(ctx, "restore refresh token", func(ctx context.Context) (bool, error) { return p.store.RestoreRefresh(ctx, hash) })
+	}
+	if !rotated && !p.withinReuse(r, now) {
 		if r.revoked == nil {
 			// A rotated token presented again: the family's reuse. One already
 			// revoked is presented to no effect and reported as nothing new.
@@ -286,7 +264,7 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
 		return TokenResponse{}, ErrInvalidGrant
 	}
-	if n == 0 && p.replay != nil && r.client == client.c.ClientID {
+	if !rotated && p.replay != nil && r.client == client.c.ClientID {
 		// A reuse inside the window: a replay of the first answer, when one
 		// is stored. A bound family still needs a proof of
 		// its key for this request.
@@ -330,7 +308,7 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 	if err != nil {
 		return TokenResponse{}, p.refuseRefresh(ctx, hash, err)
 	}
-	if n == 1 && p.replay != nil {
+	if rotated && p.replay != nil {
 		if err := p.storeReplay(ctx, r.id, in, res); err != nil {
 			return TokenResponse{}, err
 		}
@@ -494,7 +472,7 @@ func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) 
 		}
 		res.AccessToken = at
 	}
-	var refreshHash *[]byte
+	var refreshHash []byte
 	var refreshExp *time.Time
 	refreshExpiry := now.Add(p.refreshTTLFor(is))
 	authAgeLimit, capped := p.authAgeLimit(is.authTime)
@@ -512,7 +490,7 @@ func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) 
 			return TokenResponse{}, err
 		}
 		e := refreshExpiry
-		refreshHash, refreshExp = &h, &e
+		refreshHash, refreshExp = h, &e
 	}
 	if p.responseFields != nil {
 		// Called before the token row is written, before any side effect, so
@@ -524,14 +502,14 @@ func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) 
 		}
 		res.Extra = extra
 	}
-	if _, err := p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableToken).Row(
-		sqlb.Set(TokenID, id), sqlb.Set(TokenAccessHash, p.hashSecret(SecretAccess, res.AccessToken)), sqlb.Set(TokenRefreshNull, refreshHash),
-		sqlb.Set(TokenFamily, is.family), sqlb.Set(TokenClient, is.client.c.ClientID), sqlb.Set(TokenUser, optional(is.userID)),
-		sqlb.Set(TokenSession, optional(is.sessionID)), sqlb.Set(TokenScopes, res.Scope), sqlb.Set(TokenAccessExpires, now.Add(p.accessTTLFor(is))),
-		sqlb.Set(TokenRefreshExpires, refreshExp), sqlb.Set(TokenAuthTime, is.authTime), sqlb.Set(TokenCreated, now),
-		sqlb.Set(TokenResource, optional(is.resource)), sqlb.Set(TokenClaims, joinClaims(is.userInfoClaims)), sqlb.Set(TokenJKT, optional(is.jkt)),
-		sqlb.Set(TokenX5T, optional(is.x5t())), sqlb.Set(TokenRef, optional(is.referenceID)),
-	)); err != nil {
+	if err := p.store.InsertToken(ctx, TokenRecord{
+		ID: id, AccessHash: p.hashSecret(SecretAccess, res.AccessToken), RefreshHash: refreshHash,
+		Family: is.family, ClientID: is.client.c.ClientID, UserID: optional(is.userID),
+		SessionID: optional(is.sessionID), Scopes: res.Scope, AccessExpiresAt: now.Add(p.accessTTLFor(is)),
+		RefreshExpiresAt: refreshExp, AuthTime: is.authTime, CreatedAt: now,
+		Resource: optional(is.resource), Claims: joinClaims(is.userInfoClaims), JKT: optional(is.jkt),
+		X5T: optional(is.x5t()), ReferenceID: optional(is.referenceID),
+	}); err != nil {
 		return TokenResponse{}, err
 	}
 	p.emitToken(ctx, issuedEvent(is, id, now.Add(p.accessTTLFor(is)), refreshExp))
@@ -647,24 +625,20 @@ func primaryEmail(ids []auth.Identity) (auth.Identity, bool) {
 func (p *Plugin) burnRefresh(ctx context.Context, hash []byte, refusal error) error {
 	e := &grantRefusal{refusal: refusal}
 	p.core.AfterTx(ctx, func(ctx context.Context) {
-		var family, client string
-		var user *string
-		err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(TokenFamily, &family), sqlb.Bind(TokenClient, &client), sqlb.Bind(TokenUser, &user)).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash)))
-		if errors.Is(err, sqlb.ErrNoRows) {
+		t, err := p.store.TokenByRefreshHash(ctx, hash)
+		if errors.Is(err, ErrRecordNotFound) {
 			return
 		}
 		var n int64
 		if err == nil {
-			now := p.core.Now()
-			n, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
-				Where(sqlb.Eq(TokenFamily, family), sqlb.IsNull(TokenRevoked)))
+			n, err = p.store.RevokeTokens(ctx, TokenFilter{Family: t.Family}, p.core.Now())
 		}
 		if err != nil {
 			e.fail(err)
 			return
 		}
 		if n > 0 {
-			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, ClientID: client, UserID: deref(user), Family: family})
+			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, ClientID: t.ClientID, UserID: deref(t.UserID), Family: t.Family})
 		}
 	})
 	return e
@@ -674,9 +648,7 @@ func (p *Plugin) burnRefresh(ctx context.Context, hash []byte, refusal error) er
 // when that revoked any. It runs after a refused replay, outside the
 // request's transaction, so a failure is only logged.
 func (p *Plugin) revokeFamily(ctx context.Context, e TokenEvent) {
-	now := p.core.Now()
-	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
-		Where(sqlb.Eq(TokenFamily, e.Family), sqlb.IsNull(TokenRevoked)))
+	n, err := p.store.RevokeTokens(ctx, TokenFilter{Family: e.Family}, p.core.Now())
 	if err != nil {
 		p.core.Logger().Error("oauthprovider: revoke token family", "family", e.Family, "error", err)
 		return
@@ -721,14 +693,14 @@ func (p *Plugin) VerifyAccessToken(ctx context.Context, token string) (AccessTok
 	if !strings.HasPrefix(token, PrefixAccessToken) && strings.Count(token, ".") != 2 {
 		return AccessToken{}, ErrInvalidToken
 	}
-	var r tokenRow
-	err := p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableToken).Where(sqlb.Eq(TokenAccessHash, p.hashSecret(SecretAccess, token))))
-	if errors.Is(err, sqlb.ErrNoRows) {
+	rec, err := p.store.TokenByAccessHash(ctx, p.hashSecret(SecretAccess, token))
+	if errors.Is(err, ErrRecordNotFound) {
 		return AccessToken{}, ErrInvalidToken
 	}
 	if err != nil {
 		return AccessToken{}, err
 	}
+	r := tokenRowOf(rec)
 	if ok, err := p.active(ctx, r, false); err != nil {
 		return AccessToken{}, err
 	} else if !ok {
@@ -931,23 +903,22 @@ func (p *Plugin) findToken(ctx context.Context, token, hint string) (tokenRow, b
 		order = []bool{true, false}
 	}
 	for _, refresh := range order {
-		col, h := TokenAccessHash, hash
+		lookup, h := p.store.TokenByAccessHash, hash
 		if refresh {
-			col = TokenRefresh
+			lookup = p.store.TokenByRefreshHash
 			var ok bool
 			if h, ok = p.refreshHash(ctx, token); !ok {
 				continue
 			}
 		}
-		var r tokenRow
-		err := p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableToken).Where(sqlb.Eq(col, h)))
-		if errors.Is(err, sqlb.ErrNoRows) {
+		rec, err := lookup(ctx, h)
+		if errors.Is(err, ErrRecordNotFound) {
 			continue
 		}
 		if err != nil {
 			return tokenRow{}, false, false, err
 		}
-		return r, refresh, true, nil
+		return tokenRowOf(rec), refresh, true, nil
 	}
 	return tokenRow{}, false, false, nil
 }
@@ -1091,14 +1062,15 @@ func (p *Plugin) doRevoke(ctx context.Context, _ *auth.Call, in RevokeRequest) (
 		return auth.Done{OK: true}, nil
 	}
 	now := p.core.Now()
-	where, col := sqlb.Eq(TokenID, r.id), TokenRevoked
+	var n int64
 	switch {
 	case refresh:
-		where = sqlb.Eq(TokenFamily, r.family)
+		n, err = p.store.RevokeTokens(ctx, TokenFilter{Family: r.family}, now)
 	case p.revokeAccessOnly:
-		col = TokenAccessRevoked
+		n, err = p.store.RevokeAccess(ctx, r.id, now)
+	default:
+		n, err = p.store.RevokeTokens(ctx, TokenFilter{ID: r.id}, now)
 	}
-	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(col, &now)).Where(where, sqlb.IsNull(col)))
 	if err == nil && n > 0 {
 		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonClientRequest, ClientID: r.client, UserID: deref(r.user), SessionID: deref(r.session), AccessOnly: !refresh && p.revokeAccessOnly}
 		if refresh {

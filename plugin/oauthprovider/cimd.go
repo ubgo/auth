@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/ubgo/auth"
-	"github.com/ubgo/sqlb"
 )
 
 // CIMD (OAuth Client ID Metadata Document): a client_id that is an https
@@ -297,7 +296,7 @@ func (p *Plugin) fetchCIMD(ctx context.Context, id string, existing *clientRow) 
 	var previous Client
 	if existing == nil {
 		_, err = p.insertClient(ctx, ClientSpec{ClientMetadata: m, id: id, discovery: discoveryCIMD, fetchedAt: &now})
-		if err != nil && !auth.IsUniqueViolation(err) {
+		if err != nil && !errors.Is(err, ErrRecordExists) {
 			return clientRow{}, err
 		}
 	} else {
@@ -327,16 +326,20 @@ func (p *Plugin) fetchCIMD(ctx context.Context, id string, existing *clientRow) 
 // stampCIMD records when a document was fetched, until when it is fresh,
 // and its validators.
 func (p *Plugin) stampCIMD(ctx context.Context, id string, now, exp time.Time, etag, lastMod *string) error {
-	_, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableClient).Set(
-		sqlb.Set(ClientFetchedAt, &now), sqlb.Set(ClientCIMDExpires, &exp), sqlb.Set(ClientCIMDETag, etag), sqlb.Set(ClientCIMDLastMod, lastMod),
-	).Where(sqlb.Eq(ClientIDCol, id), sqlb.Eq(ClientDiscovery, optional(discoveryCIMD))))
+	_, err := p.store.UpdateClient(ctx, ClientUpdate{
+		ID: id, Record: ClientRecord{FetchedAt: &now, CIMDExpiresAt: &exp, CIMDETag: etag, CIMDLastModified: lastMod},
+		Fields:      []ClientField{ClientFieldFetchedAt, ClientFieldCIMDExpiresAt, ClientFieldCIMDETag, ClientFieldCIMDLastModified},
+		IfDiscovery: optional(discoveryCIMD),
+	})
 	return err
 }
 
 func (p *Plugin) loadCIMDRow(ctx context.Context, id string) (clientRow, error) {
-	var r clientRow
-	err := p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableClient).Where(sqlb.Eq(ClientIDCol, id)))
-	return r, err
+	rec, err := p.store.Client(ctx, id)
+	if err != nil {
+		return clientRow{}, err
+	}
+	return clientRowOf(rec), nil
 }
 
 // refreshCIMD replaces a document client's metadata with the fetched one.
@@ -351,14 +354,16 @@ func (p *Plugin) refreshDiscovered(ctx context.Context, id, kind string, m Clien
 	if err != nil {
 		return ErrClientNotFound
 	}
-	_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableClient).Set(
-		sqlb.Set(ClientName, checked.Name), sqlb.Set(ClientRedirs, strings.Join(checked.RedirectURIs, redirectSeparator)),
-		sqlb.Set(ClientScopes, checked.Scope), sqlb.Set(ClientGrants, strings.Join(checked.GrantTypes, listSeparator)),
-		sqlb.Set(ClientMethod, checked.AuthMethod), sqlb.Set(ClientURI, optional(checked.ClientURI)), sqlb.Set(ClientLogo, optional(checked.LogoURI)),
-		sqlb.Set(ClientContact, optional(strings.Join(checked.Contacts, listSeparator))), sqlb.Set(ClientTos, optional(checked.TosURI)),
-		sqlb.Set(ClientPolicy, optional(checked.PolicyURI)), sqlb.Set(ClientPostLogout, optional(strings.Join(checked.PostLogoutRedirectURIs, redirectSeparator))),
-		sqlb.Set(ClientJWKS, optional(string(checked.JWKS))), sqlb.Set(ClientJWKSURI, optional(checked.JWKSURI)), sqlb.Set(ClientUpdated, now), sqlb.Set(ClientFetchedAt, &now),
-	).Where(sqlb.Eq(ClientIDCol, id), sqlb.Eq(ClientDiscovery, optional(kind))))
+	rec := metadataRecord(checked, now)
+	rec.AuthMethod, rec.FetchedAt = checked.AuthMethod, &now
+	_, err = p.store.UpdateClient(ctx, ClientUpdate{
+		ID: id, Record: rec, IfDiscovery: optional(kind),
+		Fields: []ClientField{
+			ClientFieldName, ClientFieldRedirectURIs, ClientFieldScopes, ClientFieldGrantTypes, ClientFieldAuthMethod, ClientFieldClientURI,
+			ClientFieldLogoURI, ClientFieldContacts, ClientFieldTosURI, ClientFieldPolicyURI, ClientFieldPostLogoutRedirectURIs,
+			ClientFieldJWKS, ClientFieldJWKSURI, ClientFieldUpdatedAt, ClientFieldFetchedAt,
+		},
+	})
 	return err
 }
 

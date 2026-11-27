@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/ubgo/auth"
-	"github.com/ubgo/sqlb"
 )
 
 // The revoke of one token family: one sign-in of one user at one client
@@ -53,26 +52,19 @@ func (p *Plugin) RevokeUserFamily(ctx context.Context, in RevokeFamilyRequest) (
 		return res, ErrTokenFamilyNotFound
 	}
 	err := p.core.Tx(ctx, func(ctx context.Context, _ *sql.Tx) error {
-		var clientID string
-		var session *string
-		var live int64
-		found := false
-		q := p.core.Select().Columns(sqlb.Bind(TokenClient, &clientID), sqlb.Bind(TokenSession, &session)).From(TableToken).
-			Where(sqlb.Eq(TokenFamily, in.Family), sqlb.Eq(TokenUser, &in.UserID))
-		var sid string
-		if err := p.core.Each(ctx, q, func() error {
-			found = true
-			sid = deref(session)
-			return nil
-		}); err != nil {
+		toks, err := p.store.Tokens(ctx, TokenFilter{Family: in.Family, UserID: in.UserID})
+		if err != nil {
 			return err
 		}
-		if !found {
+		if len(toks) == 0 {
 			return ErrTokenFamilyNotFound
 		}
-		if err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(sqlb.Count(), &live)).From(TableToken).
-			Where(sqlb.Eq(TokenFamily, in.Family), sqlb.Eq(TokenUser, &in.UserID), sqlb.IsNull(TokenRevoked))); err != nil {
-			return err
+		// Every row of a family shares its client and session.
+		clientID, sid, live := toks[0].ClientID, deref(toks[0].SessionID), 0
+		for _, t := range toks {
+			if t.RevokedAt == nil {
+				live++
+			}
 		}
 		if live == 0 {
 			return nil
@@ -87,9 +79,7 @@ func (p *Plugin) RevokeUserFamily(ctx context.Context, in RevokeFamilyRequest) (
 		case c.disabledAt == nil && deref(c.backchannel) != "" && (sid != "" || !c.c.BackchannelLogoutSessionRequired):
 			targets = append(targets, logoutTarget{client: c, sessionID: sid, userID: in.UserID})
 		}
-		now := p.core.Now()
-		if res.Tokens, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
-			Where(sqlb.Eq(TokenFamily, in.Family), sqlb.Eq(TokenUser, &in.UserID), sqlb.IsNull(TokenRevoked))); err != nil {
+		if res.Tokens, err = p.store.RevokeTokens(ctx, TokenFilter{Family: in.Family, UserID: in.UserID}, p.core.Now()); err != nil {
 			return err
 		}
 		if res.Tokens > 0 {
