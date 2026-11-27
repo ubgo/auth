@@ -592,6 +592,67 @@ ok  	github.com/ubgo/auth/examples/oauth-provider	1.035s
 | Different rate limits | `RateLimit(endpoint, limit, window)`, `NoDefaultRateLimits()` | Per-IP limits on token, authorize, introspect, revoke, register, userinfo, end-session |
 | Signing keys in a KMS or HSM | your own `oauthprovider.Signer` passed to `New` | Signs ID tokens and JWT access tokens and publishes the keys |
 
+## Every lifetime, limit and hook
+
+Every timing and limit the provider applies is an option, with today's value as the default. Where a value can be switched off, the table says what 0 means; where it cannot, the last table says why.
+
+| Option | Default | 0 means | What it bounds |
+|---|---|---|---|
+| `CodeTTL(d)` | [10m](ds:block?id=oauthprovider-defaultcodettl-r5m2qw8x) | refused | How long a code waits to be exchanged |
+| `AccessTokenTTL(d)` | [1h](ds:block?id=oauthprovider-defaultaccessttl-h4k9zt3p) | refused | An access token's lifetime (`M2MAccessTokenTTL`, `ScopeExpirations` and a resource's own TTL can shorten it) |
+| `RefreshTokenTTL(d)` | [30d](ds:block?id=oauthprovider-defaultrefreshttl-b8x3nq6v) | refused | The idle limit: each rotation starts a new one |
+| `MaxAuthAge(d)` | 0 | no cap | The absolute limit: no refresh token outlives the sign-in by more than `d` |
+| `IDTokenTTL(d)` | 10h | refused | An ID token's lifetime |
+| `RefreshReuseInterval(d)` | [0](ds:block?id=oauthprovider-refreshreuseinterval-y84nezrp) | strict rotation | How long a just-rotated refresh token may be presented again |
+| [`ConsentTTL(d)`](ds:block?id=oauthprovider-consentttl-2dhamaaw) | 0 | never expires | How long a stored consent holds before the user is asked again |
+| `EndSessionConfirmTTL(d)` | [5m](ds:block?id=oauthprovider-defaultendsessionconfirmttl-337cbwz6) | refused | How long the logout confirmation page stays valid |
+| [`EndSessionHintGrace(d)`](ds:block?id=oauthprovider-endsessionhintgrace-9ut43fa7) | 0 | off | How long past its `exp` an `id_token_hint` still ends a session at end-session |
+| `BackchannelLogoutTokenTTL(d)` | [2m](ds:block?id=oauthprovider-defaultbackchannellogouttokenttl-wyrq8uee) | refused | A logout token's lifetime |
+| `BackchannelTimeout(d)` | [5s](ds:block?id=oauthprovider-defaultbackchanneltimeout-na9cwfke) | no bound of the plugin's own | One logout delivery; the core still ends background work after `auth.DeliveryTimeout` |
+| `ClockSkew(d)` | [30s](ds:block?id=oauthprovider-defaultclockskew-hujzr276) | no skew | Clock difference on a `private_key_jwt` assertion and an end-session hint |
+| `AssertionMaxLifetime(d)` | 5m | refused | How far ahead a client assertion's `exp` may be |
+| `DPoPClockSkew(d)` | [5s](ds:block?id=oauthprovider-defaultdpopclockskew-rattkq5w) | no skew | How far ahead a DPoP proof's `iat` may be |
+| `DPoPProofMaxAge(d)` | 300s | refused | How old a DPoP proof may be |
+| `ClientJWKSCacheTTL(d)` | [5m](ds:block?id=oauthprovider-defaultclientjwkscachettl-pygnhbvn) | refused | How long a client's `jwks_uri` keys are used before a refetch |
+| `ClientJWKSFetchLimits(t, n)` | [5s](ds:block?id=oauthprovider-defaultclientjwksfetchtimeout-qrmbwraj), [64 KiB](ds:block?id=oauthprovider-defaultclientjwksmaxbytes-d2q4yrh4) | refused | The default `jwks_uri` fetch |
+| `CIMDFetchLimits(t, n)`, `CIMDRevalidate(d)` | [5s](ds:block?id=oauthprovider-defaultcimdfetchtimeout-nbbp2ekj), [5 KB](ds:block?id=oauthprovider-defaultcimdmaxdocumentbytes-yhuej2dr), [1h](ds:block?id=oauthprovider-defaultcimdrevalidate-h3w8kq5n) | refused | A client metadata document's fetch, size and freshness |
+| `MaxRequestBytes(n)` | [64 KiB](ds:block?id=oauthprovider-defaultmaxrequestbytes-zew63u39) | refused | A protocol request's body |
+| `RateLimit(endpoint, n, window)` | [per endpoint](ds:block?id=oauthprovider-defaultratelimits-q7v3mx2k) | removes that limit | Calls per client IP |
+
+A "refused" 0 fails `auth.New` with `ErrBadTTL` or `ErrBadLimit`, naming the option, so an unset setting read as 0 never starts a provider with no limit.
+
+The hooks, for an app that decides or watches:
+
+| Hook | Runs | Can refuse |
+|---|---|---|
+| `ClientAccess(fn)` | before every code and every token for a user, refresh included | yes |
+| `TokenResponseFields(fn)` | before a token response is stored | yes, an error fails the issuance |
+| `Claims(fn)`, `AccessTokenClaims(fn)`, [`ScopeClaims(map)`](ds:block?id=oauthprovider-scopeclaims-ukr5yn84) | when ID tokens, userinfo and JWT access tokens are built | no, they shape claims |
+| `ValidateRedirectURI(fn)`, `ValidatePostLogoutRedirectURI(fn)` | at authorize, at end-session | yes, and may widen the exact match |
+| [`OnTokenEvent(fn)`](ds:block?id=oauthprovider-ontokenevent-kzgnhsu3) | after every issuance commits and after every revocation (client request, reuse, refused binding, session end, consent withdrawn, admin) | no, it observes |
+| [`BackchannelDelivery(fn)`](ds:block?id=oauthprovider-backchanneldelivery-cxz4bac5) | for each signed logout token | no, it delivers (queue, retry) |
+| [`RenderPage(fn)`](ds:block?id=oauthprovider-renderpage-rmzvn2hv) | for the error, logout confirmation and logged-out pages | no, it renders |
+| an `auth.OperationHook` on `EndpointToken`, `EndpointRevoke`, `EndpointEndSession` | before and after each operation, every transport | yes |
+
+A rotated refresh token or a spent code presented again also reaches the core's security stream as `auth.SecurityTokenReplay` (alert, blocked) when the app registered a sink (`auth.WithSecuritySink`), with `client_id` and `grant_kind` in its attributes.
+
+Kept fixed on purpose:
+
+| Rule | Why it is not an option |
+|---|---|
+| PKCE uses S256 only | `plain` sends the verifier through the browser, which PKCE exists to prevent (OAuth 2.1) |
+| PKCE is required for public clients, and for a refresh token unless a confidential client sends `openid` with a nonce | nothing else proves the token request comes from whoever started the flow |
+| A code works once, and its reuse revokes what it issued | RFC 6749 section 4.1.2; a second use means a stolen code |
+| A refresh token always rotates, and reuse outside `RefreshReuseInterval` revokes the family | OAuth 2.1 section 4.3.1; the interval is the supported relaxation |
+| No "never expires" for codes, access tokens, ID tokens or refresh tokens | each needs an `exp`; `MaxAuthAge` 0 and a long `RefreshTokenTTL` cover long-lived access. A refresh token that never expires would also keep every rotated row forever, since reuse detection needs them |
+| A redirect URI matches exactly (any port on a loopback IP) | RFC 9700 section 4.1.3; `ValidateRedirectURI` is the escape hatch |
+| `client_credentials` never carries `openid`, `profile`, `email` or `offline_access` | there is no user behind the token |
+| `iss`, `sub`, `aud`, `exp`, `iat`, `nonce`, `auth_time`, `azp`, `at_hash` and the other protected claims are the provider's | they make an ID token valid for this issuer and request |
+| `state` at most 1024 bytes, `nonce` 512 | both are echoed into URLs or signed into tokens |
+| Plugin cookie attributes (HttpOnly, Secure, SameSite) | the core owns them for every plugin; the name prefix and domain are core options |
+| Signing keys and their rotation | the `Signer`'s job (the jwt plugin by default); the provider publishes whatever it lists |
+| Where codes, tokens and consents are stored | the app's database through the core (`auth.WithDB`); the stored form is pluggable (`HashStoredSecrets`, `EncryptClientSecrets`, `FormatRefreshToken`, the token generators) |
+
 ## From TypeScript
 
 The protocol side of this plugin is not called through the [typed client](../client/README.md): `/oauth2/authorize`, `/oauth2/token`, userinfo, introspection and the discovery documents are standard OAuth 2.1 and OpenID Connect endpoints that a relying party reaches with its own OAuth library, and the authorize step is a browser navigation. The client covers the pages of your app that the provider sends a browser to, and the user's own management pages: list `oauthprovider()` in `plugins`.
