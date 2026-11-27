@@ -144,7 +144,7 @@ The `state` and `nonce` in the URL are the ones in the cookie. The `code_challen
 The login server first checks the request itself: the `client_id` must be a registered, enabled client, and the `redirect_uri` must be one it registered, compared as an exact string. No prefix match, no wildcard, no clean-up, so `https://wiki.example.com/callback/../evil` is not `https://wiki.example.com/callback`:
 
 <!-- ds:block id=oauthprovider-redirectaccepted-44z4eb9d -->
-**Plugin.redirectAccepted** · [`plugin/oauthprovider/authorize.go:296-302`](../../plugin/oauthprovider/authorize.go#L296-L302)
+**Plugin.redirectAccepted** · [`plugin/oauthprovider/authorize.go:295-301`](../../plugin/oauthprovider/authorize.go#L295-L301)
 
 ```go
 func (p *Plugin) redirectAccepted(uri string, registered []string) bool {
@@ -245,7 +245,7 @@ browser: GET https://login.example.com/no-access
 Priya is on the list, so the login server issues a code. It asks the rule once more (whatever route led here), then stores the code with the client, the user, the session, the redirect URI, the `code_challenge` and the `nonce`, and an expiry:
 
 <!-- ds:block id=oauthprovider-issuecode-fyj9g3rp -->
-**Plugin.issueCode** · [`plugin/oauthprovider/authorize.go:716-740`](../../plugin/oauthprovider/authorize.go#L716-L740)
+**Plugin.issueCode** · [`plugin/oauthprovider/authorize.go:708-732`](../../plugin/oauthprovider/authorize.go#L708-L732)
 
 ```go
 func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, scopes []string, ref string) (AuthorizeResult, error) {
@@ -260,21 +260,21 @@ func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, sc
 		return AuthorizeResult{}, err
 	}
 	now := p.core.Now()
-	if _, err := p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableCode).Row(
-		sqlb.Set(CodeID, id), sqlb.Set(CodeHash, p.hashSecret(SecretCode, code)), sqlb.Set(CodeClient, z.client.c.ClientID),
-		sqlb.Set(CodeUser, c.User.ID), sqlb.Set(CodeSession, c.Session.ID), sqlb.Set(CodeRedirect, z.in.RedirectURI),
-		sqlb.Set(CodeScopes, strings.Join(scopes, listSeparator)), sqlb.Set(CodeChallenge, optional(z.in.CodeChallenge)),
-		sqlb.Set(CodeMethod, optional(z.in.CodeChallengeMethod)), sqlb.Set(CodeNonce, optional(z.in.Nonce)),
-		sqlb.Set(CodeAuthTime, c.Session.CreatedAt), sqlb.Set(CodeExpires, now.Add(p.codeTTL)), sqlb.Set(CodeCreated, now),
-		sqlb.Set(CodeResource, optional(z.in.Resource)), sqlb.Set(CodeClaims, joinClaims(z.userInfoClaims)), sqlb.Set(CodeJKT, optional(z.in.DPoPJKT)),
-		sqlb.Set(CodeRef, optional(ref)),
-	)); err != nil {
+	if err := p.store.InsertCode(ctx, CodeRecord{
+		ID: id, Hash: p.hashSecret(SecretCode, code), ClientID: z.client.c.ClientID,
+		UserID: c.User.ID, SessionID: c.Session.ID, RedirectURI: z.in.RedirectURI,
+		Scopes: strings.Join(scopes, listSeparator), Challenge: optional(z.in.CodeChallenge),
+		ChallengeMethod: optional(z.in.CodeChallengeMethod), Nonce: optional(z.in.Nonce),
+		AuthTime: c.Session.CreatedAt, ExpiresAt: now.Add(p.codeTTL), CreatedAt: now,
+		Resource: optional(z.in.Resource), Claims: joinClaims(z.userInfoClaims), DPoPJKT: optional(z.in.DPoPJKT),
+		ReferenceID: optional(ref),
+	}); err != nil {
 		return AuthorizeResult{}, err
 	}
 	return AuthorizeResult{RedirectTo: p.redirectWith(z.redirect, z.in.State, url.Values{paramCode: {code}})}, nil
 }
 ```
-<!-- /ds:block hash=6df448 -->
+<!-- /ds:block hash=aa3324 -->
 
 Three things to notice. The database keeps only a hash of the code, not the code. The code lives for [ten minutes](ds:block?id=oauthprovider-defaultcodettl-r5m2qw8x) at most. And the `state` goes back unchanged: the login server does not check it, it only returns it.
 
@@ -385,29 +385,28 @@ wiki → login: POST https://login.example.com/oauth2/token
         token_type: "Bearer"
 ```
 
-On the login server, the code is spent first. The update marks it used only if it was not used yet; a second use of a spent code is a replay and revokes everything issued from it:
+On the login server, the code is spent first. The provider's store marks it used only if it was not used yet, in one step (one UPDATE in the SQL store); a second use of a spent code is a replay and revokes everything issued from it:
 
 <!-- ds:block id=oauthprovider-redeemcode-adngtvxm -->
-**Plugin.redeemCode** · [`plugin/oauthprovider/authorize.go:765-791`](../../plugin/oauthprovider/authorize.go#L765-L791)
+**Plugin.redeemCode** · [`plugin/oauthprovider/authorize.go:748-773`](../../plugin/oauthprovider/authorize.go#L748-L773)
 
 ```go
 func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 	hash := p.hashSecret(SecretCode, code)
 	now := p.core.Now()
-	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
-		Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
-	if err != nil {
-		return codeRow{}, err
-	}
-	var r codeRow
-	err = p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableCode).Where(sqlb.Eq(CodeHash, hash)))
-	if errors.Is(err, sqlb.ErrNoRows) {
+	rec, claimed, err := p.store.RedeemCode(ctx, hash, now)
+	if errors.Is(err, ErrRecordNotFound) {
 		return codeRow{}, ErrInvalidGrant
 	}
 	if err != nil {
 		return codeRow{}, err
 	}
-	if n == 0 {
+	r := codeRowOf(rec)
+	if claimed {
+		// What the rollback of a failed request undoes, a store outside
+		// the database gets put back.
+		p.undoOnRollback(ctx, "restore code", func(ctx context.Context) (bool, error) { return p.store.RestoreCode(ctx, hash) })
+	} else {
 		p.reportReplay(ctx, GrantAuthorizationCode, r.client, r.user)
 		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonReuse, ClientID: r.client, UserID: r.user, SessionID: r.session, Family: r.id}
 		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
@@ -419,12 +418,12 @@ func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 	return r, nil
 }
 ```
-<!-- /ds:block hash=1108c3 -->
+<!-- /ds:block hash=a1d84a -->
 
 Then the code must belong to this client and this redirect URI, and the verifier must match the stored challenge. The login server hashes the verifier itself and compares:
 
 <!-- ds:block id=oauthprovider-checkpkce-jb5yqv5r -->
-**checkPKCE** · [`plugin/oauthprovider/authorize.go:798-812`](../../plugin/oauthprovider/authorize.go#L798-L812)
+**checkPKCE** · [`plugin/oauthprovider/authorize.go:780-794`](../../plugin/oauthprovider/authorize.go#L780-L794)
 
 ```go
 func checkPKCE(r codeRow, verifier string) error {
@@ -446,7 +445,7 @@ func checkPKCE(r codeRow, verifier string) error {
 <!-- /ds:block hash=7107ba -->
 
 <!-- ds:block id=oauthprovider-s256-3ek42s37 -->
-**s256** · [`plugin/oauthprovider/authorize.go:368-371`](../../plugin/oauthprovider/authorize.go#L368-L371)
+**s256** · [`plugin/oauthprovider/authorize.go:367-370`](../../plugin/oauthprovider/authorize.go#L367-L370)
 
 ```go
 func s256(verifier string) string {
@@ -463,28 +462,26 @@ So a stolen code is useless on its own. Whoever takes it from the URL, a log or 
 A failed attempt spends the code. When the verifier, the `redirect_uri` or the client is wrong, or the client fails to authenticate, the request is refused and its transaction rolls back, and then a separate write marks the code used, so the rollback does not bring it back:
 
 <!-- ds:block id=oauthprovider-burncode-k4p9vz2h -->
-**Plugin.burnCode** · [`plugin/oauthprovider/authorize.go:863-879`](../../plugin/oauthprovider/authorize.go#L863-L879)
+**Plugin.burnCode** · [`plugin/oauthprovider/authorize.go:845-859`](../../plugin/oauthprovider/authorize.go#L845-L859)
 
 ```go
 func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal error) error {
 	e := &grantRefusal{refusal: refusal}
 	hash := p.hashSecret(SecretCode, code)
 	p.core.AfterTx(ctx, func(ctx context.Context) {
-		now := p.core.Now()
-		n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
-			Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
+		spent, err := p.store.BurnCode(ctx, hash, p.core.Now())
 		if err != nil {
 			e.fail(err)
 			return
 		}
-		if n == 0 && family != "" {
+		if !spent && family != "" {
 			p.revokeFamily(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, Family: family})
 		}
 	})
 	return e
 }
 ```
-<!-- /ds:block hash=f0b384 -->
+<!-- /ds:block hash=f4da53 -->
 
 Whoever stole a code gets one guess, and the right request after a wrong one gets `invalid_grant` too. A refusal after those checks passed (another `resource`, a DPoP proof to redo) leaves the code, since the request proved it came from the app that asked for it. If that write fails, the token endpoint answers with the database error rather than `invalid_grant`, since the code was not spent. If another request redeems the code in the moment between the rollback and that write, the tokens it got are revoked. [`TestOAuthProvider_FailedExchangeBurnsCode`](ds:block?id=testoauthprovider-failedexchangeburnscode-r7k2mx4q&assert=true) checks a wrong verifier, no verifier, a wrong `redirect_uri`, another client and a wrong client secret, each followed by the right request, on SQLite, Postgres and MySQL.
 

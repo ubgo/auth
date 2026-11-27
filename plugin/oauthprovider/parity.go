@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/ubgo/auth"
-	"github.com/ubgo/sqlb"
 )
 
 // Errors answered under these names.
@@ -174,14 +173,14 @@ func (p *Plugin) sealSecret(secret string) (*string, error) {
 // EncryptClientSecrets; ErrSecretNotRecoverable otherwise. It is Go-only:
 // no operation exposes it.
 func (p *Plugin) RevealClientSecret(ctx context.Context, clientID string) (string, error) {
-	var enc *string
-	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ClientSecretEnc, &enc)).From(TableClient).Where(sqlb.Eq(ClientIDCol, clientID)))
-	if errors.Is(err, sqlb.ErrNoRows) {
+	rec, err := p.store.Client(ctx, clientID)
+	if errors.Is(err, ErrRecordNotFound) {
 		return "", ErrClientNotFound
 	}
 	if err != nil {
 		return "", err
 	}
+	enc := rec.SecretEncrypted
 	if enc == nil || p.secretCrypt == nil {
 		return "", ErrSecretNotRecoverable
 	}

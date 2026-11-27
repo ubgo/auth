@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/ubgo/auth"
-	"github.com/ubgo/sqlb"
 )
 
 // Client actions ClientPrivileges is asked about.
@@ -81,13 +80,14 @@ func (p *Plugin) reference(ctx context.Context, c *auth.Call) string {
 	return p.clientReference(ctx, c)
 }
 
-// ownerPredicate selects the caller's clients: by reference when one
-// applies, by user otherwise.
-func (p *Plugin) ownerPredicate(ctx context.Context, c *auth.Call) sqlb.Predicate {
+// ownerFilter selects the caller's clients: by reference when one applies,
+// by user otherwise. Both are pointers, so an empty id matches no client.
+func (p *Plugin) ownerFilter(ctx context.Context, c *auth.Call) ClientFilter {
 	if ref := p.reference(ctx, c); ref != "" {
-		return sqlb.Eq(ClientRefID, &ref)
+		return ClientFilter{ReferenceID: &ref}
 	}
-	return sqlb.Eq(ClientOwner, &c.User.ID)
+	id := c.User.ID
+	return ClientFilter{OwnerID: &id}
 }
 
 // owns reports whether a client is the caller's, compared in constant time.

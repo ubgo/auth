@@ -135,6 +135,7 @@ Options go to `oauthprovider.New`; the CIMD options go to `ClientIDMetadataDocum
 | `CIMDFetch(f)`, `CIMDTransport(fn)`, `CIMDAllow(fn)`, `CIMDOnClientCreated(fn)`, `CIMDOnClientRefreshed(fn)`, `ClientJWKSFetch(f)` | public-address fetchers, every URL allowed | How client documents and key sets are fetched, and which are allowed |
 | `WithGrant(g)`, `Extend(...)`, `DeviceAuthorizationEndpoint(url)` | none | Extension grants, extensions, the device flow's endpoint |
 | `HashStoredSecrets(fn)`, `FormatRefreshToken(f)`, `GenerateAccessToken(fn)`, `GenerateRefreshToken(fn)`, `GenerateClientID(fn)`, `GenerateClientSecret(fn)` | SHA-256, built-in formats and generators | The stored form of secrets and the shape of tokens and ids |
+| [`WithStore(s)`](ds:block?id=oauthprovider-withstore-3nd8kv5q) | the plugin's tables on `auth.WithDB` | Where clients, codes, tokens and consents live (Redis, another database, your own); `storetest.Run` checks a store's contract, races included, and the SQL store passes it on every engine. See [a custom store](../plugins/oauthprovider.md#a-custom-store) |
 | `Signer` passed to `New` | the jwt plugin | Signing keys, in a KMS or HSM |
 | an `auth.OperationHook` on `EndpointToken`, `EndpointRevoke`, `EndpointEndSession` | none | Refuse any provider operation before it runs, from every transport |
 
@@ -181,7 +182,8 @@ Each is off by default; `auth.New` logs a warning while the first four are on.
 | `state` at most 1024 bytes, `nonce` 512 | Both are echoed into URLs or signed into tokens |
 | Plugin cookie attributes (`HttpOnly`, `Secure`, `SameSite`) | The core owns them for every plugin; the name prefix and domain are core options |
 | Token prefixes `uboa_`, `ubor_`, `uboc_`, `ubos_` | Secret scanners key on them; the generators and `FormatRefreshToken` change the rest |
-| Where codes, tokens and consents are stored | The app's database through the core (`auth.WithDB`); every rotation and reuse rule is proved at SQL level on SQLite, Postgres and MySQL. The stored form is pluggable (see Hooks and seams) |
+| A store's single use, rotation and family revoke are one atomic method each (`RedeemCode`, `RotateRefresh`, `RevokeTokens`) | The provider never builds them from a read and a write, so no store can break them by accident; `storetest.Run` pins each with racing callers. Where the state lives is `WithStore` (see Hooks and seams) |
+| The resource registry and the `private_key_jwt` and DPoP replay caches stay on `auth.WithDB` | Operator configuration and short-lived replay records; the provider needs the app's database for users anyway |
 
 ## Where 0 is refused
 

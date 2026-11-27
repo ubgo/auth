@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-
-	"github.com/ubgo/sqlb"
 )
 
 // replayRecord is what RefreshReplay stores on a rotated token row: the
@@ -36,10 +34,7 @@ func (p *Plugin) storeReplay(ctx context.Context, rowID string, in TokenRequest,
 	if err != nil {
 		return err
 	}
-	exp := p.core.Now().Add(p.refreshReuse)
-	_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(
-		sqlb.Set(TokenReplay, &sealed), sqlb.Set(TokenReplayExpires, &exp)).Where(sqlb.Eq(TokenID, rowID)))
-	return err
+	return p.store.SetReplay(ctx, rowID, ReplayRecord{Sealed: sealed, ExpiresAt: p.core.Now().Add(p.refreshReuse)})
 }
 
 // replayed answers a reuse inside the window from the stored response:
@@ -48,21 +43,20 @@ func (p *Plugin) storeReplay(ctx context.Context, rowID string, in TokenRequest,
 // something else than the first use did, refused without revoking the
 // family.
 //
-// The read is a locking one (lockedRead) for the reason refresh's re-read
-// is: the response was stored by the request that rotated the token, which
-// may have committed while this transaction was open, and a plain read on
-// MySQL's REPEATABLE READ would miss it and issue a second pair.
+// The store's Replay reads the newest committed record (a locking read in
+// the SQL store), for the reason refresh's re-read does: the response was
+// stored by the request that rotated the token, which may have committed
+// while this transaction was open, and a stale read would miss it and issue
+// a second pair.
 func (p *Plugin) replayed(ctx context.Context, rowID string, in TokenRequest, now time.Time) (TokenResponse, bool, error) {
-	var sealed *string
-	var exp *time.Time
-	read := p.core.Select().Columns(sqlb.Bind(TokenReplay, &sealed), sqlb.Bind(TokenReplayExpires, &exp)).From(TableToken).Where(sqlb.Eq(TokenID, rowID))
-	if err := p.core.One(ctx, p.lockedRead(read)); err != nil {
+	stored, found, err := p.store.Replay(ctx, rowID)
+	if err != nil {
 		return TokenResponse{}, false, err
 	}
-	if sealed == nil || exp == nil || !now.Before(*exp) {
+	if !found || !now.Before(stored.ExpiresAt) {
 		return TokenResponse{}, false, nil
 	}
-	plain, err := p.replay.Decrypt(*sealed)
+	plain, err := p.replay.Decrypt(stored.Sealed)
 	var rec replayRecord
 	if err != nil || json.Unmarshal([]byte(plain), &rec) != nil {
 		// A record the key no longer opens is treated as absent.

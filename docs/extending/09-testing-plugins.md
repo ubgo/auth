@@ -431,6 +431,8 @@ func TestConformance_OAuth2UserInfo(t *testing.T) {
 
 Check: a provider that cannot send a PKCE challenge says so with `oauthtest.NoPKCE()`, and the run then fails if a challenge ever appears, so the declaration cannot go stale; a provider whose API says nothing about verification declares `oauthtest.NeverVerified()` and must never claim a verified address. The [oauthtest README](../../plugin/oauth/oauthtest/README.md) lists every case.
 
+A store for the OAuth provider (`oauthprovider.Store`, see [a custom store](../plugins/oauthprovider.md#a-custom-store)) proves itself the same way with `storetest.Run` from `plugin/oauthprovider/storetest`: single-use codes and refresh rotation under racing callers, family revocation counted once, updates that write only the fields they name, sweeps that keep what can still be refreshed.
+
 ## What the repository checks for you
 
 A plugin added to this repository is covered by two safety nets in `integration/`, with no test written for it, as soon as it is wired into them. Both run under `task check` on SQLite, and the wire contract also runs on Postgres and MySQL under `task test:engines`.

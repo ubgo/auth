@@ -140,6 +140,7 @@ Every option with its default and what 0 means, where 0 is refused, and what is 
 | `ClientJWKSFetch(fn)` | public addresses only | Replaces the `jwks_uri` fetcher (tests, an egress proxy) |
 | `DPoPSigningAlgorithms(...)` | `EdDSA ES256 ES512 PS256 RS256` | The DPoP proof algorithms accepted and advertised |
 | `HashStoredSecrets(fn)` | SHA-256 | The stored form of client secrets, codes, access and refresh tokens (`SecretKind` says which): deterministic, 32 bytes, refused at `auth.New` otherwise |
+| [`WithStore(s)`](ds:block?id=oauthprovider-withstore-3nd8kv5q) | the tables below, on `auth.WithDB` | Where clients, codes, tokens and consents live. A store keeps the atomic steps its contract names (single-use codes, rotation, family revoke counted once); `storetest.Run` checks every one, races included, and `storetest.NewMemoryStore` is the reference for tests. See [a custom store](../../docs/plugins/oauthprovider.md#a-custom-store) |
 | `GenerateAccessToken(fn)`, `GenerateRefreshToken(fn)` | 256 random bits | The random part of opaque access and refresh tokens; at least 22 characters |
 | `UserInfoInsufficientScope()` | off | Userinfo for a token without `openid` answers RFC 6750's 403 `insufficient_scope` instead of 400 `invalid_scope` |
 | `SelectAccountFallsBackToLogin()` | off | `prompt=select_account` with no `SelectAccount` page goes to the login page instead of answering `unsupported_prompt_select_account` |
@@ -298,7 +299,7 @@ An unknown `client_id` is `invalid_client` and a disabled client `client_disable
 
 ## Tables
 
-[`auth_oauth_client`](ds:block?id=oauthprovider-tableclient-n4x8kq2v), [`auth_oauth_code`](ds:block?id=oauthprovider-tablecode-t6m3wp9z), [`auth_oauth_token`](ds:block?id=oauthprovider-tabletoken-c2h7vb5r), [`auth_oauth_consent`](ds:block?id=oauthprovider-tableconsent-y9q4kd3s) and [`auth_oauth_assertion`](ds:block?id=oauthprovider-tableassertion-v5k2np8w), with no foreign keys; migration `0013` adds the client's `jwks_uri`. `DeleteUser` removes a user's rows, and `Sweep` deletes expired codes and fully expired tokens.
+[`auth_oauth_client`](ds:block?id=oauthprovider-tableclient-n4x8kq2v), [`auth_oauth_code`](ds:block?id=oauthprovider-tablecode-t6m3wp9z), [`auth_oauth_token`](ds:block?id=oauthprovider-tabletoken-c2h7vb5r), [`auth_oauth_consent`](ds:block?id=oauthprovider-tableconsent-y9q4kd3s) and [`auth_oauth_assertion`](ds:block?id=oauthprovider-tableassertion-v5k2np8w), with no foreign keys; migration `0013` adds the client's `jwks_uri`. `DeleteUser` removes a user's rows, and `Sweep` deletes expired codes and fully expired tokens. With `WithStore` the first four stay empty and the store holds their records; the tables are still created.
 
 ## Not yet
 

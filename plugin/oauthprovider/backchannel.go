@@ -12,7 +12,6 @@ import (
 
 	"github.com/ubgo/auth"
 	"github.com/ubgo/auth/plugin/jwt"
-	"github.com/ubgo/sqlb"
 )
 
 // OpenID Connect Back-Channel Logout 1.0.
@@ -99,23 +98,21 @@ var _ auth.SessionLifecycle = (*Plugin)(nil)
 // (Back-Channel Logout section 2.7), and every client with a
 // backchannel_logout_uri is sent a logout token after the commit.
 func (p *Plugin) SessionEnded(ctx context.Context, userID, id string) error {
-	return p.endSessions(ctx, userID, sqlb.Eq(TokenSession, &id))
+	if id == "" {
+		return nil
+	}
+	return p.endSessions(ctx, TokenFilter{UserID: userID, SessionID: id})
 }
 
 // UserSessionsEnded is SessionEnded for every session of a user but one.
 func (p *Plugin) UserSessionsEnded(ctx context.Context, userID, exceptID string) error {
-	where := sqlb.IsNotNull(TokenSession)
-	if exceptID != "" {
-		where = sqlb.And(where, sqlb.NotEq(TokenSession, &exceptID))
-	}
-	return p.endSessions(ctx, userID, where)
+	return p.endSessions(ctx, TokenFilter{UserID: userID, AnySession: true, ExceptSession: exceptID})
 }
 
 // SessionReplaced moves tokens issued on a pending session to the session
 // that replaced it, so a later logout of the new one reaches them.
 func (p *Plugin) SessionReplaced(ctx context.Context, old, new auth.Session) error {
-	_, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenSession, &new.ID)).Where(sqlb.Eq(TokenSession, &old.ID)))
-	return err
+	return p.store.MoveSession(ctx, old.ID, new.ID)
 }
 
 // logoutTarget is one client to notify for one session.
@@ -127,28 +124,33 @@ type logoutTarget struct {
 
 // endSessions revokes the user's tokens on the matching sessions and
 // schedules the logout tokens.
-func (p *Plugin) endSessions(ctx context.Context, userID string, sessions sqlb.Predicate) error {
-	var r tokenRow
-	var rows []tokenRow
-	q := p.core.Select().Columns(r.bindings()...).From(TableToken).Where(sqlb.Eq(TokenUser, &userID), sessions, sqlb.IsNull(TokenRevoked))
-	if err := p.core.Each(ctx, q, func() error { rows = append(rows, r); return nil }); err != nil {
+func (p *Plugin) endSessions(ctx context.Context, f TokenFilter) error {
+	if f.UserID == "" {
+		// Every token of a session has its user; none is on a user-less
+		// session, so there is nothing to end.
+		return nil
+	}
+	userID := f.UserID
+	f.OnlyUnrevoked = true
+	recs, err := p.store.Tokens(ctx, f)
+	if err != nil {
 		return err
 	}
-	if len(rows) == 0 {
+	if len(recs) == 0 {
 		return nil
+	}
+	rows := make([]tokenRow, len(recs))
+	for i, rec := range recs {
+		rows[i] = tokenRowOf(rec)
 	}
 	now := p.core.Now()
 	var targets []logoutTarget
 	seen := map[string]bool{}
 	for _, t := range rows {
-		set := []sqlb.Assignment{sqlb.Set(TokenAccessExpires, now)}
+		// The refresh token ends with the session; with offline_access it
+		// outlives it, which is what that scope asks for.
 		offline := slices.Contains(strings.Fields(t.scopes), ScopeOfflineAccess)
-		if !offline {
-			// The refresh token ends with the session; with offline_access it
-			// outlives it, which is what that scope asks for.
-			set = append(set, sqlb.Set(TokenRevoked, &now))
-		}
-		if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(set...).Where(sqlb.Eq(TokenID, t.id))); err != nil {
+		if err := p.store.EndTokenSession(ctx, t.id, now, !offline); err != nil {
 			return err
 		}
 		// Reported when something ended: the row, or a live access token

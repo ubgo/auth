@@ -45,6 +45,7 @@ func TestOptions_RefuseNil(t *testing.T) {
 		"oauthprovider.BackchannelDelivery":           oauthprovider.BackchannelDelivery(nil),
 		"oauthprovider.RenderPage":                    oauthprovider.RenderPage(nil),
 		"oauthprovider.OnTokenEvent":                  oauthprovider.OnTokenEvent(nil),
+		"oauthprovider.WithStore":                     oauthprovider.WithStore(nil),
 	} {
 		err := oauthprovider.New(nil, opt).OptionErr()
 		if !errors.Is(err, auth.ErrNilOption) || !strings.Contains(err.Error(), name+"(nil)") {

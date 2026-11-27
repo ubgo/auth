@@ -1,0 +1,21 @@
+func (p *Plugin) burnRefresh(ctx context.Context, hash []byte, refusal error) error {
+	e := &grantRefusal{refusal: refusal}
+	p.core.AfterTx(ctx, func(ctx context.Context) {
+		t, err := p.store.TokenByRefreshHash(ctx, hash)
+		if errors.Is(err, ErrRecordNotFound) {
+			return
+		}
+		var n int64
+		if err == nil {
+			n, err = p.store.RevokeTokens(ctx, TokenFilter{Family: t.Family}, p.core.Now())
+		}
+		if err != nil {
+			e.fail(err)
+			return
+		}
+		if n > 0 {
+			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, ClientID: t.ClientID, UserID: deref(t.UserID), Family: t.Family})
+		}
+	})
+	return e
+}

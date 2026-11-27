@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"slices"
 	"time"
-
-	"github.com/ubgo/sqlb"
 )
 
 // ClientPatch changes some of a client's fields and keeps the rest: a nil
@@ -66,12 +64,16 @@ func (p *Plugin) PatchClient(ctx context.Context, clientID string, patch ClientP
 // route a user reaches. Trusted (code-defined) clients are not stored and so
 // are not listed.
 func (p *Plugin) AllClients(ctx context.Context) ([]Client, error) {
-	var r clientRow
-	out := []Client{}
-	q := p.core.Select().Columns(r.bindings()...).From(TableClient).
-		Order(sqlb.OrderBy(ClientCreated, sqlb.SortAsc), sqlb.OrderBy(ClientIDCol, sqlb.SortAsc))
-	err := p.core.Each(ctx, q, func() error { out = append(out, r.client()); return nil })
-	return out, err
+	recs, err := p.store.Clients(ctx, ClientFilter{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Client, 0, len(recs))
+	for _, rec := range recs {
+		r := clientRowOf(rec)
+		out = append(out, r.client())
+	}
+	return out, nil
 }
 
 // specOf is the ClientSpec that stores c again unchanged: every field

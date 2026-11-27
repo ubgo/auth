@@ -1,0 +1,26 @@
+func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
+	hash := p.hashSecret(SecretCode, code)
+	now := p.core.Now()
+	rec, claimed, err := p.store.RedeemCode(ctx, hash, now)
+	if errors.Is(err, ErrRecordNotFound) {
+		return codeRow{}, ErrInvalidGrant
+	}
+	if err != nil {
+		return codeRow{}, err
+	}
+	r := codeRowOf(rec)
+	if claimed {
+		// What the rollback of a failed request undoes, a store outside
+		// the database gets put back.
+		p.undoOnRollback(ctx, "restore code", func(ctx context.Context) (bool, error) { return p.store.RestoreCode(ctx, hash) })
+	} else {
+		p.reportReplay(ctx, GrantAuthorizationCode, r.client, r.user)
+		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonReuse, ClientID: r.client, UserID: r.user, SessionID: r.session, Family: r.id}
+		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
+		return codeRow{}, ErrInvalidGrant
+	}
+	if !now.Before(r.expires) {
+		return codeRow{}, ErrInvalidGrant
+	}
+	return r, nil
+}

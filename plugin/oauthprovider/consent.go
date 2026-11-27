@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ubgo/auth"
-	"github.com/ubgo/sqlb"
 )
 
 // Consent is one client a user has consented to, with the scopes.
@@ -29,44 +28,51 @@ type ConsentList struct {
 }
 
 func (p *Plugin) doListConsents(ctx context.Context, c *auth.Call, _ struct{}) (ConsentList, error) {
-	var (
-		cn     Consent
-		scopes string
-		name   *string
-		res    *string
-	)
-	out := ConsentList{Consents: []Consent{}}
-	q := p.core.Select().Columns(
-		sqlb.Bind(ConsentID, &cn.ID), sqlb.Bind(ConsentClient, &cn.ClientID), sqlb.Bind(ConsentScopes, &scopes),
-		sqlb.Bind(ConsentCreated, &cn.CreatedAt), sqlb.Bind(ConsentUpdated, &cn.UpdatedAt),
-		sqlb.Bind(sqlb.Col[*string](TableClient, ColName), &name), sqlb.Bind(ConsentResources, &res),
-	).From(TableConsent).
-		Join(sqlb.Join{Type: sqlb.JoinLeft, Table: TableClient, On: []sqlb.Predicate{sqlb.EqExpr(ClientIDCol, ConsentClient)}}).
-		Where(sqlb.Eq(ConsentUser, c.User.ID)).
-		Order(sqlb.OrderBy(ConsentCreated, sqlb.SortAsc), sqlb.OrderBy(ConsentID, sqlb.SortAsc))
-	err := p.core.Each(ctx, q, func() error {
-		row := cn
-		row.Scopes, row.ClientName, row.Resources = strings.Fields(scopes), deref(name), splitResources(deref(res))
-		out.Consents = append(out.Consents, row)
-		return nil
-	})
-	return out, err
+	recs, err := p.store.Consents(ctx, c.User.ID)
+	if err != nil {
+		return ConsentList{}, err
+	}
+	out := ConsentList{Consents: make([]Consent, 0, len(recs))}
+	for _, r := range recs {
+		cn, err := p.consentOf(ctx, r)
+		if err != nil {
+			return ConsentList{}, err
+		}
+		out.Consents = append(out.Consents, cn)
+	}
+	return out, nil
+}
+
+// consentOf is the Consent a stored one shows: its client's name read from
+// the store, "" for a client that is gone (a consent outlives nothing, but
+// a store without transactions may briefly hold one).
+func (p *Plugin) consentOf(ctx context.Context, r ConsentRecord) (Consent, error) {
+	cn := Consent{ID: r.ID, ClientID: r.ClientID, Scopes: strings.Fields(r.Scopes), Resources: splitResources(deref(r.Resources)), CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+	cl, err := p.store.Client(ctx, r.ClientID)
+	switch {
+	case err == nil:
+		cn.ClientName = cl.Name
+	case !errors.Is(err, ErrRecordNotFound):
+		return Consent{}, err
+	}
+	return cn, nil
 }
 
 // doRevokeConsent withdraws the user's consent to a client and revokes
 // every token the client holds for the user, so the withdrawal takes effect
 // now rather than when the tokens expire.
 func (p *Plugin) doRevokeConsent(ctx context.Context, c *auth.Call, in ClientIDRequest) (auth.Done, error) {
-	n, err := p.core.Exec(ctx, sqlb.NewDelete(p.core.Dialect()).From(TableConsent).Where(sqlb.Eq(ConsentUser, c.User.ID), sqlb.Eq(ConsentClient, in.ClientID)))
+	if in.ClientID == "" || c.User.ID == "" {
+		return auth.Done{}, ErrClientNotFound
+	}
+	deleted, err := p.store.DeleteConsent(ctx, c.User.ID, in.ClientID)
 	if err != nil {
 		return auth.Done{}, err
 	}
-	if n == 0 {
+	if !deleted {
 		return auth.Done{}, ErrClientNotFound
 	}
-	now := p.core.Now()
-	n, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
-		Where(sqlb.Eq(TokenUser, &c.User.ID), sqlb.Eq(TokenClient, in.ClientID), sqlb.IsNull(TokenRevoked)))
+	n, err := p.store.RevokeTokens(ctx, TokenFilter{UserID: c.User.ID, ClientID: in.ClientID}, p.core.Now())
 	if err == nil && n > 0 {
 		p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonConsentRevoked, ClientID: in.ClientID, UserID: c.User.ID})
 	}
@@ -88,24 +94,14 @@ type UpdateConsentRequest struct {
 // consentByID loads one of the caller's consents; another user's is
 // ErrClientNotFound, the same as an unknown one.
 func (p *Plugin) consentByID(ctx context.Context, userID, id string) (Consent, error) {
-	var (
-		cn     Consent
-		scopes string
-		name   *string
-		res    *string
-	)
-	err := p.core.One(ctx, p.core.Select().Columns(
-		sqlb.Bind(ConsentID, &cn.ID), sqlb.Bind(ConsentClient, &cn.ClientID), sqlb.Bind(ConsentScopes, &scopes),
-		sqlb.Bind(ConsentCreated, &cn.CreatedAt), sqlb.Bind(ConsentUpdated, &cn.UpdatedAt),
-		sqlb.Bind(sqlb.Col[*string](TableClient, ColName), &name), sqlb.Bind(ConsentResources, &res),
-	).From(TableConsent).
-		Join(sqlb.Join{Type: sqlb.JoinLeft, Table: TableClient, On: []sqlb.Predicate{sqlb.EqExpr(ClientIDCol, ConsentClient)}}).
-		Where(sqlb.Eq(ConsentID, id), sqlb.Eq(ConsentUser, userID)))
-	if errors.Is(err, sqlb.ErrNoRows) {
+	r, err := p.store.ConsentByID(ctx, userID, id)
+	if errors.Is(err, ErrRecordNotFound) {
 		return Consent{}, ErrClientNotFound
 	}
-	cn.Scopes, cn.ClientName, cn.Resources = strings.Fields(scopes), deref(name), splitResources(deref(res))
-	return cn, err
+	if err != nil {
+		return Consent{}, err
+	}
+	return p.consentOf(ctx, r)
 }
 
 func (p *Plugin) doGetConsent(ctx context.Context, c *auth.Call, in ConsentIDRequest) (Consent, error) {
@@ -113,23 +109,26 @@ func (p *Plugin) doGetConsent(ctx context.Context, c *auth.Call, in ConsentIDReq
 }
 
 func (p *Plugin) doUpdateConsent(ctx context.Context, c *auth.Call, in UpdateConsentRequest) (Consent, error) {
-	cn, err := p.consentByID(ctx, c.User.ID, in.ID)
+	rec, err := p.store.ConsentByID(ctx, c.User.ID, in.ID)
+	if errors.Is(err, ErrRecordNotFound) {
+		return Consent{}, ErrClientNotFound
+	}
 	if err != nil {
 		return Consent{}, err
 	}
 	scopes := dedupe(strings.Fields(in.Scope))
-	cl, err := p.loadClient(ctx, cn.ClientID)
+	cl, err := p.loadClient(ctx, rec.ClientID)
 	if err != nil {
 		return Consent{}, err
 	}
 	if len(scopes) == 0 || !p.scopesAllowed(cl.client(), scopes) {
 		return Consent{}, ErrInvalidScope
 	}
-	if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableConsent).
-		Set(sqlb.Set(ConsentScopes, strings.Join(scopes, listSeparator)), sqlb.Set(ConsentUpdated, p.core.Now())).Where(sqlb.Eq(ConsentID, cn.ID))); err != nil {
+	rec.Scopes, rec.UpdatedAt = strings.Join(scopes, listSeparator), p.core.Now()
+	if _, err := p.store.UpdateConsent(ctx, rec); err != nil {
 		return Consent{}, err
 	}
-	return p.consentByID(ctx, c.User.ID, cn.ID)
+	return p.consentByID(ctx, c.User.ID, rec.ID)
 }
 
 // ConsentByID returns one of the signed-in user's consents.
