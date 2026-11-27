@@ -541,6 +541,42 @@ DPoP proofs take a default list (`EdDSA ES256 ES512 PS256 RS256`); `DPoPSigningA
 
 `HashStoredSecrets(fn)` replaces SHA-256 for every stored client secret, code, access and refresh token (an HMAC with a pepper from your secret store, say; 32 bytes, deterministic). `GenerateAccessToken` and `GenerateRefreshToken` replace the random parts. `op.IssueTokens(ctx, IssueRequest{GrantType: …})` mints a token set outside the token endpoint for a grant your app runs itself, `op.HashToken` gives the stored hash of a token, and `op.ConsumeClientAssertion` checks and spends a client assertion at your own endpoint. `WithGrant` adds a whole extension grant to the token endpoint; the [device authorization grant](deviceauth.md) is one, through the `oauthdevice` module.
 
+### A custom store
+
+By default the provider keeps its clients, codes, tokens and consents in its own tables on `auth.WithDB`. [`WithStore(s)`](ds:block?id=oauthprovider-withstore-3nd8kv5q) keeps them in any [`oauthprovider.Store`](ds:block?id=oauthprovider-store-7kq3vn2x) instead: Redis, a document database, a database of their own. The resource registry and the replay caches of `private_key_jwt` assertions and DPoP proofs stay on the app's database, which the provider needs for users anyway. The tables are still created, so leaving `WithStore` out again needs no migration, but the rows do not move by themselves.
+
+<!-- ds:block id=withstore-provider-example-8wm3qk5v -->
+**newProvider** · [`plugin/oauthprovider/storetest/example_test.go:29-35`](../../plugin/oauthprovider/storetest/example_test.go#L29-L35)
+
+```go
+func newProvider(jw *jwt.Plugin, store oauthprovider.Store) *oauthprovider.Plugin {
+	return oauthprovider.New(jw,
+		oauthprovider.Issuer("https://app.example.com"),
+		oauthprovider.LoginPage("/login"),
+		oauthprovider.WithStore(store),
+	)
+}
+```
+<!-- /ds:block hash=766634 -->
+
+The provider keeps every rule: lifetimes, PKCE, scopes, the reuse window, what a refused request revokes, who is notified. A store saves and finds, and keeps the few rules that need one atomic step, each written into its method's contract: a code is redeemed by exactly one of any number of racing requests (`RedeemCode`), a refresh token is rotated by exactly one, and every loser sees that rotation, so the reuse window is judged on it (`RotateRefresh`), a family revoke counts each token once and a repeat counts none, so nobody is notified twice (`RevokeTokens`), a filter that selects nothing is refused rather than read as "every token", and a client update writes only the fields it names, so an edit racing a disable never enables the client again (`UpdateClient`). A store sees no usable secret: hashes, the `EncryptClientSecrets` ciphertext and the sealed `RefreshReplay` answer only.
+
+`storetest.Run` checks all of it, races included, in one call from the store's own tests; the SQL store passes it on SQLite, Postgres and MySQL, with and without a table prefix. `storetest.NewMemoryStore` is the reference store the suite proves itself against, for an app's tests, not for production:
+
+<!-- ds:block id=storetest-run-example-5kq2wn8d -->
+**TestMemoryStore_Conforms** · [`plugin/oauthprovider/storetest/example_test.go:19-23`](../../plugin/oauthprovider/storetest/example_test.go#L19-L23)
+
+```go
+func TestMemoryStore_Conforms(t *testing.T) {
+	storetest.Run(t, func(*testing.T) oauthprovider.Store {
+		return storetest.NewMemoryStore()
+	})
+}
+```
+<!-- /ds:block hash=fe67a7 -->
+
+What a store outside the database gives up is the transaction. When a request that redeemed a code or rotated a refresh token then fails, the SQL rollback puts the grant back; with another store the provider puts it back itself once the request's transaction ends without a commit (`RestoreCode`, `RestoreRefresh`), so a refused refresh for a scope the grant lacks still leaves the token to the client. Until then a second request presenting the same grant sees it spent, where the database would have made it wait. A token written by an issuance that then fails stays, unreachable because nobody received it, until `Sweep`; `RevokeUserForClient` and `RevokeUserFamily` are not all-or-nothing across the store and the database. `auth.DeleteUser` reaches the store through the plugin's data hook and removes the user's rows there too.
+
 ## Step 13 — Error codes, and the opt-ins that relax a default
 
 Error codes and the userinfo answer are fixed (`invalid_redirect`, `invalid_user`, `not_found`, `unsupported_prompt_select_account`, 400 `invalid_scope` without `openid`). Each less strict behaviour is an opt-in that logs a warning at every start: `RevokeAccessTokenOnly()` (revoking an access token keeps its refresh token), `RefuseJWTRevocation()` (`unsupported_token_type` for a live JWT access token), `EncryptClientSecrets(enc)` (a recoverable copy of each secret, read with `op.RevealClientSecret`) and `RefreshReplay(enc)` (a reused refresh token gets the first answer again inside `RefreshReuseInterval`). `enc` is an authenticated cipher (AES-GCM) under a key from your secret store. Only turn one on when a client depends on it.
@@ -651,7 +687,8 @@ Kept fixed on purpose:
 | `state` at most 1024 bytes, `nonce` 512 | both are echoed into URLs or signed into tokens |
 | Plugin cookie attributes (HttpOnly, Secure, SameSite) | the core owns them for every plugin; the name prefix and domain are core options |
 | Signing keys and their rotation | the `Signer`'s job (the jwt plugin by default); the provider publishes whatever it lists |
-| Where codes, tokens and consents are stored | the app's database through the core (`auth.WithDB`); the stored form is pluggable (`HashStoredSecrets`, `EncryptClientSecrets`, `FormatRefreshToken`, the token generators) |
+| A store's single use, rotation and family revoke are one atomic method each (`RedeemCode`, `RotateRefresh`, `RevokeTokens`) | the provider never builds them from a read and a write, so no store can break them by accident; `storetest.Run` pins each with racing callers. Where the state lives is an option ([`WithStore`](#a-custom-store)) |
+| The resource registry and the `private_key_jwt` and DPoP replay caches stay on `auth.WithDB` | operator configuration and short-lived replay records; the provider needs the app's database for users anyway |
 
 ## From TypeScript
 

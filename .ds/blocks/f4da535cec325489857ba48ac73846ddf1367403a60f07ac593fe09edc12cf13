@@ -1,0 +1,15 @@
+func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal error) error {
+	e := &grantRefusal{refusal: refusal}
+	hash := p.hashSecret(SecretCode, code)
+	p.core.AfterTx(ctx, func(ctx context.Context) {
+		spent, err := p.store.BurnCode(ctx, hash, p.core.Now())
+		if err != nil {
+			e.fail(err)
+			return
+		}
+		if !spent && family != "" {
+			p.revokeFamily(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, Family: family})
+		}
+	})
+	return e
+}

@@ -1,0 +1,25 @@
+func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, scopes []string, ref string) (AuthorizeResult, error) {
+	// The last word before a code exists: whatever route led here, a user
+	// ClientAccess refuses gets none.
+	if err := p.accessAllowed(ctx, z.client.c, c.User.ID); err != nil {
+		return AuthorizeResult{}, err
+	}
+	code := PrefixCode + auth.NewToken().Reveal()
+	id, err := p.core.NewID(codeIDPrefix)
+	if err != nil {
+		return AuthorizeResult{}, err
+	}
+	now := p.core.Now()
+	if err := p.store.InsertCode(ctx, CodeRecord{
+		ID: id, Hash: p.hashSecret(SecretCode, code), ClientID: z.client.c.ClientID,
+		UserID: c.User.ID, SessionID: c.Session.ID, RedirectURI: z.in.RedirectURI,
+		Scopes: strings.Join(scopes, listSeparator), Challenge: optional(z.in.CodeChallenge),
+		ChallengeMethod: optional(z.in.CodeChallengeMethod), Nonce: optional(z.in.Nonce),
+		AuthTime: c.Session.CreatedAt, ExpiresAt: now.Add(p.codeTTL), CreatedAt: now,
+		Resource: optional(z.in.Resource), Claims: joinClaims(z.userInfoClaims), DPoPJKT: optional(z.in.DPoPJKT),
+		ReferenceID: optional(ref),
+	}); err != nil {
+		return AuthorizeResult{}, err
+	}
+	return AuthorizeResult{RedirectTo: p.redirectWith(z.redirect, z.in.State, url.Values{paramCode: {code}})}, nil
+}
