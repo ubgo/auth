@@ -1,6 +1,6 @@
 {
   "name": "@ubgo/auth-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Typed fetch client for the github.com/ubgo/auth HTTP API, generated from its operation list, and a server-side OpenID Connect relying party (@ubgo/auth-client/oidc) for Fetch-API servers.",
   "license": "Apache-2.0",
