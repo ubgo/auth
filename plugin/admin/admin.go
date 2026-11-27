@@ -1153,16 +1153,23 @@ func (p *Plugin) doUnban(ctx context.Context, c *auth.Call, in UserRequest) (aut
 	if err := p.require(ctx, c, ResourceUser, ActionBan); err != nil {
 		return auth.Done{}, err
 	}
-	if _, err := c.Auth.User(ctx, in.UserID); err != nil {
-		return auth.Done{}, err
+	return auth.Done{OK: true}, p.clearBan(ctx, in.UserID)
+}
+
+// clearBan clears the ban, its expiry and its reason of an existing user;
+// unban and UnbanFor share it so the two paths cannot drift. An unknown user
+// is auth.ErrUserNotFound; a user who is not banned is no error.
+func (p *Plugin) clearBan(ctx context.Context, userID string) error {
+	if _, err := p.core.User(ctx, userID); err != nil {
+		return err
 	}
-	if err := auth.SetUserColumn(ctx, c.Auth, PluginName, in.UserID, BannedAt, (*time.Time)(nil)); err != nil {
-		return auth.Done{}, err
+	if err := auth.SetUserColumn(ctx, p.core, PluginName, userID, BannedAt, (*time.Time)(nil)); err != nil {
+		return err
 	}
-	if err := auth.SetUserColumn(ctx, c.Auth, PluginName, in.UserID, BanExpiresAt, (*time.Time)(nil)); err != nil {
-		return auth.Done{}, err
+	if err := auth.SetUserColumn(ctx, p.core, PluginName, userID, BanExpiresAt, (*time.Time)(nil)); err != nil {
+		return err
 	}
-	return auth.Done{OK: true}, auth.SetUserColumn(ctx, c.Auth, PluginName, in.UserID, BanReason, "")
+	return auth.SetUserColumn(ctx, p.core, PluginName, userID, BanReason, "")
 }
 
 // Audit pages through the audit log, as the signed-in admin; see audit.Query.
@@ -1348,27 +1355,36 @@ func (p *Plugin) doSetAdmin(ctx context.Context, c *auth.Call, in SetAdminReques
 	if err := p.require(ctx, c, ResourceUser, ActionSetRole); err != nil {
 		return auth.Done{}, err
 	}
-	r, err := p.load(ctx, in.UserID)
+	_, err := p.applyAdmin(ctx, in.UserID, in.Admin)
+	return auth.Done{OK: true}, err
+}
+
+// applyAdmin grants (admin true) or removes admin rights, and reports whether
+// anything changed; set-admin and RevokeAdmin share it so the two paths
+// cannot drift. The flag and the roles move together (writeRoles): granting
+// adds the first admin role to the stored ones, revoking drops every admin
+// role (the user keeps DefaultRole when none is left), and taking the last
+// admin's rights is ErrLastAdmin. The state the user already has is a no-op.
+func (p *Plugin) applyAdmin(ctx context.Context, userID string, admin bool) (bool, error) {
+	r, err := p.load(ctx, userID)
 	if err != nil {
-		return auth.Done{}, err
+		return false, err
 	}
-	// The flag and the roles move together (writeRoles): granting adds the
-	// first admin role to the stored ones, revoking drops every admin role.
 	stored := splitRoles(r.cols.Role)
-	if in.Admin {
+	if admin {
 		if r.cols.AdminGrantedAt != nil && slices.ContainsFunc(stored, p.isAdminRole) {
-			return auth.Done{OK: true}, nil
+			return false, nil
 		}
-		return auth.Done{OK: true}, p.writeRoles(ctx, in.UserID, append(stored, p.adminRoles[0]))
+		return true, p.writeRoles(ctx, userID, append(stored, p.adminRoles[0]))
 	}
 	if r.cols.AdminGrantedAt == nil && !slices.ContainsFunc(stored, p.isAdminRole) {
-		return auth.Done{OK: true}, nil
+		return false, nil
 	}
 	kept := slices.DeleteFunc(stored, p.isAdminRole)
 	if len(kept) == 0 {
 		kept = []string{p.defaultRole}
 	}
-	return auth.Done{OK: true}, p.writeRoles(ctx, in.UserID, kept)
+	return true, p.writeRoles(ctx, userID, kept)
 }
 
 // ImpersonateRequest names the user to act as. Minutes is optional and capped
