@@ -50,7 +50,7 @@ export const FLOW_COOKIE_SUFFIX = "_flow";
  * named `__Secure-…`, the only prefix the browser allows there. The same rules
  * are checked again at start-up for callers outside the type system.
  */
-export type CookieOptions =
+export type CookieOptions = (
   | {
       readonly name?: `${typeof HOST_PREFIX}${string}`;
       readonly domain?: undefined;
@@ -61,7 +61,18 @@ export type CookieOptions =
       /** `"example.com"` for `admin.example.com` and `api.example.com`. */
       readonly domain: string;
       readonly sameSite?: SameSite;
-    };
+    }
+) & {
+  /**
+   * Writes the session cookie without `Max-Age`, so the browser forgets it
+   * when it closes (a browser that restores its last session may keep it).
+   * Default false: kept until the session's `expiresAt`, so closing the
+   * browser does not sign out. Either way the lifetimes still end the
+   * session; this only decides whether the browser keeps the cookie across a
+   * restart. The flow cookie always has its own short expiry.
+   */
+  readonly browserSession?: boolean;
+};
 
 // ---------------------------------------------------------------------------
 // Package-private: reading, writing and chunking cookies. Not re-exported
@@ -140,17 +151,22 @@ export interface CookieScope {
   readonly name: string;
   readonly domain?: string;
   readonly sameSite: SameSite;
+  /** Written without `Max-Age` (a deletion still carries `Max-Age=0`). */
+  readonly browserSession?: boolean;
 }
 
 /** The SameSite attribute values as browsers spell them. */
 const SAME_SITE_ATTRIBUTE: Readonly<Record<SameSite, string>> = { lax: "Lax", strict: "Strict" };
 
 /**
- * One `Set-Cookie` header value. `maxAgeSeconds` 0 deletes the cookie.
+ * One `Set-Cookie` header value. `maxAgeSeconds` 0 deletes the cookie; a
+ * `browserSession` scope leaves `Max-Age` out of any other value.
  * `Secure; HttpOnly; Path=/` are not parameters: every cookie has them.
  */
 export function serializeCookie(scope: CookieScope, name: string, value: string, maxAgeSeconds: number): string {
-  const parts = [`${name}=${value}`, "Path=/", "Secure", "HttpOnly", `SameSite=${SAME_SITE_ATTRIBUTE[scope.sameSite]}`, `Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`];
+  const maxAge = Math.max(0, Math.floor(maxAgeSeconds));
+  const parts = [`${name}=${value}`, "Path=/", "Secure", "HttpOnly", `SameSite=${SAME_SITE_ATTRIBUTE[scope.sameSite]}`];
+  if (maxAge === 0 || scope.browserSession !== true) parts.push(`Max-Age=${maxAge}`);
   if (scope.domain !== undefined) parts.push(`Domain=${scope.domain}`);
   return parts.join("; ");
 }

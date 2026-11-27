@@ -36,6 +36,8 @@ export interface ConnectionConfig {
   readonly redirectUri: string;
   readonly fetch: typeof fetch;
   readonly timeoutMs: number;
+  /** The clock skew allowed on tokens' iat, nbf and exp (the `clockSkewMs` option). */
+  readonly clockSkewMs: number;
   readonly now: () => number;
   /** Given instead of discovery; already checked by `checkMetadata`. */
   readonly discovery?: ProviderMetadata;
@@ -297,7 +299,7 @@ export function createConnection(cfg: ConnectionConfig): Connection {
   }, cfg.now);
 
   async function tokenContext(): Promise<TokenContext> {
-    return { issuer: (await metadata()).issuer, clientId: cfg.clientId, keys, now: cfg.now() };
+    return { issuer: (await metadata()).issuer, clientId: cfg.clientId, keys, now: cfg.now(), leewayMs: cfg.clockSkewMs };
   }
 
   /** POSTs `form` to `endpoint` with client authentication and returns the JSON answer of a 2xx (an empty object when `readBody` is false). */

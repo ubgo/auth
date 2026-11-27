@@ -6,7 +6,8 @@ import { PKCE_METHOD_S256, createConnection, isOutage } from "./connection.ts";
 import { HEADER_SET_COOKIE, SameSite, deleteChunked, isCookieValue, readCookies, serializeCookie } from "./cookie.ts";
 import { LoadKind, createEngine, describe, type PendingRefusal } from "./engine.ts";
 import { OidcClientError, OidcErrorCode, isOidcError } from "./errors.ts";
-import { FLOW_TTL_MS, addFlow, codeChallenge, decodeFlows, encodeFlows, newFlow, takeFlow, type Flow } from "./flow.ts";
+import { addFlow, codeChallenge, decodeFlows, encodeFlows, newFlow, takeFlow, type Flow } from "./flow.ts";
+import { LogoutMode, SessionEndReason } from "./hooks.ts";
 import { MapReason, type User } from "./identity.ts";
 import { EventKind } from "./observe.ts";
 import type { OidcClientOptions } from "./options.ts";
@@ -167,6 +168,7 @@ export function createOidcClient(options: OidcClientOptions): OidcClient {
     redirectUri: cfg.appOrigin + cfg.paths.callback,
     fetch: cfg.fetch,
     timeoutMs: cfg.httpTimeoutMs,
+    clockSkewMs: cfg.clockSkewMs,
     now: cfg.now,
     ...(cfg.discovery === undefined ? {} : { discovery: cfg.discovery }),
   });
@@ -209,7 +211,7 @@ export function createOidcClient(options: OidcClientOptions): OidcClient {
   /** The pending flows in a sealed flow cookie (expired ones dropped); throws the sealer's error, `sealedCorrupt` for one that does not open. */
   async function openFlows(sealed: string | undefined, now: number): Promise<readonly Flow[]> {
     if (sealed === undefined) return [];
-    return decodeFlows(fromUtf8(await cfg.sealer.open(sealed, cfg.flowCookie.name)), now);
+    return decodeFlows(fromUtf8(await cfg.sealer.open(sealed, cfg.flowCookie.name)), now, cfg.flowLifetimeMs, cfg.clockSkewMs);
   }
 
   /** The `Set-Cookie` value holding `flows`, living until the newest expires; a deletion when none is left. */
@@ -218,7 +220,7 @@ export function createOidcClient(options: OidcClientOptions): OidcClient {
     if (newest === undefined) return serializeCookie(cfg.flowCookie, cfg.flowCookie.name, "", 0);
     const sealed = await cfg.sealer.seal(utf8(encodeFlows(flows)), cfg.flowCookie.name);
     if (!isCookieValue(sealed)) throw new OidcClientError(OidcErrorCode.invalidConfig, "sealer output is not cookie-safe text");
-    return serializeCookie(cfg.flowCookie, cfg.flowCookie.name, sealed, (newest.startedAt + FLOW_TTL_MS - now) / 1000);
+    return serializeCookie(cfg.flowCookie, cfg.flowCookie.name, sealed, (newest.startedAt + cfg.flowLifetimeMs - now) / 1000);
   }
 
   async function login(request: Request): Promise<Response> {
@@ -335,10 +337,6 @@ export function createOidcClient(options: OidcClientOptions): OidcClient {
     if (!engine.isUserFor(user, identity)) {
       return fail({ kind: RefusalKind.failed, reason: RefusalReason.hookFailed, cause: new Error("mapUser returned no User, or one with another issuer or subject") });
     }
-    // A new id on every sign-in (no session fixation); a session the browser
-    // already held is ended, not inherited.
-    const previous = await engine.load(request, cookies);
-    if (previous.kind === LoadKind.session) await engine.end(previous.session, request);
     const session: Session = {
       id: randomToken(),
       user,
@@ -349,6 +347,12 @@ export function createOidcClient(options: OidcClientOptions): OidcClient {
       checkedAt: now,
       expiresAt: engine.expiresAt(now, now),
     };
+    const startRefused = await engine.started(session, identity, request);
+    if (startRefused !== undefined) return fail(startRefused);
+    // A new id on every sign-in (no session fixation); a session the browser
+    // already held is ended, not inherited.
+    const previous = await engine.load(request, cookies);
+    if (previous.kind === LoadKind.session) await engine.end(previous.session, request, SessionEndReason.replaced);
     let setCookies: readonly string[];
     try {
       setCookies = await engine.write(session, request, cookies);
@@ -374,10 +378,13 @@ export function createOidcClient(options: OidcClientOptions): OidcClient {
     const session = loaded.kind === LoadKind.session ? loaded.session : undefined;
     if (session !== undefined) {
       await revokeAtLogout(session);
-      await engine.end(session, request);
+      await engine.end(session, request, SessionEndReason.logout);
       engine.emit({ kind: EventKind.logout, at: cfg.now(), sessionId: session.id, subject: session.user.subject });
     }
     const clear = deleteChunked(cfg.sessionCookie, cookies);
+    if ((await cfg.logoutPolicy({ request, ...(session === undefined ? {} : { session }) })) === LogoutMode.appOnly) {
+      return redirect(HttpStatus.seeOther, cfg.postLogoutPath, clear);
+    }
     const back = cfg.appOrigin + cfg.postLogoutPath;
     let endSession: string | undefined;
     try {
@@ -455,6 +462,7 @@ export function createOidcClient(options: OidcClientOptions): OidcClient {
       return json(HttpStatus.internalServerError, { error: ERROR_SERVER });
     }
     engine.emit({ kind: EventKind.backchannelLogout, at: cfg.now(), count, ...(target.subject === undefined ? {} : { subject: target.subject }) });
+    await engine.ended({ reason: SessionEndReason.backchannel, target, count, request });
     return new Response(null, { status: HttpStatus.ok, headers: { [Header.cacheControl]: NO_STORE } });
   }
 

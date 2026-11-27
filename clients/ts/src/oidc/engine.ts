@@ -13,6 +13,7 @@ import type { Resolved } from "./config.ts";
 import { isOutage } from "./connection.ts";
 import { deleteChunked, isCookieValue, readChunked, writeChunked } from "./cookie.ts";
 import { OidcClientError, OidcErrorCode, isOidcError } from "./errors.ts";
+import { SessionEndReason, type SessionEndInput } from "./hooks.ts";
 import { MapReason, type Identity, type User } from "./identity.ts";
 import { genuineRefreshed } from "./internal.ts";
 import { EventKind, type OidcEvent } from "./observe.ts";
@@ -20,13 +21,8 @@ import type { Provider } from "./provider.ts";
 import type { RecheckResult } from "./recheck.ts";
 import { RefusalKind, RefusalReason, type Refusal } from "./respond.ts";
 import { PARAM_RETURN_TO, isSameSitePath } from "./routes.ts";
-import type { Session, StoreContext } from "./session.ts";
+import { MAX_COOKIE_LIFETIME_MS, NO_LIMIT, type Session, type StoreContext } from "./session.ts";
 
-/**
- * The idle window slides at most this often: a busy session does not
- * rewrite its cookie (or its row) on every request. A value, not a policy.
- */
-export const SLIDE_GRANULARITY_MS = 60 * 1000;
 
 /**
  * How long a finished re-check's outcome is reused for a request that
@@ -82,14 +78,18 @@ export interface Engine {
   load(request: Request, cookies: ReadonlyMap<string, string>): Promise<Loaded>;
   /** Saves and seals `session` and returns its `Set-Cookie` values; throws `sessionTooLarge` or the store's or sealer's error. */
   write(session: Session, request: Request, cookies: ReadonlyMap<string, string>): Promise<readonly string[]>;
-  /** Deletes `session` from the store; a failure is logged, never thrown (the cookie is cleared regardless). */
-  end(session: Session, request: Request): Promise<void>;
+  /** Deletes `session` from the store (a failure is logged, never thrown: the cookie is cleared regardless), then tells `onSessionEnd` why. */
+  end(session: Session, request: Request, reason: EndReason, cause?: unknown): Promise<void>;
+  /** Tells `onSessionEnd`; a throw from it is logged and swallowed. */
+  ended(input: SessionEndInput): Promise<void>;
   /** The earlier of the idle and absolute ends. */
   expiresAt(lastSeenAt: number, createdAt: number): number;
   /** The refusal with its login URL, for the responder. */
   refusal(p: PendingRefusal, request: Request): Refusal;
   /** Calls the observer; a throw from it is logged and swallowed. */
   emit(event: OidcEvent): void;
+  /** Runs `onSessionStart` for a session about to be saved; resolves to the refusal when it throws, `undefined` to go on. */
+  started(session: Session, identity: Identity, request: Request): Promise<PendingRefusal | undefined>;
   /** Whether `user` is a well-formed `User` for `identity`: the shape a hook must return, and the same issuer and subject. */
   isUserFor(user: unknown, identity: Identity): user is User;
 }
@@ -110,7 +110,39 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
   }
 
   function expiresAt(lastSeenAt: number, createdAt: number): number {
-    return Math.min(lastSeenAt + cfg.idleMs, createdAt + cfg.absoluteMs);
+    // An idle bound of NO_LIMIT counts as the browser's cookie horizon, so the
+    // answer is always finite (a store's TTL, and JSON, need a number).
+    const idle = cfg.idleMs === NO_LIMIT ? MAX_COOKIE_LIFETIME_MS : cfg.idleMs;
+    return Math.min(lastSeenAt + idle, createdAt + cfg.absoluteMs);
+  }
+
+  async function ended(input: SessionEndInput): Promise<void> {
+    if (cfg.onSessionEnd === undefined) return;
+    try {
+      await cfg.onSessionEnd(input);
+    } catch (err) {
+      cfg.logger.warn("oidc: onSessionEnd threw; ignored", { reason: input.reason, error: describe(err) });
+    }
+  }
+
+  async function refreshFailed(session: Session, request: Request, cause: unknown, outage: boolean): Promise<void> {
+    if (cfg.onRefreshFailed === undefined) return;
+    try {
+      await cfg.onRefreshFailed({ session, cause, outage, request });
+    } catch (err) {
+      cfg.logger.warn("oidc: onRefreshFailed threw; ignored", { sessionId: session.id, error: describe(err) });
+    }
+  }
+
+  async function started(session: Session, identity: Identity, request: Request): Promise<PendingRefusal | undefined> {
+    if (cfg.onSessionStart === undefined) return undefined;
+    try {
+      await cfg.onSessionStart({ session, identity, request });
+      return undefined;
+    } catch (err) {
+      if (isOidcError(err, OidcErrorCode.accessDenied)) return { kind: RefusalKind.noAccess, reason: RefusalReason.notAuthorized, cause: err };
+      return { kind: RefusalKind.failed, reason: RefusalReason.hookFailed, cause: err };
+    }
   }
 
   function refusal(p: PendingRefusal, request: Request): Refusal {
@@ -170,12 +202,13 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
     return cookiesFor(await saveAndSeal(session, request), session, cookies);
   }
 
-  async function end(session: Session, request: Request): Promise<void> {
+  async function end(session: Session, request: Request, reason: EndReason, cause?: unknown): Promise<void> {
     try {
       await cfg.store.delete(session, ctx(request));
     } catch (err) {
       cfg.logger.error("oidc: store.delete failed; the cookie is cleared regardless", { sessionId: session.id, error: describe(err) });
     }
+    await ended({ reason, session, request, ...(cause === undefined ? {} : { cause }) });
   }
 
   function isUserFor(user: unknown, identity: Identity): user is User {
@@ -203,7 +236,9 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
   async function recheck(s: Session, request: Request): Promise<RecheckOutcome> {
     const now = cfg.now();
     const ended = async (refusal: PendingRefusal): Promise<RecheckOutcome> => {
-      await end(s, request);
+      const cause = refusal.cause ?? new Error(`re-check refused (${refusal.reason})`);
+      await refreshFailed(s, request, cause, false);
+      await end(s, request, SessionEndReason.recheckRefused, cause);
       return { kind: OutcomeKind.refused, refusal, ended: true };
     };
     let result: RecheckResult;
@@ -211,6 +246,7 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
       result = await cfg.rechecker({ session: s, provider, request, now });
     } catch (err) {
       if (isOutage(err)) {
+        await refreshFailed(s, request, err, true);
         if (now - s.checkedAt < cfg.outageGraceMs) {
           emit({ kind: EventKind.grace, at: now, sessionId: s.id, subject: s.user.subject, cause: err });
           cfg.logger.warn("oidc: login server unreachable; using the last yes within the outage grace", { sessionId: s.id, error: describe(err) });
@@ -277,6 +313,7 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
     try {
       sealed = await saveAndSeal(next, request);
     } catch (err) {
+      await refreshFailed(s, request, err, false);
       return { kind: OutcomeKind.refused, refusal: { kind: RefusalKind.failed, reason: RefusalReason.storeFailed, cause: err }, ended: false };
     }
     emit({ kind: EventKind.refresh, at: now, sessionId: s.id, subject: user.subject });
@@ -320,11 +357,11 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
     const now = cfg.now();
     const clear = deleteChunked(cfg.sessionCookie, cookies);
     if (now >= s.createdAt + cfg.absoluteMs || now < s.createdAt) {
-      await end(s, request);
+      await end(s, request, SessionEndReason.absoluteExpired);
       return { ok: false, refusal: { kind: RefusalKind.loginRequired, reason: RefusalReason.absoluteExpired }, setCookies: clear, session: s };
     }
     if (now >= s.lastSeenAt + cfg.idleMs) {
-      await end(s, request);
+      await end(s, request, SessionEndReason.idleExpired);
       return { ok: false, refusal: { kind: RefusalKind.loginRequired, reason: RefusalReason.idleExpired }, setCookies: clear, session: s };
     }
 
@@ -348,7 +385,7 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
         default:
           return unreachable(outcome);
       }
-    } else if (now - s.lastSeenAt >= SLIDE_GRANULARITY_MS) {
+    } else if (now > s.lastSeenAt && now - s.lastSeenAt >= cfg.slideIntervalMs) {
       const slid: Session = { ...s, lastSeenAt: now, expiresAt: expiresAt(now, s.createdAt) };
       try {
         setCookies = await write(slid, request, cookies);
@@ -377,8 +414,11 @@ export function createEngine(cfg: Resolved, provider: Provider): Engine {
     return { ok: true, session: current, setCookies };
   }
 
-  return { evaluate, load, write, end, expiresAt, refusal, emit, isUserFor };
+  return { evaluate, load, write, end, ended, started, expiresAt, refusal, emit, isUserFor };
 }
+
+/** Why the engine's `end` ended a session: every reason but the back-channel one, which ends sessions by target. */
+export type EndReason = Exclude<SessionEndReason, typeof SessionEndReason.backchannel>;
 
 /** A compile error when a union arm is added and not handled. */
 function unreachable(value: never): never {

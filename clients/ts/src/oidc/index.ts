@@ -7,6 +7,10 @@ export {
   DEFAULT_SCOPES,
   RESERVED_AUTH_PARAMS,
   DEFAULT_HTTP_TIMEOUT_MS,
+  DEFAULT_SLIDE_INTERVAL_MS,
+  DEFAULT_CLOCK_SKEW_MS,
+  MAX_CLOCK_SKEW_MS,
+  DEFAULT_FLOW_LIFETIME_MS,
   type ReservedAuthParam,
   type AuthParams,
   type OidcClientOptions,
@@ -35,6 +39,21 @@ export {
   type UserMapper,
 } from "./identity.ts";
 export { Decision, DECISIONS, type AuthorizeInput, type Authorizer } from "./authorize.ts";
+export {
+  SessionEndReason,
+  SESSION_END_REASONS,
+  LogoutMode,
+  LOGOUT_MODES,
+  logoutAlways,
+  type SessionStartInput,
+  type SessionStartHook,
+  type SessionEndInput,
+  type SessionEndHook,
+  type RefreshFailure,
+  type RefreshFailedHook,
+  type LogoutInput,
+  type LogoutPolicy,
+} from "./hooks.ts";
 
 export {
   cookieStore,
@@ -44,6 +63,8 @@ export {
   decodeSession,
   DEFAULT_IDLE_LIFETIME_MS,
   DEFAULT_ABSOLUTE_LIFETIME_MS,
+  NO_LIMIT,
+  MAX_COOKIE_LIFETIME_MS,
   type Tokens,
   type Session,
   type StoreContext,

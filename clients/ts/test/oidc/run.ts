@@ -6,6 +6,7 @@ import "./floors.test.ts";
 import "./seams.test.ts";
 import "./entries.test.ts";
 import "./values.test.ts";
+import "./options.test.ts";
 import { run } from "./harness.ts";
 
 await run();
