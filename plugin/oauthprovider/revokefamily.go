@@ -92,6 +92,9 @@ func (p *Plugin) RevokeUserFamily(ctx context.Context, in RevokeFamilyRequest) (
 			Where(sqlb.Eq(TokenFamily, in.Family), sqlb.Eq(TokenUser, &in.UserID), sqlb.IsNull(TokenRevoked))); err != nil {
 			return err
 		}
+		if res.Tokens > 0 {
+			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonAdmin, ClientID: clientID, UserID: in.UserID, SessionID: sid, Family: in.Family})
+		}
 		res.LogoutNotices = len(targets)
 		if len(targets) > 0 {
 			p.core.AfterCommit(ctx, func(ctx context.Context) {

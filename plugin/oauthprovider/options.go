@@ -155,6 +155,24 @@ func ValidateInitialAccessToken(fn InitialAccessTokenFunc) Option {
 	}
 }
 
+// ConsentTTL makes a stored consent expire d after the user last approved
+// it: the next authorization then asks again (or answers consent_required
+// without a ConsentPage, or for prompt=none). Approving again renews it, and
+// an approval after expiry replaces the old grant rather than adding to it.
+// Tokens already issued are not revoked; a client that must stop at the
+// expiry also needs MaxAuthAge or RefreshTokenTTL. 0, the default, never
+// expires a consent; a negative d is ErrBadTTL. Clients with SkipConsent
+// never ask.
+//
+//ds:def id=oauthprovider-consentttl-2dhamaaw owner=@khanakia stability=stable
+func ConsentTTL(d time.Duration) Option { return func(p *Plugin) { p.consentTTL = d } }
+
+// consentExpired reports whether a consent last approved at updated is past
+// ConsentTTL.
+func (p *Plugin) consentExpired(updated time.Time) bool {
+	return p.consentTTL > 0 && !p.core.Now().Before(updated.Add(p.consentTTL))
+}
+
 // SignupPage is where prompt=create sends the browser, with the authorize
 // parameters. Without it, prompt=create goes to LoginPage.
 func SignupPage(u string) Option { return func(p *Plugin) { p.signupPage = u } }
@@ -253,7 +271,22 @@ func (p *Plugin) validateOptions() error {
 	if p.m2mTTL < 0 {
 		return fmt.Errorf("%w: oauthprovider.M2MAccessTokenTTL(%v) is negative", ErrBadTTL, p.m2mTTL)
 	}
-	return nil
+	for _, l := range []struct {
+		option string
+		n      int64
+	}{
+		{"oauthprovider.MaxRequestBytes", p.maxRequestBytes},
+		{"oauthprovider.ClientJWKSFetchLimits timeout", int64(p.jwksTimeout)},
+		{"oauthprovider.ClientJWKSFetchLimits maxBytes", p.jwksMaxBytes},
+	} {
+		if l.n <= 0 {
+			return fmt.Errorf("%w: %s(%d)", ErrBadLimit, l.option, l.n)
+		}
+	}
+	if c := p.cimd; c != nil && (c.timeout <= 0 || c.maxBytes <= 0) {
+		return fmt.Errorf("%w: oauthprovider.CIMDFetchLimits(%v, %d)", ErrBadLimit, c.timeout, c.maxBytes)
+	}
+	return p.validateScopeClaims()
 }
 
 // newClientID is a generated client id: the custom generator's, checked,

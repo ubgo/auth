@@ -30,10 +30,14 @@ const (
 	// before it is fetched again.
 	//ds:def id=oauthprovider-defaultcimdrevalidate-h3w8kq5n owner=@khanakia stability=stable
 	DefaultCIMDRevalidate = time.Hour
-	// cimdTimeout bounds one fetch.
-	cimdTimeout = 5 * time.Second
-	// cimdMaxBytes is the largest document accepted, 5 KB.
-	cimdMaxBytes = 5 << 10
+	// DefaultCIMDFetchTimeout bounds one fetch by the default fetcher.
+	//
+	//ds:def id=oauthprovider-defaultcimdfetchtimeout-nbbp2ekj owner=@khanakia stability=stable
+	DefaultCIMDFetchTimeout = 5 * time.Second
+	// DefaultCIMDMaxDocumentBytes is the largest document accepted, 5 KB.
+	//
+	//ds:def id=oauthprovider-defaultcimdmaxdocumentbytes-yhuej2dr owner=@khanakia stability=stable
+	DefaultCIMDMaxDocumentBytes = 5 << 10
 	// mediaTypeJSON and mediaSuffixJSON are the accepted content types:
 	// application/json and application/*+json.
 	mediaTypeJSON   = "application/json"
@@ -62,7 +66,8 @@ var cimdForbidden = []string{
 // every address that is not public (RFC 6890 special-purpose ranges),
 // dials the address it checked rather than resolving twice, follows no
 // redirect, gives up after 5 seconds, and reads at most 5 KB of an exactly
-// 200 application/json answer. Replace it only for tests, or for an
+// 200 application/json answer (CIMDFetchLimits changes both; the size cap
+// holds for any fetcher). Replace it only for tests, or for an
 // egress proxy that enforces the same rules.
 type CIMDFetcher func(ctx context.Context, rawURL string) ([]byte, error)
 
@@ -78,13 +83,26 @@ type cimdConfig struct {
 	mcpProfile   bool
 	policy       CIMDFetchPolicy
 	maxEntries   int
-	onCreated    func(ctx context.Context, c Client, document json.RawMessage)
-	onRefreshed  func(ctx context.Context, c, previous Client, document json.RawMessage)
-	gov          governor
+	// timeout and maxBytes are CIMDFetchLimits.
+	timeout     time.Duration
+	maxBytes    int64
+	onCreated   func(ctx context.Context, c Client, document json.RawMessage)
+	onRefreshed func(ctx context.Context, c, previous Client, document json.RawMessage)
+	gov         governor
 }
 
 // CIMDOption configures ClientIDMetadataDocuments.
 type CIMDOption func(*cimdConfig)
+
+// CIMDFetchLimits overrides DefaultCIMDFetchTimeout (how long the default
+// fetcher waits for one document) and DefaultCIMDMaxDocumentBytes (the
+// largest document accepted, whichever fetcher fetched it). Both must be
+// positive (ErrBadLimit): an unbounded fetch of a URL a caller chose would
+// let any caller hold the server. The default fetcher's public-address rules
+// stay as they are.
+func CIMDFetchLimits(timeout time.Duration, maxBytes int64) CIMDOption {
+	return func(c *cimdConfig) { c.timeout, c.maxBytes = timeout, maxBytes }
+}
 
 // CIMDRevalidate overrides DefaultCIMDRevalidate.
 func CIMDRevalidate(d time.Duration) CIMDOption { return func(c *cimdConfig) { c.revalidate = d } }
@@ -156,10 +174,15 @@ func ClientIDMetadataDocuments(opts ...CIMDOption) Option {
 		if auth.RefuseNilEach(&p.optErrs, "oauthprovider.ClientIDMetadataDocuments", opts) {
 			return
 		}
-		c := &cimdConfig{transport: fetchPublic, revalidate: DefaultCIMDRevalidate,
+		c := &cimdConfig{revalidate: DefaultCIMDRevalidate, timeout: DefaultCIMDFetchTimeout, maxBytes: DefaultCIMDMaxDocumentBytes,
 			gov: governor{perOrigin: map[string]int{}, originWin: map[string][]time.Time{}, lastFailed: map[string]time.Time{}, flights: map[string]*flight{}}}
 		for _, o := range opts {
 			o(c)
+		}
+		if c.transport == nil {
+			c.transport = func(ctx context.Context, rawURL string, cond http.Header) (CIMDResponse, error) {
+				return fetchPublicLimit(ctx, rawURL, cond, c.timeout, c.maxBytes)
+			}
 		}
 		p.optErrs.JoinOptionErr(c.optErrs.OptionErr())
 		p.cimd = c
@@ -261,7 +284,7 @@ func (p *Plugin) fetchCIMD(ctx context.Context, id string, existing *clientRow) 
 		failed = false
 		return p.loadCIMDRow(ctx, id)
 	}
-	body, err := checkDocument(res)
+	body, err := checkDocument(res, p.cimd.maxBytes)
 	if err != nil {
 		p.core.Logger().Warn("oauthprovider: client metadata document", "client_id", id, "error", err)
 		return clientRow{}, ErrClientNotFound
@@ -490,19 +513,20 @@ func originOfURL(raw string) string {
 	return u.Scheme + "://" + u.Host
 }
 
-// fetchPublic is the default CIMDFetcher.
+// fetchPublic is the default CIMDFetcher with the default limits.
 func fetchPublic(ctx context.Context, rawURL string, cond http.Header) (CIMDResponse, error) {
-	return fetchPublicLimit(ctx, rawURL, cond, cimdMaxBytes)
+	return fetchPublicLimit(ctx, rawURL, cond, DefaultCIMDFetchTimeout, DefaultCIMDMaxDocumentBytes)
 }
 
-// fetchPublicLimit GETs an https URL from a public address only, reading at
-// most limit+1 bytes so the caller can tell an oversized answer.
-func fetchPublicLimit(ctx context.Context, rawURL string, cond http.Header, limit int64) (CIMDResponse, error) {
+// fetchPublicLimit GETs an https URL from a public address only, giving up
+// after timeout and reading at most limit+1 bytes so the caller can tell an
+// oversized answer.
+func fetchPublicLimit(ctx context.Context, rawURL string, cond http.Header, timeout time.Duration, limit int64) (CIMDResponse, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil || u.Scheme != schemeHTTPS {
 		return CIMDResponse{}, fmt.Errorf("%w: not https", ErrCIMDFetch)
 	}
-	dialer := &net.Dialer{Timeout: cimdTimeout}
+	dialer := &net.Dialer{Timeout: timeout}
 	transport := &http.Transport{
 		// Resolve once, check every address, then dial the checked one: a
 		// second resolution could answer a private address (DNS rebinding).
@@ -522,10 +546,10 @@ func fetchPublicLimit(ctx context.Context, rawURL string, cond http.Header, limi
 			}
 			return dialer.DialContext(ctx, network, net.JoinHostPort(ips[0].String(), port))
 		},
-		TLSHandshakeTimeout: cimdTimeout, DisableKeepAlives: true, Proxy: nil,
+		TLSHandshakeTimeout: timeout, DisableKeepAlives: true, Proxy: nil,
 	}
 	client := &http.Client{
-		Transport: transport, Timeout: cimdTimeout,
+		Transport: transport, Timeout: timeout,
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
@@ -549,8 +573,8 @@ func fetchPublicLimit(ctx context.Context, rawURL string, cond http.Header, limi
 }
 
 // checkDocument accepts exactly a 200 answer of a JSON media type, at most
-// cimdMaxBytes long.
-func checkDocument(res CIMDResponse) ([]byte, error) {
+// maxBytes long.
+func checkDocument(res CIMDResponse, maxBytes int64) ([]byte, error) {
 	if res.Status != http.StatusOK {
 		return nil, fmt.Errorf("%w: status %d", ErrCIMDFetch, res.Status)
 	}
@@ -558,8 +582,8 @@ func checkDocument(res CIMDResponse) ([]byte, error) {
 	if err != nil || (mt != mediaTypeJSON && !(strings.HasPrefix(mt, mediaPrefixApp) && strings.HasSuffix(mt, mediaSuffixJSON))) {
 		return nil, fmt.Errorf("%w: media type %q", ErrCIMDFetch, res.Header.Get(headerContentType))
 	}
-	if len(res.Body) > cimdMaxBytes {
-		return nil, fmt.Errorf("%w: larger than %d bytes", ErrCIMDFetch, cimdMaxBytes)
+	if int64(len(res.Body)) > maxBytes {
+		return nil, fmt.Errorf("%w: larger than %d bytes", ErrCIMDFetch, maxBytes)
 	}
 	return res.Body, nil
 }

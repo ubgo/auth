@@ -323,6 +323,35 @@ type Plugin struct {
 	// privileges and clientReference are the options of privileges.go.
 	privileges      ClientPrivilegesFunc
 	clientReference func(ctx context.Context, c *auth.Call) string
+	// consentTTL is ConsentTTL: 0 is a consent that never expires.
+	consentTTL time.Duration
+	// The end-session options of logout.go: the confirmation's lifetime,
+	// how long past its exp an id_token_hint is still accepted, and the
+	// post-logout redirect decision.
+	logoutConfirmTTL    time.Duration
+	hintGrace           time.Duration
+	postLogoutValidator RedirectValidator
+	// The back-channel options of backchannel.go.
+	logoutTokenTTL     time.Duration
+	backchannelTimeout time.Duration
+	backchannelDeliver BackchannelDeliverFunc
+	// clockSkew is ClockSkew, dpopSkew DPoPClockSkew.
+	clockSkew, dpopSkew time.Duration
+	// scopeClaims is ScopeClaims inverted (claim name to the scopes that
+	// release it), nil for standardClaims; scopeClaimsGiven is the option's
+	// map as given, for Validate.
+	scopeClaims, scopeClaimsGiven map[string][]string
+	// renderPage is RenderPage; nil renders the built-in pages.
+	renderPage PageRenderer
+	// maxRequestBytes is MaxRequestBytes.
+	maxRequestBytes int64
+	// tokenEvents is OnTokenEvent.
+	tokenEvents func(ctx context.Context, e TokenEvent)
+	// jwksTTL is ClientJWKSCacheTTL; jwksTimeout and jwksMaxBytes are
+	// ClientJWKSFetchLimits.
+	jwksTTL      time.Duration
+	jwksTimeout  time.Duration
+	jwksMaxBytes int64
 
 	core *auth.Auth
 
@@ -538,6 +567,9 @@ func New(signer Signer, opts ...Option) *Plugin {
 		signer: signer, basePath: DefaultBasePath, scopes: DefaultScopes, grantTypes: DefaultGrantTypes,
 		assertionMaxLifetime: DefaultAssertionMaxLifetime, dpopMaxAge: DefaultDPoPProofMaxAge, dpopAlgs: DPoPAlgorithms,
 		codeTTL: DefaultCodeTTL, accessTTL: DefaultAccessTokenTTL, refreshTTL: DefaultRefreshTokenTTL, idTokenTTL: DefaultIDTokenTTL,
+		logoutConfirmTTL: DefaultEndSessionConfirmTTL, logoutTokenTTL: DefaultBackchannelLogoutTokenTTL, backchannelTimeout: DefaultBackchannelTimeout,
+		clockSkew: DefaultClockSkew, dpopSkew: DefaultDPoPClockSkew, maxRequestBytes: DefaultMaxRequestBytes,
+		jwksTTL: DefaultClientJWKSCacheTTL, jwksTimeout: DefaultClientJWKSFetchTimeout, jwksMaxBytes: DefaultClientJWKSMaxBytes,
 	}
 	for _, o := range opts {
 		o(p)
@@ -684,7 +716,12 @@ func (p *Plugin) Validate(c *auth.Config) error {
 
 // validateLifetimes refuses each lifetime under its own option's name, so
 // the error says which setting to fix; ErrBadTTL stays the sentinel. The
-// reuse interval may be zero (no reuse window); every other must be positive.
+// reuse interval, MaxAuthAge, ConsentTTL, EndSessionHintGrace,
+// BackchannelTimeout and the two clock skews may be zero (off);
+// EndSessionConfirmTTL and BackchannelLogoutTokenTTL need at least a second
+// (a cookie expiry and an exp are whole seconds), as does ClientJWKSCacheTTL
+// (shorter would fetch a client's host on every assertion); every other
+// must be positive.
 func (p *Plugin) validateLifetimes() error {
 	for _, l := range []struct {
 		option string
@@ -699,6 +736,14 @@ func (p *Plugin) validateLifetimes() error {
 		{"oauthprovider.MaxAuthAge", p.maxAuthAge, 0},
 		{"oauthprovider.AssertionMaxLifetime", p.assertionMaxLifetime, 1},
 		{"oauthprovider.DPoPProofMaxAge", p.dpopMaxAge, 1},
+		{"oauthprovider.ConsentTTL", p.consentTTL, 0},
+		{"oauthprovider.EndSessionConfirmTTL", p.logoutConfirmTTL, time.Second},
+		{"oauthprovider.EndSessionHintGrace", p.hintGrace, 0},
+		{"oauthprovider.BackchannelLogoutTokenTTL", p.logoutTokenTTL, time.Second},
+		{"oauthprovider.BackchannelTimeout", p.backchannelTimeout, 0},
+		{"oauthprovider.ClockSkew", p.clockSkew, 0},
+		{"oauthprovider.DPoPClockSkew", p.dpopSkew, 0},
+		{"oauthprovider.ClientJWKSCacheTTL", p.jwksTTL, time.Second},
 	} {
 		if l.d < l.min {
 			return fmt.Errorf("%w: %s(%v)", ErrBadTTL, l.option, l.d)

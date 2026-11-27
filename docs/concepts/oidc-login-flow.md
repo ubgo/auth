@@ -245,7 +245,7 @@ browser: GET https://login.example.com/no-access
 Priya is on the list, so the login server issues a code. It asks the rule once more (whatever route led here), then stores the code with the client, the user, the session, the redirect URI, the `code_challenge` and the `nonce`, and an expiry:
 
 <!-- ds:block id=oauthprovider-issuecode-fyj9g3rp -->
-**Plugin.issueCode** · [`plugin/oauthprovider/authorize.go:709-733`](../../plugin/oauthprovider/authorize.go#L709-L733)
+**Plugin.issueCode** · [`plugin/oauthprovider/authorize.go:716-740`](../../plugin/oauthprovider/authorize.go#L716-L740)
 
 ```go
 func (p *Plugin) issueCode(ctx context.Context, c *auth.Call, z authzContext, scopes []string, ref string) (AuthorizeResult, error) {
@@ -388,7 +388,7 @@ wiki → login: POST https://login.example.com/oauth2/token
 On the login server, the code is spent first. The update marks it used only if it was not used yet; a second use of a spent code is a replay and revokes everything issued from it:
 
 <!-- ds:block id=oauthprovider-redeemcode-adngtvxm -->
-**Plugin.redeemCode** · [`plugin/oauthprovider/authorize.go:758-783`](../../plugin/oauthprovider/authorize.go#L758-L783)
+**Plugin.redeemCode** · [`plugin/oauthprovider/authorize.go:765-791`](../../plugin/oauthprovider/authorize.go#L765-L791)
 
 ```go
 func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
@@ -408,8 +408,9 @@ func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 		return codeRow{}, err
 	}
 	if n == 0 {
-		family := r.id
-		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, family) })
+		p.reportReplay(ctx, GrantAuthorizationCode, r.client, r.user)
+		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonReuse, ClientID: r.client, UserID: r.user, SessionID: r.session, Family: r.id}
+		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
 		return codeRow{}, ErrInvalidGrant
 	}
 	if !now.Before(r.expires) {
@@ -418,12 +419,12 @@ func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 	return r, nil
 }
 ```
-<!-- /ds:block hash=a4f89c -->
+<!-- /ds:block hash=1108c3 -->
 
 Then the code must belong to this client and this redirect URI, and the verifier must match the stored challenge. The login server hashes the verifier itself and compares:
 
 <!-- ds:block id=oauthprovider-checkpkce-jb5yqv5r -->
-**checkPKCE** · [`plugin/oauthprovider/authorize.go:790-804`](../../plugin/oauthprovider/authorize.go#L790-L804)
+**checkPKCE** · [`plugin/oauthprovider/authorize.go:798-812`](../../plugin/oauthprovider/authorize.go#L798-L812)
 
 ```go
 func checkPKCE(r codeRow, verifier string) error {
@@ -462,7 +463,7 @@ So a stolen code is useless on its own. Whoever takes it from the URL, a log or 
 A failed attempt spends the code. When the verifier, the `redirect_uri` or the client is wrong, or the client fails to authenticate, the request is refused and its transaction rolls back, and then a separate write marks the code used, so the rollback does not bring it back:
 
 <!-- ds:block id=oauthprovider-burncode-k4p9vz2h -->
-**Plugin.burnCode** · [`plugin/oauthprovider/authorize.go:855-871`](../../plugin/oauthprovider/authorize.go#L855-L871)
+**Plugin.burnCode** · [`plugin/oauthprovider/authorize.go:863-879`](../../plugin/oauthprovider/authorize.go#L863-L879)
 
 ```go
 func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal error) error {
@@ -477,13 +478,13 @@ func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal erro
 			return
 		}
 		if n == 0 && family != "" {
-			p.revokeFamily(ctx, family)
+			p.revokeFamily(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, Family: family})
 		}
 	})
 	return e
 }
 ```
-<!-- /ds:block hash=3eceef -->
+<!-- /ds:block hash=f0b384 -->
 
 Whoever stole a code gets one guess, and the right request after a wrong one gets `invalid_grant` too. A refusal after those checks passed (another `resource`, a DPoP proof to redo) leaves the code, since the request proved it came from the app that asked for it. If that write fails, the token endpoint answers with the database error rather than `invalid_grant`, since the code was not spent. If another request redeems the code in the moment between the rollback and that write, the tokens it got are revoked. [`TestOAuthProvider_FailedExchangeBurnsCode`](ds:block?id=testoauthprovider-failedexchangeburnscode-r7k2mx4q&assert=true) checks a wrong verifier, no verifier, a wrong `redirect_uri`, another client and a wrong client secret, each followed by the right request, on SQLite, Postgres and MySQL.
 

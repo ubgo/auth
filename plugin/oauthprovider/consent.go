@@ -65,8 +65,11 @@ func (p *Plugin) doRevokeConsent(ctx context.Context, c *auth.Call, in ClientIDR
 		return auth.Done{}, ErrClientNotFound
 	}
 	now := p.core.Now()
-	_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
+	n, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
 		Where(sqlb.Eq(TokenUser, &c.User.ID), sqlb.Eq(TokenClient, in.ClientID), sqlb.IsNull(TokenRevoked)))
+	if err == nil && n > 0 {
+		p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonConsentRevoked, ClientID: in.ClientID, UserID: c.User.ID})
+	}
 	return auth.Done{OK: err == nil}, err
 }
 

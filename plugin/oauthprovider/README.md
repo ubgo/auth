@@ -113,6 +113,22 @@ Each rule has a test in `integration/r33_test.go` that was broken once to prove 
 | `RefreshReuseInterval(d)` | 0 | A just-rotated refresh token works again within `d` (a new pair each time, or the first answer with `RefreshReplay`); after `d`, reuse revokes the family. With 0 the second of two concurrent refreshes signs the user out, so a relying party on several instances, serverless workers or several browser tabs needs a few seconds here |
 | `MaxAuthAge(d)` | 0 (no cap) | The hard stop behind the sliding refresh token: no refresh token outlives the user's sign-in (`auth_time`) by more than `d`; a refresh at or after it is `invalid_grant` and revokes the family. A daily user still signs in again at least every `d` |
 | `AssertionMaxLifetime(d)` | 5m | The longest a `private_key_jwt` assertion may live |
+| `ConsentTTL(d)` | 0 (never) | A stored consent is asked again `d` after the user last approved it; an approval after expiry replaces the old grant. Tokens already issued stay |
+| `EndSessionConfirmTTL(d)` | [5m](ds:block?id=oauthprovider-defaultendsessionconfirmttl-337cbwz6) | How long the logout confirmation page stays valid; at least a second |
+| `EndSessionHintGrace(d)` | 0 (off) | An `id_token_hint` at end-session is accepted up to `d` past its `exp` (signature, issuer and audience still checked) |
+| `ValidatePostLogoutRedirectURI(fn)` | exact match | Replaces the post-logout redirect decision, like `ValidateRedirectURI`; an accepted URI must still be absolute with no fragment |
+| `BackchannelLogoutTokenTTL(d)` | [2m](ds:block?id=oauthprovider-defaultbackchannellogouttokenttl-wyrq8uee) | Logout token lifetime; at least a second |
+| `BackchannelTimeout(d)` | [5s](ds:block?id=oauthprovider-defaultbackchanneltimeout-na9cwfke) | Bound on one logout delivery, custom HTTP client included; 0 sets none of the plugin's own (the core still ends background work after `auth.DeliveryTimeout`) |
+| `BackchannelDelivery(fn)` | one POST, no retry | Takes over each signed logout token (queue, retry, outbox); `PostBackchannelLogout` is the default, callable from `fn` |
+| `ClockSkew(d)` | [30s](ds:block?id=oauthprovider-defaultclockskew-hujzr276) | Clock difference allowed on a `private_key_jwt` assertion's and an end-session hint's `exp`/`nbf`; 0 allows none |
+| `DPoPClockSkew(d)` | [5s](ds:block?id=oauthprovider-defaultdpopclockskew-rattkq5w) | How far ahead a DPoP proof's `iat` may be; 0 allows none |
+| `ScopeClaims(map)` | OpenID Connect Core 5.4 | Which scope releases which built-in claim (`name`, `given_name`, `family_name`, `picture`, `email`, `email_verified`) |
+| `RenderPage(fn)` | minimal English HTML | Renders the error, logout confirmation and logged-out pages (`PageData`) |
+| `MaxRequestBytes(n)` | [64 KiB](ds:block?id=oauthprovider-defaultmaxrequestbytes-zew63u39) | Largest protocol request body (form, registration); must be positive |
+| `OnTokenEvent(fn)` | none | Observes every issuance and revocation (`TokenEvent`, with `RevokeReason`); never carries a token, cannot refuse |
+| `ClientJWKSCacheTTL(d)` | [5m](ds:block?id=oauthprovider-defaultclientjwkscachettl-pygnhbvn) | How long a client's `jwks_uri` key set is used before it is fetched again |
+| `ClientJWKSFetchLimits(timeout, n)` | [5s](ds:block?id=oauthprovider-defaultclientjwksfetchtimeout-qrmbwraj), [64 KiB](ds:block?id=oauthprovider-defaultclientjwksmaxbytes-d2q4yrh4) | The default `jwks_uri` fetcher's timeout and size cap; both positive |
+| `CIMDFetchLimits(timeout, n)` (a `CIMDOption`) | [5s](ds:block?id=oauthprovider-defaultcimdfetchtimeout-nbbp2ekj), [5 KB](ds:block?id=oauthprovider-defaultcimdmaxdocumentbytes-yhuej2dr) | The default metadata-document fetcher's timeout, and the document size cap for every fetcher; both positive |
 | `RateLimit(endpoint, n, window)`, `NoDefaultRateLimits()` | [per endpoint](ds:block?id=oauthprovider-defaultratelimits-q7v3mx2k) | Per-IP limits per endpoint; `n` 0 removes one |
 | `ClientIDMetadataDocuments(...)` | off | CIMD: https client ids are fetched metadata documents |
 | `ProtectedResource(url, scopes...)` | none | A resource server (an MCP server) whose RFC 9728 metadata `Handler` serves at `/.well-known/oauth-protected-resource{path}` |
@@ -253,7 +269,7 @@ With `RequestURIResolver(fn)`, an authorize request with `request_uri` takes eve
 
 ## Back-channel logout
 
-A client registered with `backchannel_logout_uri` (https, or http on loopback) is told when a session it holds tokens for ends: sign-out, a revoked session, a password reset or a ban. After the commit, the provider POSTs `logout_token`, a `logout+jwt` signed with the ID-token key, carrying `iss`, `aud`, `sub` (pairwise when the client is), `sid`, `iat`, `exp` (two minutes), `jti` and the back-channel event, and never a `nonce`. Each client gets one attempt with a 5-second timeout and no redirects, as OpenID Connect Back-Channel Logout 1.0 section 2.5 asks. The session's access tokens stop at once; its refresh tokens stop too unless `offline_access` was granted (section 2.7). `BackchannelHTTPClient` replaces the HTTP client. Discovery lists `backchannel_logout_supported` and `backchannel_logout_session_supported`.
+A client registered with `backchannel_logout_uri` (https, or http on loopback) is told when a session it holds tokens for ends: sign-out, a revoked session, a password reset or a ban. After the commit, the provider POSTs `logout_token`, a `logout+jwt` signed with the ID-token key, carrying `iss`, `aud`, `sub` (pairwise when the client is), `sid`, `iat`, `exp` ([two minutes](ds:block?id=oauthprovider-defaultbackchannellogouttokenttl-wyrq8uee), `BackchannelLogoutTokenTTL`), `jti` and the back-channel event, and never a `nonce`. Each client gets one attempt with a [5-second](ds:block?id=oauthprovider-defaultbackchanneltimeout-na9cwfke) timeout (`BackchannelTimeout`) and no redirects, as OpenID Connect Back-Channel Logout 1.0 section 2.5 asks; [`BackchannelDelivery`](ds:block?id=oauthprovider-backchanneldelivery-cxz4bac5) hands each signed token to the app instead, to queue or retry it. The session's access tokens stop at once; its refresh tokens stop too unless `offline_access` was granted (section 2.7). `BackchannelHTTPClient` replaces the HTTP client. Discovery lists `backchannel_logout_supported` and `backchannel_logout_session_supported`.
 
 ## DPoP
 

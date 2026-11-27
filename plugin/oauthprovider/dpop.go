@@ -32,8 +32,10 @@ const (
 	// DefaultDPoPProofMaxAge is how old a proof's iat may be.
 	//ds:def id=oauthprovider-defaultdpopmaxage-r4n8wq2k owner=@khanakia stability=stable
 	DefaultDPoPProofMaxAge = 300 * time.Second
-	// dpopFutureSkew is how far in the future a proof's iat may be.
-	dpopFutureSkew = 5 * time.Second
+	// DefaultDPoPClockSkew is how far in the future a proof's iat may be.
+	//
+	//ds:def id=oauthprovider-defaultdpopclockskew-rattkq5w owner=@khanakia stability=stable
+	DefaultDPoPClockSkew = 5 * time.Second
 	// maxDPoPJTI bounds a proof's jti.
 	maxDPoPJTI = 512
 	// dpopReplayPrefix keeps proof ids apart from assertion ids in the
@@ -85,6 +87,12 @@ func (p *Plugin) validateDPoPAlgs() error {
 // ErrInvalidDPoPProof is a missing, malformed, mismatched or replayed DPoP
 // proof.
 var ErrInvalidDPoPProof = auth.NewError("oauthprovider.invalid_dpop_proof", http.StatusBadRequest, "The DPoP proof is missing or invalid.")
+
+// DPoPClockSkew overrides DefaultDPoPClockSkew: how far ahead of the
+// provider's clock a proof's iat may be. 0 refuses any proof from the
+// future; a negative d is ErrBadTTL. How old a proof may be is
+// DPoPProofMaxAge.
+func DPoPClockSkew(d time.Duration) Option { return func(p *Plugin) { p.dpopSkew = d } }
 
 // DPoPProofMaxAge overrides DefaultDPoPProofMaxAge.
 func DPoPProofMaxAge(d time.Duration) Option { return func(p *Plugin) { p.dpopMaxAge = d } }
@@ -174,7 +182,7 @@ func (p *Plugin) verifyDPoP(ctx context.Context, proof string, want dpopCheck) (
 	}
 	now := p.core.Now()
 	iat := time.Unix(int64(*c.IAT), 0)
-	if iat.After(now.Add(dpopFutureSkew)) || now.Sub(iat) > p.dpopMaxAge {
+	if iat.After(now.Add(p.dpopSkew)) || now.Sub(iat) > p.dpopMaxAge {
 		return "", ErrInvalidDPoPProof
 	}
 	// A presented access token needs ath (its hash); a missing one fails

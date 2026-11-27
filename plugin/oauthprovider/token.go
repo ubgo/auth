@@ -132,7 +132,8 @@ func (p *Plugin) Token(ctx context.Context, in TokenRequest) (TokenResponse, err
 	return p.token.Call(ctx, in)
 }
 
-func (p *Plugin) doToken(ctx context.Context, _ *auth.Call, in TokenRequest) (TokenResponse, error) {
+func (p *Plugin) doToken(ctx context.Context, c *auth.Call, in TokenRequest) (TokenResponse, error) {
+	ctx = withCall(ctx, c)
 	if !slices.Contains(p.servedGrants(), in.GrantType) {
 		return TokenResponse{}, ErrUnsupportedGrantType
 	}
@@ -276,8 +277,13 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 		return TokenResponse{}, err
 	}
 	if n == 0 && !p.withinReuse(r, now) {
-		family := r.family
-		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, family) })
+		if r.revoked == nil {
+			// A rotated token presented again: the family's reuse. One already
+			// revoked is presented to no effect and reported as nothing new.
+			p.reportReplay(ctx, GrantRefreshToken, r.client, deref(r.user))
+		}
+		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonReuse, ClientID: r.client, UserID: deref(r.user), SessionID: deref(r.session), Family: r.family}
+		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
 		return TokenResponse{}, ErrInvalidGrant
 	}
 	if n == 0 && p.replay != nil && r.client == client.c.ClientID {
@@ -528,6 +534,7 @@ func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) 
 	)); err != nil {
 		return TokenResponse{}, err
 	}
+	p.emitToken(ctx, issuedEvent(is, id, now.Add(p.accessTTLFor(is)), refreshExp))
 	if is.userID != "" && slices.Contains(is.scopes, ScopeOpenID) {
 		idt, err := p.idToken(ctx, is, res.AccessToken)
 		if err != nil {
@@ -578,7 +585,7 @@ func (p *Plugin) idToken(ctx context.Context, is issuance, accessToken string) (
 func (p *Plugin) claimsFor(ctx context.Context, u auth.User, scopes, requested []string) (map[string]any, error) {
 	claims := map[string]any{claimSubject: u.ID}
 	want := func(name string) bool {
-		return slices.Contains(scopes, standardClaims[name]) || slices.Contains(requested, name)
+		return p.releasedBy(name, scopes) || slices.Contains(requested, name)
 	}
 	given, family := splitDisplayName(u.Name)
 	for name, v := range map[string]string{claimName: u.Name, claimPicture: u.Image, claimGivenName: given, claimFamilyName: family} {
@@ -640,30 +647,42 @@ func primaryEmail(ids []auth.Identity) (auth.Identity, bool) {
 func (p *Plugin) burnRefresh(ctx context.Context, hash []byte, refusal error) error {
 	e := &grantRefusal{refusal: refusal}
 	p.core.AfterTx(ctx, func(ctx context.Context) {
-		var family string
-		err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(TokenFamily, &family)).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash)))
+		var family, client string
+		var user *string
+		err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(TokenFamily, &family), sqlb.Bind(TokenClient, &client), sqlb.Bind(TokenUser, &user)).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash)))
 		if errors.Is(err, sqlb.ErrNoRows) {
 			return
 		}
+		var n int64
 		if err == nil {
 			now := p.core.Now()
-			_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
+			n, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
 				Where(sqlb.Eq(TokenFamily, family), sqlb.IsNull(TokenRevoked)))
 		}
 		if err != nil {
 			e.fail(err)
+			return
+		}
+		if n > 0 {
+			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, ClientID: client, UserID: deref(user), Family: family})
 		}
 	})
 	return e
 }
 
-// revokeFamily revokes every token of a family. It runs after a refused
-// replay, outside the request's transaction, so a failure is only logged.
-func (p *Plugin) revokeFamily(ctx context.Context, family string) {
+// revokeFamily revokes every token of the family e names, and reports e
+// when that revoked any. It runs after a refused replay, outside the
+// request's transaction, so a failure is only logged.
+func (p *Plugin) revokeFamily(ctx context.Context, e TokenEvent) {
 	now := p.core.Now()
-	if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
-		Where(sqlb.Eq(TokenFamily, family), sqlb.IsNull(TokenRevoked))); err != nil {
-		p.core.Logger().Error("oauthprovider: revoke token family", "family", family, "error", err)
+	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
+		Where(sqlb.Eq(TokenFamily, e.Family), sqlb.IsNull(TokenRevoked)))
+	if err != nil {
+		p.core.Logger().Error("oauthprovider: revoke token family", "family", e.Family, "error", err)
+		return
+	}
+	if n > 0 {
+		p.emitToken(ctx, e)
 	}
 }
 
@@ -1079,7 +1098,16 @@ func (p *Plugin) doRevoke(ctx context.Context, _ *auth.Call, in RevokeRequest) (
 	case p.revokeAccessOnly:
 		col = TokenAccessRevoked
 	}
-	_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(col, &now)).Where(where, sqlb.IsNull(col)))
+	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(col, &now)).Where(where, sqlb.IsNull(col)))
+	if err == nil && n > 0 {
+		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonClientRequest, ClientID: r.client, UserID: deref(r.user), SessionID: deref(r.session), AccessOnly: !refresh && p.revokeAccessOnly}
+		if refresh {
+			e.Family = r.family
+		} else {
+			e.TokenID = r.id
+		}
+		p.emitToken(ctx, e)
+	}
 	return auth.Done{OK: err == nil}, err
 }
 

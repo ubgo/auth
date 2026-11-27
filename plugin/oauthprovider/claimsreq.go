@@ -2,6 +2,8 @@ package oauthprovider
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"slices"
 	"strings"
 )
@@ -102,6 +104,66 @@ func (p *Plugin) supportedClaims() []string {
 		return p.advertisedClaims
 	}
 	return builtinClaims
+}
+
+// ScopeClaims replaces which scope releases which of the provider's own
+// user claims: name, given_name, family_name, picture, email and
+// email_verified (by default OpenID Connect Core section 5.4: profile the
+// first four, email the last two). Every scope named must be in Scopes and
+// every claim one of those six (ErrBadClaims otherwise). A claim no scope
+// lists is released by no scope; a claims request (OpenID Connect Core
+// section 5.5) can still ask for it by name unless AdvertisedClaims leaves
+// it out. Claims the app adds (Claims) are its own to decide. A nil map
+// keeps the default; an empty one releases none of the six by scope.
+//
+//ds:def id=oauthprovider-scopeclaims-ukr5yn84 owner=@khanakia stability=stable
+func ScopeClaims(m map[string][]string) Option {
+	return func(p *Plugin) {
+		if m == nil {
+			p.scopeClaims, p.scopeClaimsGiven = nil, nil
+			return
+		}
+		p.scopeClaims = map[string][]string{}
+		p.scopeClaimsGiven = m
+		for scope, claims := range m {
+			for _, c := range claims {
+				p.scopeClaims[c] = append(p.scopeClaims[c], scope)
+			}
+		}
+	}
+}
+
+// ErrBadClaims is a ScopeClaims entry naming a claim the provider does not
+// release itself.
+var ErrBadClaims = errors.New("oauthprovider: ScopeClaims lists only name, given_name, family_name, picture, email and email_verified")
+
+// validateScopeClaims checks ScopeClaims for Validate.
+func (p *Plugin) validateScopeClaims() error {
+	for scope, claims := range p.scopeClaimsGiven {
+		if !slices.Contains(p.scopes, scope) {
+			return fmt.Errorf("%w: oauthprovider.ScopeClaims: %q is not in Scopes", ErrBadScopes, scope)
+		}
+		for _, c := range claims {
+			if _, ok := standardClaims[c]; !ok {
+				return fmt.Errorf("%w: %q", ErrBadClaims, c)
+			}
+		}
+	}
+	return nil
+}
+
+// releasedBy reports whether one of scopes releases the user claim name:
+// ScopeClaims when given, standardClaims otherwise.
+func (p *Plugin) releasedBy(name string, scopes []string) bool {
+	if p.scopeClaims == nil {
+		return slices.Contains(scopes, standardClaims[name])
+	}
+	for _, s := range p.scopeClaims[name] {
+		if slices.Contains(scopes, s) {
+			return true
+		}
+	}
+	return false
 }
 
 // standardClaims maps each claim the scopes release to its scope.

@@ -16,14 +16,21 @@ import (
 
 // A private_key_jwt client may publish its keys at jwks_uri instead of
 // registering them inline (RFC 7591 section 2): the set is fetched on first use
-// with the CIMD fetcher's public-address rules, kept for jwksCacheTTL, served
+// with the CIMD fetcher's public-address rules, kept for ClientJWKSCacheTTL, served
 // stale up to twice that while the client's host is down, and fetched again
 // when an assertion fails to verify, so a client that rotated its keys is not
 // locked out for the rest of the cache lifetime.
 const (
-	// jwksCacheTTL is how long a fetched key set is used before it is
-	// fetched again.
-	jwksCacheTTL = 5 * time.Minute
+	// DefaultClientJWKSCacheTTL is how long a fetched key set is used
+	// before it is fetched again.
+	//
+	//ds:def id=oauthprovider-defaultclientjwkscachettl-pygnhbvn owner=@khanakia stability=stable
+	DefaultClientJWKSCacheTTL = 5 * time.Minute
+	// DefaultClientJWKSFetchTimeout bounds one fetch by the default
+	// fetcher.
+	//
+	//ds:def id=oauthprovider-defaultclientjwksfetchtimeout-qrmbwraj owner=@khanakia stability=stable
+	DefaultClientJWKSFetchTimeout = 5 * time.Second
 	// jwksStaleFactor is how many TTLs a key set may be served after a
 	// failed fetch.
 	jwksStaleFactor = 2
@@ -33,8 +40,11 @@ const (
 	jwksRefetchMin = 30 * time.Second
 	// jwksMaxEntries bounds the cache; the oldest entry goes first.
 	jwksMaxEntries = 500
-	// jwksMaxBytes is the largest key set accepted, 64 KiB.
-	jwksMaxBytes = 64 << 10
+	// DefaultClientJWKSMaxBytes is the largest key set the default fetcher
+	// accepts, 64 KiB.
+	//
+	//ds:def id=oauthprovider-defaultclientjwksmaxbytes-d2q4yrh4 owner=@khanakia stability=stable
+	DefaultClientJWKSMaxBytes = 64 << 10
 	// mediaTypeJWKSet is RFC 7517 section 8.5's media type.
 	mediaTypeJWKSet = "application/jwk-set+json"
 )
@@ -42,8 +52,8 @@ const (
 // JWKSFetcher fetches a client's jwks_uri, answering the body of an exactly
 // 200 response of a JSON media type. The default refuses every address that
 // is not public, follows no redirect, gives up after 5 seconds, and reads at
-// most 64 KiB. Replace it only for tests, or for an egress proxy that
-// enforces the same rules.
+// most 64 KiB (ClientJWKSFetchLimits changes both). Replace it only for
+// tests, or for an egress proxy that enforces the same rules.
 type JWKSFetcher func(ctx context.Context, rawURL string) ([]byte, error)
 
 // ClientJWKSFetch replaces the jwks_uri fetcher; see JWKSFetcher.
@@ -54,6 +64,23 @@ func ClientJWKSFetch(f JWKSFetcher) Option {
 		}
 		p.jwksFetch = f
 	}
+}
+
+// ClientJWKSCacheTTL overrides DefaultClientJWKSCacheTTL: how long a
+// client's fetched jwks_uri key set is used before it is fetched again. A
+// set is still fetched again at once (at most every 30 seconds) when an
+// assertion fails to verify, so a client that rotated its keys is not locked
+// out until the TTL ends, and a set is served up to twice the TTL while the
+// client's host is down. It is at least a second (ErrBadTTL): no cache would
+// fetch the client's host on every assertion.
+func ClientJWKSCacheTTL(d time.Duration) Option { return func(p *Plugin) { p.jwksTTL = d } }
+
+// ClientJWKSFetchLimits overrides DefaultClientJWKSFetchTimeout and
+// DefaultClientJWKSMaxBytes for the default jwks_uri fetcher, keeping its
+// public-address rules; a ClientJWKSFetch fetcher sets its own. Both must be
+// positive (ErrBadLimit).
+func ClientJWKSFetchLimits(timeout time.Duration, maxBytes int64) Option {
+	return func(p *Plugin) { p.jwksTimeout, p.jwksMaxBytes = timeout, maxBytes }
 }
 
 // jwksEntry is one cached key set.
@@ -117,17 +144,19 @@ func (p *Plugin) fetchClientJWKS(ctx context.Context, rawURL string, force bool)
 	e, ok := c.entries[rawURL]
 	c.mu.Unlock()
 	age := now.Sub(e.fetched)
-	if ok && ((!force && age < jwksCacheTTL) || (force && age < jwksRefetchMin)) {
+	if ok && ((!force && age < p.jwksTTL) || (force && age < jwksRefetchMin)) {
 		return e.set, nil
 	}
 	fetch := p.jwksFetch
 	if fetch == nil {
-		fetch = fetchPublicJWKS
+		fetch = func(ctx context.Context, rawURL string) ([]byte, error) {
+			return fetchPublicJWKS(ctx, rawURL, p.jwksTimeout, p.jwksMaxBytes)
+		}
 	}
 	set, err := fetchAndParseJWKS(ctx, fetch, rawURL)
 	if err != nil {
 		p.core.Logger().Warn("oauthprovider: client jwks_uri", "jwks_uri", rawURL, "error", err)
-		if ok && age < jwksStaleFactor*jwksCacheTTL {
+		if ok && age < jwksStaleFactor*p.jwksTTL {
 			return e.set, nil
 		}
 		return jwt.JWKS{}, ErrInvalidClient
@@ -165,19 +194,20 @@ func fetchAndParseJWKS(ctx context.Context, fetch JWKSFetcher, rawURL string) (j
 }
 
 // fetchPublicJWKS is the default JWKSFetcher: the CIMD transport's
-// public-address dialer, a 64 KiB cap, and exactly a 200 answer of
-// application/json, application/jwk-set+json or another application/*+json.
-func fetchPublicJWKS(ctx context.Context, rawURL string) ([]byte, error) {
-	res, err := fetchPublicLimit(ctx, rawURL, nil, jwksMaxBytes)
+// public-address dialer, the timeout and size cap of ClientJWKSFetchLimits,
+// and exactly a 200 answer of application/json, application/jwk-set+json or
+// another application/*+json.
+func fetchPublicJWKS(ctx context.Context, rawURL string, timeout time.Duration, maxBytes int64) ([]byte, error) {
+	res, err := fetchPublicLimit(ctx, rawURL, nil, timeout, maxBytes)
 	if err != nil {
 		return nil, err
 	}
-	return checkJWKSResponse(res)
+	return checkJWKSResponse(res, maxBytes)
 }
 
 // checkJWKSResponse accepts exactly a 200 answer of a JSON media type, at
-// most jwksMaxBytes long.
-func checkJWKSResponse(res CIMDResponse) ([]byte, error) {
+// most maxBytes long.
+func checkJWKSResponse(res CIMDResponse, maxBytes int64) ([]byte, error) {
 	if res.Status != http.StatusOK {
 		return nil, fmt.Errorf("%w: status %d", ErrCIMDFetch, res.Status)
 	}
@@ -185,8 +215,8 @@ func checkJWKSResponse(res CIMDResponse) ([]byte, error) {
 	if err != nil || (mt != mediaTypeJSON && mt != mediaTypeJWKSet && !(strings.HasPrefix(mt, mediaPrefixApp) && strings.HasSuffix(mt, mediaSuffixJSON))) {
 		return nil, fmt.Errorf("%w: media type %q", ErrCIMDFetch, res.Header.Get(headerContentType))
 	}
-	if len(res.Body) > jwksMaxBytes {
-		return nil, fmt.Errorf("%w: larger than %d bytes", ErrCIMDFetch, jwksMaxBytes)
+	if int64(len(res.Body)) > maxBytes {
+		return nil, fmt.Errorf("%w: larger than %d bytes", ErrCIMDFetch, maxBytes)
 	}
 	return res.Body, nil
 }
