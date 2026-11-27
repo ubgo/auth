@@ -1153,7 +1153,10 @@ func (p *Plugin) doUnban(ctx context.Context, c *auth.Call, in UserRequest) (aut
 	if err := p.require(ctx, c, ResourceUser, ActionBan); err != nil {
 		return auth.Done{}, err
 	}
-	return auth.Done{OK: true}, p.clearBan(ctx, in.UserID)
+	if err := p.clearBan(ctx, in.UserID); err != nil {
+		return auth.Done{}, err
+	}
+	return auth.Done{OK: true}, nil
 }
 
 // clearBan clears the ban, its expiry and its reason of an existing user;
@@ -1355,8 +1358,10 @@ func (p *Plugin) doSetAdmin(ctx context.Context, c *auth.Call, in SetAdminReques
 	if err := p.require(ctx, c, ResourceUser, ActionSetRole); err != nil {
 		return auth.Done{}, err
 	}
-	_, err := p.applyAdmin(ctx, in.UserID, in.Admin)
-	return auth.Done{OK: true}, err
+	if _, err := p.applyAdmin(ctx, in.UserID, in.Admin); err != nil {
+		return auth.Done{}, err
+	}
+	return auth.Done{OK: true}, nil
 }
 
 // applyAdmin grants (admin true) or removes admin rights, and reports whether

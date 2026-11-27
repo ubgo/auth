@@ -95,19 +95,31 @@ func (p *Plugin) RevokeAdmin(ctx context.Context, userID string) error {
 	})
 }
 
-// AdminUserIDs lists the ids of every admin, sorted: the users whose staff
-// flag is set (set-admin, set-role and Grant keep it in step with the admin
-// roles) and the ids AdminIDs lists. For an operator's "who are the admins"
-// command; an AdminIDs entry is listed even when no such user exists yet,
-// because the option makes that id an admin the moment it does.
+// AdminUserIDs lists the ids of every admin, sorted, never nil: exactly the
+// users IsAdmin answers true for (the staff flag, or a stored role that is one
+// of AdminRoles), plus the ids AdminIDs lists. It is for an operator's "who are
+// the admins" command. An AdminIDs entry is listed even when no such user
+// exists yet, because the option makes that id an admin the moment it does.
 //
 //ds:def id=plugin-adminuserids-w6c2xn8j owner=@khanakia stability=stable
 func (p *Plugin) AdminUserIDs(ctx context.Context) ([]string, error) {
 	var id string
-	var out []string
-	q := p.core.Select().Columns(sqlb.Bind(auth.UserID, &id)).From(auth.TableUser).Where(sqlb.IsNotNull(GrantedAt))
+	var c AdminColumns
+	// The flag and the stored admin roles are kept in step (writeRoles), but a
+	// role added to AdminRoles after it was stored has no flag: both are read
+	// so the list and IsAdmin cannot disagree. The SQL narrows, isAdmin
+	// decides.
+	candidates := []sqlb.Predicate{sqlb.IsNotNull(GrantedAt)}
+	for _, role := range p.adminRoles {
+		candidates = append(candidates, p.storedRole(role))
+	}
+	q := p.core.Select().Columns(append([]sqlb.Binding{sqlb.Bind(auth.UserID, &id)}, Bindings(&c)...)...).
+		From(auth.TableUser).Where(sqlb.Or(candidates...))
+	out := []string{}
 	if err := p.core.Each(ctx, q, func() error {
-		out = append(out, id)
+		if p.isAdmin(id, c) {
+			out = append(out, id)
+		}
 		return nil
 	}); err != nil {
 		return nil, err
@@ -118,8 +130,5 @@ func (p *Plugin) AdminUserIDs(ctx context.Context) ([]string, error) {
 		}
 	}
 	slices.Sort(out)
-	if out == nil {
-		out = []string{}
-	}
 	return out, nil
 }
