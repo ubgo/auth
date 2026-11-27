@@ -530,6 +530,7 @@ var edgeRegistry = map[string]any{
 	"oauthprovider.ValidatePostLogoutRedirectURI":    oauthprovider.ValidatePostLogoutRedirectURI,
 	"oauthprovider.ValidateRedirectURI":              oauthprovider.ValidateRedirectURI,
 	"oauthprovider.WithGrant":                        oauthprovider.WithGrant,
+	"oauthprovider.WithStore":                        oauthprovider.WithStore,
 	"oauthproxy.HTTPClient":                          oauthproxy.HTTPClient,
 	"oauthproxy.MaxAge":                              oauthproxy.MaxAge,
 	"oauthproxy.PassProfile":                         oauthproxy.PassProfile,
