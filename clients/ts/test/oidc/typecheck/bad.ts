@@ -46,4 +46,8 @@ export function mistakes(refusal: Refusal, input: MapUserInput): void {
   // A Refreshed written by hand instead of returned by Provider.refresh.
   const forged: Rechecker = async ({ session }) => ({ decision: Decision.allow, refreshed: { tokens: session.tokens } }); // expect TS2322
   console.log(target, forged);
+  // A logout policy answering a mode that does not exist.
+  createOidcClient({ ...withSecret, logoutPolicy: () => "nowhere" }); // expect TS2322
+  // browserSession is a boolean, not a string.
+  createOidcClient({ ...withSecret, cookie: { browserSession: "yes" } }); // expect TS2322
 }

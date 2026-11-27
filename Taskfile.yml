@@ -166,7 +166,7 @@ tasks:
     dir: clients/ts/test/oidc/typecheck
     vars:
       # One per `expect TSnnnn` line in bad.ts.
-      TS_TYPECHECK_EXPECTED: 13
+      TS_TYPECHECK_EXPECTED: 15
     cmds:
       - |
         out=$(tsc -p . 2>&1) && { echo "FAIL: bad.ts compiled, so the oidc options' types are not guarding"; exit 1; }
