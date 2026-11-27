@@ -225,12 +225,12 @@ func TestCallback_TwoTabs(t *testing.T) {
 	}
 }
 
-// TestCallback_FlowExpires: a flow older than flowTTL is gone.
+// TestCallback_FlowExpires: a flow older than DefaultFlowLifetime is gone.
 func TestCallback_FlowExpires(t *testing.T) {
 	f := newFixture(t, algEdDSA)
 	b := newBrowser(t, f.h)
 	cb := f.op.approve(f.startLogin(b), "alice")
-	f.clock.advance(flowTTL + time.Second)
+	f.clock.advance(DefaultFlowLifetime + time.Second)
 	if res := b.get(cb); res.Code != http.StatusBadRequest {
 		t.Fatalf("expired flow %d, want 400", res.Code)
 	}

@@ -13,10 +13,6 @@ import (
 
 // Middleware timing values (values, not policies: see DESIGN.md).
 const (
-	// slideStep is the granularity of the idle window: LastSeenAt moves at
-	// most once a minute, so a busy session does not rewrite its cookie or
-	// row on every request.
-	slideStep = time.Minute
 	// recentRecheckTTL is how long a finished re-check answers requests that
 	// still carry the session it started from. Two tabs whose requests do
 	// not overlap in time (the second leaves the browser before the first
@@ -166,10 +162,7 @@ func (c *Client) openSession(ctx context.Context, r *http.Request) (s Session, h
 // any cookie: a re-check shared by several requests persists once, and
 // each request writes the cookie.
 func (c *Client) persist(ctx context.Context, s *Session) (string, error) {
-	s.ExpiresAt = s.LastSeenAt.Add(c.set.lifetimes.Idle)
-	if abs := s.CreatedAt.Add(c.set.lifetimes.Absolute); abs.Before(s.ExpiresAt) {
-		s.ExpiresAt = abs
-	}
+	s.ExpiresAt = c.set.lifetimes.expiresAt(s.CreatedAt, s.LastSeenAt)
 	b, err := c.set.store.Save(ctx, *s)
 	if err != nil {
 		return "", fmt.Errorf("oidcclient: save session: %w", err)
@@ -194,12 +187,27 @@ func (c *Client) saveSession(ctx context.Context, w http.ResponseWriter, r *http
 	return cookieWriter{opts: c.set.cookie}.writeChunked(w, r, sealed, s.ExpiresAt, c.set.now())
 }
 
+// expireSession ends s after a lifetime ran out: the store forgets it and
+// the SessionEndHook hears why.
+func (c *Client) expireSession(r *http.Request, s Session, why EndReason) {
+	c.deleteSession(r.Context(), s)
+	c.endSession(r.Context(), SessionEnd{Reason: why, Session: &s, Request: r})
+}
+
 // deleteSession forgets s in the store; a failure is logged, because the
 // caller is already refusing and the cookie is cleared either way.
 func (c *Client) deleteSession(ctx context.Context, s Session) {
 	if err := c.set.store.Delete(ctx, s); err != nil {
 		c.set.logger.ErrorContext(ctx, "oidcclient: delete session", "session", s.ID, "error", err)
 	}
+}
+
+// slides reports whether this request moves s's idle window: once the
+// slide interval has passed since LastSeenAt, never under NoLimit, and
+// never when LastSeenAt is now or later (just written by a re-check, or a
+// clock that went back), so a zero interval still writes once per request.
+func (c *Client) slides(s Session, now time.Time) bool {
+	return limited(c.set.slide) && now.After(s.LastSeenAt) && now.Sub(s.LastSeenAt) >= c.set.slide
 }
 
 // fresh reports whether the login server's last "yes" still stands. A
@@ -211,14 +219,21 @@ func (c *Client) fresh(s Session, now time.Time) bool {
 // recheck asks the Rechecker about s and turns its answer into a saved
 // session or a refusal. It runs once per flight, so the UserMapper and the
 // store see one re-check however many requests wait for it.
-func (c *Client) recheck(ctx context.Context, s Session) recheckResult {
+func (c *Client) recheck(ctx context.Context, r *http.Request, s Session) recheckResult {
 	res, err := c.set.rechecker.Recheck(ctx, RecheckRequest{Session: s, Provider: c.provider})
 	end := func(ref Refusal) recheckResult {
 		c.deleteSession(ctx, s)
+		cause := ref.Err
+		if cause == nil {
+			cause = fmt.Errorf("oidcclient: re-check refused (%s)", ref.Reason)
+		}
+		c.refreshFailed(ctx, RefreshFailure{Session: s, Err: cause})
+		c.endSession(ctx, SessionEnd{Reason: EndRecheckRefused, Session: &s, Err: cause, Request: r})
 		return recheckResult{ref: &ref, ended: true}
 	}
 	switch {
 	case err != nil && !errors.Is(err, ErrProviderRefused) && errors.Is(err, ErrProviderUnavailable):
+		c.refreshFailed(ctx, RefreshFailure{Session: s, Err: err, Outage: true})
 		return recheckResult{outage: err}
 	case err != nil:
 		return end(Refusal{Kind: RefusalLoginRequired, Reason: ReasonServerRefused, Err: err})
@@ -274,18 +289,18 @@ func (c *Client) authenticate(w http.ResponseWriter, r *http.Request) (Session, 
 		return Session{}, &Refusal{Kind: RefusalFailed, Reason: ReasonStoreFailed, Err: err}
 	}
 	now := c.set.now()
-	if !now.Before(s.CreatedAt.Add(c.set.lifetimes.Absolute)) {
-		c.deleteSession(ctx, s)
+	if c.set.lifetimes.absoluteOver(s.CreatedAt, now) {
+		c.expireSession(r, s, EndAbsoluteExpired)
 		cw.clearChunked(w, r)
 		return s, &Refusal{Kind: RefusalLoginRequired, Reason: ReasonAbsoluteExpired}
 	}
-	if !now.Before(s.LastSeenAt.Add(c.set.lifetimes.Idle)) {
-		c.deleteSession(ctx, s)
+	if c.set.lifetimes.idleOver(s.LastSeenAt, now) {
+		c.expireSession(r, s, EndIdleExpired)
 		cw.clearChunked(w, r)
 		return s, &Refusal{Kind: RefusalLoginRequired, Reason: ReasonIdleExpired}
 	}
 	if !c.fresh(s, now) {
-		res := c.rechecks.do(ctx, s, c.set.now, func(rctx context.Context) recheckResult { return c.recheck(rctx, s) })
+		res := c.rechecks.do(ctx, s, c.set.now, func(rctx context.Context) recheckResult { return c.recheck(rctx, r, s) })
 		switch {
 		case res.ref != nil:
 			if res.ended {
@@ -304,7 +319,7 @@ func (c *Client) authenticate(w http.ResponseWriter, r *http.Request) (Session, 
 			}
 		}
 	}
-	if now.Sub(s.LastSeenAt) >= slideStep {
+	if c.slides(s, now) {
 		s.LastSeenAt = now
 		if err := c.saveSession(ctx, w, r, &s); err != nil {
 			return s, &Refusal{Kind: RefusalFailed, Reason: ReasonStoreFailed, Err: err}

@@ -76,6 +76,7 @@ func New(cfg Config, opts ...Option) (*Client, error) {
 		store: CookieStore(), rechecker: RecheckByRefresh(), interval: DefaultRecheckInterval, grace: DefaultOutageGrace,
 		responder: DefaultResponder(), returns: ReturnToRequested(), paths: PathsUnder(DefaultRoutePrefix),
 		postLogout: siteRoot, scopes: DefaultScopes(), now: time.Now,
+		slide: DefaultSlideInterval, skew: DefaultClockSkew, flowTTL: DefaultFlowLifetime, logout: LogoutAlways(LogoutAtServer),
 	}
 	for _, o := range opts {
 		o(&s)
@@ -135,8 +136,12 @@ func (s *settings) complete(cfg *Config) error {
 	if s.lifetimes.Absolute == 0 {
 		s.lifetimes.Absolute = DefaultAbsoluteLifetime
 	}
-	if s.lifetimes.Idle < 0 || s.lifetimes.Absolute < 0 || s.lifetimes.Idle > s.lifetimes.Absolute {
-		s.refuse("Lifetimes %+v: both must be positive and Idle at most Absolute", s.lifetimes)
+	l := s.lifetimes
+	if l.Idle < 0 || l.Absolute < 0 || (limited(l.Idle) && limited(l.Absolute) && l.Idle > l.Absolute) {
+		s.refuse("Lifetimes %+v: both must be positive (or NoLimit) and Idle at most Absolute", l)
+	}
+	if limited(l.Idle) && l.Idle > 0 && s.slide >= l.Idle {
+		s.refuse("WithSlideInterval(%v) must be shorter than the idle lifetime %v, or an active session would expire", s.slide, l.Idle)
 	}
 	if err := s.cookie.validate(); err != nil {
 		s.errs = errors.Join(s.errs, err)
@@ -144,10 +149,12 @@ func (s *settings) complete(cfg *Config) error {
 	if !s.paths.valid() {
 		s.refuse("Paths %+v: each must be a distinct same-site path", s.paths)
 	}
-	if _, ok := s.rechecker.(backchannelOnly); ok {
-		if _, revokes := s.store.(SessionRevoker); !revokes {
-			s.refuse("RecheckBackchannelOnly needs a SessionStore that implements SessionRevoker")
-		}
+	_, revokes := s.store.(SessionRevoker)
+	if _, ok := s.rechecker.(backchannelOnly); ok && !revokes {
+		s.refuse("RecheckBackchannelOnly needs a SessionStore that implements SessionRevoker")
+	}
+	if !limited(l.Idle) && !limited(l.Absolute) && !limited(s.interval) && !revokes {
+		s.refuse("Lifetimes without any limit, a re-check that never runs and a SessionStore without SessionRevoker: nothing could ever end a session")
 	}
 	if s.discovery != nil {
 		if err := s.discovery.validate(cfg.Issuer); err != nil {

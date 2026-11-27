@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 )
@@ -39,8 +40,9 @@ type Session struct {
 	// CreatedAt is the sign-in; the absolute lifetime counts from it.
 	CreatedAt time.Time `json:"created_at"`
 	// LastSeenAt is the last request that moved the idle window; the idle
-	// lifetime counts from it. It advances at most once a minute, so a busy
-	// session does not rewrite its cookie or row on every request.
+	// lifetime counts from it. It advances at most once per slide interval
+	// (WithSlideInterval, a minute by default), so a busy session does not
+	// rewrite its cookie or row on every request.
 	LastSeenAt time.Time `json:"last_seen_at"`
 	// CheckedAt is the last time the login server said yes. The session is
 	// fresh while now is within the recheck interval of it, and the outage
@@ -48,7 +50,9 @@ type Session struct {
 	CheckedAt time.Time `json:"checked_at"`
 	// ExpiresAt is the earlier of LastSeenAt+Idle and CreatedAt+Absolute,
 	// written by the package before every Save, so a store can set its TTL
-	// from it without knowing the Lifetimes.
+	// from it without knowing the Lifetimes. It is always a real time: a
+	// bound of NoLimit is left out, and an Idle of NoLimit counts as
+	// MaxCookieLifetime.
 	ExpiresAt time.Time `json:"expires_at"`
 }
 
@@ -233,9 +237,14 @@ func (m *MemoryStore) RevokeSessions(_ context.Context, t LogoutTarget) (int, er
 }
 
 // Lifetimes bound a session, whatever the login server says. Idle ends a
-// session nobody used for that long (sliding: every active minute moves
-// it); Absolute ends it that long after sign-in, used or not. A zero field
-// takes its default; New refuses a negative one, or Idle above Absolute.
+// session nobody used for that long (sliding: every active slide interval
+// moves it); Absolute ends it that long after sign-in, used or not. A zero
+// field takes its default. NoLimit turns a bound off: Absolute: NoLimit is
+// the plain "no maximum, rely on the sliding window and the re-check"
+// configuration. New refuses a negative field, Idle above Absolute when both
+// are limited, and Idle and Absolute both NoLimit together with a re-check
+// that never runs and a store that cannot revoke, because nothing could ever
+// end such a session.
 type Lifetimes struct {
 	Idle     time.Duration
 	Absolute time.Duration
@@ -250,3 +259,54 @@ const (
 	//ds:def id=defaultabsolutelifetime-957evyy7 owner=@khanakia stability=stable
 	DefaultAbsoluteLifetime = 30 * 24 * time.Hour
 )
+
+// NoLimit, given as a Lifetimes field or to WithRecheckInterval,
+// WithOutageGrace or WithSlideInterval, turns that bound off. It is the
+// largest Duration rather than zero, because a zero Lifetimes field already
+// means "the default", and rather than a negative value, so arithmetic an
+// app or a store does with it (CreatedAt.Add(NoLimit)) reads as the far
+// future, never as already past.
+//
+//ds:def id=nolimit-q4c8m2rw owner=@khanakia stability=stable
+const NoLimit time.Duration = math.MaxInt64
+
+// MaxCookieLifetime is the longest a browser keeps a cookie (RFC 6265bis
+// caps Expires and Max-Age at 400 days). With Idle: NoLimit a session has no
+// idle bound of its own, so its ExpiresAt is LastSeenAt plus this: a store
+// forgets an abandoned session when the browser would have dropped its
+// cookie, and every use moves it on. A finite Idle is never shortened by it.
+//
+//ds:def id=maxcookielifetime-uej2685q owner=@khanakia stability=stable
+const MaxCookieLifetime = 400 * 24 * time.Hour
+
+// limited reports whether d is a bound rather than NoLimit.
+func limited(d time.Duration) bool { return d != NoLimit }
+
+// expiresAt is the earlier of the idle end and the absolute end of a session
+// created at created and last seen at seen; an Idle of NoLimit counts as
+// MaxCookieLifetime, so the answer is always a real time.
+func (l Lifetimes) expiresAt(created, seen time.Time) time.Time {
+	idle := l.Idle
+	if !limited(idle) {
+		idle = MaxCookieLifetime
+	}
+	end := seen.Add(idle)
+	if limited(l.Absolute) {
+		if abs := created.Add(l.Absolute); abs.Before(end) {
+			end = abs
+		}
+	}
+	return end
+}
+
+// absoluteOver reports whether a session created at created is past its
+// absolute lifetime at now.
+func (l Lifetimes) absoluteOver(created, now time.Time) bool {
+	return limited(l.Absolute) && !now.Before(created.Add(l.Absolute))
+}
+
+// idleOver reports whether a session last seen at seen is past its idle
+// lifetime at now.
+func (l Lifetimes) idleOver(seen, now time.Time) bool {
+	return limited(l.Idle) && !now.Before(seen.Add(l.Idle))
+}

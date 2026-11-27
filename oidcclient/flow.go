@@ -20,10 +20,6 @@ import (
 
 // Flow constants.
 const (
-	// flowTTL bounds one trip to the login server: long enough to type a
-	// password and pass a second factor, short enough that a stolen flow
-	// cookie is soon worth nothing.
-	flowTTL = 10 * time.Minute
 	// maxPendingFlows is how many sign-ins one browser may have in flight:
 	// two tabs that both found their session expired each start one, and
 	// both must be able to finish. The oldest is dropped beyond it.
@@ -81,7 +77,7 @@ func (c *Client) readFlows(ctx context.Context, r *http.Request) flowCookie {
 	}
 	now := c.set.now()
 	fc.Flows = slices.DeleteFunc(fc.Flows, func(f pendingFlow) bool {
-		return now.Sub(f.CreatedAt) > flowTTL || now.Before(f.CreatedAt.Add(-tokenLeeway))
+		return now.Sub(f.CreatedAt) > c.set.flowTTL || now.Before(f.CreatedAt.Add(-c.set.skew))
 	})
 	return fc
 }
@@ -106,7 +102,7 @@ func (c *Client) writeFlows(ctx context.Context, w http.ResponseWriter, r *http.
 		return err
 	}
 	now := c.set.now()
-	cw.set(w, name, sealed, fc.Flows[len(fc.Flows)-1].CreatedAt.Add(flowTTL), now, http.SameSiteLaxMode)
+	cw.set(w, name, sealed, fc.Flows[len(fc.Flows)-1].CreatedAt.Add(c.set.flowTTL), now, http.SameSiteLaxMode)
 	return nil
 }
 

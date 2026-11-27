@@ -7,6 +7,7 @@
 import { base64url, constantTimeEqual, randomToken, sha256, utf8 } from "./bytes.ts";
 import { OidcClientError, OidcErrorCode } from "./errors.ts";
 import { isJsonObject, num, parseJsonObject, str, type JsonObject } from "./json.ts";
+import { DEFAULT_FLOW_LIFETIME_MS } from "./options.ts";
 import { isSameSitePath, type SameSitePath } from "./routes.ts";
 
 /** One sign-in in flight, as the flow cookie holds it. */
@@ -19,16 +20,18 @@ export interface Flow {
   readonly verifier: string;
   /** Where the browser lands afterwards, already through the return policy and the same-site floor. */
   readonly returnTo: SameSitePath;
-  /** When the sign-in started (epoch milliseconds); the callback refuses a flow older than `FLOW_TTL_MS`. */
+  /** When the sign-in started (epoch milliseconds); the callback refuses a flow older than the flow lifetime. */
   readonly startedAt: number;
 }
 
 /**
- * How long a sign-in may take from the login route to the callback: long
- * enough for a password manager, a second factor and a slow consent page,
- * short enough that a flow cookie left in a shared browser is soon useless.
+ * How long a sign-in may take from the login route to the callback unless
+ * `flowLifetimeMs` says otherwise: long enough for a password manager, a
+ * second factor and a slow consent page, short enough that a flow cookie left
+ * in a shared browser is soon useless. `DEFAULT_FLOW_LIFETIME_MS` is the
+ * public name; this one stays for the package's own callers.
  */
-export const FLOW_TTL_MS = 10 * 60 * 1000;
+export const FLOW_TTL_MS = DEFAULT_FLOW_LIFETIME_MS;
 
 /** A fresh flow for `returnTo`. */
 export function newFlow(returnTo: SameSitePath, now: number): Flow {
@@ -69,14 +72,15 @@ export function encodeFlows(flows: readonly Flow[]): string {
 
 /**
  * The pending flows in an opened flow cookie, oldest first, without those
- * outside `FLOW_TTL_MS` of `now` (or started in the future). Anything
- * malformed is `sealedCorrupt`.
+ * older than `lifetimeMs` at `now`, or started more than `skewMs` in the
+ * future (another instance's clock ahead of this one's). Anything malformed
+ * is `sealedCorrupt`.
  */
-export function decodeFlows(text: string, now: number): readonly Flow[] {
+export function decodeFlows(text: string, now: number, lifetimeMs: number = FLOW_TTL_MS, skewMs = 0): readonly Flow[] {
   const o = parseJsonObject(text);
   const list = o === undefined ? undefined : o[FlowField.flows];
   if (o === undefined || num(o, FlowField.version) !== FLOW_FORMAT_V2 || !Array.isArray(list)) return malformed();
-  return list.map(decodeOne).filter((f) => now >= f.startedAt && now - f.startedAt <= FLOW_TTL_MS);
+  return list.map(decodeOne).filter((f) => now + skewMs >= f.startedAt && now - f.startedAt <= lifetimeMs);
 }
 
 /** One flow record; malformed is `sealedCorrupt`. */

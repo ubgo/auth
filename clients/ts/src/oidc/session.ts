@@ -42,8 +42,9 @@ export interface Session {
   readonly createdAt: number;
   /**
    * The last request that moved the idle window; the idle lifetime counts from
-   * it. Advanced at most once a minute, so a busy session does not rewrite its
-   * cookie or row on every request.
+   * it. Advanced at most once per slide interval (`slideIntervalMs`, a minute
+   * by default), so a busy session does not rewrite its cookie or row on every
+   * request.
    */
   readonly lastSeenAt: number;
   /** The last time the login server said yes. Fresh while within the recheck interval of it; the outage grace counts from it. */
@@ -51,7 +52,8 @@ export interface Session {
   /**
    * The earlier of `lastSeenAt + idle` and `createdAt + absolute`, written
    * before every save, so a store sets its TTL from it without knowing the
-   * lifetimes.
+   * lifetimes. Always finite: a `NO_LIMIT` bound is left out, and an idle
+   * bound of `NO_LIMIT` counts as `MAX_COOKIE_LIFETIME_MS`.
    */
   readonly expiresAt: number;
 }
@@ -377,10 +379,14 @@ function corrupt(why: string): never {
 
 /**
  * Bounds a session whatever the login server says, in milliseconds. `idleMs`
- * ends a session nobody used for that long (sliding: every active minute
- * moves it); `absoluteMs` ends it that long after sign-in, used or not. An
- * absent field takes its default; `createOidcClient` refuses a value that is
- * not positive, or idle above absolute.
+ * ends a session nobody used for that long (sliding: every active slide
+ * interval moves it); `absoluteMs` ends it that long after sign-in, used or
+ * not. An absent field takes its default. `NO_LIMIT` turns a bound off:
+ * `{ absoluteMs: NO_LIMIT }` is the plain "no maximum, rely on the sliding
+ * window and the re-check" configuration. `createOidcClient` refuses a value
+ * that is not positive (0 included: use `NO_LIMIT`), idle above absolute,
+ * and both `NO_LIMIT` together with a re-check that never runs and a store
+ * without `revokeSessions`, because nothing could ever end such a session.
  */
 export interface Lifetimes {
   readonly idleMs?: number;
@@ -392,3 +398,22 @@ export const DEFAULT_IDLE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Nobody stays signed in past a month without passing the login server again. */
 export const DEFAULT_ABSOLUTE_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Given as a `lifetimes` field, `recheckIntervalMs`, `outageGraceMs` or
+ * `slideIntervalMs`, turns that bound off. `Infinity`, so arithmetic with it
+ * reads as the far future. Not 0: an empty environment variable reads as 0
+ * (`Number("")`), and a cap must never vanish by accident; and 0 already
+ * means "every request" for the re-check and slide intervals.
+ */
+export const NO_LIMIT = Number.POSITIVE_INFINITY;
+
+/**
+ * The longest a browser keeps a cookie (RFC 6265bis caps Expires and Max-Age
+ * at 400 days). With `idleMs: NO_LIMIT` a session has no idle bound of its
+ * own, so its `expiresAt` is `lastSeenAt` plus this: a store forgets an
+ * abandoned session when the browser would have dropped its cookie, every use
+ * moves it on, and `expiresAt` is always a finite number. A finite `idleMs`
+ * is never shortened by it.
+ */
+export const MAX_COOKIE_LIFETIME_MS = 400 * 24 * 60 * 60 * 1000;

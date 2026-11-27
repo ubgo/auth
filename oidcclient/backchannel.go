@@ -116,7 +116,7 @@ func (c *Client) verifyLogoutToken(ctx context.Context, raw string) (logoutToken
 	now := c.set.now()
 	var event map[string]json.RawMessage
 	switch {
-	case now.Sub(rc.IssuedAt.time()) > logoutTokenMaxAge+tokenLeeway:
+	case now.Sub(rc.IssuedAt.time()) > logoutTokenMaxAge+c.set.skew:
 		return logoutToken{}, invalid("issued too long ago")
 	case rc.Events == nil || json.Unmarshal(rc.Events[backchannelEvent], &event) != nil || event == nil:
 		return logoutToken{}, invalid("no back-channel logout event")
@@ -133,7 +133,7 @@ func (c *Client) verifyLogoutToken(ctx context.Context, raw string) (logoutToken
 	}
 	return logoutToken{
 		target: LogoutTarget{Issuer: rc.Issuer, Subject: rc.Subject, ProviderSessionID: rc.SessionID},
-		jti:    rc.TokenID, until: until.Add(tokenLeeway),
+		jti:    rc.TokenID, until: until.Add(c.set.skew),
 	}, nil
 }
 
@@ -185,5 +185,7 @@ func (c *Client) serveBackchannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.observe(ctx, Event{Kind: EventBackchannelLogout, Subject: lt.target.Subject, Count: n})
+	target := lt.target
+	c.endSession(ctx, SessionEnd{Reason: EndBackchannel, Target: &target, Count: n, Request: r})
 	w.WriteHeader(http.StatusOK)
 }

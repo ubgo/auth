@@ -494,6 +494,7 @@ func TestNoPackageState(t *testing.T) {
 	allowed := map[string]bool{
 		"allowedAlgs": true, "defaultScopes": true, "reservedAuthParams": true, "metaRefreshEscaper": true, "refusalPages": true, "errTokenInvalid": true, "errNoRevocation": true,
 		"MapReasonValues": true, "DecisionValues": true, "TokenTypeHintValues": true, "RefusalKindValues": true, "ReasonValues": true, "EventKindValues": true,
+		"EndReasonValues": true, "LogoutModeValues": true,
 	}
 	fset := token.NewFileSet()
 	files, _ := filepath.Glob("*.go")

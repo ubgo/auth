@@ -41,6 +41,17 @@ type settings struct {
 	discovery   *ProviderMetadata
 	observer    Observer
 	intervalSet bool
+	// slide, skew and flowTTL are the timing values WithSlideInterval,
+	// WithClockSkew and WithFlowLifetime set.
+	slide   time.Duration
+	skew    time.Duration
+	flowTTL time.Duration
+	// logout decides how far each sign-out reaches.
+	logout LogoutPolicy
+	// The session hooks; nil when not set.
+	onStart         SessionStartHook
+	onEnd           SessionEndHook
+	onRefreshFailed RefreshFailedHook
 }
 
 // RefuseNil records ErrNilOption naming the option (its qualified name,
@@ -131,8 +142,10 @@ func WithRechecker(r Rechecker) Option {
 
 // WithRecheckInterval sets how long the login server's last "yes" stands:
 // the longest a person removed at the server can still use the app.
-// RecheckEveryRequest (zero) asks on every request; a negative d is
-// refused. The default is DefaultRecheckInterval.
+// RecheckEveryRequest (zero) asks on every request; NoLimit never asks again
+// after sign-in (only the Lifetimes, a back-channel logout or sign-out end
+// the session); a negative d is refused. The default is
+// DefaultRecheckInterval.
 func WithRecheckInterval(d time.Duration) Option {
 	return func(s *settings) {
 		if d < 0 {
@@ -145,7 +158,8 @@ func WithRecheckInterval(d time.Duration) Option {
 
 // WithOutageGrace sets how long the last "yes" stands while the login
 // server cannot be reached, counted from Session.CheckedAt. NoOutageGrace
-// (zero) refuses at once; a negative d is refused. The default is
+// (zero) refuses at once; NoLimit keeps the session usable for as long as
+// the outage lasts; a negative d is refused. The default is
 // DefaultOutageGrace. It never extends a session past its Lifetimes.
 func WithOutageGrace(d time.Duration) Option {
 	return func(s *settings) {
@@ -158,8 +172,129 @@ func WithOutageGrace(d time.Duration) Option {
 }
 
 // WithLifetimes sets the idle and absolute session lifetimes. A zero field
-// keeps its default.
+// keeps its default; NoLimit turns that bound off, so
+// WithLifetimes(Lifetimes{Absolute: NoLimit}) keeps a session for as long as
+// it is used within the idle lifetime and the login server keeps saying yes.
 func WithLifetimes(l Lifetimes) Option { return func(s *settings) { s.lifetimes = l } }
+
+// WithSlideInterval sets how often a request moves the idle window
+// (Session.LastSeenAt, and with it the cookie or store row): a longer step
+// means fewer writes for a server-side store, at the cost of an idle expiry
+// up to that much early. Zero slides on every request; NoLimit never slides,
+// so only a re-check moves the window, and is allowed only with Idle:
+// NoLimit. A negative d, or one not shorter than a limited Idle, is refused.
+// The default is DefaultSlideInterval.
+func WithSlideInterval(d time.Duration) Option {
+	return func(s *settings) {
+		if d < 0 {
+			s.refuse("WithSlideInterval(%v) is negative", d)
+			return
+		}
+		s.slide = d
+	}
+}
+
+// DefaultSlideInterval is how often the idle window moves unless
+// WithSlideInterval says otherwise: once a minute.
+//
+//ds:def id=defaultslideinterval-73hnwk85 owner=@khanakia stability=stable
+const DefaultSlideInterval = time.Minute
+
+// WithClockSkew sets how far the login server's clock and this app's may
+// differ when ID tokens' and logout tokens' iat, nbf and exp, and a
+// sign-in flow's start, are checked. Zero trusts both clocks exactly. A
+// negative d, or one above MaxClockSkew, is refused. The default is
+// DefaultClockSkew.
+func WithClockSkew(d time.Duration) Option {
+	return func(s *settings) {
+		if d < 0 || d > MaxClockSkew {
+			s.refuse("WithClockSkew(%v) must be between 0 and %v", d, MaxClockSkew)
+			return
+		}
+		s.skew = d
+	}
+}
+
+// Clock skew bounds.
+const (
+	// DefaultClockSkew is the skew allowed unless WithClockSkew says
+	// otherwise, the value ubgo/auth's own verifiers use.
+	//ds:def id=defaultclockskew-vc9erhjq owner=@khanakia stability=stable
+	DefaultClockSkew = 30 * time.Second
+	// MaxClockSkew is the most WithClockSkew accepts: more would accept an
+	// expired ID token for longer than many servers issue them for, which
+	// is no longer clock skew but a disabled expiry check.
+	MaxClockSkew = 5 * time.Minute
+)
+
+// WithFlowLifetime sets how long one sign-in may take, from the login route
+// to the callback: long enough for a password manager, a second factor or a
+// slow enrollment page at the login server. A sign-in older than d is refused
+// and starts again. d must be positive and not NoLimit: a flow that never
+// expires is a flow cookie that never goes away. The default is
+// DefaultFlowLifetime.
+func WithFlowLifetime(d time.Duration) Option {
+	return func(s *settings) {
+		if d <= 0 || !limited(d) {
+			s.refuse("WithFlowLifetime(%v) must be a positive, limited duration", d)
+			return
+		}
+		s.flowTTL = d
+	}
+}
+
+// DefaultFlowLifetime is how long a sign-in may take unless
+// WithFlowLifetime says otherwise.
+//
+//ds:def id=defaultflowlifetime-fb3km7wf owner=@khanakia stability=stable
+const DefaultFlowLifetime = 10 * time.Minute
+
+// WithLogoutPolicy decides, per sign-out, how far it reaches: LogoutAtServer
+// (the default) or LogoutAppOnly. LogoutAlways(mode) is the fixed policy;
+// an app offering "sign out here" and "sign out everywhere" reads its own
+// form field from LogoutRequest.Request. The app's session ends and its
+// refresh token is revoked either way.
+func WithLogoutPolicy(p LogoutPolicy) Option {
+	return func(s *settings) {
+		if s.RefuseNil("oidcclient.WithLogoutPolicy", p) {
+			return
+		}
+		s.logout = p
+	}
+}
+
+// WithOnSessionStart runs h at every sign-in, after the UserMapper and before
+// the session is saved; an error refuses the sign-in. See SessionStartHook.
+func WithOnSessionStart(h SessionStartHook) Option {
+	return func(s *settings) {
+		if s.RefuseNil("oidcclient.WithOnSessionStart", h) {
+			return
+		}
+		s.onStart = h
+	}
+}
+
+// WithOnSessionEnd tells h about every session this package ends. See
+// SessionEndHook.
+func WithOnSessionEnd(h SessionEndHook) Option {
+	return func(s *settings) {
+		if s.RefuseNil("oidcclient.WithOnSessionEnd", h) {
+			return
+		}
+		s.onEnd = h
+	}
+}
+
+// WithOnRefreshFailed tells h about every re-check that did not keep the
+// session. See RefreshFailedHook.
+func WithOnRefreshFailed(h RefreshFailedHook) Option {
+	return func(s *settings) {
+		if s.RefuseNil("oidcclient.WithOnRefreshFailed", h) {
+			return
+		}
+		s.onRefreshFailed = h
+	}
+}
 
 // WithResponder answers refused requests with r instead of
 // DefaultResponder.
@@ -184,8 +319,9 @@ func WithReturnPolicy(p ReturnPolicy) Option {
 	}
 }
 
-// WithCookie sets the session cookie's name, domain and SameSite mode; New
-// checks them against the browser's cookie-prefix rules.
+// WithCookie sets the session cookie's name, domain, SameSite mode and
+// whether it lasts beyond the browser session; New checks them against the
+// browser's cookie-prefix rules.
 func WithCookie(o CookieOptions) Option { return func(s *settings) { s.cookie = o } }
 
 // WithPaths serves the routes at p instead of PathsUnder(DefaultRoutePrefix).

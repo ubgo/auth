@@ -28,6 +28,13 @@ type CookieOptions struct {
 	// flow cookie is always Lax: the login server's redirect back is a
 	// cross-site navigation that Strict would strip it from.
 	SameSite http.SameSite
+	// BrowserSession writes the session cookie without Expires or Max-Age,
+	// so the browser forgets it when it closes (a browser that restores its
+	// last session may keep it). False, the default, keeps it until
+	// Session.ExpiresAt, so closing the browser does not sign out. Either
+	// way the Lifetimes still end the session; this only decides whether
+	// the browser keeps the cookie across a restart.
+	BrowserSession bool
 }
 
 // Cookie name defaults and prefixes (RFC 6265bis cookie prefixes).
@@ -104,7 +111,7 @@ type cookieWriter struct {
 }
 
 // set writes one cookie expiring at expires (zero: a cookie for the browser
-// session, used by nothing the package writes today) with sameSite.
+// session, which CookieOptions.BrowserSession asks for) with sameSite.
 func (cw cookieWriter) set(w http.ResponseWriter, name, value string, expires, now time.Time, sameSite http.SameSite) {
 	c := &http.Cookie{Name: name, Value: value, Path: siteRoot, Domain: cw.opts.Domain, Secure: true, HttpOnly: true, SameSite: sameSite}
 	if !expires.IsZero() {
@@ -130,6 +137,9 @@ func (cw cookieWriter) writeChunked(w http.ResponseWriter, r *http.Request, seal
 	n := (len(sealed) + maxCookieValue - 1) / maxCookieValue
 	if n > maxSessionCookies {
 		return fmt.Errorf("%w: %d bytes sealed, at most %d fit", ErrSessionTooLarge, len(sealed), maxSessionCookies*maxCookieValue)
+	}
+	if cw.opts.BrowserSession {
+		expires = time.Time{}
 	}
 	for i := range n {
 		cw.set(w, chunkName(cw.opts.Name, i), sealed[i*maxCookieValue:min((i+1)*maxCookieValue, len(sealed))], expires, now, cw.opts.SameSite)

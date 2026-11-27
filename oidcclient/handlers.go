@@ -184,12 +184,20 @@ func (c *Client) serveCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	now := c.set.now()
 	s := Session{ID: randomToken(), User: user, ProviderSessionID: id.ProviderSessionID, Tokens: tok, CreatedAt: now, LastSeenAt: now, CheckedAt: now}
+	s.ExpiresAt = c.set.lifetimes.expiresAt(s.CreatedAt, s.LastSeenAt)
+	if h := c.set.onStart; h != nil {
+		if err := h(ctx, SessionStart{Session: s, Identity: id, Request: r}); err != nil {
+			c.refuse(w, r, hookRefusal(err), nil)
+			return
+		}
+	}
 	// A session this browser held before ends here, so a stale or planted
 	// one does not linger in a server-side store after a new sign-in.
 	if old, _, err := c.openSession(ctx, r); err == nil {
 		if err := c.set.store.Delete(ctx, old); err != nil {
 			c.set.logger.WarnContext(ctx, "oidcclient: delete the previous session", "error", err)
 		}
+		c.endSession(ctx, SessionEnd{Reason: EndReplaced, Session: &old, Request: r})
 	}
 	if err := c.saveSession(ctx, w, r, &s); err != nil {
 		c.refuse(w, r, Refusal{Kind: RefusalFailed, Reason: ReasonStoreFailed, Err: err}, &s)
@@ -291,8 +299,18 @@ func (c *Client) serveLogout(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		c.observe(ctx, Event{Kind: EventLogout, SessionID: s.ID, Subject: s.User.Subject})
+		c.endSession(ctx, SessionEnd{Reason: EndLogout, Session: &s, Request: r})
 	}
 	target := c.set.postLogout
+	in := LogoutRequest{Request: r}
+	if err == nil {
+		in.Session = &s
+	}
+	if c.set.logout(in) == LogoutAppOnly {
+		w.Header().Set(headerLocation, target)
+		w.WriteHeader(http.StatusSeeOther)
+		return
+	}
 	meta, merr := c.provider.Metadata(ctx)
 	switch {
 	case merr != nil:
