@@ -220,6 +220,8 @@ curl -s -b alice.txt -X POST localhost:8081/auth/admin/ban -H "$O" -d '{"userId"
 
 A ban that comes from code rather than from an admin's session, an import carrying another system's bans or a job acting on a fraud signal, is `ad.BanFor(ctx, userID, reason, until)` from Go, in the spirit of `Grant`: no signed-in admin, no route. A zero `until` is permanent; otherwise the ban lifts at `until`. It ends the user's sessions like the route, refuses an admin the same way, and when an audit log is registered (the [audit plugin](audit.md), or anything implementing `admin.EventRecorder`) it records an `admin.ban` event with no actor and the user as subject, in the same transaction, so the log still says the ban happened.
 
+[`ad.UnbanFor(ctx, userID)`](ds:block?id=plugin-unbanfor-k2p9wd4x) is its counterpart: it lifts the ban from trusted code the way `unban` does, accepts a user who is not banned, and is recorded as an `admin.unban` event with no actor when an audit log is registered. [`ad.BanOf(ctx, userID)`](ds:block?id=plugin-banof-h7w3nk5p) returns the ban in force (`admin.Ban`, with its reason and expiry) and false when there is none, by the session check's rule: a temporary ban stops counting at its expiry. The ban already ends and refuses sessions; `BanOf` is for credentials the plugin does not see, such as the access and refresh tokens an [OAuth provider](oauthprovider.md) issues, so the app can refuse a banned user there too.
+
 ## Step 5 — End a user's sessions
 
 For a suspected stolen session, `POST /auth/admin/revoke-sessions` ends every session of the user without banning them. Bob's cookie stops working and he signs in again:
@@ -253,6 +255,8 @@ curl -s -b alice.txt -X POST localhost:8081/auth/admin/set-admin -H "$O" -d '{"u
 {"ok":true}
 {"ok":true}
 ```
+
+From Go, with no signed-in admin (an operator's command line, a job), [`ad.RevokeAdmin(ctx, userID)`](ds:block?id=plugin-revokeadmin-q5t8mz3c) is the counterpart of `Grant`: the same rules as `set-admin` with `false` (the last admin is `admin.last_admin`, a non-admin is a no-op), recorded as an `admin.set-admin` event with no actor when it changes something and an audit log is registered. A user listed in `AdminIDs` stays an admin, because the option is configuration, not data. [`ad.IsAdmin(ctx, userID)`](ds:block?id=plugin-isadmin-r4m8vq2k) is the plugin's own answer to "is this user an admin" (the flag, `AdminIDs` or a role in `AdminRoles`), for an admin-only route of the app's own, and [`ad.AdminUserIDs(ctx)`](ds:block?id=plugin-adminuserids-w6c2xn8j) lists exactly those users plus every `AdminIDs` entry, sorted.
 
 
 **Roles and permissions.** Every admin operation asks the plugin's `admin.Authorizer` for a permission of `admin.DefaultStatements`, passing the caller's roles: `users` and `search-users` need `user:list`, `user` `user:get`, `ban` and `unban` `user:ban`, `set-admin` and `set-role` `user:set-role`, `impersonate` `user:impersonate`, `create-user`, `update-user`, `remove-user`, `set-password` and `set-email` their `user:` action, `sessions` and `all-sessions` `session:list`, `revoke-session` and `revoke-sessions` `session:revoke`. Roles live in `auth_user.admin_role`, comma-joined. The staff flag is unchanged and is the default: an admin granted as above (or listed in `AdminIDs`) holds the `admin` role, which grants everything except `impersonate-admins`; everyone else holds `user`, which grants nothing (`admin.DefaultRole` changes it).

@@ -4,6 +4,22 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 ## Unreleased
 
+## v0.1.4, 2026-11-27
+
+The core (`github.com/ubgo/auth`) is tagged v0.1.4; every other module is unchanged and still requires core v0.1.3, which keeps working for it. The admin plugin gains five operator methods for trusted Go code with no signed-in admin (an operator's command line, a job), beside `Grant`, `BanFor` and `ResetTwoFactorFor`. Like them they are plain methods, never operations, and never mounted on a route. Nothing else changes: the routes, their answers and every existing method behave as before.
+
+### Added
+
+- plugin/admin: `UnbanFor(ctx, userID)` lifts a ban from Go, the counterpart of `BanFor`: the ban, its expiry and its reason are cleared as the `unban` route does; a user who is not banned is no error, an unknown one `auth.ErrUserNotFound`; recorded under `admin.unban` with no actor when an audit log is registered (`EventRecorder`), in the same transaction. `TestAdminOperator_UnbanFor`.
+- plugin/admin: `RevokeAdmin(ctx, userID)` takes admin rights back from Go, the counterpart of `Grant`, with the rules of `set-admin` with `false`: the flag and every admin role go (the user keeps their other roles, or `DefaultRole`), the last admin is refused with `ErrLastAdmin`, a user who is not an admin is a no-op, and a user listed by `AdminIDs` stays an admin; a change is recorded under `admin.set-admin` with no actor when an audit log is registered. `TestAdminOperator_RevokeAdmin`.
+- plugin/admin: `IsAdmin(ctx, userID) (bool, error)` answers by the plugin's own rule (the flag, `AdminIDs` or a role in `AdminRoles`), so an app's own admin-only route and the plugin never disagree; `AdminUserIDs(ctx) ([]string, error)` lists exactly those users plus every `AdminIDs` entry, sorted, never nil. `TestAdminOperator_IsAdmin`, `TestAdminOperator_AdminUserIDs`.
+- plugin/admin: `BanOf(ctx, userID) (Ban, bool, error)` returns the ban in force and false when there is none (never banned, unbanned, or a temporary ban past its expiry, the session check's rule), for credentials the plugin does not see, such as the tokens an OAuth provider issues. `TestAdminOperator_BanOf`.
+- Every database failure of the five reaches the caller (`TestAdminOperator_Faults`, with `sweepFaults`).
+
+### Changed
+
+- plugin/admin: the `unban` and `set-admin` routes now share their code with `UnbanFor` and `RevokeAdmin`, so the Go and HTTP paths cannot drift; their behaviour is unchanged.
+
 ## plugin/oauthprovider v0.1.10, 2026-11-27
 
 `plugin/oauthprovider` is tagged v0.1.10; the core and every other module are unchanged. The provider's clients, codes, tokens and consents can now live in a store of your own. An app that sets nothing keeps the SQL store on the same tables, with the same statements, so nothing changes for it.

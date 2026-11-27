@@ -92,6 +92,10 @@ Routes are under the mount prefix (`/auth` below). A Query is served as GET with
 | (command line) | `myapp auth admin grant --email x`, `myapp auth admin create --email x --name y --password-stdin` | the operator's shell; [`authcli`](../../authcli/README.md) finds this plugin's `Grant` by interface | none |
 | (Go only) | [`ResetTwoFactorFor(ctx, userID)`](ds:block?id=admin-resettwofactorfor-w2k9pt4m) resets a user's second factor with no signed-in admin (an operator's recovery command), an admin's included; recorded in the audit log with no actor when one is registered (`EventRecorder`), in the same transaction | none: call it from trusted code | none |
 | (Go only) | [`BanFor(ctx, userID, reason, until)`](ds:block?id=plugin-banfor-m3x8vt5q) bans with no signed-in admin (an import, a job); a zero `until` is permanent; the user's sessions end; recorded in the audit log with no actor when one is registered (`EventRecorder`) | none: call it from trusted code | none |
+| (Go only) | [`UnbanFor(ctx, userID)`](ds:block?id=plugin-unbanfor-k2p9wd4x) lifts a ban with no signed-in admin, the counterpart of `BanFor`: the ban, its expiry and its reason are cleared as `unban` does; a user who is not banned is no error; recorded under `admin.unban` with no actor when an audit log is registered (`EventRecorder`), in the same transaction | none: call it from trusted code | none |
+| (Go only) | [`RevokeAdmin(ctx, userID)`](ds:block?id=plugin-revokeadmin-q5t8mz3c) takes admin rights back with no signed-in admin, the counterpart of `Grant`: `set-admin` with `false`, so the flag and every admin role go (the user keeps their other roles, or `DefaultRole`), the last admin is `ErrLastAdmin`, a user who is not an admin is a no-op, and a user listed by `AdminIDs` stays an admin; a change is recorded under `admin.set-admin` with no actor when an audit log is registered, in the same transaction | none: call it from trusted code | none |
+| (Go only) | [`IsAdmin(ctx, userID) (bool, error)`](ds:block?id=plugin-isadmin-r4m8vq2k) answers by the plugin's own rule (the flag, `AdminIDs` or a role in `AdminRoles`), for an app's own admin-only route; [`AdminUserIDs(ctx) ([]string, error)`](ds:block?id=plugin-adminuserids-w6c2xn8j) lists exactly those users plus every `AdminIDs` entry, sorted, never nil | none: call it from trusted code | none |
+| (Go only) | [`BanOf(ctx, userID) (Ban, bool, error)`](ds:block?id=plugin-banof-h7w3nk5p) returns the ban in force and false when there is none (never banned, unbanned, or a temporary ban past its expiry, the session check's rule), for credentials the plugin does not see, such as an OAuth provider's tokens | none: call it from trusted code | none |
 
 Operation ids are the `Endpoint*` constants (`admin.users` and so on).
 
@@ -167,7 +171,7 @@ Typed columns: `admin.GrantedAt`, `admin.BannedAt`, `admin.BanReason`, `admin.Ba
 | `ErrBadSearchOperator` | `admin.bad_search_operator` | 400 | `search-users` with an `operator` outside `SearchOperatorValues` |
 | `auth.ErrImpersonationRefused` | `auth.impersonation_refused` | 403 | An admin operation called from an impersonation session of an admin |
 | `auth.ErrRateLimited` | `auth.rate_limited` | 429 | More `search-users` calls from one IP than `SearchRate` allows |
-| `ErrLastAdmin` | `admin.last_admin` | 409 | Removing the last admin's rights |
+| `ErrLastAdmin` | `admin.last_admin` | 409 | Removing the last admin's rights (`set-admin`, `set-role`, `SetRoleFor` or `RevokeAdmin`) |
 | `ErrNotImpersonating` | `admin.not_impersonating` | 409 | `stop-impersonating` on an ordinary session |
 | `ErrBadSort` | `admin.bad_sort` | 400 | `users` or `search-users` with a `sort` outside `UserSortValues` |
 | `ErrBadFilterField` | `admin.bad_filter_field` | 400 | `filterField` outside `FilterFieldValues` |
@@ -185,7 +189,7 @@ Typed columns: `admin.GrantedAt`, `admin.BannedAt`, `admin.BanReason`, `admin.Ba
 | `ErrNoAuditPlugin` | `admin.no_audit_plugin` | 409 | `audit` with no audit log with a read side (`EventQuerier`) registered |
 | `ErrNoTwoFactorPlugin` | `admin.no_two_factor_plugin` | 409 | A two-factor route, or `ResetTwoFactorFor`, with no plugin that manages second factors (`TwoFactorManager`) registered |
 | the factor plugin's `twofactor.not_enrolled` | | 409 | `disable-two-factor`, `enable-two-factor` or `reset-two-factor` for a user with no confirmed factor |
-| `auth.ErrUserNotFound` | `auth.user_not_found` | 404 | The target user does not exist (also from `Grant` and `BanFor`) |
+| `auth.ErrUserNotFound` | `auth.user_not_found` | 404 | The target user does not exist (also from `Grant`, `BanFor`, `UnbanFor`, `RevokeAdmin`, `IsAdmin` and `BanOf`) |
 | `auth.ErrProfileInvalid` | `auth.profile_invalid` | 400 | `update-user` or `create-user` with a name over the limit or a non-https image |
 | `auth.ErrIdentityTaken` | `auth.identity_taken` | 409 | `create-user` or `set-email` with an address another user holds |
 | the password plugin's `password.too_short`, `password.weak`, `password.breached` and friends | | 400 | `create-user` or `set-password` with a password its rules refuse |
@@ -220,6 +224,12 @@ Typed columns: `admin.GrantedAt`, `admin.BannedAt`, `admin.BanReason`, `admin.Ba
 | The routes ask the Authorizer for `two-factor` permissions, so a role with `two-factor:get` alone reads and cannot reset; the built-in admin role holds all four | `TestBatch1_AdminTwoFactorAuthorizer` |
 | Without a second-factor plugin the routes answer `admin.no_two_factor_plugin` to an admin only; over HTTP an anonymous caller gets 401 and a non-admin 403 on all four | `TestBatch1_AdminTwoFactorWithoutThePlugin`, `TestBatch1_AdminTwoFactorOverHTTP` |
 | Every database failure in the two-factor routes and `ResetTwoFactorFor` reaches the caller | `TestBatch1_AdminTwoFactorFaults` |
+| `IsAdmin` says yes for the flag, `AdminIDs` and a role in `AdminRoles` (one added after it was stored included), no for anyone else, and `ErrUserNotFound` for an unknown id; a user it says yes to cannot be banned | `TestAdminOperator_IsAdmin` |
+| `AdminUserIDs` is exactly the users `IsAdmin` says yes to plus the `AdminIDs` entries, sorted, an empty slice when there are none, and a revoked admin leaves it | `TestAdminOperator_AdminUserIDs` |
+| `BanOf` reports a permanent ban, a temporary one up to (not at) its expiry, and none after `UnbanFor` or past the expiry, the same rule that lets the user sign in again | `TestAdminOperator_BanOf` |
+| `UnbanFor` restores sign-in and clears the reason, accepts a user who is not banned, refuses an unknown one, and is recorded with no actor by the audit plugin or an app's own `EventRecorder` | `TestAdminOperator_UnbanFor`, `TestAdminOperator_UnbanForLogs` |
+| `RevokeAdmin` drops the flag and the admin roles and keeps the others or `DefaultRole`, never removes the last admin, records a change and not a no-op, and leaves an `AdminIDs` user an admin | `TestAdminOperator_RevokeAdmin`, `TestAdminOperator_RevokeAdminKeepsAdminIDs` |
+| Every database failure in `UnbanFor`, `RevokeAdmin` (with and without an audit log), `IsAdmin`, `BanOf` and `AdminUserIDs` reaches the caller | `TestAdminOperator_Faults` |
 
 Limits: Only `search-users` has a plugin rate limit; the other operations are only reachable by admins. The audit log is the [audit plugin](../audit/README.md)'s.
 
