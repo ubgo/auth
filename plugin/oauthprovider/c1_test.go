@@ -43,6 +43,7 @@ func TestC1_ValidateRefusesOptions(t *testing.T) {
 	}{
 		"access TTL":        {[]Option{AccessTokenTTL(0)}, ErrBadTTL},
 		"refresh TTL":       {[]Option{RefreshTokenTTL(-time.Second)}, ErrBadTTL},
+		"max auth age":      {[]Option{MaxAuthAge(-time.Second)}, ErrBadTTL},
 		"ID token TTL":      {[]Option{IDTokenTTL(0)}, ErrBadTTL},
 		"assertion life":    {[]Option{AssertionMaxLifetime(0)}, ErrBadTTL},
 		"DPoP proof age":    {[]Option{DPoPProofMaxAge(0)}, ErrBadTTL},

@@ -111,6 +111,7 @@ Each rule has a test in `integration/r33_test.go` that was broken once to prove 
 | `AllowDynamicRegistration()` | off | RFC 7591 registration for signed-in users |
 | `AllowUnauthenticatedRegistration()` | off | Registration with no session, as MCP clients expect; such a client has no owner |
 | `RefreshReuseInterval(d)` | 0 | A just-rotated refresh token works again within `d` (a new pair each time, or the first answer with `RefreshReplay`); after `d`, reuse revokes the family. With 0 the second of two concurrent refreshes signs the user out, so a relying party on several instances, serverless workers or several browser tabs needs a few seconds here |
+| `MaxAuthAge(d)` | 0 (no cap) | The hard stop behind the sliding refresh token: no refresh token outlives the user's sign-in (`auth_time`) by more than `d`; a refresh at or after it is `invalid_grant` and revokes the family. A daily user still signs in again at least every `d` |
 | `AssertionMaxLifetime(d)` | 5m | The longest a `private_key_jwt` assertion may live |
 | `RateLimit(endpoint, n, window)`, `NoDefaultRateLimits()` | [per endpoint](ds:block?id=oauthprovider-defaultratelimits-q7v3mx2k) | Per-IP limits per endpoint; `n` 0 removes one |
 | `ClientIDMetadataDocuments(...)` | off | CIMD: https client ids are fetched metadata documents |
@@ -164,6 +165,8 @@ myapp auth oauth-client revoke-user wiki sam@partner.io
 A client is named by its id or its name; `create` refuses a name another client has, and a name two clients share (made from Go) is `ErrAmbiguousClient`. The secret is printed once, or with `--secret-file` written to a new file with mode 0600 and never printed. `update` changes only the flags given; a list flag given as `""` clears the list.
 
 `RevokeUserForClient(ctx, RevokeUserRequest{ClientID, UserID})` (the CLI's `revoke-user`, which also takes a verified email address for the user) ends everything one user holds at one client, in one transaction: every access and refresh token (introspection answers inactive and a refresh is `invalid_grant`, inside `RefreshReuseInterval` too), every unredeemed code, and the consent; after the commit the client is sent a back-channel logout per session when it registered one. It returns what it ended (`RevokeUserResult`); a second run returns all zero. It does not stop the user from authorizing again, so change the `ClientAccess` rule first, then revoke. A JWT access token a resource server checks by signature alone stays valid there until it expires. `integration/revokeuser_test.go` pins each of these.
+
+`RevokeUserFamily(ctx, RevokeFamilyRequest{UserID, Family})` ends one of those sign-ins only: the tokens of one family (the code's tokens and every rotation of its refresh token), with one back-channel logout for its session. A family that is not the user's is `ErrTokenFamilyNotFound`, so a page listing the signed-in user's own sessions can pass their id and never reach another user's. `integration/revokefamily_test.go` pins it.
 
 ## Resource servers and MCP
 

@@ -1302,6 +1302,12 @@
     "plugin": "oauthprovider"
   },
   {
+    "code": "oauthprovider.family_not_found",
+    "status": 404,
+    "message": "Not found.",
+    "plugin": "oauthprovider"
+  },
+  {
     "code": "oauthprovider.forbidden",
     "status": 403,
     "message": "You may not do this with this client.",

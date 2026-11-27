@@ -230,11 +230,13 @@ type Plugin struct {
 	codeTTL     time.Duration
 	accessTTL   time.Duration
 	refreshTTL  time.Duration
-	idTokenTTL  time.Duration
-	claims      ClaimsFunc
-	allowDCR    bool
-	anonDCR     bool
-	resources   []resourceSpec
+	// maxAuthAge is MaxAuthAge: 0 is no cap.
+	maxAuthAge time.Duration
+	idTokenTTL time.Duration
+	claims     ClaimsFunc
+	allowDCR   bool
+	anonDCR    bool
+	resources  []resourceSpec
 	// resourceCache is CacheResources' cache; nil when it is off.
 	resourceCache *resourceCache
 	// limits and noDefaultLimits shape RateLimits.
@@ -398,6 +400,30 @@ func AccessTokenTTL(d time.Duration) Option { return func(p *Plugin) { p.accessT
 
 // RefreshTokenTTL overrides DefaultRefreshTokenTTL.
 func RefreshTokenTTL(d time.Duration) Option { return func(p *Plugin) { p.refreshTTL = d } }
+
+// MaxAuthAge caps how long refresh tokens keep a sign-in alive: no refresh
+// token outlives its family's auth_time (when the user signed in to this
+// server) by more than d, however often it is rotated. RefreshTokenTTL still
+// slides with use; this is the hard stop behind it, so a user who uses a
+// client every day still signs in again at least every d.
+//
+// What stays true with it set: a refresh token's expiry (its exp at
+// introspection) is never after auth_time + d; a refresh token presented at
+// or after that moment is refused as invalid_grant and its family revoked,
+// tokens issued before the option was set included; no refresh token is
+// issued for a sign-in already older than d. A token with no auth_time (a
+// grant that records none, such as an extension grant without AuthTime) is
+// not capped. Zero, the default, is no cap; a negative value is ErrBadTTL.
+func MaxAuthAge(d time.Duration) Option { return func(p *Plugin) { p.maxAuthAge = d } }
+
+// authAgeLimit is when a family whose user signed in at authTime stops
+// refreshing under MaxAuthAge, and whether there is such a moment.
+func (p *Plugin) authAgeLimit(authTime *time.Time) (time.Time, bool) {
+	if p.maxAuthAge <= 0 || authTime == nil {
+		return time.Time{}, false
+	}
+	return authTime.Add(p.maxAuthAge), true
+}
 
 // IDTokenTTL overrides DefaultIDTokenTTL.
 func IDTokenTTL(d time.Duration) Option { return func(p *Plugin) { p.idTokenTTL = d } }
@@ -670,6 +696,7 @@ func (p *Plugin) validateLifetimes() error {
 		{"oauthprovider.RefreshTokenTTL", p.refreshTTL, 1},
 		{"oauthprovider.IDTokenTTL", p.idTokenTTL, 1},
 		{"oauthprovider.RefreshReuseInterval", p.refreshReuse, 0},
+		{"oauthprovider.MaxAuthAge", p.maxAuthAge, 0},
 		{"oauthprovider.AssertionMaxLifetime", p.assertionMaxLifetime, 1},
 		{"oauthprovider.DPoPProofMaxAge", p.dpopMaxAge, 1},
 	} {

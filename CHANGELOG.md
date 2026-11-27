@@ -4,6 +4,15 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 ## Unreleased
 
+## plugin/oauthprovider v0.1.7, 2026-11-27
+
+`plugin/oauthprovider` is tagged v0.1.7; the core stays at v0.1.1.
+
+### Added
+
+- plugin/oauthprovider: `MaxAuthAge(d)` **[security]**, a hard stop behind the sliding refresh token. No refresh token outlives its family's `auth_time` (when the user signed in to this server) by more than `d`, however often it is rotated: a rotation's new token expires at the earlier of `RefreshTokenTTL` from now and `auth_time + d` (its introspected `exp` says so), a refresh at or after `auth_time + d` is `invalid_grant` and revokes the family (tokens stored before the option was set or lowered included), and a sign-in already older than `d` gets no refresh token. So a user who uses a client every day still signs in again at least every `d`. A token without `auth_time` is not capped. Zero, the default, changes nothing; a negative value is `ErrBadTTL`. `TestOAuthProvider_MaxAuthAge`, `TestOAuthProvider_MaxAuthAgeStopsOlderTokens`, `TestOAuthProvider_NoMaxAuthAgeKeepsSliding`.
+- plugin/oauthprovider: `RevokeUserFamily(ctx, RevokeFamilyRequest{UserID, Family})` ends one token family (one sign-in of one user at one client: the code's tokens and every rotation) in one transaction, and sends the client one back-channel logout for that family's session after the commit, so a "your sessions" page can end one session of an app while the user's other sessions there go on (`RevokeUserForClient` ends them all). A family that is not the user's, unknown or empty is `ErrTokenFamilyNotFound` (the two are not told apart); a second call returns all zero. `TestOAuthProvider_RevokeUserFamily`, `TestOAuthProvider_RevokeUserFamilyNotFound`.
+
 ## plugin/oauthprovider v0.1.4 and oidcclient v0.1.0, 2026-11-13
 
 `plugin/oauthprovider` is tagged v0.1.4 and the new `oidcclient` module starts at v0.1.0. The core stays at v0.1.1: since then it changed only in doc comments. `@ubgo/auth-client` and `@ubgo/auth-react` are built for npm at 0.1.0; the npm packages carry no git tags.

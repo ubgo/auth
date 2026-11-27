@@ -219,6 +219,7 @@ export const AUTH_ERROR_CODES = {
   "oauthprovider.account_selection_required": { status: 403, message: "The user must choose an account.", plugin: "oauthprovider" },
   "oauthprovider.client_disabled": { status: 400, message: "The client is disabled.", plugin: "oauthprovider" },
   "oauthprovider.consent_required": { status: 403, message: "The user must consent.", plugin: "oauthprovider" },
+  "oauthprovider.family_not_found": { status: 404, message: "Not found.", plugin: "oauthprovider" },
   "oauthprovider.forbidden": { status: 403, message: "You may not do this with this client.", plugin: "oauthprovider" },
   "oauthprovider.insufficient_scope": { status: 403, message: "The access token lacks a required scope.", plugin: "oauthprovider" },
   "oauthprovider.interaction_required": { status: 403, message: "The user must complete a step before this authorization.", plugin: "oauthprovider" },

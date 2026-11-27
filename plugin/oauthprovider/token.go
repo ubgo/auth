@@ -298,6 +298,11 @@ func (p *Plugin) refresh(ctx context.Context, client clientRow, in TokenRequest)
 	if r.client != client.c.ClientID || r.refreshExpires == nil || !now.Before(*r.refreshExpires) || r.user == nil {
 		return TokenResponse{}, p.burnRefresh(ctx, hash, ErrInvalidGrant)
 	}
+	// MaxAuthAge: checked here as well as capped at issuance, so a token
+	// issued before the option was set (or lowered) stops too.
+	if limit, ok := p.authAgeLimit(r.authTime); ok && !now.Before(limit) {
+		return TokenResponse{}, p.burnRefresh(ctx, hash, ErrInvalidGrant)
+	}
 	if err := p.userExists(ctx, *r.user); err != nil {
 		return TokenResponse{}, p.refuseRefresh(ctx, hash, err)
 	}
@@ -485,7 +490,13 @@ func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) 
 	}
 	var refreshHash *[]byte
 	var refreshExp *time.Time
-	if is.userID != "" && slices.Contains(is.scopes, ScopeOfflineAccess) && slices.Contains(is.client.client().GrantTypes, GrantRefreshToken) && slices.Contains(p.grantTypes, GrantRefreshToken) {
+	refreshExpiry := now.Add(p.refreshTTLFor(is))
+	authAgeLimit, capped := p.authAgeLimit(is.authTime)
+	if capped && authAgeLimit.Before(refreshExpiry) {
+		refreshExpiry = authAgeLimit
+	}
+	// A sign-in already past MaxAuthAge gets no refresh token at all.
+	if is.userID != "" && slices.Contains(is.scopes, ScopeOfflineAccess) && slices.Contains(is.client.client().GrantTypes, GrantRefreshToken) && slices.Contains(p.grantTypes, GrantRefreshToken) && refreshExpiry.After(now) {
 		raw, err := newRandom(p.genRefresh)
 		if err != nil {
 			return TokenResponse{}, err
@@ -494,7 +505,7 @@ func (p *Plugin) issue(ctx context.Context, is issuance) (TokenResponse, error) 
 		if res.RefreshToken, err = p.encodeRefresh(ctx, raw, is.sessionID); err != nil {
 			return TokenResponse{}, err
 		}
-		e := now.Add(p.refreshTTLFor(is))
+		e := refreshExpiry
 		refreshHash, refreshExp = &h, &e
 	}
 	if p.responseFields != nil {

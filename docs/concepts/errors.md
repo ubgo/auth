@@ -672,6 +672,7 @@ Codes from the core carry the `auth.` prefix (`auth.internal`, `auth.rate_limite
 | `oauthprovider.client_disabled` | 400 | The client is disabled. |
 | `oauthprovider.invalid_user` | 400 | The user of this grant no longer exists. |
 | `oauthprovider.not_found` | 404 | Not found. |
+| `oauthprovider.family_not_found` | 404 | Not found. |
 | `oauthprovider.secret_not_recoverable` | 404 | This client's secret cannot be read back. |
 | `oauthprovider.unsupported_prompt_select_account` | 400 | This server cannot show an account picker. |
 | `oauthprovider.unsupported_token_type` | 400 | This token type cannot be revoked; it expires on its own. |

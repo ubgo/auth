@@ -221,6 +221,7 @@ Every error code the core and the built-in plugins can answer, with its HTTP sta
 | `oauthprovider.account_selection_required` | 403 | The user must choose an account. | oauthprovider |
 | `oauthprovider.client_disabled` | 400 | The client is disabled. | oauthprovider |
 | `oauthprovider.consent_required` | 403 | The user must consent. | oauthprovider |
+| `oauthprovider.family_not_found` | 404 | Not found. | oauthprovider |
 | `oauthprovider.forbidden` | 403 | You may not do this with this client. | oauthprovider |
 | `oauthprovider.insufficient_scope` | 403 | The access token lacks a required scope. | oauthprovider |
 | `oauthprovider.interaction_required` | 403 | The user must complete a step before this authorization. | oauthprovider |

@@ -481,6 +481,7 @@ var edgeRegistry = map[string]any{
 	"oauthprovider.LoginPage":                        oauthprovider.LoginPage,
 	"oauthprovider.M2MAccessTokenTTL":                oauthprovider.M2MAccessTokenTTL,
 	"oauthprovider.MCP":                              oauthprovider.MCP,
+	"oauthprovider.MaxAuthAge":                       oauthprovider.MaxAuthAge,
 	"oauthprovider.NoDefaultRateLimits":              oauthprovider.NoDefaultRateLimits,
 	"oauthprovider.PairwiseSecret":                   oauthprovider.PairwiseSecret,
 	"oauthprovider.PostLogin":                        oauthprovider.PostLogin,
