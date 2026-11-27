@@ -69,6 +69,30 @@ func parseClientJWKS(raw json.RawMessage) (map[string]crypto.PublicKey, error) {
 	return keys, nil
 }
 
+// DefaultClockSkew is how far apart the provider's clock and a client's
+// may be when the provider checks a JWT the client made: the exp and nbf of
+// a private_key_jwt assertion and of an id_token_hint at end-session. It is
+// the jwt plugin's DefaultLeeway.
+//
+//ds:def id=oauthprovider-defaultclockskew-hujzr276 owner=@khanakia stability=stable
+const DefaultClockSkew = jwt.DefaultLeeway
+
+// ClockSkew overrides DefaultClockSkew. 0 allows no skew: an assertion is
+// refused the instant its exp passes. A negative d is ErrBadTTL.
+// AssertionMaxLifetime (how far ahead exp may be) and DPoPClockSkew (a DPoP
+// proof's iat) are separate settings.
+func ClockSkew(d time.Duration) Option { return func(p *Plugin) { p.clockSkew = d } }
+
+// verifierLeeway is d as jwt.Verifier.Leeway, which reads 0 as its
+// 30-second default: no skew at all is passed as one nanosecond, which no
+// whole-second exp or nbf can tell from zero.
+func verifierLeeway(d time.Duration) time.Duration {
+	if d <= 0 {
+		return time.Nanosecond
+	}
+	return d
+}
+
 // assertionTypes are the typ headers a client assertion may carry: JWT, or
 // none at all, since RFC 7523 requires no typ and most client libraries
 // send none. The session-cache type stays refused (jwt.Verifier).
@@ -79,7 +103,7 @@ var assertionTypes = []string{"JWT", ""}
 // verifies any algorithm of its family, jwt.PublicKeyForAlg), iss the
 // client, aud one of auds. Every algorithm of jwt.AlgValues is accepted:
 // RS256/384/512, PS256/384/512, ES256/384/512 and EdDSA.
-func verifyWithClientKeys(set jwt.JWKS, assertion, clientID string, auds []string, now func() time.Time) bool {
+func verifyWithClientKeys(set jwt.JWKS, assertion, clientID string, auds []string, now func() time.Time, leeway time.Duration) bool {
 	h, ok := assertionHeader(assertion)
 	if !ok {
 		return false
@@ -93,7 +117,7 @@ func verifyWithClientKeys(set jwt.JWKS, assertion, clientID string, auds []strin
 			return false
 		}
 		for _, aud := range auds {
-			v := jwt.Verifier{Keys: map[string]crypto.PublicKey{h.Kid: pub}, Issuer: clientID, Audience: aud, Types: assertionTypes, Now: now}
+			v := jwt.Verifier{Keys: map[string]crypto.PublicKey{h.Kid: pub}, Issuer: clientID, Audience: aud, Types: assertionTypes, Now: now, Leeway: leeway}
 			if _, err := v.Verify(assertion); err == nil {
 				return true
 			}
@@ -133,12 +157,12 @@ func (p *Plugin) verifyAssertion(ctx context.Context, r clientRow, assertion, en
 	if err != nil {
 		return ErrInvalidClient
 	}
-	verified := verifyWithClientKeys(set, assertion, r.c.ClientID, []string{endpoint, p.issuer}, p.core.Now)
+	verified := verifyWithClientKeys(set, assertion, r.c.ClientID, []string{endpoint, p.issuer}, p.core.Now, verifierLeeway(p.clockSkew))
 	if !verified && deref(r.jwksURI) != "" {
 		// The client may have rotated its keys since the set was cached:
 		// fetch once more (rate-limited by the cache) and retry.
 		if set, err = p.clientKeySet(ctx, r, true); err == nil {
-			verified = verifyWithClientKeys(set, assertion, r.c.ClientID, []string{endpoint, p.issuer}, p.core.Now)
+			verified = verifyWithClientKeys(set, assertion, r.c.ClientID, []string{endpoint, p.issuer}, p.core.Now, verifierLeeway(p.clockSkew))
 		}
 	}
 	if !verified {
@@ -158,11 +182,13 @@ func (p *Plugin) verifyAssertion(ctx context.Context, r clientRow, assertion, en
 	if exp.Sub(now) > p.assertionMaxLifetime {
 		return ErrInvalidClient
 	}
-	// One use: the jti is recorded until the assertion expires, keyed by
-	// client so two clients' jti values never collide.
+	// One use: the jti is recorded until the assertion can no longer verify
+	// (its exp plus ClockSkew, so a sweep never frees a jti the verifier
+	// would still accept), keyed by client so two clients' jti values never
+	// collide.
 	sum := sha256.Sum256([]byte(AuthMethodPrivateKeyJWT + ":" + r.c.ClientID + ":" + c.Jti))
 	_, err = p.core.Exec(ctx, sqlb.NewInsert(p.core.Dialect()).Into(TableAssertion).Row(
-		sqlb.Set(AssertionID, hex.EncodeToString(sum[:])), sqlb.Set(AssertionExpires, exp)))
+		sqlb.Set(AssertionID, hex.EncodeToString(sum[:])), sqlb.Set(AssertionExpires, exp.Add(p.clockSkew))))
 	if auth.IsUniqueViolation(err) {
 		return ErrInvalidClient
 	}

@@ -48,19 +48,19 @@ func TestCheckDocument(t *testing.T) {
 	res := func(status int, ct, body string) CIMDResponse {
 		return CIMDResponse{Status: status, Header: http.Header{"Content-Type": {ct}}, Body: []byte(body)}
 	}
-	if b, err := checkDocument(res(200, "application/json; charset=utf-8", `{}`)); err != nil || string(b) != "{}" {
+	if b, err := checkDocument(res(200, "application/json; charset=utf-8", `{}`), DefaultCIMDMaxDocumentBytes); err != nil || string(b) != "{}" {
 		t.Fatalf("json = %s %v", b, err)
 	}
-	if _, err := checkDocument(res(200, "application/oauth-client+json", `{}`)); err != nil {
+	if _, err := checkDocument(res(200, "application/oauth-client+json", `{}`), DefaultCIMDMaxDocumentBytes); err != nil {
 		t.Fatalf("+json: %v", err)
 	}
 	for name, r := range map[string]CIMDResponse{
 		"redirect":  res(302, "application/json", `{}`),
 		"not found": res(404, "application/json", `{}`),
 		"html":      res(200, "text/html", `{}`),
-		"too large": res(200, "application/json", strings.Repeat(" ", cimdMaxBytes+1)),
+		"too large": res(200, "application/json", strings.Repeat(" ", DefaultCIMDMaxDocumentBytes+1)),
 	} {
-		if _, err := checkDocument(r); !errors.Is(err, ErrCIMDFetch) {
+		if _, err := checkDocument(r, DefaultCIMDMaxDocumentBytes); !errors.Is(err, ErrCIMDFetch) {
 			t.Errorf("%s: %v", name, err)
 		}
 	}

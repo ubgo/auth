@@ -632,17 +632,21 @@ func (p *Plugin) doConsent(ctx context.Context, c *auth.Call, in ConsentRequest)
 }
 
 // consented reports whether the user's stored consent for the client covers
-// every scope.
+// every scope and has not expired (ConsentTTL).
 func (p *Plugin) consented(ctx context.Context, userID, clientID string, scopes, claims, resources []string, ref string) (bool, error) {
 	var stored string
 	var storedClaims, storedRef, storedRes *string
-	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ConsentScopes, &stored), sqlb.Bind(ConsentClaims, &storedClaims), sqlb.Bind(ConsentRef, &storedRef), sqlb.Bind(ConsentResources, &storedRes)).From(TableConsent).
+	var updated time.Time
+	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ConsentScopes, &stored), sqlb.Bind(ConsentClaims, &storedClaims), sqlb.Bind(ConsentRef, &storedRef), sqlb.Bind(ConsentResources, &storedRes), sqlb.Bind(ConsentUpdated, &updated)).From(TableConsent).
 		Where(sqlb.Eq(ConsentUser, userID), sqlb.Eq(ConsentClient, clientID)))
 	if errors.Is(err, sqlb.ErrNoRows) {
 		return false, nil
 	}
 	if err != nil {
 		return false, err
+	}
+	if p.consentExpired(updated) {
+		return false, nil
 	}
 	if deref(storedRef) != ref {
 		// A consent given for another post-login reference (organization)
@@ -674,7 +678,8 @@ func (p *Plugin) recordConsent(ctx context.Context, userID, clientID string, sco
 	now := p.core.Now()
 	var id, stored string
 	var storedClaims, storedRef, storedRes *string
-	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ConsentID, &id), sqlb.Bind(ConsentScopes, &stored), sqlb.Bind(ConsentClaims, &storedClaims), sqlb.Bind(ConsentRef, &storedRef), sqlb.Bind(ConsentResources, &storedRes)).From(TableConsent).
+	var updated time.Time
+	err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(ConsentID, &id), sqlb.Bind(ConsentScopes, &stored), sqlb.Bind(ConsentClaims, &storedClaims), sqlb.Bind(ConsentRef, &storedRef), sqlb.Bind(ConsentResources, &storedRes), sqlb.Bind(ConsentUpdated, &updated)).From(TableConsent).
 		Where(sqlb.Eq(ConsentUser, userID), sqlb.Eq(ConsentClient, clientID)))
 	if errors.Is(err, sqlb.ErrNoRows) {
 		id, err = p.core.NewID(consentIDPrefix)
@@ -693,8 +698,10 @@ func (p *Plugin) recordConsent(ctx context.Context, userID, clientID string, sco
 	merged := dedupe(append(strings.Fields(stored), scopes...))
 	mergedClaims := dedupe(append(splitClaims(storedClaims), claims...))
 	mergedRes := dedupe(append(splitResources(deref(storedRes)), resources...))
-	if deref(storedRef) != ref {
-		// A consent for another reference is replaced, not widened.
+	if deref(storedRef) != ref || p.consentExpired(updated) {
+		// A consent for another reference, or one that expired, is
+		// replaced, not widened: an expired grant is not renewed by
+		// approving something else.
 		merged, mergedClaims, mergedRes = scopes, claims, resources
 	}
 	_, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableConsent).
@@ -772,8 +779,9 @@ func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
 		return codeRow{}, err
 	}
 	if n == 0 {
-		family := r.id
-		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, family) })
+		p.reportReplay(ctx, GrantAuthorizationCode, r.client, r.user)
+		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonReuse, ClientID: r.client, UserID: r.user, SessionID: r.session, Family: r.id}
+		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
 		return codeRow{}, ErrInvalidGrant
 	}
 	if !now.Before(r.expires) {
@@ -864,7 +872,7 @@ func (p *Plugin) burnCode(ctx context.Context, code, family string, refusal erro
 			return
 		}
 		if n == 0 && family != "" {
-			p.revokeFamily(ctx, family)
+			p.revokeFamily(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, Family: family})
 		}
 	})
 	return e

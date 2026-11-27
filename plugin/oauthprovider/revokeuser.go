@@ -130,6 +130,9 @@ func (p *Plugin) RevokeUserForClient(ctx context.Context, in RevokeUserRequest) 
 			return err
 		}
 		res.Consent = n > 0
+		if res.Tokens > 0 {
+			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonAdmin, ClientID: in.ClientID, UserID: in.UserID})
+		}
 		res.LogoutNotices = len(targets)
 		if len(targets) > 0 {
 			p.core.AfterCommit(ctx, func(ctx context.Context) {

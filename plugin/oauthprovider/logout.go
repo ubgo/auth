@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/url"
 	"slices"
 	"time"
@@ -17,8 +18,6 @@ import (
 
 // RP-initiated logout constants.
 const (
-	// logoutConfirmTTL is how long a logout confirmation stays valid.
-	logoutConfirmTTL = 5 * time.Minute
 	// logoutConfirmCookie holds the signed confirmation state between the
 	// end-session request and its confirmation.
 	logoutConfirmCookie = "oauth_logout_confirmation"
@@ -33,6 +32,66 @@ const (
 	noticeUnregistered = "The requested post-logout redirect was not registered."
 	claimSessionID     = "sid"
 )
+
+// DefaultEndSessionConfirmTTL is how long a logout confirmation stays
+// valid: the browser must confirm within it.
+//
+//ds:def id=oauthprovider-defaultendsessionconfirmttl-337cbwz6 owner=@khanakia stability=stable
+const DefaultEndSessionConfirmTTL = 5 * time.Minute
+
+// EndSessionConfirmTTL overrides DefaultEndSessionConfirmTTL: how long the
+// signed confirmation cookie, and so the confirmation page, stays valid. It
+// is at least a second (ErrBadTTL otherwise): the cookie's expiry is whole
+// seconds, and a confirmation that never expires is not offered, because it
+// would let a page posted long ago end a later session.
+func EndSessionConfirmTTL(d time.Duration) Option { return func(p *Plugin) { p.logoutConfirmTTL = d } }
+
+// EndSessionHintGrace accepts an id_token_hint at end-session up to d past
+// its exp (and ClockSkew), as OpenID Connect RP-Initiated Logout section 2
+// recommends for an RP whose user had a recent session: the signature, the
+// issuer and the audience are still checked, only the expiry is relaxed. 0,
+// the default, accepts no expired hint: a browser is asked to confirm
+// instead, and a caller that is not a browser is refused. A negative d is
+// ErrBadTTL. The hint at the authorize endpoint is read whatever its expiry
+// (OpenID Connect Core section 3.1.2.1) and is not affected.
+//
+//ds:def id=oauthprovider-endsessionhintgrace-9ut43fa7 owner=@khanakia stability=stable
+func EndSessionHintGrace(d time.Duration) Option { return func(p *Plugin) { p.hintGrace = d } }
+
+// ValidatePostLogoutRedirectURI installs a RedirectValidator for
+// post_logout_redirect_uri at end-session: it gets the requested URI, the
+// client's registered post-logout URIs and the built-in exact-match result,
+// and its answer replaces that result. A URI it accepts must still be a valid
+// redirect URI (absolute, no fragment, no credentials). Without it the match
+// is exact, and an unregistered URI is never redirected to (the success page
+// says so): accept only hosts you control.
+func ValidatePostLogoutRedirectURI(fn RedirectValidator) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauthprovider.ValidatePostLogoutRedirectURI", fn) {
+			return
+		}
+		p.postLogoutValidator = fn
+	}
+}
+
+// postLogoutAccepted is the post-logout redirect decision: an exact match
+// with a registered URI, or the ValidatePostLogoutRedirectURI answer.
+func (p *Plugin) postLogoutAccepted(uri string, registered []string) bool {
+	exact := slices.Contains(registered, uri)
+	if p.postLogoutValidator == nil {
+		return exact
+	}
+	return p.postLogoutValidator(uri, slices.Clone(registered), exact) && validRedirectURI(uri)
+}
+
+// hintLeeway is the jwt leeway an end-session hint is verified with:
+// ClockSkew plus EndSessionHintGrace, saturating rather than overflowing.
+func (p *Plugin) hintLeeway() time.Duration {
+	if p.hintGrace > math.MaxInt64-p.clockSkew {
+		return math.MaxInt64
+	}
+	return verifierLeeway(p.clockSkew + p.hintGrace)
+}
 
 // EndSessionRequest is an OpenID Connect RP-Initiated Logout request.
 type EndSessionRequest struct {
@@ -104,11 +163,11 @@ func (p *Plugin) logoutClient(ctx context.Context, id string) (clientRow, error)
 }
 
 // confirmationContext records the client, its post-logout URI when
-// registered (or that it was not), and the state.
-func confirmationContext(r clientRow, in EndSessionRequest) logoutState {
+// accepted (or that it was not), and the state.
+func (p *Plugin) confirmationContext(r clientRow, in EndSessionRequest) logoutState {
 	s := logoutState{ClientID: r.c.ClientID, State: in.State}
 	if in.PostLogoutRedirectURI != "" {
-		if slices.Contains(r.client().PostLogoutRedirectURIs, in.PostLogoutRedirectURI) {
+		if p.postLogoutAccepted(in.PostLogoutRedirectURI, r.client().PostLogoutRedirectURIs) {
 			s.PostLogout = in.PostLogoutRedirectURI
 		} else {
 			s.RedirectInvalid = true
@@ -129,7 +188,7 @@ func (p *Plugin) doEndSession(ctx context.Context, c *auth.Call, in EndSessionRe
 			if err != nil {
 				return EndSessionResult{}, err
 			}
-			conf = confirmationContext(r, in)
+			conf = p.confirmationContext(r, in)
 		}
 		return p.confirmationRequired(c, in.Browser, conf)
 	}
@@ -151,13 +210,13 @@ func (p *Plugin) doEndSession(ctx context.Context, c *auth.Call, in EndSessionRe
 	if r.disabledAt != nil || !r.c.EndSession {
 		return EndSessionResult{}, ErrInvalidClient
 	}
-	v := jwt.Verifier{Keys: jwt.KeysFromJWKS(p.signer.PublicKeys()), Issuer: p.issuer, Audience: clientID, Now: p.core.Now}
+	v := jwt.Verifier{Keys: jwt.KeysFromJWKS(p.signer.PublicKeys()), Issuer: p.issuer, Audience: clientID, Now: p.core.Now, Leeway: p.hintLeeway()}
 	hint, err := v.Verify(in.IDTokenHint)
 	if err != nil {
 		if signedIn && in.Browser {
 			conf := logoutState{}
 			if in.ClientID != "" {
-				conf = confirmationContext(r, in)
+				conf = p.confirmationContext(r, in)
 			}
 			return p.confirmationRequired(c, true, conf)
 		}
@@ -170,7 +229,7 @@ func (p *Plugin) doEndSession(ctx context.Context, c *auth.Call, in EndSessionRe
 		matches = signedIn && subtle.ConstantTimeCompare([]byte(c.Session.ID), []byte(sid)) == 1
 	}
 	if signedIn && !matches {
-		return p.confirmationRequired(c, in.Browser, confirmationContext(r, in))
+		return p.confirmationRequired(c, in.Browser, p.confirmationContext(r, in))
 	}
 	if matches {
 		if err := p.core.EndSession(ctx, c.User.ID, c.Session.ID, auth.SessionEndSignOut); err != nil {
@@ -186,7 +245,7 @@ func (p *Plugin) doEndSession(ctx context.Context, c *auth.Call, in EndSessionRe
 		}
 	}
 	clearLogoutState(c)
-	return p.loggedOut(confirmationContext(r, in), in.Browser), nil
+	return p.loggedOut(p.confirmationContext(r, in), in.Browser), nil
 }
 
 // endHintedSession deletes the session a valid hint names when the browser
@@ -223,7 +282,7 @@ func (p *Plugin) confirmationRequired(c *auth.Call, browser bool, conf logoutSta
 	if c.User != nil && c.Session != nil {
 		conf.SessionID = c.Session.ID
 	}
-	exp := p.core.Now().Add(logoutConfirmTTL)
+	exp := p.core.Now().Add(p.logoutConfirmTTL)
 	conf.ExpiresAt = exp.Unix()
 	b, _ := json.Marshal(conf) // a struct of strings and numbers always encodes
 	if err := c.SetSignedCookie(logoutConfirmCookie, string(b), exp); err != nil {
@@ -244,7 +303,7 @@ func clearLogoutState(c *auth.Call) {
 // URI).
 func (p *Plugin) loggedOut(s logoutState, browser bool) EndSessionResult {
 	if s.PostLogout != "" {
-		u, _ := url.Parse(s.PostLogout) // registered, so it parsed
+		u, _ := url.Parse(s.PostLogout) // accepted, so it parsed (exact match of a registered URI, or validRedirectURI)
 		if s.State != "" {
 			q := u.Query()
 			q.Set(paramState, s.State)
@@ -282,7 +341,7 @@ func (p *Plugin) doEndSessionConfirm(ctx context.Context, c *auth.Call, in EndSe
 			s.PostLogout = ""
 		case err != nil:
 			return EndSessionResult{}, err
-		case s.PostLogout != "" && !slices.Contains(r.client().PostLogoutRedirectURIs, s.PostLogout):
+		case s.PostLogout != "" && !p.postLogoutAccepted(s.PostLogout, r.client().PostLogoutRedirectURIs):
 			s.PostLogout, s.RedirectInvalid = "", true
 		}
 	}

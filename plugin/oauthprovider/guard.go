@@ -54,6 +54,10 @@ type ResourceGuard struct {
 	JSONRPC             bool
 	// Now is the clock; nil is time.Now.
 	Now func() time.Time
+	// Leeway is the clock skew allowed on a JWT's exp and nbf, passed to
+	// jwt.Verifier as is: 0 is jwt.DefaultLeeway (30 seconds), and the
+	// smallest positive value allows practically none.
+	Leeway time.Duration
 }
 
 // GuardedToken is what ResourceGuard verified, in the request context
@@ -73,8 +77,12 @@ func GuardedTokenFrom(ctx context.Context) (GuardedToken, bool) {
 	return t, ok
 }
 
-// introspectTimeout bounds a remote introspection.
-const introspectTimeout = 5 * time.Second
+// introspectTimeout bounds a remote introspection; maxIntrospectionBytes
+// bounds its answer.
+const (
+	introspectTimeout     = 5 * time.Second
+	maxIntrospectionBytes = 64 << 10
+)
 
 // Middleware guards next.
 func (g ResourceGuard) Middleware(next http.Handler) http.Handler {
@@ -121,7 +129,7 @@ func (g ResourceGuard) verify(ctx context.Context, token string) (GuardedToken, 
 		return g.introspect(ctx, token)
 	}
 	if strings.Count(token, ".") == 2 && g.Keys != nil {
-		v := jwt.Verifier{Lookup: g.Keys, Issuer: g.Issuer, Audience: g.Audience, Now: g.Now, Types: []string{AccessTokenType}}
+		v := jwt.Verifier{Lookup: g.Keys, Issuer: g.Issuer, Audience: g.Audience, Now: g.Now, Types: []string{AccessTokenType}, Leeway: g.Leeway}
 		c, err := v.Verify(token)
 		if err != nil {
 			return GuardedToken{}, err
@@ -166,7 +174,7 @@ func (g ResourceGuard) introspect(ctx context.Context, token string) (GuardedTok
 		Audience json.RawMessage `json:"aud"`
 		Cnf      *Confirmation   `json:"cnf"`
 	}
-	b, err := io.ReadAll(io.LimitReader(res.Body, maxFormBytes))
+	b, err := io.ReadAll(io.LimitReader(res.Body, maxIntrospectionBytes))
 	if err != nil || res.StatusCode != http.StatusOK || json.Unmarshal(b, &in) != nil || !in.Active || in.Cnf != nil {
 		return GuardedToken{}, errNotVerifiable
 	}

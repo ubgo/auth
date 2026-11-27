@@ -66,12 +66,12 @@ func TestJWKSCache_BoundedAndRefusesBadSets(t *testing.T) {
 }
 
 // TestCheckJWKSResponse: exactly 200, a JSON media type (the JWK set one
-// included), and at most jwksMaxBytes.
+// included), and at most DefaultClientJWKSMaxBytes.
 func TestCheckJWKSResponse(t *testing.T) {
 	hdr := func(ct string) http.Header { return http.Header{headerContentType: {ct}} }
 	body := []byte(`{"keys":[]}`)
 	for _, ct := range []string{"application/json", "application/jwk-set+json", "application/vnd.x+json; charset=utf-8"} {
-		if b, err := checkJWKSResponse(CIMDResponse{Status: http.StatusOK, Header: hdr(ct), Body: body}); err != nil || string(b) != string(body) {
+		if b, err := checkJWKSResponse(CIMDResponse{Status: http.StatusOK, Header: hdr(ct), Body: body}, DefaultClientJWKSMaxBytes); err != nil || string(b) != string(body) {
 			t.Fatalf("%s: %v", ct, err)
 		}
 	}
@@ -79,9 +79,9 @@ func TestCheckJWKSResponse(t *testing.T) {
 		"status 302": {Status: http.StatusFound, Header: hdr("application/json"), Body: body},
 		"html":       {Status: http.StatusOK, Header: hdr("text/html"), Body: body},
 		"no type":    {Status: http.StatusOK, Header: http.Header{}, Body: body},
-		"too large":  {Status: http.StatusOK, Header: hdr("application/json"), Body: make([]byte, jwksMaxBytes+1)},
+		"too large":  {Status: http.StatusOK, Header: hdr("application/json"), Body: make([]byte, DefaultClientJWKSMaxBytes+1)},
 	} {
-		if _, err := checkJWKSResponse(res); !errors.Is(err, ErrCIMDFetch) {
+		if _, err := checkJWKSResponse(res, DefaultClientJWKSMaxBytes); !errors.Is(err, ErrCIMDFetch) {
 			t.Errorf("%s: %v", name, err)
 		}
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"html"
 	"io"
 	"net/http"
 	"net/url"
@@ -60,9 +59,6 @@ const (
 	// with stale copies allowed while a cache refreshes or when the provider is
 	// down.
 	metadataCacheControl = "public, max-age=15, stale-while-revalidate=15, stale-if-error=86400"
-	// maxFormBytes bounds a form body; a token request is a few hundred
-	// bytes.
-	maxFormBytes = 64 << 10
 	// paramAccessToken is the userinfo form field for the token.
 	paramAccessToken = "access_token"
 )
@@ -72,6 +68,21 @@ type errorBody struct {
 	Error       string `json:"error"`
 	Description string `json:"error_description,omitempty"`
 }
+
+// DefaultMaxRequestBytes bounds the body of a protocol request (a form, a
+// registration document): a token request is a few hundred bytes, a
+// registration with inline keys a few kilobytes.
+//
+//ds:def id=oauthprovider-defaultmaxrequestbytes-zew63u39 owner=@khanakia stability=stable
+const DefaultMaxRequestBytes = 64 << 10
+
+// MaxRequestBytes overrides DefaultMaxRequestBytes; a longer body is
+// refused before it is read in full. It must be positive (ErrBadLimit): an
+// unbounded body would let one request hold the server's memory.
+func MaxRequestBytes(n int64) Option { return func(p *Plugin) { p.maxRequestBytes = n } }
+
+// ErrBadLimit is a size or count option that is not positive.
+var ErrBadLimit = errors.New("oauthprovider: every size limit is positive")
 
 // rfcCode is the RFC error code for err: the part of a plugin error's code
 // after "oauthprovider.", or a generic code for the core's errors.
@@ -353,7 +364,7 @@ func (p *Plugin) serveAuthorize(w http.ResponseWriter, r *http.Request, opts []a
 		if isBrowserNavigation(r) {
 			// A person is looking at this, not a client library: better-
 			// auth's error page, with the same code and description.
-			writeErrorPage(w, statusOf(err), rfcCode(err), errorMessage(err))
+			p.writePageData(w, r, errorPage(err))
 			return
 		}
 		p.writeError(w, r, 0, err)
@@ -423,7 +434,7 @@ func (p *Plugin) answerLogout(w http.ResponseWriter, r *http.Request, opts []aut
 		p.logInternal(err)
 		if isBrowserNavigation(r) {
 			// The logout error page, for a person.
-			writeErrorPage(w, statusOf(err), rfcCode(err), errorMessage(err))
+			p.writePageData(w, r, errorPage(err))
 			return
 		}
 		p.writeError(w, r, 0, err)
@@ -437,13 +448,9 @@ func (p *Plugin) answerLogout(w http.ResponseWriter, r *http.Request, opts []aut
 			http.Redirect(w, r, res.RedirectTo, http.StatusFound)
 		}
 	case res.Page == PageConfirm:
-		writePage(w, "Confirm logout", `<main><h1>Confirm logout</h1><p>Do you want to log out of this account?</p><form method="post" data-oidc-logout-confirmation action="`+html.EscapeString(p.endpoint(pathEndSessionConfirm))+`"><button type="submit" name="action" value="confirm">Confirm logout</button></form></main>`)
+		p.writePageData(w, r, PageData{Page: PageConfirm, Status: http.StatusOK, ConfirmAction: p.endpoint(pathEndSessionConfirm)})
 	case res.Page == PageSuccess:
-		body := `<main><h1>Logged out</h1><p>You have been logged out.</p>`
-		if res.Notice != "" {
-			body += `<p>` + html.EscapeString(res.Notice) + `</p>`
-		}
-		writePage(w, "Logged out", body+`</main>`)
+		p.writePageData(w, r, PageData{Page: PageSuccess, Status: http.StatusOK, Notice: res.Notice})
 	default:
 		writeJSON(w, http.StatusOK, auth.Done{OK: true})
 	}
@@ -459,29 +466,6 @@ func isBrowserNavigation(r *http.Request) bool {
 	return strings.Contains(accept, mediaHTML) || strings.Contains(accept, mediaXHTML)
 }
 
-// writePage answers a small HTML page that loads nothing, can be framed by
-// nobody and posts only to this origin.
-func writePage(w http.ResponseWriter, title, body string) {
-	writePageStatus(w, http.StatusOK, title, body)
-}
-
-// writeErrorPage answers an authorization error a browser cannot be sent
-// back to the client with: the RFC code and description, escaped, and
-// nothing to click, since the client is unknown or untrusted.
-func writeErrorPage(w http.ResponseWriter, status int, code, description string) {
-	w.Header().Set(headerCacheControl, noStore)
-	writePageStatus(w, status, "Authorization error", `<h1>Authorization error</h1><p><code>`+html.EscapeString(code)+`</code></p><p>`+html.EscapeString(description)+`</p>`)
-}
-
-// writePageStatus is writePage with a status.
-func writePageStatus(w http.ResponseWriter, status int, title, body string) {
-	w.Header().Set(headerContentType, contentTypeHTML)
-	w.Header().Set(headerCSP, pageCSP)
-	w.Header().Set(headerNoSniff, noSniff)
-	w.WriteHeader(status)
-	_, _ = w.Write([]byte(`<!doctype html><html><head><meta charset="utf-8"><title>` + html.EscapeString(title) + `</title></head><body>` + body + `</body></html>`)) // a client that hung up cannot be told
-}
-
 // readForm parses a form-encoded body, refusing another media type and a
 // repeated parameter (RFC 6749 section 3.2).
 func (p *Plugin) readForm(w http.ResponseWriter, r *http.Request) (url.Values, bool) {
@@ -490,7 +474,7 @@ func (p *Plugin) readForm(w http.ResponseWriter, r *http.Request) (url.Values, b
 		p.writeError(w, r, http.StatusBadRequest, ErrInvalidRequest)
 		return nil, false
 	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
+	r.Body = http.MaxBytesReader(w, r.Body, p.maxRequestBytes)
 	if err := r.ParseForm(); err != nil {
 		p.writeError(w, r, http.StatusBadRequest, ErrInvalidRequest)
 		return nil, false
@@ -701,7 +685,7 @@ func (p *Plugin) serveUserInfo(w http.ResponseWriter, r *http.Request, opts []au
 // they own, through the cookie CSRF check.
 func (p *Plugin) serveRegister(w http.ResponseWriter, r *http.Request, opts []authhttp.Option) {
 	var in ClientMetadata
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxFormBytes))
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, p.maxRequestBytes))
 	var members map[string]any
 	if err != nil || json.Unmarshal(body, &in) != nil || json.Unmarshal(body, &members) != nil {
 		p.writeError(w, r, http.StatusBadRequest, ErrInvalidClientMetadata)

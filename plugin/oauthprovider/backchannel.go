@@ -3,6 +3,7 @@ package oauthprovider
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"slices"
@@ -20,20 +21,76 @@ const (
 	backchannelEvent = "http://schemas.openid.net/event/backchannel-logout"
 	// LogoutTokenType is the logout token's typ header.
 	LogoutTokenType = "logout+jwt"
-	// logoutTokenTTL is at most two minutes, as the specification
-	// recommends against replay.
-	logoutTokenTTL = 2 * time.Minute
-	// backchannelTimeout bounds one delivery; a slow client cannot extend a
-	// logout, and nothing is retried (section 2.5: SHOULD NOT retransmit).
-	backchannelTimeout = 5 * time.Second
-	claimEvents        = "events"
-	paramLogoutToken   = "logout_token"
+	// DefaultBackchannelLogoutTokenTTL is a logout token's lifetime: two
+	// minutes, short, as the specification recommends against replay.
+	//
+	//ds:def id=oauthprovider-defaultbackchannellogouttokenttl-wyrq8uee owner=@khanakia stability=stable
+	DefaultBackchannelLogoutTokenTTL = 2 * time.Minute
+	// DefaultBackchannelTimeout bounds one delivery, so a slow client
+	// cannot hold a logout's background work.
+	//
+	//ds:def id=oauthprovider-defaultbackchanneltimeout-na9cwfke owner=@khanakia stability=stable
+	DefaultBackchannelTimeout = 5 * time.Second
+	claimEvents               = "events"
+	paramLogoutToken          = "logout_token"
 )
 
 // BackchannelHTTPClient replaces the client that delivers logout tokens,
 // for tests or an egress proxy; it must not follow redirects. The default
-// follows none and times out after 5 seconds.
+// follows none and times out after BackchannelTimeout.
 func BackchannelHTTPClient(c *http.Client) Option { return func(p *Plugin) { p.backchannelClient = c } }
+
+// BackchannelLogoutTokenTTL overrides DefaultBackchannelLogoutTokenTTL. It
+// is at least a second (ErrBadTTL otherwise): a logout token must carry an
+// exp, and a long one only widens the window for a replayed token.
+func BackchannelLogoutTokenTTL(d time.Duration) Option {
+	return func(p *Plugin) { p.logoutTokenTTL = d }
+}
+
+// BackchannelTimeout overrides DefaultBackchannelTimeout, the bound on one
+// delivery (with BackchannelHTTPClient too). 0 sets no bound of the
+// plugin's own: a delivery then waits as long as the HTTP client does, and
+// the default client has no timeout, so only the core's bound on background
+// work (auth.DeliveryTimeout, shared by every delivery of one logout) stops
+// it. A negative d is ErrBadTTL.
+func BackchannelTimeout(d time.Duration) Option { return func(p *Plugin) { p.backchannelTimeout = d } }
+
+// BackchannelLogout is one signed logout token on its way to one client.
+type BackchannelLogout struct {
+	// ClientID is the client notified; URI its backchannel_logout_uri.
+	ClientID string
+	URI      string
+	// LogoutToken is the signed logout token, the form's logout_token.
+	LogoutToken string
+	// SessionID is the token's sid ("" when it names the user alone), and
+	// UserID the user, unlike the token's sub, which may be pairwise.
+	SessionID string
+	UserID    string
+}
+
+// BackchannelDeliverFunc delivers one logout token. Its error is logged and
+// nothing else: a logout has already happened by the time it runs. It runs
+// after the commit, in the background (auth.WithBackground), once per client
+// and session, with a context bounded by the core (auth.DeliveryTimeout).
+type BackchannelDeliverFunc func(ctx context.Context, l BackchannelLogout) error
+
+// BackchannelDelivery replaces how logout tokens are delivered: to queue
+// them in the app's outbox, retry them, count them, or send them through an
+// egress service. The default (PostBackchannelLogout) posts each once and
+// retries nothing; a delivery that wants retries calls PostBackchannelLogout
+// itself, again on failure. The token is already signed, with its exp
+// (BackchannelLogoutTokenTTL): a retry later than that is refused by the
+// client.
+//
+//ds:def id=oauthprovider-backchanneldelivery-cxz4bac5 owner=@khanakia stability=stable
+func BackchannelDelivery(fn BackchannelDeliverFunc) Option {
+	return func(p *Plugin) {
+		if p.optErrs.RefuseNil("oauthprovider.BackchannelDelivery", fn) {
+			return
+		}
+		p.backchannelDeliver = fn
+	}
+}
 
 var _ auth.SessionLifecycle = (*Plugin)(nil)
 
@@ -85,13 +142,19 @@ func (p *Plugin) endSessions(ctx context.Context, userID string, sessions sqlb.P
 	seen := map[string]bool{}
 	for _, t := range rows {
 		set := []sqlb.Assignment{sqlb.Set(TokenAccessExpires, now)}
-		if !slices.Contains(strings.Fields(t.scopes), ScopeOfflineAccess) {
+		offline := slices.Contains(strings.Fields(t.scopes), ScopeOfflineAccess)
+		if !offline {
 			// The refresh token ends with the session; with offline_access it
 			// outlives it, which is what that scope asks for.
 			set = append(set, sqlb.Set(TokenRevoked, &now))
 		}
 		if _, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(set...).Where(sqlb.Eq(TokenID, t.id))); err != nil {
 			return err
+		}
+		// Reported when something ended: the row, or a live access token
+		// whose refresh token outlives the session.
+		if accessLive := now.Before(t.accessExpires) && t.accessRevoked == nil; !offline || accessLive {
+			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonSessionEnded, ClientID: t.client, UserID: userID, SessionID: deref(t.session), Family: t.family, TokenID: t.id, AccessOnly: offline})
 		}
 		key := t.client + "\x00" + deref(t.session)
 		if seen[key] {
@@ -121,39 +184,79 @@ func (p *Plugin) endSessions(ctx context.Context, userID string, sessions sqlb.P
 	return nil
 }
 
-// deliverLogoutTokens posts one logout token per target; every failure is
-// logged and none is retried.
+// deliverLogoutTokens signs one logout token per target and hands each to
+// BackchannelDelivery (PostBackchannelLogout by default); every failure is
+// logged.
 func (p *Plugin) deliverLogoutTokens(ctx context.Context, targets []logoutTarget) {
-	client := p.backchannelClient
-	if client == nil {
-		client = &http.Client{Timeout: backchannelTimeout, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	deliver := p.backchannelDeliver
+	if deliver == nil {
+		deliver = p.PostBackchannelLogout
 	}
 	for _, t := range targets {
 		tok, err := p.signer.Sign(ctx, jwt.SignRequest{
-			Subject: p.subjectFor(t.client, t.userID), Audience: []string{t.client.c.ClientID}, TTL: logoutTokenTTL,
+			Subject: p.subjectFor(t.client, t.userID), Audience: []string{t.client.c.ClientID}, TTL: p.logoutTokenTTL,
 			Type: LogoutTokenType, SessionID: t.sessionID, Claims: map[string]any{claimEvents: map[string]any{backchannelEvent: map[string]any{}}},
 		})
 		if err != nil {
 			p.core.Logger().Warn("oauthprovider: back-channel logout token", "client", t.client.c.ClientID, "error", err)
 			continue
 		}
-		sendCtx, cancel := context.WithTimeout(ctx, backchannelTimeout)
-		req, err := http.NewRequestWithContext(sendCtx, http.MethodPost, deref(t.client.backchannel), strings.NewReader(url.Values{paramLogoutToken: {tok.Token}}.Encode()))
-		if err == nil {
-			req.Header.Set(headerContentType, contentTypeForm)
-			req.Header.Set(headerAccept, contentTypeJSON)
-			var res *http.Response
-			if res, err = client.Do(req); err == nil {
-				res.Body.Close()
-				// Section 2.8: 200 is required; many frameworks answer 204.
-				if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusNoContent {
-					p.core.Logger().Warn("oauthprovider: back-channel logout answered", "client", t.client.c.ClientID, "status", res.StatusCode)
-				}
-			}
-		}
-		cancel()
-		if err != nil {
-			p.core.Logger().Warn("oauthprovider: back-channel logout failed", "client", t.client.c.ClientID, "error", err)
+		l := BackchannelLogout{ClientID: t.client.c.ClientID, URI: deref(t.client.backchannel), LogoutToken: tok.Token, SessionID: t.sessionID, UserID: t.userID}
+		err = deliver(ctx, l)
+		var se *BackchannelStatusError
+		switch {
+		case errors.As(err, &se):
+			p.core.Logger().Warn("oauthprovider: back-channel logout answered", "client", l.ClientID, "status", se.Status)
+		case err != nil:
+			p.core.Logger().Warn("oauthprovider: back-channel logout failed", "client", l.ClientID, "error", err)
 		}
 	}
+}
+
+// ErrBackchannelStatus is a back-channel logout the client answered with a
+// status other than 200 or 204; PostBackchannelLogout returns it as a
+// *BackchannelStatusError carrying the status.
+var ErrBackchannelStatus = errors.New("oauthprovider: back-channel logout answered")
+
+// BackchannelStatusError is the status a client answered a logout token
+// with; errors.Is sees ErrBackchannelStatus.
+type BackchannelStatusError struct{ Status int }
+
+func (e *BackchannelStatusError) Error() string {
+	return fmt.Sprintf("%v: status %d", ErrBackchannelStatus, e.Status)
+}
+
+// Is makes errors.Is(err, ErrBackchannelStatus) true.
+func (e *BackchannelStatusError) Is(target error) bool { return target == ErrBackchannelStatus }
+
+// PostBackchannelLogout is the default BackchannelDelivery: one POST of the
+// logout token to l.URI, as a form, through BackchannelHTTPClient (or a
+// client that follows no redirect), bounded by BackchannelTimeout. A 200 or
+// 204 answer is success (section 2.8 asks for 200; many frameworks answer
+// 204); any other status is ErrBackchannelStatus.
+func (p *Plugin) PostBackchannelLogout(ctx context.Context, l BackchannelLogout) error {
+	client := p.backchannelClient
+	if client == nil {
+		client = &http.Client{Timeout: p.backchannelTimeout, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	}
+	if p.backchannelTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, p.backchannelTimeout)
+		defer cancel()
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, l.URI, strings.NewReader(url.Values{paramLogoutToken: {l.LogoutToken}}.Encode()))
+	if err != nil {
+		return err
+	}
+	req.Header.Set(headerContentType, contentTypeForm)
+	req.Header.Set(headerAccept, contentTypeJSON)
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	res.Body.Close()
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusNoContent {
+		return &BackchannelStatusError{Status: res.StatusCode}
+	}
+	return nil
 }
