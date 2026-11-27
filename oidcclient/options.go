@@ -196,6 +196,8 @@ func WithSlideInterval(d time.Duration) Option {
 
 // DefaultSlideInterval is how often the idle window moves unless
 // WithSlideInterval says otherwise: once a minute.
+//
+//ds:def id=defaultslideinterval-73hnwk85 owner=@khanakia stability=stable
 const DefaultSlideInterval = time.Minute
 
 // WithClockSkew sets how far the login server's clock and this app's may
@@ -217,6 +219,7 @@ func WithClockSkew(d time.Duration) Option {
 const (
 	// DefaultClockSkew is the skew allowed unless WithClockSkew says
 	// otherwise, the value ubgo/auth's own verifiers use.
+	//ds:def id=defaultclockskew-vc9erhjq owner=@khanakia stability=stable
 	DefaultClockSkew = 30 * time.Second
 	// MaxClockSkew is the most WithClockSkew accepts: more would accept an
 	// expired ID token for longer than many servers issue them for, which
@@ -242,6 +245,8 @@ func WithFlowLifetime(d time.Duration) Option {
 
 // DefaultFlowLifetime is how long a sign-in may take unless
 // WithFlowLifetime says otherwise.
+//
+//ds:def id=defaultflowlifetime-fb3km7wf owner=@khanakia stability=stable
 const DefaultFlowLifetime = 10 * time.Minute
 
 // WithLogoutPolicy decides, per sign-out, how far it reaches: LogoutAtServer

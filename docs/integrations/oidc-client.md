@@ -23,7 +23,7 @@ Pick something else when:
 
 ## How it works
 
-- **Session lifetime**: how long a browser stays signed in without seeing the login server, [7 days](ds:block?id=defaultidlelifetime-mjhkz59a) while in use and [30 days](ds:block?id=defaultabsolutelifetime-957evyy7) at most by default. The session is sealed (AES-256-GCM) into a cookie that has an expiry.
+- **Session lifetime**: how long a browser stays signed in without seeing the login server, [7 days](ds:block?id=defaultidlelifetime-mjhkz59a) while in use and [30 days](ds:block?id=defaultabsolutelifetime-957evyy7) at most by default. Either bound can be turned off with [`oidcclient.NoLimit`](ds:block?id=nolimit-q4c8m2rw) ([below](#no-maximum-session-length)). The session is sealed (AES-256-GCM) into a cookie that has an expiry.
 - **Re-check interval**: how long the login server's last "yes" stands, [1 minute](ds:block?id=defaultrecheckinterval-vekfr6zh) by default. On the first request after it, the app redeems the session's refresh token. The ubgo/auth login server asks its access rule again on every refresh, so a person taken off the list gets a "no", and the app ends the session on that request.
 - **Outage grace**: when the login server cannot be reached (not a "no"), the last "yes" stands for [5 more minutes](ds:block?id=defaultoutagegrace-asgxt3qs), then requests are answered "unavailable" while the session is kept.
 
@@ -142,26 +142,73 @@ The order matters: a revoke without the rule change ends the session, but the lo
 
 Check: [`TestOIDCApp_RemovedUserIsRefusedWithinRecheck`](ds:block?id=testoidcapp-removeduserisrefusedwithinrecheck-h3w8qn5t&assert=true) saves a copy of Sam's cookie, removes him and revokes, sees the copy still let in until the minute is up (the stated bound) and refused after it, and follows his browser to the no-access page. [`TestOIDCApp_RevokeAloneSignsBackIn`](ds:block?id=testoidcapp-revokealonesignsbackin-m6r2xv9d&assert=true) shows the wrong order. [`TestOIDCApp_ClosingTheBrowserKeepsTheSession`](ds:block?id=testoidcapp-closingthebrowserkeepsthesession-p9k4tz2w&assert=true) restarts the browser with only the cookie and opens the app two days later; [`TestOIDCApp_AllowedUserStaysSignedIn`](ds:block?id=testoidcapp-alloweduserstayssignedin-f5j7wc3n&assert=true) re-checks three times in a row without a refusal.
 
-## Change a default
+## No maximum session length
 
-Each policy is one option to `oidcclient.New`; the package's godoc is the reference.
+By default nobody stays signed in past 30 days without passing the login server's pages again. An app that wants people signed in for as long as they keep using it, with the login server's re-check as the only authority, turns the absolute bound off:
 
-| You want | Option |
+```go
+oidcclient.WithLifetimes(oidcclient.Lifetimes{Absolute: oidcclient.NoLimit})
+```
+
+The session then lives while it is used at least once per idle window (7 days unless `Idle` says otherwise) and while the login server keeps saying yes at each re-check; a removed person is still refused within one re-check interval. `Lifetimes{Idle: oidcclient.NoLimit}` turns the idle bound off instead, and both together leave only the re-check. A zero field still means the default, so existing configurations do not change; [`NoLimit`](ds:block?id=nolimit-q4c8m2rw) is the only way to say "no limit".
+
+With no idle bound, `Session.ExpiresAt` (which a server-side store sets its TTL from) is the last use plus [400 days](ds:block?id=maxcookielifetime-uej2685q), the longest a browser keeps a cookie: an abandoned session is forgotten when the browser would have dropped its cookie anyway, and every use moves it on. `oidcclient.New` refuses the one configuration where nothing could ever end a session: no lifetime at all, `WithRecheckInterval(oidcclient.NoLimit)`, and a store without `SessionRevoker`.
+
+Check: [`TestNoLimit_Absolute`](ds:block?id=testnolimit-absolute-rm3q5kxs&assert=true) keeps a session for 120 days of weekly use, one refresh per visit, and refuses it at the server's first "no" and at an idle gap; [`TestNoLimit_Neither`](ds:block?id=testnolimit-neither-gaemd5sj&assert=true) checks the 400-day horizon and the cookie's `Max-Age`.
+
+## Every option
+
+Each policy is one option to `oidcclient.New`; the package's godoc is the reference. The TypeScript client takes the same options under the names in [its README](../../clients/ts/README.md#every-option). `NoLimit` is accepted where the table says so; a zero `Lifetimes` field is the default.
+
+| Option | Default | Zero / `NoLimit` | What it decides |
+|---|---|---|---|
+| `WithLifetimes(Lifetimes{Idle, Absolute})` | [7 days](ds:block?id=defaultidlelifetime-mjhkz59a) idle, [30 days](ds:block?id=defaultabsolutelifetime-957evyy7) absolute | 0 = default; `NoLimit` = no such bound | How long a session lives without the login server's pages: idle since the last use, absolute since sign-in |
+| `WithRecheckInterval(d)` | [1 minute](ds:block?id=defaultrecheckinterval-vekfr6zh) | `RecheckEveryRequest` (0) asks on every request; `NoLimit` never asks again | How long the login server's last "yes" stands: the longest a removed person keeps access |
+| `WithOutageGrace(d)` | [5 minutes](ds:block?id=defaultoutagegrace-asgxt3qs) | `NoOutageGrace` (0) refuses at once; `NoLimit` lasts the whole outage | How long the last "yes" stands while the login server cannot be reached; never past the lifetimes |
+| `WithSlideInterval(d)` | [1 minute](ds:block?id=defaultslideinterval-73hnwk85) | 0 slides on every request; `NoLimit` never slides (only with `Idle: NoLimit`) | How often a request moves the idle window and rewrites the cookie or store row; must be shorter than `Idle` |
+| `WithClockSkew(d)` | [30 seconds](ds:block?id=defaultclockskew-vc9erhjq) | 0 trusts both clocks exactly; at most `MaxClockSkew` (5 minutes) | The clock difference allowed on ID and logout tokens' `iat`, `nbf`, `exp` and on a sign-in's start |
+| `WithFlowLifetime(d)` | [10 minutes](ds:block?id=defaultflowlifetime-fb3km7wf) | must be positive and limited | How long one sign-in may take, login route to callback (a second factor, a slow enrollment page) |
+| `WithCookie(CookieOptions{Name, Domain, SameSite, BrowserSession})` | `__Host-oidc_session`, host-only, Lax, kept until `ExpiresAt` | `BrowserSession: true` writes no expiry, so closing the browser forgets the cookie | The session cookie's name, sharing with subdomains (`__Secure-` name with `Domain`), `SameSite=Strict`, and whether it survives a browser restart |
+| `WithLogoutPolicy(p)` | `LogoutAlways(LogoutAtServer)` | | Per sign-out: `LogoutAtServer` also ends the login server's session (end-session redirect); `LogoutAppOnly` ends the app's only. `LogoutRequest.Request` lets one app offer both |
+| `WithPostLogoutPath(path)` | `/` | | Where the browser lands after sign-out (a same-site path, registered at the login server) |
+| `WithSessionStore(store)` | `CookieStore()` | | Where sessions live: the sealed cookie, `NewMemoryStore()`, or Redis, SQL, your own; a `SessionRevoker` enables back-channel logout |
+| `WithSealer(sealer)` / `Config.PreviousSessionSecrets` | AES-256-GCM from `Config.SessionSecret` | | A KMS-held key, or rotating the session secret |
+| `WithUserMapper(fn)` | `DefaultUser` | | The app's User from the ID token, at sign-in and each refresh with a new ID token |
+| `WithAuthorizer(fn)` | none | | The app's own rule on every request (roles, tenants, routes); fails closed |
+| `WithRechecker(r)` | `RecheckByRefresh()` | | How the login server is asked: `RecheckByIntrospection()`, `RecheckByUserInfo()`, `RecheckBackchannelOnly()`, or your own |
+| `WithResponder(r)` | `DefaultResponder()` | | Refusal pages and API bodies: your templates, a JSON shape for a SPA, translations |
+| `WithReturnPolicy(p)` | `ReturnToRequested()` | | Where sign-in lands: `ReturnToFixed`, `ReturnToAllowed`, or your own (held to the same-site floor) |
+| `WithPaths(p)` | `PathsUnder("/auth")` | | Where the four routes live |
+| `WithScopes(...)`, `WithAuthParams(map)` | `openid email profile offline_access` | | Requested scopes (`openid` always added) and extra parameters (`prompt`, `login_hint`, `acr_values`, Google's `access_type`) |
+| `WithClientAuth(a)` | `client_secret_basic` | | `ClientSecretPost`, `PublicClient`, or your own (private_key_jwt, a KMS) |
+| `WithHTTPClient(c)` | 10 s timeout, no redirects | | Proxies, mTLS, timeouts, and retries for idempotent requests in your own transport |
+| `WithDiscovery(m)`, `WithLogger(l)`, `WithClock(now)` | discovery on first use, `slog.Default()`, `time.Now` | | A server without discovery, your logger, a test clock |
+| `WithObserver(o)` | none | | Metrics and audit of logins, refreshes, refusals and logouts (no session data; it cannot change a decision) |
+
+### Hooks
+
+| Option | Runs | Can it change the outcome? |
+|---|---|---|
+| `WithOnSessionStart(fn)` | at every sign-in, after the UserMapper, before the session is saved; sees the session (its final ID), the Identity and the request | Yes: an error refuses the sign-in and no session is written (`ErrAccessDenied` answers "no access", anything else "failed"). Record sessions in your database, cap concurrent sessions |
+| `WithOnSessionEnd(fn)` | whenever the package ends a session: `EndLogout`, `EndIdleExpired`, `EndAbsoluteExpired`, `EndRecheckRefused`, `EndReplaced` (a new sign-in in the same browser), `EndBackchannel` (with `Target` and `Count`, no session) | No: the session is already gone. Delete your per-session rows and caches. A session a server-side store drops by its own TTL before a request reaches it is not reported |
+| `WithOnRefreshFailed(fn)` | once per re-check that did not keep the session (single-flight, so twenty tabs make one call): `Outage` true when the login server could not be reached (grace applies), false when it said no or a hook or store failed (the session ends) | No: the re-check is the authority. Alert on outages, clean up after a removal |
+
+### Not configurable, and why
+
+| Behaviour | Why it has no option |
 |---|---|
-| Removal to take effect faster, or fewer calls to the login server | `WithRecheckInterval(d)`; `RecheckEveryRequest` asks on every request |
-| To fail closed the moment the login server is down, or a longer grace | `WithOutageGrace(d)`; `NoOutageGrace` refuses at once |
-| Other session lifetimes | `WithLifetimes(oidcclient.Lifetimes{Idle: …, Absolute: …})` |
-| Sessions on the server (Redis, SQL, your own), back-channel logout, big sessions | `WithSessionStore(store)`; `NewMemoryStore()` for one instance |
-| A KMS-held key, or rotating the session secret | `WithSealer(sealer)`, or `Config.PreviousSessionSecrets` |
-| Roles, tenants or per-route rules in the app | `WithAuthorizer(fn)`; it fails closed, and an error refuses |
-| Re-check by introspection or userinfo instead of refresh | `WithRechecker(oidcclient.RecheckByIntrospection())`, `RecheckByUserInfo()`, `RecheckBackchannelOnly()` |
-| Your own pages, a JSON shape for a SPA, translations | `WithResponder(r)`; delegate the rest to `DefaultResponder()` |
-| A fixed landing page after sign-in | `WithReturnPolicy(oidcclient.ReturnToFixed("/dashboard"))` |
-| A cookie shared with subdomains, or `SameSite=Strict` | `WithCookie(oidcclient.CookieOptions{Name: "__Secure-…", Domain: …})` |
-| The routes under another prefix | `WithPaths(oidcclient.PathsUnder("/oidc"))` |
-| Metrics or an audit log of logins, refreshes and refusals | `WithObserver(o)` |
-
-PKCE, state, nonce, the ID token's signature and claims, the same-site return path and the cookie's `Secure`, `HttpOnly` and prefix have no option: there is nothing to turn off.
+| PKCE (S256), state, nonce, the ID token's signature algorithms and its iss, aud, azp, sub and at_hash checks | Each has one correct value; an option to weaken it would be the first thing a hurried integration turns off |
+| `Secure`, `HttpOnly`, `Path=/`, the `__Host-` / `__Secure-` prefixes, `SameSite=None` refused | A session cookie readable by script, sent over http or cross-site is one anyone can take; `__Host-` requires `Path=/`, and a path does not isolate cookies anyway (use another cookie name for a second app on one host) |
+| The flow cookie is always `SameSite=Lax` | The login server's redirect back is a cross-site navigation that `Strict` would strip it from |
+| Sign-out is `POST` from the app's own origin | Otherwise any site could sign people out with a link |
+| Sign-out revokes the refresh token | A cookie copy saved before sign-out would otherwise keep refreshing |
+| The same-site return path | A policy can only narrow it; anything else is an open redirect |
+| Three cookies of about 3.8 KB per session | Browser and proxy header limits; a bigger session belongs in a server-side store |
+| One refresh per session at a time in a process, its answer reused for 10 s | Closes the two-tab refresh race; there is no case for two concurrent refreshes of one session |
+| Up to three sign-ins in flight per browser | One cookie's size; covers two tabs that both found their session expired |
+| Key set re-read daily or on an unknown key id (at most once a minute), a failed discovery retried after a minute | Shared with `plugin/oauth`; a rotated key is picked up on its first use |
+| Back-channel logout tokens at most 2 minutes old, each accepted once | The specification and the provider's token lifetime |
+| No built-in retries | A GET can retry in your own transport (`WithHTTPClient`); a refresh must not, because a rotated refresh token whose answer was lost cannot be presented again |
 
 ## Try it
 

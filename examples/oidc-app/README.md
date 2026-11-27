@@ -8,7 +8,7 @@ Where [sso-client](../sso-client) writes every OIDC check by hand to show them, 
 - `newHandler` mounts `oidcclient`'s four routes under `/auth/` (login, callback, logout, back-channel logout) and puts every other route behind `Client.Require`.
 - `home` and `me` read the signed-in person with `oidcclient.UserFrom`. A page that is refused redirects to sign-in; an API call that is refused gets `401` with `{"error":"login_required"}`.
 
-Every policy is `oidcclient`'s default: the session lives in a sealed, chunked cookie with an expiry (7 days while in use, 30 at most), the login server is asked again every minute by redeeming the refresh token, and a login server that cannot be reached keeps the last "yes" for 5 minutes. Each is one option away; the [guide](../../docs/integrations/oidc-client.md) lists them.
+Every policy is `oidcclient`'s default: the session lives in a sealed, chunked cookie with an expiry (7 days while in use, 30 at most), the login server is asked again every minute by redeeming the refresh token, and a login server that cannot be reached keeps the last "yes" for 5 minutes. Each is one option away (`oidcclient.NoLimit` removes the 30-day cap); the [guide](../../docs/integrations/oidc-client.md#every-option) lists them.
 
 ## Tests
 

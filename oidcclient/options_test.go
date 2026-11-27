@@ -118,6 +118,7 @@ func TestNew_Options(t *testing.T) {
 // least once per idle window outlives the 30-day default, re-checked with
 // the login server all along, and still ends at the server's first "no"
 // and at an idle gap.
+// ds:def id=testnolimit-absolute-rm3q5kxs owner=@khanakia stability=stable
 func TestNoLimit_Absolute(t *testing.T) {
 	f := newFixture(t, algEdDSA, WithLifetimes(Lifetimes{Absolute: NoLimit}))
 	b := f.signIn("alice", "/")
@@ -170,6 +171,7 @@ func TestNoLimit_Idle(t *testing.T) {
 // long as the login server says yes, its ExpiresAt and cookie are the
 // browser's 400-day horizon from the last use, and the server's "no" still
 // ends it.
+// ds:def id=testnolimit-neither-gaemd5sj owner=@khanakia stability=stable
 func TestNoLimit_Neither(t *testing.T) {
 	f := newFixture(t, algEdDSA, WithLifetimes(Lifetimes{Idle: NoLimit, Absolute: NoLimit}))
 	b := f.signIn("alice", "/")

@@ -275,6 +275,8 @@ const NoLimit time.Duration = math.MaxInt64
 // idle bound of its own, so its ExpiresAt is LastSeenAt plus this: a store
 // forgets an abandoned session when the browser would have dropped its
 // cookie, and every use moves it on. A finite Idle is never shortened by it.
+//
+//ds:def id=maxcookielifetime-uej2685q owner=@khanakia stability=stable
 const MaxCookieLifetime = 400 * 24 * time.Hour
 
 // limited reports whether d is a bound rather than NoLimit.

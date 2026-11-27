@@ -74,7 +74,7 @@ Everything in `src/` except `src/oidc/` is generated: edit `authhttp/typescript.
 
 ## `@ubgo/auth-client/oidc`: server-side sign-in through an OpenID Connect server
 
-Signs people in to a Fetch-API server (TanStack Start, Node 20+ behind a Fetch adapter, Bun, Deno, workers) through any OpenID Connect server: ubgo/auth's `plugin/oauthprovider`, Google, Keycloak, Entra. The session lasts days, so closing the browser does not sign anyone out; the login server is asked again at most every minute while the person is active, so someone removed there is refused on their next request, even with a saved copy of the cookie. The TypeScript twin of the Go module [`oidcclient`](../../oidcclient/DESIGN.md): the same model, the same seams, the same floors. WebCrypto and `fetch` only. Server only: it holds the client secret and the session key.
+Signs people in to a Fetch-API server (TanStack Start, Node 20+ behind a Fetch adapter, Bun, Deno, workers) through any OpenID Connect server: ubgo/auth's `plugin/oauthprovider`, Google, Keycloak, Entra. The session lasts days (with no maximum at all when `lifetimes.absoluteMs` is `NO_LIMIT`), so closing the browser does not sign anyone out; the login server is asked again at most every minute while the person is active, so someone removed there is refused on their next request, even with a saved copy of the cookie. The TypeScript twin of the Go module [`oidcclient`](../../oidcclient/DESIGN.md): the same model, the same seams, the same floors. WebCrypto and `fetch` only. Server only: it holds the client secret and the session key.
 
 ```ts
 import { createOidcClient, secret } from "@ubgo/auth-client/oidc";
@@ -92,9 +92,46 @@ const app = oidc.protect((_request, user) => new Response(`Hello, ${user.name}`)
 export const fetchHandler = async (request: Request) => (await oidc.handle(request)) ?? app(request);
 ```
 
-Sign-out (a same-origin POST to the logout route) revokes the session's refresh token at the login server's revocation endpoint (RFC 7009) before sending the browser to its end-session endpoint. That matters with the default cookie store, which keeps nothing on the server to delete, because a server keeps an `offline_access` refresh token past the end of its own session: without the revocation, a copy of the cookie saved before sign-out could keep refreshing. It is best effort: a failure, or a server with no revocation endpoint, is logged and observed (`revoke_failed`), and sign-out goes on. Up to three sign-ins can be in flight in one browser (two tabs whose sessions expired can both finish signing in; a fourth start drops the oldest), each usable once and for ten minutes. Back-channel logout tokens must carry a `jti`, and each one is accepted once per process; a replay is answered 400, and 503 when the login server's keys cannot be read, so its log tells an outage apart from a bad token. `requireSession(request)` is the gate for frameworks that set headers their own way (it returns the user and the cookies to send, or the refusal response); `optionalSession(request)` is the same steps for a public page that shows "signed in as" when someone is, and never refuses. [`examples/oidc-tanstack-start.ts`](examples/oidc-tanstack-start.ts) shows a TanStack Start setup with a server-side store, a user mapper, an authorizer and a custom no-access page.
+Sign-out (a same-origin POST to the logout route) revokes the session's refresh token at the login server's revocation endpoint (RFC 7009) before sending the browser to its end-session endpoint. That matters with the default cookie store, which keeps nothing on the server to delete, because a server keeps an `offline_access` refresh token past the end of its own session: without the revocation, a copy of the cookie saved before sign-out could keep refreshing. It is best effort: a failure, or a server with no revocation endpoint, is logged and observed (`revoke_failed`), and sign-out goes on. Up to three sign-ins can be in flight in one browser (two tabs whose sessions expired can both finish signing in; a fourth start drops the oldest), each usable once and for ten minutes (`flowLifetimeMs`). Back-channel logout tokens must carry a `jti`, and each one is accepted once per process; a replay is answered 400, and 503 when the login server's keys cannot be read, so its log tells an outage apart from a bad token. `requireSession(request)` is the gate for frameworks that set headers their own way (it returns the user and the cookies to send, or the refusal response); `optionalSession(request)` is the same steps for a public page that shows "signed in as" when someone is, and never refuses. [`examples/oidc-tanstack-start.ts`](examples/oidc-tanstack-start.ts) shows a TanStack Start setup with a server-side store, a user mapper, an authorizer and a custom no-access page.
 
-Every policy is one field of the options object with a safe default: `store`, `sealer` (or `sessionSecret` with `previousSessionSecrets` for rotation), `mapUser`, `authorize`, `rechecker` and `recheckIntervalMs`, `outageGraceMs`, `lifetimes`, `responder`, `returnPolicy`, `cookie`, `paths`, `clientAuth`, `scopes`, `authParams`, `fetch`, `logger`, `now`, `discovery`, `observe`. The Go module's [DESIGN.md](../../oidcclient/DESIGN.md) explains why each seam has its shape.
+Every policy is one field of the options object with a safe default; the Go module's [DESIGN.md](../../oidcclient/DESIGN.md) explains why each seam has its shape, and the [Go guide](../../docs/integrations/oidc-client.md#every-option) has the same table under the Go names.
+
+### Every option
+
+`NO_LIMIT` (`Infinity`) turns a bound off where the table says so. It is not 0: an empty environment variable reads as 0, and a cap must never vanish by accident, so a lifetime of 0 is refused. Every time is in milliseconds.
+
+| Option | Default | 0 / `NO_LIMIT` | What it decides |
+|---|---|---|---|
+| `lifetimes: { idleMs, absoluteMs }` | `DEFAULT_IDLE_LIFETIME_MS` (7 days), `DEFAULT_ABSOLUTE_LIFETIME_MS` (30 days) | 0 refused; `NO_LIMIT` = no such bound | How long a session lives without the login server's pages. `{ absoluteMs: NO_LIMIT }` keeps it while it is used within the idle window and the server keeps saying yes |
+| `recheckIntervalMs` | `DEFAULT_RECHECK_INTERVAL_MS` (1 minute) | `RECHECK_EVERY_REQUEST` (0) asks every request; `NO_LIMIT` never asks again | How long the login server's last "yes" stands: the longest a removed person keeps access |
+| `outageGraceMs` | `DEFAULT_OUTAGE_GRACE_MS` (5 minutes) | `NO_OUTAGE_GRACE` (0) refuses at once; `NO_LIMIT` lasts the whole outage | How long the last "yes" stands while the server cannot be reached; never past the lifetimes |
+| `slideIntervalMs` | `DEFAULT_SLIDE_INTERVAL_MS` (1 minute) | 0 slides every request; `NO_LIMIT` never (only with `idleMs: NO_LIMIT`) | How often a request moves the idle window and rewrites the cookie or row; shorter than `idleMs` |
+| `clockSkewMs` | `DEFAULT_CLOCK_SKEW_MS` (30 seconds) | 0 trusts both clocks; at most `MAX_CLOCK_SKEW_MS` (5 minutes) | The clock difference allowed on ID and logout tokens' `iat`, `nbf`, `exp` and on a sign-in's start |
+| `flowLifetimeMs` | `DEFAULT_FLOW_LIFETIME_MS` (10 minutes) | positive and finite | How long one sign-in may take, login route to callback |
+| `cookie: { name, domain, sameSite, browserSession }` | `__Host-oidc_session`, host-only, Lax, kept until `expiresAt` | `browserSession: true` writes no `Max-Age` | The cookie's name, sharing with subdomains (`__Secure-` with `domain`), `strict`, and whether it survives a browser restart |
+| `logoutPolicy` | `logoutAlways(LogoutMode.atServer)` | | Per sign-out: `atServer` also ends the login server's session; `appOnly` ends the app's only. May read the request's form (async) |
+| `postLogoutPath` | `/` | | Where the browser lands after sign-out |
+| `store` | `cookieStore()` | | `memoryStore()`, or your Redis or SQL store; `revokeSessions` enables back-channel logout |
+| `sealer`, or `sessionSecret` with `previousSessionSecrets` | AES-GCM from `sessionSecret` | | A KMS key, or secret rotation |
+| `mapUser`, `authorize` | `defaultUser`, none | | The app's User from the ID token; the app's own rule on every request (fails closed) |
+| `rechecker` | `recheckByRefresh()` | | `recheckByIntrospection()`, `recheckByUserInfo()`, `recheckBackchannelOnly()`, or your own |
+| `responder`, `returnPolicy`, `paths` | `defaultResponder()`, `returnToRequested()`, `pathsUnder("/auth")` | | Refusal answers, where sign-in lands (same-site floor kept), where the routes live |
+| `scopes`, `authParams` | `DEFAULT_SCOPES`, none | | Requested scopes (`openid` always added), extra parameters (`prompt`, `login_hint`, Google's `access_type`) |
+| `clientSecret` or `clientAuth` | | | `client_secret_basic`, or `clientSecretPost`, `publicClient`, your own |
+| `fetch`, `httpTimeoutMs` | global `fetch`, `DEFAULT_HTTP_TIMEOUT_MS` (10 s) | | Proxies, mTLS, a test stub, retries for idempotent requests in your own fetch |
+| `logger`, `now`, `discovery`, `observe` | `console`, `Date.now`, discovery on first use, none | | Your logger, a test clock, a server without discovery, metrics without session data |
+
+With `idleMs: NO_LIMIT` a session's `expiresAt` is the last use plus `MAX_COOKIE_LIFETIME_MS` (400 days, the longest a browser keeps a cookie), so it is always a finite time a store can set a TTL from. `createOidcClient` refuses the one configuration where nothing could ever end a session: no lifetime at all, `recheckIntervalMs: NO_LIMIT` and a store without `revokeSessions`.
+
+### Hooks
+
+| Option | Runs | Can it change the outcome? |
+|---|---|---|
+| `onSessionStart({ session, identity, request })` | at every sign-in, after `mapUser`, before the session is saved | Yes: a throw refuses the sign-in and nothing is saved (`OidcErrorCode.accessDenied` is "no access", anything else "failed") |
+| `onSessionEnd(input)` | whenever the package ends a session; `input.reason` is a `SessionEndReason` (`logout`, `idle_expired`, `absolute_expired`, `recheck_refused`, `replaced`, `backchannel_logout`, the last with `target` and `count` instead of `session`) | No; awaited, a throw is logged. A session a server-side store drops at its `expiresAt` before a request reaches the client is not reported |
+| `onRefreshFailed({ session, cause, outage, request })` | once per re-check (single-flight) that did not keep the session: `outage` true when the server could not be reached, false when it said no or a hook or store failed | No; awaited, a throw is logged |
+
+What has no option, and why, is the Go guide's [table](../../docs/integrations/oidc-client.md#not-configurable-and-why); the same rules hold here.
 
 The protocol floors have no option at all: PKCE S256, state, nonce, the ID token signature under RS256, ES256 or EdDSA only (RSA keys of 2048 bits or more), iss, aud, exp and azp, constant-time comparisons, same-site return URLs, cookie prefixes, `Secure` and `HttpOnly`, no redirects followed to the login server, and hooks that fail closed. Where the type system can see a floor it is a compile error (a cookie name without its prefix, `sameSite: "none"`, a reserved authorization parameter, both or neither of `clientSecret` and `clientAuth`, a forged `Refreshed`, an authorizer that can end without a decision); `createOidcClient` checks the same rules again at start-up for callers outside the type system.
 
