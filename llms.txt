@@ -71,7 +71,7 @@ Every page below is plain Markdown in the repository. Code blocks in the guides 
 - `github.com/ubgo/auth/plugin/scim`: a SCIM 2.0 server for user and group provisioning.
 - `github.com/ubgo/auth/plugin/deviceauth`: the device authorization grant (RFC 8628); `plugin/deviceauth/oauthdevice` issues OAuth tokens through oauthprovider.
 - `github.com/ubgo/auth/plugin/oauthproxy`: provider sign-in on preview deployments; its package `oauthpopup` signs in from a popup.
-- `github.com/ubgo/auth/plugin/oauthprovider`: the app as an OAuth 2.1 authorization server and OpenID Connect provider, with per-client access rules (`ClientAccess`, `AllowList`), `RevokeUserForClient` and `auth oauth-client` commands.
+- `github.com/ubgo/auth/plugin/oauthprovider`: the app as an OAuth 2.1 authorization server and OpenID Connect provider, with per-client access rules (`ClientAccess`, `AllowList`), `RevokeUserForClient` (everything one user holds at one client), `RevokeUserFamily` (one session), the optional `MaxAuthAge` cap (off by default) and `auth oauth-client` commands.
 - `github.com/ubgo/auth/oidcclient`: the app side of an OpenID Connect login, standard library only: redirects, checks, a sealed cookie session that lasts days, and a re-check with the login server every minute so a removed person is refused even with a saved cookie.
 - `github.com/ubgo/auth/plugin/ldap`: sign-in with a username and password checked against an LDAP directory, through a replaceable `Directory` (go-ldap by default, TLS required).
 - `github.com/ubgo/auth/plugin/siwe`: Sign-In with Ethereum (ERC-4361) with several wallets per user and a replaceable signature `Verifier`.

@@ -28,7 +28,7 @@ If it is not green, the change is not done. GitHub Actions can run `task check` 
 
 **Every feature is an operation.** Use `auth.Define[In, Out]`. Never add a route or a public Go function that bypasses the pipeline: the pipeline is where the rate limit, the origin check, the session requirement and the hooks live.
 
-**Operator-only methods are plain methods until the core has an operator requirement.** `DeleteClient`, `PatchClient` and `RevokeUserForClient` act for the operator's own tooling and shell (`auth oauth-client`), never for a request's caller, so they are Go methods, not `auth.Define` operations, and are never mounted on a route; when the core gains an operator requirement they become operations.
+**Operator-only methods are plain methods until the core has an operator requirement.** `DeleteClient`, `PatchClient` and `RevokeUserForClient` act for the operator's own tooling and shell (`auth oauth-client`), never for a request's caller, so they are Go methods, not `auth.Define` operations, and are never mounted on a route; when the core gains an operator requirement they become operations. `RevokeUserFamily` is a plain method too: the app's own page decides which user's session it ends (it passes the signed-in user's id), so it is never mounted as a route.
 
 **Plugins write core tables only through the core API.** `TestGuard_PluginsNeverWriteCoreTables` enforces it.
 

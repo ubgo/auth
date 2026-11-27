@@ -134,7 +134,7 @@ Sign-out is the form on that page: a `POST` to `/auth/logout` from the app's own
 Two steps, in this order:
 
 1. Remove the person from the app's allow list at the login server (or change whatever your `ClientAccess` rule reads).
-2. Revoke what they hold at that app: `go run ./sso-server auth oauth-client revoke-user ops sam@partner.io`, or `op.RevokeUserForClient(ctx, oauthprovider.RevokeUserRequest{ClientID: …, UserID: …})` from your own admin tooling.
+2. Revoke what they hold at that app: `go run ./sso-server auth oauth-client revoke-user ops sam@partner.io`, or `op.RevokeUserForClient(ctx, oauthprovider.RevokeUserRequest{ClientID: …, UserID: …})` from your own admin tooling. To end only one of their sessions at that app (one device) and keep the others, use `op.RevokeUserFamily(ctx, oauthprovider.RevokeFamilyRequest{UserID: …, Family: …})` ([oauthprovider › Step 7](../plugins/oauthprovider.md#step-7--introspect-and-revoke)).
 
 Within one re-check interval every request of that person is answered "login required", whichever copy of the cookie it carries. The app sends a browser to the login server, which asks the rule again and shows its no-access page. Step 1 alone already stops the next refresh; the revoke also ends the access tokens the app holds and sends a back-channel logout to an app that registered one.
 
