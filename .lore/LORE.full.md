@@ -3,7 +3,7 @@
 
 # Project knowledge (full)
 
-_Pinned rows as of 2026-11-27 08:05 UTC; a row's current text: `lore show --id <id>`._
+_Pinned rows as of 2026-11-27 10:42 UTC; a row's current text: `lore show --id <id>`._
 
 ## Must rules
 
@@ -45,5 +45,9 @@ Feature completeness wherever possible (owner 2026-10-05): when a common auth fe
 
 <rule id="rul_01a21c09b6627040bea444262a53a297" severity="must" trust="0.25" review="agent-written, not approved">
 Every limit and behaviour is an option with a documented default (today's value). For a limit, 0 or empty means off or no limit, except where 0 would remove a security protection: that fails at startup naming the option. An option that existed before keeps its zero meaning, and a new no-limit gets its own name (NoLimit, NO_LIMIT). Deliberately fixed behaviours are listed with the reason (docs/reference/options.md and the module's guide). Changes stay backward compatible and ship as patch releases (owner 2026-11-27).
+</rule>
+
+<rule id="rul_01a21c99aa987d4aaa2227a9f45cf013" severity="must" trust="0.25" review="agent-written, not approved">
+Full and release gates run on GitHub Actions (test.yml via workflow_dispatch) on the exact commit; locally only per-package tests. Changes land through a PR, squash-merged, one commit per change on main; release tags go on the squashed commit after a green test.yml on it. test.yml stays manual: no push or pull_request trigger without the owner's yes (owner 2026-11-27).
 </rule>
 

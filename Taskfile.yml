@@ -19,9 +19,9 @@ tasks:
   # :run twin. -count=1 stays only on runs against a live service (MySQL,
   # Postgres, Redis); plain runs may use Go's test cache.
   ci:
-    desc: Start the full GitHub Actions run (task check plus Postgres and MySQL) on the pushed main and show its status once; the heavy runs belong there, not on this Mac
+    desc: Start the full GitHub Actions run (task check plus Postgres and MySQL, plain and prefixed) on a pushed ref (REF, default main) and show its status once; the full and release gates run there, never locally
     cmds:
-      - gh workflow run test --ref main
+      - gh workflow run test --ref {{.REF | default "main"}}
       - 'sleep 5; gh run list --workflow test -L 3'
 
   ci:status:

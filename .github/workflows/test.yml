@@ -1,9 +1,12 @@
-# Runs the same gates as a developer machine (`task check`, then the Postgres
-# and MySQL integration suites) so heavy runs need not happen locally.
+# The full and release gate: `task check` (every module, the SQLite
+# integration suite plain and with every table prefixed, the doc and type
+# gates), then the integration suite on SQLite, Postgres and MySQL, plain and
+# with every table prefixed. It runs on the exact commit being merged or
+# tagged; a developer machine runs per-package tests only.
 #
-# Manual only: start it with `task ci` or the "Run workflow" button. The local
-# `task check` is the real gate. To run on every push to main and every pull
-# request again, put these lines back under `on:`:
+# Manual only: start it with `task ci REF=<branch>` or the "Run workflow"
+# button. To run on every push to main and every pull request, put these
+# lines back under `on:` (only with the owner's yes):
 #
 #   push:
 #     branches: [main]
@@ -80,4 +83,11 @@ jobs:
         env:
           AUTH_TEST_PG_DSN: postgres://postgres:root@localhost:5432/auth_test?sslmode=disable
           AUTH_TEST_MYSQL_DSN: root:auth@tcp(127.0.0.1:3306)/auth_test
+        run: go test -race -count=1 -p 1 -timeout 45m ./...
+      - name: the same with every table prefixed (auth.WithTablePrefix "t_")
+        working-directory: integration
+        env:
+          AUTH_TEST_PG_DSN: postgres://postgres:root@localhost:5432/auth_test?sslmode=disable
+          AUTH_TEST_MYSQL_DSN: root:auth@tcp(127.0.0.1:3306)/auth_test
+          AUTH_TEST_TABLE_PREFIX: t_
         run: go test -race -count=1 -p 1 -timeout 45m ./...

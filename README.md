@@ -278,15 +278,13 @@ The properties this version holds, and the tests that pin them, are listed in [C
 ## Development
 
 ```sh
-task check          # every module, the gqlgen example, the type checks, Markdown wrap and doc drift
-task test:engines   # the integration suite on SQLite, Postgres and MySQL
-task cover          # statement coverage per package, unit and integration merged
-task fuzz           # every fuzz target
-task ci             # the full gate on GitHub Actions (task ci:status reads the result)
-task --list         # the rest
+go test ./plugin/<name>/...   # while you work: the touched packages only
+task ci REF=<branch>          # the full gate on GitHub Actions on the pushed branch (task ci:status reads the result)
+task fuzz                     # every fuzz target
+task --list                   # the rest
 ```
 
-GitHub Actions can run `task check` and the Postgres and MySQL suites when started by hand (`task ci`); nothing runs automatically on push or pull request, so the local `task check` is the gate.
+Full and release gates run on GitHub Actions (`.github/workflows/test.yml`, started by hand) on the exact commit: `task check` and the integration suite on SQLite, Postgres and MySQL, plain and with every table prefixed; nothing runs automatically on push or pull request. Changes land through a pull request, squash-merged, one commit per change on main, and a release tag goes on the squashed commit after a green run on it. See [CONTRIBUTING](CONTRIBUTING.md#the-gate).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules a change is reviewed against and [COVERAGE.md](COVERAGE.md) for the measured coverage of every package and the few statements no test reaches.
 

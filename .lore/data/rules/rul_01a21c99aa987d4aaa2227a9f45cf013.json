@@ -1,0 +1,30 @@
+{
+  "_hlc": "2026-11-27T10:42:42.634Z/0000/act_eed7179abc3d7c58a0a0613f51dfa322",
+  "_o": {
+    "cmd": "rule add",
+    "git": {
+      "branch": "feat/provider-store",
+      "commit": "d07f42d445d36c3771bb9b999dd63353b5e2b90a",
+      "state": "branch"
+    },
+    "project": "prj_01a0ec295d717a419fadab8d3f640161",
+    "store": "repo"
+  },
+  "_table": "rules",
+  "_v": 2,
+  "_w": {
+    "v": "0.1.65"
+  },
+  "activation": "always",
+  "body": "Full and release gates run on GitHub Actions (test.yml via workflow_dispatch) on the exact commit; locally only per-package tests. Changes land through a PR, squash-merged, one commit per change on main; release tags go on the squashed commit after a green test.yml on it. test.yml stays manual: no push or pull_request trigger without the owner's yes (owner 2026-11-27).",
+  "created_at": "2026-11-27T10:42:42.634000000Z",
+  "created_by": "act_eed7179abc3d7c58a0a0613f51dfa322",
+  "created_by_actor_id": "act_eed7179abc3d7c58a0a0613f51dfa322",
+  "id": "rul_01a21c99aa987d4aaa2227a9f45cf013",
+  "project_id": "prj_01a0ec295d717a419fadab8d3f640161",
+  "severity": "must",
+  "source_kind": "manual",
+  "trust_score": 0.25,
+  "updated_at": "2026-11-27T10:42:42.634000000Z",
+  "updated_by": "act_eed7179abc3d7c58a0a0613f51dfa322"
+}
