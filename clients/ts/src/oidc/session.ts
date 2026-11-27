@@ -396,7 +396,7 @@ export interface Lifetimes {
 /** Closing the browser on Monday and coming back on Wednesday keeps the person signed in. */
 export const DEFAULT_IDLE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** Nobody stays signed in past a month without passing the login server again. */
+/** By default nobody stays signed in past a month without passing the login server again; `NO_LIMIT` turns this cap off. */
 export const DEFAULT_ABSOLUTE_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**

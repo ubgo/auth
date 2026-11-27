@@ -1,0 +1,25 @@
+func (p *Plugin) burnRefresh(ctx context.Context, hash []byte, refusal error) error {
+	e := &grantRefusal{refusal: refusal}
+	p.core.AfterTx(ctx, func(ctx context.Context) {
+		var family, client string
+		var user *string
+		err := p.core.One(ctx, p.core.Select().Columns(sqlb.Bind(TokenFamily, &family), sqlb.Bind(TokenClient, &client), sqlb.Bind(TokenUser, &user)).From(TableToken).Where(sqlb.Eq(TokenRefresh, hash)))
+		if errors.Is(err, sqlb.ErrNoRows) {
+			return
+		}
+		var n int64
+		if err == nil {
+			now := p.core.Now()
+			n, err = p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableToken).Set(sqlb.Set(TokenRevoked, &now)).
+				Where(sqlb.Eq(TokenFamily, family), sqlb.IsNull(TokenRevoked)))
+		}
+		if err != nil {
+			e.fail(err)
+			return
+		}
+		if n > 0 {
+			p.emitToken(ctx, TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonRefused, ClientID: client, UserID: deref(user), Family: family})
+		}
+	})
+	return e
+}

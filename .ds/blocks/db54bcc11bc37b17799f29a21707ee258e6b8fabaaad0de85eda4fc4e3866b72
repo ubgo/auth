@@ -1,0 +1,15 @@
+func ScopeClaims(m map[string][]string) Option {
+	return func(p *Plugin) {
+		if m == nil {
+			p.scopeClaims, p.scopeClaimsGiven = nil, nil
+			return
+		}
+		p.scopeClaims = map[string][]string{}
+		p.scopeClaimsGiven = m
+		for scope, claims := range m {
+			for _, c := range claims {
+				p.scopeClaims[c] = append(p.scopeClaims[c], scope)
+			}
+		}
+	}
+}

@@ -98,6 +98,8 @@ Every policy is one field of the options object with a safe default; the Go modu
 
 ### Every option
 
+The same options next to their Go names and the provider's, with where 0 is refused: [Limits and options](../../docs/reference/options.md).
+
 `NO_LIMIT` (`Infinity`) turns a bound off where the table says so. It is not 0: an empty environment variable reads as 0, and a cap must never vanish by accident, so a lifetime of 0 is refused. Every time is in milliseconds.
 
 | Option | Default | 0 / `NO_LIMIT` | What it decides |

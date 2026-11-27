@@ -621,7 +621,7 @@ Sam, a contractor, is on the ops console's list. On Monday he signs in to the co
 
 ### Two clocks
 
-- **The session** says how long the browser stays signed in without seeing the login server: 7 days while in use, 30 days at most. It lives in a sealed cookie that has an expiry, so closing the browser does not end it. That is why Wednesday needs no sign-in.
+- **The session** says how long the browser stays signed in without seeing the login server: 7 days while in use, 30 days at most by default (`oidcclient.NoLimit` lifts the cap, see [No maximum session length](../integrations/oidc-client.md#no-maximum-session-length)). It lives in a sealed cookie that has an expiry, so closing the browser does not end it. That is why Wednesday needs no sign-in.
 - **The re-check** says how long the login server's last "yes" stands: one minute. On the first request after it, the app redeems the session's refresh token at `/oauth2/token`, as step 5 redeemed the code. The login server asks the same question as in step 3 (does the app's list let this person in?) on every refresh, so its answer is current. A "yes" brings new tokens, which the app saves into a new cookie; a "no" (`invalid_grant`) ends the session on that request.
 
 A long session is convenience; the re-check is authority. The cookie never decides on its own whether Sam may use the app: it only carries the refresh token, and the login server decides what that token is still worth. A saved copy of the cookie carries a refresh token the server has refused, so on Thursday at 15:01 it is worth nothing. Between 15:00 and 15:01 the copy still works, because the app has not asked yet: the re-check interval is the longest a removed person can stay in, and an app that needs less sets a shorter one.

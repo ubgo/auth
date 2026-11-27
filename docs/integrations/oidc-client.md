@@ -158,7 +158,7 @@ Check: [`TestNoLimit_Absolute`](ds:block?id=testnolimit-absolute-rm3q5kxs&assert
 
 ## Every option
 
-Each policy is one option to `oidcclient.New`; the package's godoc is the reference. The TypeScript client takes the same options under the names in [its README](../../clients/ts/README.md#every-option). `NoLimit` is accepted where the table says so; a zero `Lifetimes` field is the default.
+Each policy is one option to `oidcclient.New`; the package's godoc is the reference. The TypeScript client takes the same options under the names in [its README](../../clients/ts/README.md#every-option). `NoLimit` is accepted where the table says so; a zero `Lifetimes` field is the default. [Limits and options](../reference/options.md) puts the Go and TypeScript names and the provider's options on one page.
 
 | Option | Default | Zero / `NoLimit` | What it decides |
 |---|---|---|---|

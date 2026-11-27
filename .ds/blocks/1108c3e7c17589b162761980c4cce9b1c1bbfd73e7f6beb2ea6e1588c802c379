@@ -1,0 +1,27 @@
+func (p *Plugin) redeemCode(ctx context.Context, code string) (codeRow, error) {
+	hash := p.hashSecret(SecretCode, code)
+	now := p.core.Now()
+	n, err := p.core.Exec(ctx, sqlb.NewUpdate(p.core.Dialect()).Table(TableCode).Set(sqlb.Set(CodeConsumed, &now)).
+		Where(sqlb.Eq(CodeHash, hash), sqlb.IsNull(CodeConsumed)))
+	if err != nil {
+		return codeRow{}, err
+	}
+	var r codeRow
+	err = p.core.One(ctx, p.core.Select().Columns(r.bindings()...).From(TableCode).Where(sqlb.Eq(CodeHash, hash)))
+	if errors.Is(err, sqlb.ErrNoRows) {
+		return codeRow{}, ErrInvalidGrant
+	}
+	if err != nil {
+		return codeRow{}, err
+	}
+	if n == 0 {
+		p.reportReplay(ctx, GrantAuthorizationCode, r.client, r.user)
+		e := TokenEvent{Kind: TokenEventRevoked, Reason: RevokeReasonReuse, ClientID: r.client, UserID: r.user, SessionID: r.session, Family: r.id}
+		p.core.AfterTx(ctx, func(ctx context.Context) { p.revokeFamily(ctx, e) })
+		return codeRow{}, ErrInvalidGrant
+	}
+	if !now.Before(r.expires) {
+		return codeRow{}, ErrInvalidGrant
+	}
+	return r, nil
+}

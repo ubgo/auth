@@ -87,6 +87,8 @@ Each rule has a test in `integration/r33_test.go` that was broken once to prove 
 
 ## Options
 
+Every option with its default and what 0 means, where 0 is refused, and what is fixed and why, side by side with the OIDC clients': [Limits and options](../../docs/reference/options.md).
+
 | Option | Default | What |
 |---|---|---|
 | `Issuer(url)` | required | The `iss` and the base of every URL; https, or http on loopback |

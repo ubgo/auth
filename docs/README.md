@@ -205,6 +205,7 @@ A typed TypeScript client generated from the same operations the Go server serve
 - [HTTP API](reference/http-api.md): every route, generated from the code; [`openapi.json`](reference/openapi.json) is the same list as an OpenAPI 3.1 document with request and response schemas, and `authhttp.OpenAPI` serves an app's own.
 - [TypeScript client methods](reference/ts-client.md): every method of the prebuilt client with its route, requirement and input and output types, generated from the code.
 - [Error codes](reference/error-codes.md): every code with its status and message, generated from the declarations; [`error-codes.ts`](reference/error-codes.ts) and [`error-codes.json`](reference/error-codes.json) are the same list for a TypeScript frontend and for tooling.
+- [Limits and options](reference/options.md): every limit, lifetime and hook of the OIDC clients (Go and TypeScript) and the OAuth provider, with its default, what 0 or `NoLimit` means, where 0 is refused, and what is fixed and why.
 - [Troubleshooting](reference/troubleshooting.md): common mistakes and how to fix them.
 - [Examples](../examples): a runnable program for every common setup.
 - [Go reference](https://pkg.go.dev/github.com/ubgo/auth) on pkg.go.dev.

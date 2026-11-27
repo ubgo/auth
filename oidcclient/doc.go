@@ -27,5 +27,7 @@
 //
 // The package depends only on the Go standard library, so an app that
 // imports it downloads nothing else. DESIGN.md beside this file explains
-// the request lifecycle and why each seam has the shape it has.
+// the request lifecycle and why each seam has the shape it has, and the
+// repository's docs/reference/options.md lists every option with its
+// default and what zero and NoLimit mean.
 package oidcclient

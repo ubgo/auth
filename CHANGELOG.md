@@ -4,6 +4,40 @@ Every entry that changes a security property is tagged **[security]**, so an app
 
 ## Unreleased
 
+## oidcclient v0.1.3, plugin/oauthprovider v0.1.8 and @ubgo/auth-client 0.1.1, 2026-11-27
+
+`oidcclient` is tagged v0.1.3 and `plugin/oauthprovider` v0.1.8; `@ubgo/auth-client` is 0.1.1 for npm. The core and every other module are unchanged. Every limit and lifetime of the two OIDC clients and the provider is now an option whose default is the value used before, so nothing changes for an app that sets none; [Limits and options](docs/reference/options.md) lists them all.
+
+### Added
+
+- oidcclient: `NoLimit` turns a session bound off: `WithLifetimes(oidcclient.Lifetimes{Absolute: oidcclient.NoLimit})` keeps a session for as long as it is used within the idle window and the login server says yes at each re-check, with no 30-day cap; `Idle: NoLimit` drops the idle bound, and `WithRecheckInterval`, `WithOutageGrace` and `WithSlideInterval` accept it too. A zero `Lifetimes` field still means the default. Without an idle bound `Session.ExpiresAt` is the last use plus `MaxCookieLifetime` (400 days, the browser's cookie limit), so stores keep a real TTL. `New` refuses the one configuration where nothing could end a session (no lifetime, never re-checked, no `SessionRevoker`). `TestNoLimit_Absolute`, `TestNoLimit_Idle`, `TestNoLimit_Neither`, `TestNoLimit_NeverRecheck`, `TestNoLimit_OutageGrace`, `TestLifetimes_ExpiresAt`.
+- oidcclient: `WithSlideInterval(d)` (how often use moves the idle window, 1 minute by default), `WithClockSkew(d)` **[security]** (the leeway on tokens' iat, nbf and exp and on a sign-in's start, 30 s by default, 0 to `MaxClockSkew` = 5 minutes; more is refused because it would disable the expiry check), `WithFlowLifetime(d)` (how long one sign-in may take, 10 minutes by default) and `CookieOptions.BrowserSession` (a cookie without expiry, forgotten when the browser closes). `TestSlideInterval`, `TestClockSkew`, `TestFlowLifetime`, `TestBrowserSessionCookie`.
+- oidcclient: `WithLogoutPolicy(p)` decides per sign-out how far it reaches: `LogoutAtServer` (the default, the end-session redirect) or `LogoutAppOnly` (the app's session only; the login server's stays). The refresh token is revoked either way, and an unknown answer signs out at the server. `TestLogoutPolicy`.
+- oidcclient: session hooks. `WithOnSessionStart` runs at sign-in after the UserMapper and before the session is saved, with its final ID, and may refuse the sign-in (`ErrAccessDenied` = no access); `WithOnSessionEnd` hears every session the package ends (`EndLogout`, `EndIdleExpired`, `EndAbsoluteExpired`, `EndRecheckRefused`, `EndReplaced`, `EndBackchannel` with the target and count); `WithOnRefreshFailed` hears each re-check that did not keep the session, once per flight, with `Outage` set when the login server could not be reached. `TestHooks_SessionStartAndEnd`, `TestHooks_SessionStartRefuses`, `TestHooks_RefreshFailed`, `TestHooks_RefreshFailedOncePerFlight`.
+- clients/ts: `@ubgo/auth-client/oidc` gets the same options: `NO_LIMIT` (Infinity; a lifetime of 0 stays refused so an empty environment variable never removes a cap) for `lifetimes`, `recheckIntervalMs`, `outageGraceMs` and `slideIntervalMs`, `MAX_COOKIE_LIFETIME_MS`, `slideIntervalMs`, `clockSkewMs` **[security]** (0 to `MAX_CLOCK_SKEW_MS`), `flowLifetimeMs`, `cookie.browserSession`, `logoutPolicy` with `LogoutMode` and `logoutAlways`, and the hooks `onSessionStart`, `onSessionEnd` (`SessionEndReason`) and `onRefreshFailed`. `test/oidc/options.test.ts`; `ts:oidc-typecheck` now holds 15 deliberately wrong lines (a logout policy answering an unknown mode, a non-boolean `browserSession`).
+- plugin/oauthprovider: every lifetime, timeout and limit is an option, each defaulting to today's value: `ConsentTTL(d)` (0, the default, never expires a consent; an approval after expiry replaces the old grant), `EndSessionConfirmTTL(d)` (5m), `EndSessionHintGrace(d)` (0: an expired `id_token_hint` at end-session is refused as before), `BackchannelLogoutTokenTTL(d)` (2m), `BackchannelTimeout(d)` (5s, also bounding a custom `BackchannelHTTPClient`; 0 sets no bound of the plugin's own), `ClockSkew(d)` (30s on private_key_jwt assertions and end-session hints; 0 none), `DPoPClockSkew(d)` (5s), `MaxRequestBytes(n)` (64 KiB), `ClientJWKSCacheTTL(d)` (5m), `ClientJWKSFetchLimits(timeout, n)` (5s, 64 KiB), the CIMD option `CIMDFetchLimits(timeout, n)` (5s, 5 KB) and `ResourceGuard.Leeway`. A 0 that would remove a protection (a confirmation, a logout token's exp, a body size, a fetch bound) is refused at `auth.New` with `ErrBadTTL` or the new `ErrBadLimit`, naming the option. `plugin/oauthprovider/optionspass_test.go`, `integration/provideroptions_test.go` on SQLite, Postgres and MySQL.
+- plugin/oauthprovider: `ValidatePostLogoutRedirectURI(fn)` **[security]** widens the exact post-logout redirect match the way `ValidateRedirectURI` does for authorize; a URI it accepts must still be absolute with no fragment or credentials.
+- plugin/oauthprovider: `ScopeClaims(map)` replaces which scope releases which built-in claim (`name`, `given_name`, `family_name`, `picture`, `email`, `email_verified`); an unknown claim is `ErrBadClaims`.
+- plugin/oauthprovider: `RenderPage(fn)` renders the error, logout confirmation and logged-out pages from `PageData`, with the built-in pages' CSP, no-store and nosniff headers already set.
+- plugin/oauthprovider: `BackchannelDelivery(fn)` takes over each signed logout token (queue, retry, outbox); `PostBackchannelLogout` is the default, callable by name, and a status other than 200 or 204 is `ErrBackchannelStatus`.
+- plugin/oauthprovider: `OnTokenEvent(fn)` observes every issuance (after its commit) and revocation, with a `RevokeReason` (client_request, reuse, refused, session_ended, consent_revoked, admin); it never sees a token.
+- plugin/oauthprovider: a rotated refresh token or a spent code presented again is reported on the security stream as `auth.SecurityTokenReplay` **[security]** (SeverityAlert, Outcome blocked, attrs `client_id` and `grant_kind`) when the app registered a sink.
+
+### Changed
+
+- clients/ts: `@ubgo/auth-client/oidc` accepts a sign-in flow that started up to the clock skew (30 s) in the future, as the Go client always did, so an app on several instances whose clocks differ slightly no longer refuses those callbacks.
+
+### Fixed
+
+- plugin/oauthprovider: a private_key_jwt assertion's jti is kept until its exp plus the clock skew **[security]**, so `Sweep` can no longer free a jti the verifier would still accept inside the leeway and let the assertion be replayed.
+- plugin/oauthprovider: the size cap on a client metadata document follows `CIMDFetchLimits` for every fetcher; before, a custom `CIMDFetch` could not accept a document over 5 KB.
+
+### Documentation
+
+- [Limits and options](docs/reference/options.md): one table of every option of `oidcclient`, `@ubgo/auth-client/oidc` and `plugin/oauthprovider` with its default and what 0, empty or `NoLimit` means, the limits where 0 is refused and why, and what is deliberately fixed and why. The README, llms.txt, the docs index, both guides and the module READMEs link it.
+- [OIDC client](docs/integrations/oidc-client.md): "No maximum session length", a table of every option with its default and what zero and `NoLimit` mean, the hooks, and every behaviour without an option with its reason. The TypeScript README has the same tables under its names; oidcclient's DESIGN.md records why `NoLimit` is a sentinel and not zero. [How an OIDC login works](docs/concepts/oidc-login-flow.md) says the 30-day cap is a default.
+- [OAuth provider](docs/plugins/oauthprovider.md): "Every lifetime, limit and hook", with the defaults, what 0 means, the hooks and the rules kept fixed with their reasons. The [feature index](docs/reference/features.md) gains rows for no maximum session length, the client hooks and logout policy, `ConsentTTL`, `OnTokenEvent`, `RenderPage`, `BackchannelDelivery` and the limits page.
+
 ## plugin/oauthprovider v0.1.7, 2026-11-27
 
 `plugin/oauthprovider` is tagged v0.1.7; the core stays at v0.1.1.

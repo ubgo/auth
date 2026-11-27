@@ -251,8 +251,8 @@ type Lifetimes struct {
 }
 
 // Default lifetimes: a person who closes the browser on Monday and comes
-// back on Wednesday is still signed in; nobody stays signed in past a month
-// without passing the login server again.
+// back on Wednesday is still signed in; by default nobody stays signed in
+// past a month without passing the login server again (NoLimit lifts it).
 const (
 	//ds:def id=defaultidlelifetime-mjhkz59a owner=@khanakia stability=stable
 	DefaultIdleLifetime = 7 * 24 * time.Hour

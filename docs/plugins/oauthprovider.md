@@ -594,7 +594,7 @@ ok  	github.com/ubgo/auth/examples/oauth-provider	1.035s
 
 ## Every lifetime, limit and hook
 
-Every timing and limit the provider applies is an option, with today's value as the default. Where a value can be switched off, the table says what 0 means; where it cannot, the last table says why.
+Every timing and limit the provider applies is an option, with today's value as the default. Where a value can be switched off, the table says what 0 means; where it cannot, the last table says why. [Limits and options](../reference/options.md) lists every provider option, next to the OIDC clients'.
 
 | Option | Default | 0 means | What it bounds |
 |---|---|---|---|
