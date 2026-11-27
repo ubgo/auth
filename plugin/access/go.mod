@@ -8,6 +8,6 @@ module github.com/ubgo/auth/plugin/access
 
 go 1.24.0
 
-require github.com/ubgo/auth v0.1.1
+require github.com/ubgo/auth v0.1.3
 
 require github.com/ubgo/sqlb v0.1.1 // indirect
